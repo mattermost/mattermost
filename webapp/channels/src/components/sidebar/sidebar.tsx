@@ -8,7 +8,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import EditCategoryModal from 'components/edit_category_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 import DataPrefetch from 'components/data_prefetch';
-import MoreChannels from 'components/more_channels';
+import BrowseChannels from 'components/browse_channels';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import InvitationModal from 'components/invitation_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -29,6 +29,7 @@ import ChannelNavigator from './channel_navigator';
 import SidebarList from './sidebar_list';
 import SidebarHeader from './sidebar_header';
 import MobileSidebarHeader from './mobile_sidebar_header';
+import ResizableLhs from 'components/resizable_sidebar/resizable_lhs';
 
 type Props = {
     teamId: string;
@@ -36,16 +37,13 @@ type Props = {
     canCreatePrivateChannel: boolean;
     canJoinPublicChannel: boolean;
     isOpen: boolean;
-    hasSeenModal: boolean;
     actions: {
         fetchMyCategories: (teamId: string) => {data: boolean};
-        createCategory: (teamId: string, categoryName: string) => {data: string};
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
         clearChannelSelection: () => void;
         closeRightHandSide: () => void;
     };
-    isCloud: boolean;
     unreadFilterEnabled: boolean;
     isMobileView: boolean;
     isKeyBoardShortcutModalOpen: boolean;
@@ -148,15 +146,10 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         trackEvent('ui', 'ui_sidebar_menu_createCategory');
     };
 
-    handleCreateCategory = (categoryName: string) => {
-        this.props.actions.createCategory(this.props.teamId, categoryName);
-    };
-
     showMoreChannelsModal = () => {
         this.props.actions.openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
-            dialogType: MoreChannels,
-            dialogProps: {morePublicChannelsModalType: 'public'},
+            dialogType: BrowseChannels,
         });
         trackEvent('ui', 'ui_channels_more_public_v2');
     };
@@ -236,12 +229,14 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         const ariaLabel = Utils.localizeMessage('accessibility.sections.lhsNavigator', 'channel navigator region');
 
         return (
-            <div
+            <ResizableLhs
                 id='SidebarContainer'
                 className={classNames({
                     'move--right': this.props.isOpen && this.props.isMobileView,
                     dragging: this.state.isDragging,
                 })}
+                disabled={this.props.isMobileView}
+
             >
                 {this.props.isMobileView ? <MobileSidebarHeader/> : (
                     <SidebarHeader
@@ -265,18 +260,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     className='a11y__region'
                     data-a11y-sort-order='6'
                 >
-                    <ChannelNavigator
-                        showNewChannelModal={this.showNewChannelModal}
-                        showMoreChannelsModal={this.showMoreChannelsModal}
-                        showCreateUserGroupModal={this.showCreateUserGroupModal}
-                        invitePeopleModal={this.invitePeopleModal}
-                        showCreateCategoryModal={this.showCreateCategoryModal}
-                        canCreateChannel={this.props.canCreatePrivateChannel || this.props.canCreatePublicChannel}
-                        canJoinPublicChannel={this.props.canJoinPublicChannel}
-                        handleOpenDirectMessagesModal={this.handleOpenMoreDirectChannelsModal}
-                        unreadFilterEnabled={this.props.unreadFilterEnabled}
-                        userGroupsEnabled={this.props.userGroupsEnabled}
-                    />
+                    <ChannelNavigator/>
                 </div>
                 <div className='sidebar--left__icons'>
                     <Pluggable pluggableName='LeftSidebarHeader'/>
@@ -288,7 +272,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 />
                 <DataPrefetch/>
                 {this.renderModals()}
-            </div>
+            </ResizableLhs>
         );
     }
 }

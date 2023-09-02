@@ -14,6 +14,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
+
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -61,6 +63,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
 	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewInt(2), MaxBurst: model.NewInt(1)})).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods("POST")
@@ -91,7 +94,6 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/recent_searches", api.APISessionRequiredDisableWhenBusy(getRecentSearches)).Methods("GET")
 
 	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods("GET")
 
@@ -428,7 +430,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -499,7 +501,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -558,12 +560,14 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelID := r.URL.Query().Get("in_channel")
 	includeDeleted := r.URL.Query().Get("include_deleted")
 	includeBotAccounts := r.URL.Query().Get("include_bots")
+	includeRemoteUsers := r.URL.Query().Get("include_remote_users")
 	rolesString := r.URL.Query().Get("roles")
 	channelRolesString := r.URL.Query().Get("channel_roles")
 	teamRolesString := r.URL.Query().Get("team_roles")
 
 	includeDeletedBool, _ := strconv.ParseBool(includeDeleted)
 	includeBotAccountsBool, _ := strconv.ParseBool(includeBotAccounts)
+	includeRemoteUsersBool, _ := strconv.ParseBool(includeRemoteUsers)
 
 	roles := []string{}
 	var rolesValid bool
@@ -594,6 +598,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	options := &model.UserCountOptions{
 		IncludeDeleted:     includeDeletedBool,
 		IncludeBotAccounts: includeBotAccountsBool,
+		IncludeRemoteUsers: includeRemoteUsersBool,
 		TeamId:             teamID,
 		ChannelId:          channelID,
 		Roles:              roles,
@@ -719,7 +724,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("role")
 			return
 		}
-		roleValid := utils.StringInSlice(role, roleNamesAll)
+		roleValid := pUtils.Contains(roleNamesAll, role)
 		if !roleValid {
 			c.SetInvalidParam("role")
 			return
@@ -954,6 +959,10 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("user_ids", err)
 		return
 	}
+
+	// we remove the duplicate IDs as it can bring a significant load to the
+	// database.
+	userIDs = model.RemoveDuplicateStrings(userIDs)
 
 	sinceString := r.URL.Query().Get("since")
 
@@ -1249,7 +1258,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), user.Id) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), user.Id) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1259,6 +1268,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
 	// Cannot update a system admin unless user making request is a systemadmin also.
 	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -1325,7 +1335,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "user_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1335,6 +1345,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("user_id")
 		return
 	}
+
 	auditRec.AddEventPriorState(ouser)
 	auditRec.AddEventObjectType("user")
 
@@ -1402,7 +1413,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), userId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1831,6 +1842,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.user.check_user_mfa.bad_code.app_error",
 			"api.user.login.blank_pwd.app_error",
 			"api.user.login.bot_login_forbidden.app_error",
+			"api.user.login.remote_users.login.error",
 			"api.user.login.client_side_cert.certificate.app_error",
 			"api.user.login.inactive.app_error",
 			"api.user.login.not_verified.app_error",
@@ -1931,9 +1943,15 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if user.IsRemote() {
+		c.Err = model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
+		return
+	}
+
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
+	isMobileDevice := utils.IsMobileRequest(r)
+	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, isMobileDevice, false, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -1959,6 +1977,30 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	user.Sanitize(map[string]bool{})
 
 	auditRec.Success()
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJSON(r.Body)
+	token := props["token"]
+	deviceId := props["device_id"]
+
+	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.App.AttachSessionCookies(c.AppContext, w, r)
+
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -2003,7 +2045,8 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	audit.AddEventParameterAuditable(auditRec, "user", user)
 	c.LogAuditWithUserId(user.Id, "authenticated")
-	err = c.App.DoLogin(c.AppContext, w, r, user, "", false, false, false)
+	isMobileDevice := utils.IsMobileRequest(r)
+	err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobileDevice, false, false)
 	if err != nil {
 		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
@@ -2212,6 +2255,10 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Domain:   c.App.GetCookieDomain(),
 		Secure:   secure,
+	}
+
+	if secure && utils.CheckEmbeddedCookie(r) {
+		sessionCookie.SameSite = http.SameSiteNoneMode
 	}
 
 	http.SetCookie(w, sessionCookie)
@@ -3106,8 +3153,8 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 	extendedStr := r.URL.Query().Get("extended")
@@ -3221,8 +3268,8 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -3257,8 +3304,8 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -3291,8 +3338,8 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -3324,8 +3371,8 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -3389,27 +3436,5 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 	err := json.NewEncoder(w).Encode(users)
 	if err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
-	}
-}
-
-func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
-	}
-
-	searchParams, err := c.App.GetRecentSearchesForUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(searchParams); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

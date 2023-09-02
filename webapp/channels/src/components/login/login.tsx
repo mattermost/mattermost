@@ -3,7 +3,7 @@
 
 import React, {useState, useEffect, useRef, useCallback, FormEvent} from 'react';
 import {useIntl} from 'react-intl';
-import {Link, useLocation, useHistory} from 'react-router-dom';
+import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
@@ -32,7 +32,9 @@ import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import AlertBanner, {ModeType, AlertBannerProps} from 'components/alert_banner';
+import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLoginButton, {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
+import ExternalLink from 'components/external_link';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
@@ -54,6 +56,7 @@ import {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import {showNotification} from 'utils/notifications';
 import {t} from 'utils/i18n';
+import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
 
 import LoginMfa from './login_mfa';
@@ -98,6 +101,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
+        ForgotPasswordLink,
+        PasswordEnableForgotLink,
     } = useSelector(getConfig);
     const {IsLicensed} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
@@ -145,6 +150,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const query = new URLSearchParams(search);
     const redirectTo = query.get('redirect_to');
 
+    const [desktopLoginLink, setDesktopLoginLink] = useState('');
+
     const getExternalLoginOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
 
@@ -153,53 +160,74 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         if (enableSignUpWithGitLab) {
+            const url = `${Client4.getOAuthRoute()}/gitlab/login${search}`;
             externalLoginOptions.push({
                 id: 'gitlab',
-                url: `${Client4.getOAuthRoute()}/gitlab/login${search}`,
+                url,
                 icon: <LoginGitlabIcon/>,
                 label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
                 style: {color: GitLabButtonColor, borderColor: GitLabButtonColor},
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (enableSignUpWithGoogle) {
+            const url = `${Client4.getOAuthRoute()}/google/login${search}`;
             externalLoginOptions.push({
                 id: 'google',
-                url: `${Client4.getOAuthRoute()}/google/login${search}`,
+                url,
                 icon: <LoginGoogleIcon/>,
                 label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (enableSignUpWithOffice365) {
+            const url = `${Client4.getOAuthRoute()}/office365/login${search}`;
             externalLoginOptions.push({
                 id: 'office365',
-                url: `${Client4.getOAuthRoute()}/office365/login${search}`,
+                url,
                 icon: <LoginOffice365Icon/>,
                 label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (enableSignUpWithOpenId) {
+            const url = `${Client4.getOAuthRoute()}/openid/login${search}`;
             externalLoginOptions.push({
                 id: 'openid',
-                url: `${Client4.getOAuthRoute()}/openid/login${search}`,
+                url,
                 icon: <LoginOpenIDIcon/>,
                 label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
                 style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (enableSignUpWithSaml) {
+            const url = `${Client4.getUrl()}/login/sso/saml${search}`;
             externalLoginOptions.push({
                 id: 'saml',
-                url: `${Client4.getUrl()}/login/sso/saml${search}`,
+                url,
                 icon: <LockIcon/>,
                 label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
+                onClick: desktopExternalAuth(url),
             });
         }
 
         return externalLoginOptions;
+    };
+
+    const desktopExternalAuth = (href: string) => {
+        return (event: React.MouseEvent) => {
+            if (isDesktopApp()) {
+                event.preventDefault();
+
+                setDesktopLoginLink(href);
+                history.push(`/login/desktop${search}`);
+            }
+        };
     };
 
     const dismissAlert = () => {
@@ -360,8 +388,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const onWindowFocus = useCallback(() => {
         if (extraParam === Constants.SIGNIN_VERIFIED && emailParam) {
             passwordInput.current?.focus();
-        } else {
-            loginIdInput.current?.focus();
         }
     }, [emailParam, extraParam]);
 
@@ -375,6 +401,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, [onCustomizeHeader, search, showMfa, isMobileView, getAlternateLink]);
 
     useEffect(() => {
+        // We don't want to redirect outside of this route if we're doing Desktop App auth
+        if (query.get('server_token')) {
+            return;
+        }
+
         if (currentUser) {
             if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
                 history.push(redirectTo);
@@ -593,6 +624,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
+        await postSubmit(userProfile);
+    };
+
+    const postSubmit = async (userProfile: UserProfile) => {
         if (graphQLEnabled) {
             await dispatch(loadMe());
         } else {
@@ -703,6 +738,34 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         );
     };
 
+    const getResetPasswordLink = () => {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+            return null;
+        }
+
+        if (ForgotPasswordLink) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <ExternalLink href={ForgotPasswordLink}>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </ExternalLink>
+                </div>
+            );
+        }
+
+        if (enableSignInWithUsername || enableSignInWithEmail) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <Link to='/reset_password'>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </Link>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     const getContent = () => {
         if (showMfa) {
             return (
@@ -719,6 +782,20 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 <ColumnLayout
                     title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
                     message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
+                />
+            );
+        }
+
+        if (desktopLoginLink || query.get('server_token')) {
+            return (
+                <Route
+                    path={'/login/desktop'}
+                    render={() => (
+                        <DesktopAuthToken
+                            href={desktopLoginLink}
+                            onLogin={postSubmit}
+                        />
+                    )}
                 />
             );
         }
@@ -802,13 +879,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             hasError={hasError}
                                             disabled={isWaiting}
                                         />
-                                        {(enableSignInWithUsername || enableSignInWithEmail) && (
-                                            <div className='login-body-card-form-link'>
-                                                <Link to='/reset_password'>
-                                                    {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
-                                                </Link>
-                                            </div>
-                                        )}
+                                        {getResetPasswordLink()}
                                         <SaveButton
                                             extraClasses='login-body-card-form-button-submit large'
                                             saving={isWaiting}

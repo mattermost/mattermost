@@ -104,6 +104,7 @@ function makeMapStateToProps() {
         const tourStep = isGuestUser ? OnboardingTourStepsForGuestUsers.SEND_MESSAGE : OnboardingTourSteps.SEND_MESSAGE;
         const showSendTutorialTip = enableTutorial && tutorialStep === tourStep;
         const isFormattingBarHidden = getBool(state, Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.POST);
+        const postEditorActions = state.plugins.components.PostEditorAction;
 
         return {
             currentTeamId,
@@ -143,6 +144,7 @@ function makeMapStateToProps() {
             isLDAPEnabled,
             useCustomGroupMentions,
             isPostPriorityEnabled: isPostPriorityEnabled(state),
+            postEditorActions,
         };
     };
 }

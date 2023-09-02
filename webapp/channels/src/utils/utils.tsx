@@ -25,7 +25,7 @@ import {
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-import {Posts, Preferences, General} from 'mattermost-redux/constants';
+import {Preferences, General} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInTeam,
@@ -47,16 +47,13 @@ import {searchForTerm} from 'actions/post_actions';
 import {getHistory} from 'utils/browser_history';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
-import {isDesktopApp} from 'utils/user_agent';
 import {t} from 'utils/i18n';
 import store from 'stores/redux_store.jsx';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
-import {getIsMobileView} from 'selectors/views/browser';
 
 import {FileInfo} from '@mattermost/types/files';
 import {Team} from '@mattermost/types/teams';
-import {Post} from '@mattermost/types/posts';
 import {UserProfile} from '@mattermost/types/users';
 import {Channel} from '@mattermost/types/channels';
 
@@ -307,13 +304,6 @@ export function getIconClassName(fileTypeIn: string) {
     }
 
     return 'generic';
-}
-
-export function getMenuItemIcon(name: string, dangerous?: boolean) {
-    const colorClass = dangerous ? 'MenuItem__compass-icon-dangerous' : 'MenuItem__compass-icon';
-    return (
-        <span className={`${name} ${colorClass}`}/>
-    );
 }
 
 export function toTitleCase(str: string): string {
@@ -851,10 +841,6 @@ export function setCaretPosition(input: HTMLInputElement, pos: number) {
     setSelectionRange(input, pos, pos);
 }
 
-export function scrollbarWidth(el: HTMLElement) {
-    return el.offsetWidth - el.clientWidth;
-}
-
 export function isValidUsername(name: string) {
     let error;
     if (!name) {
@@ -900,10 +886,6 @@ export function isValidBotUsername(name: string) {
     }
 
     return error;
-}
-
-export function isMobile() {
-    return getIsMobileView(store.getState());
 }
 
 export function loadImage(
@@ -1231,18 +1213,6 @@ export function clearFileInput(elm: HTMLInputElement) {
     }
 }
 
-export function isPostEphemeral(post: Post) {
-    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Posts.POST_DELETED;
-}
-
-export function getRootId(post: Post) {
-    return post.root_id === '' ? post.id : post.root_id;
-}
-
-export function getRootPost(postList: Post[]) {
-    return postList.find((post) => post.root_id === '');
-}
-
 export function localizeMessage(id: string, defaultMessage?: string) {
     const state = store.getState();
 
@@ -1545,19 +1515,6 @@ export function moveCursorToEnd(e: React.MouseEvent | React.FocusEvent) {
     }
 }
 
-export function compareChannels(a: Channel, b: Channel) {
-    const aDisplayName = a.display_name.toUpperCase();
-    const bDisplayName = b.display_name.toUpperCase();
-    const result = aDisplayName.localeCompare(bDisplayName);
-    if (result !== 0) {
-        return result;
-    }
-
-    const aName = a.name.toUpperCase();
-    const bName = b.name.toUpperCase();
-    return aName.localeCompare(bName);
-}
-
 export function setCSRFFromCookie() {
     if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
         const cookies = document.cookie.split(';');
@@ -1569,43 +1526,6 @@ export function setCSRFFromCookie() {
             }
         }
     }
-}
-
-/**
- * Get closest parent which match selector
- */
-export function getClosestParent(elem: HTMLElement, selector: string) {
-    // Element.matches() polyfill
-    if (!Element.prototype.matches) {
-        Element.prototype.matches =
-            (Element.prototype as any).matchesSelector ||
-            (Element.prototype as any).mozMatchesSelector ||
-            (Element.prototype as any).msMatchesSelector ||
-            (Element.prototype as any).oMatchesSelector ||
-            (Element.prototype as any).webkitMatchesSelector ||
-            ((s) => {
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                const matches = (this.document || this.ownerDocument).querySelectorAll(s);
-                let i = matches.length - 1;
-
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                while (i >= 0 && matches.item(i) !== this) {
-                    i--;
-                }
-                return i > -1;
-            });
-    }
-
-    // Get the closest matching element
-    let currentElem = elem;
-
-    // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-    for (; currentElem && currentElem !== document; currentElem = currentElem.parentNode) {
-        if (currentElem.matches(selector)) {
-            return currentElem;
-        }
-    }
-    return null;
 }
 
 export function getNextBillingDate() {
@@ -1794,9 +1714,9 @@ const TrackFlowSources: Record<string, string> = {
 };
 
 function getTrackFlowSource() {
-    if (isMobile()) {
+    if (UserAgent.isMobile()) {
         return TrackFlowSources.wm;
-    } else if (isDesktopApp()) {
+    } else if (UserAgent.isDesktopApp()) {
         return TrackFlowSources.d;
     }
     return TrackFlowSources.wd;

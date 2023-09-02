@@ -4,7 +4,7 @@
 import {expect} from '@playwright/test';
 
 import {UserProfile} from '@mattermost/types/users';
-import { PreferenceType } from '@mattermost/types/preferences';
+import {PreferenceType} from '@mattermost/types/preferences';
 
 import {Client, createRandomTeam, getAdminClient, getDefaultAdminUser, makeClient} from './support/server';
 import {defaultTeam} from './support/util';
@@ -197,10 +197,15 @@ async function savePreferences(client: Client, userId: UserProfile['id']) {
 
         const preferences: PreferenceType[] = [
             {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
-            {user_id: userId, category: 'drafts', name: 'drafts_tour_tip_showed', value: JSON.stringify({drafts_tour_tip_showed: true})},
+            {
+                user_id: userId,
+                category: 'drafts',
+                name: 'drafts_tour_tip_showed',
+                value: JSON.stringify({drafts_tour_tip_showed: true}),
+            },
             {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
         ];
-        
+
         await client.savePreferences(userId, preferences);
     } catch (error) {
         // eslint-disable-next-line no-console

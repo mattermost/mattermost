@@ -27,7 +27,6 @@ services:
       MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_SERVICEENVIRONMENT: "test"
-      MM_FEATUREFLAGS_INSIGHTSENABLED: "true"
     volumes:
     - "server-config:/mattermost/config"
     ports:
@@ -55,7 +54,7 @@ services:
         condition: service_healthy
 
   webhook-interactions:
-    image:  mattermostdevelopment/mirrored-node:16.10.0
+    image:  mattermostdevelopment/mirrored-node:18.17.1
     command: sh -c "npm install -g axios express client-oauth2@larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49 && exec node webhook_serve.js"
     environment:
       NODE_PATH: /usr/local/lib/node_modules/
@@ -121,6 +120,8 @@ services:
     image: "mattermostdevelopment/mirrored-golang:1.19.5"
     entrypoint: [ "/bin/bash", "-c" ]
     command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
+    environment:
+      MM_SERVICEENVIRONMENT: "test" # Currently required for running the config_generator with the right environment
     working_dir: "/opt/mattermost-server"
     volumes:
     - "../../:/opt/mattermost-server"

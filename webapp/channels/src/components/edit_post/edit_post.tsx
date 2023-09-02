@@ -29,6 +29,7 @@ import {ModalData} from 'types/actions';
 import {PostDraft} from '../../types/store/draft';
 
 import EditPostFooter from './edit_post_footer';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
 type DialogProps = {
     post?: Post;
@@ -42,7 +43,7 @@ export type Actions = {
     unsetEditingPost: () => void;
     openModal: (input: ModalData<DialogProps>) => void;
     scrollPostListToBottom: () => void;
-    getPostEditHistory: (postId: string) => void;
+    runMessageWillBeUpdatedHooks: (newPost: Partial<Post>, oldPost: Post) => Promise<ActionResult>;
 }
 
 export type Props = {
@@ -234,11 +235,19 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             return;
         }
 
-        const updatedPost = {
+        let updatedPost = {
             message: editText,
             id: editingPost.postId,
             channel_id: editingPost.post.channel_id,
         };
+
+        const hookResult = await actions.runMessageWillBeUpdatedHooks(updatedPost, editingPost.post);
+        if (hookResult.error && hookResult.error.message) {
+            setPostError(<>{hookResult.error.message}</>);
+            return;
+        }
+
+        updatedPost = hookResult.data;
 
         if (postError) {
             setErrorClass('animation--highlight');
@@ -271,9 +280,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         await actions.editPost(updatedPost as Post);
-        if (rest.isRHSOpened && rest.isEditHistoryShowing) {
-            actions.getPostEditHistory(editingPost.postId || '');
-        }
 
         handleAutomatedRefocusAndExit();
     };
@@ -471,6 +477,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         );
     }
 
+    let rootId = '';
+    if (editingPost.post) {
+        rootId = editingPost.post.root_id || editingPost.post.id;
+    }
+
     return (
         <div
             className={classNames('post--editing__wrapper', {
@@ -480,7 +491,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         >
             <Textbox
                 tabIndex={0}
-                rootId={editingPost.post ? Utils.getRootId(editingPost.post) : ''}
+                rootId={rootId}
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}

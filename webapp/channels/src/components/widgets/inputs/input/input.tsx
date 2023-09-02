@@ -179,6 +179,7 @@ const Input = React.forwardRef((
                         className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                         value={value}
                         placeholder={focused ? (label && placeholder) || label : label || placeholder}
+                        aria-label={label || placeholder}
                         name={name}
                         disabled={disabled}
                         {...otherProps}

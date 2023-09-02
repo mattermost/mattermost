@@ -79,6 +79,20 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         return landingPreference && landingPreference === LandingPreferenceTypes.BROWSER;
     };
 
+    isEmbedded = () => {
+        // this cookie is set by any plugin that facilitates iframe embedding (e.g. mattermost-plugin-msteams-sync).
+        const cookieName = 'MMEMBED';
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(cookieName + '=')) {
+                const value = cookie.substring(cookieName.length + 1);
+                return decodeURIComponent(value) === '1';
+            }
+        }
+        return false;
+    };
+
     checkLandingPreferenceApp = () => {
         const landingPreference = BrowserStore.getLandingPreference(this.props.siteUrl);
         return landingPreference && landingPreference === LandingPreferenceTypes.MATTERMOSTAPP;
@@ -146,14 +160,14 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     renderGoNativeAppMessage = () => {
         return (
             <a
-                href={Utils.isMobile() ? '#' : this.state.nativeLocation}
+                href={UserAgent.isMobile() ? '#' : this.state.nativeLocation}
                 onMouseDown={() => {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                 }}
                 onClick={() => {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                     this.setState({redirectPage: true, navigating: true});
-                    if (Utils.isMobile()) {
+                    if (UserAgent.isMobile()) {
                         if (UserAgent.isAndroidWeb()) {
                             const timeout = setTimeout(() => {
                                 window.location.replace(this.getDownloadLink()!);
@@ -435,7 +449,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     render() {
         const isMobile = UserAgent.isMobile();
 
-        if (this.checkLandingPreferenceBrowser()) {
+        if (this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
             this.openInBrowser();
             return null;
         }

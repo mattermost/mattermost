@@ -496,6 +496,30 @@ export default class PluginRegistry {
         return id;
     });
 
+    // Register a component to the add to the post message menu shown on hover.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostAction', this.id, component);
+    });
+
+    // Register a component to the add to the post text editor menu.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostEditorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostEditorAction', this.id, component);
+    });
+
+    // Register a component to the add to the code block header.
+    // Accepts a React component. Returns a unique identifier.
+    registerCodeBlockActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('CodeBlockAction', this.id, component);
+    });
+
+    // Register a component to the add to the new messages separator.
+    // Accepts a React component. Returns a unique identifier.
+    registerNewMessagesSeparatorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('NewMessagesSeparatorAction', this.id, component);
+    });
+
     // Register a post menu list item by providing some text and an action function.
     // Accepts the following:
     // - text - A string or React element to display in the menu
@@ -1152,16 +1176,6 @@ export default class PluginRegistry {
         store.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER,
             data,
-        });
-    });
-
-    registerInsightsHandler = reArg(['handler'], ({handler}) => {
-        store.dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_INSIGHT,
-            data: {
-                pluginId: this.id,
-                handler,
-            },
         });
     });
 }

@@ -8,6 +8,7 @@ import {Posts} from 'mattermost-redux/constants';
 import {Post} from '@mattermost/types/posts';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import * as Utils from 'utils/utils';
 
@@ -129,7 +130,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         }
 
         let message = post.message;
-        const isEphemeral = Utils.isPostEphemeral(post);
+        const isEphemeral = isPostEphemeral(post);
         if (compactDisplay && isEphemeral) {
             const visibleMessage = Utils.localizeMessage('post_info.message.visible.compact', ' (Only visible to you)');
             message = message.concat(visibleMessage);
@@ -145,7 +146,6 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                 maxHeight={maxHeight}
             >
                 <div
-                    aria-readonly='true'
                     tabIndex={0}
                     id={id}
                     className='post-message__text'
@@ -155,7 +155,6 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                     <PostMarkdown
                         message={message}
                         imageProps={this.imageProps}
-                        isRHS={isRHS}
                         options={options}
                         post={post}
                         channelId={post.channel_id}

@@ -44,21 +44,29 @@ describe('Interactive Menu', () => {
 
         // # Post an incoming webhook
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});
+        cy.waitUntil(() => cy.findAllByTestId('postContent').then((el) => {
+            if (el.length > 0) {
+                return el[1].innerText.includes(payload.attachments[0].actions[0].name);
+            }
+            return false;
+        }));
 
         // # Click on "Skip Parsing" button
-        cy.findByText('Skip Parsing').should('be.visible').click({force: true});
+        cy.findByText(payload.attachments[0].actions[0].name).should('be.visible').click({force: true});
         cy.wait(TIMEOUTS.HALF_SEC);
 
         // * Verify that it renders original "spoiler" text
+        cy.uiWaitUntilMessagePostedIncludes('a < a | b > a');
         cy.getLastPostId().then((postId) => {
             cy.get(`#postMessageText_${postId}`).should('have.html', '<p>a &lt; a | b &gt; a</p>');
         });
 
         // # Click on "Do Parsing" button
-        cy.findByText('Do Parsing').should('be.visible').click({force: true});
+        cy.findByText(payload.attachments[0].actions[1].name).should('be.visible').click({force: true});
         cy.wait(TIMEOUTS.HALF_SEC);
 
         // * Verify that it renders markdown with link
+        cy.uiWaitUntilMessagePostedIncludes('a  b  a');
         cy.getLastPostId().then((postId) => {
             cy.get(`#postMessageText_${postId}`).should('have.html', '<p>a <a class="theme markdown__link" href="http://a" rel="noreferrer" target="_blank"><span> b </span></a> a</p>');
         });

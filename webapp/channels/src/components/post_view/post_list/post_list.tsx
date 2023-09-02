@@ -126,11 +126,6 @@ export interface Props {
         loadPosts: (parameters: LoadPostsParameters) => Promise<LoadPostsReturnValue>;
 
         /*
-         * Used to set mobile view on resize
-         */
-        checkAndSetMobileView: () => Promise<void>;
-
-        /*
          * Used to loading posts since a timestamp to sync the posts
          */
         syncPostsInChannel: (channelId: string, since: number, prefetch: boolean) => Promise<void>;
@@ -140,8 +135,6 @@ export interface Props {
          * This happens when previous channel visit has a chunk which is not the latest set of posts
          */
         loadLatestPosts: (channelId: string) => Promise<void>;
-
-        markChannelAsViewed: (channelId: string) => void;
 
         markChannelAsRead: (channelId: string) => void;
         updateNewMessagesAtInChannel: typeof updateNewMessagesAtInChannel;
@@ -159,7 +152,6 @@ export default class PostList extends React.PureComponent<Props, State> {
     private actionsForPostList: {
         loadOlderPosts: () => Promise<void>;
         loadNewerPosts: () => Promise<void>;
-        checkAndSetMobileView: () => void;
         canLoadMorePosts: (type: CanLoadMorePosts) => Promise<void>;
         changeUnreadChunkTimeStamp: (lastViewedAt: number) => void;
         updateNewMessagesAtInChannel: typeof updateNewMessagesAtInChannel;
@@ -184,7 +176,6 @@ export default class PostList extends React.PureComponent<Props, State> {
         this.actionsForPostList = {
             loadOlderPosts: this.getPostsBefore,
             loadNewerPosts: this.getPostsAfter,
-            checkAndSetMobileView: props.actions.checkAndSetMobileView,
             canLoadMorePosts: this.canLoadMorePosts,
             changeUnreadChunkTimeStamp: props.changeUnreadChunkTimeStamp,
             toggleShouldStartFromBottomWhenUnread: props.toggleShouldStartFromBottomWhenUnread,
@@ -230,7 +221,9 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
 
         if (!focusedPostId) {
-            this.markChannelAsReadAndViewed(channelId);
+            // Posts are marked as read from here to not cause a race when loading posts
+            // marking channel as read and viewed after calling for posts in channel
+            this.props.actions.markChannelAsRead(channelId);
         }
 
         if (this.mounted) {
@@ -272,13 +265,6 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
 
         return {error};
-    };
-
-    markChannelAsReadAndViewed = (channelId: string) => {
-        // Posts are marked as read from here to not cause a race when loading posts
-        // marking channel as read and viewed after calling for posts in channel
-        this.props.actions.markChannelAsViewed(channelId);
-        this.props.actions.markChannelAsRead(channelId);
     };
 
     getOldestVisiblePostId = () => {
