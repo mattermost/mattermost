@@ -8,7 +8,7 @@ import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/ac
 
 import {GlobalState} from 'types/store';
 
-import {archiveGroup} from 'mattermost-redux/actions/groups';
+import {archiveGroup, restoreGroup} from 'mattermost-redux/actions/groups';
 import {ModalData} from 'types/actions';
 import {openModal} from 'actions/views/modals';
 import {getGroupListPermissions} from 'mattermost-redux/selectors/entities/roles';
@@ -18,6 +18,7 @@ import UserGroupsList from './user_groups_list';
 type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;
     archiveGroup: (groupId: string) => Promise<ActionResult>;
+    restoreGroup: (groupId: string) => Promise<ActionResult>;
 };
 
 function mapStateToProps(state: GlobalState) {
@@ -32,6 +33,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
             openModal,
             archiveGroup,
+            restoreGroup,
         }, dispatch),
     };
 }

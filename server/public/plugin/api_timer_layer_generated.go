@@ -852,6 +852,13 @@ func (api *apiTimerLayer) GetFileInfo(fileId string) (*model.FileInfo, *model.Ap
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SetFileSearchableContent(fileID, content)
+	api.recordTime(startTime, "SetFileSearchableContent", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetFileInfos(page, perPage, opt)

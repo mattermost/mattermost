@@ -855,6 +855,7 @@ func (ts *TelemetryService) trackConfig() {
 	ts.SendTelemetry(TrackConfigDisplay, map[string]any{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomURLSchemes) != 0,
+		"isdefault_max_markdown_nodes": isDefault(*cfg.DisplaySettings.MaxMarkdownNodes, 0),
 	})
 
 	ts.SendTelemetry(TrackConfigGuestAccounts, map[string]any{

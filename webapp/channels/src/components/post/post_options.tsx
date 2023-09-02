@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
-import {Locations} from 'utils/constants';
+import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 import ActionsMenu from 'components/actions_menu';
 import DotMenu from 'components/dot_menu';
@@ -129,13 +129,17 @@ const PostOptions = (props: Props): JSX.Element => {
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
+        const showMoreReactions = props.isExpanded ||
+            props.location === 'CENTER' ||
+            (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > Constants.SIDEBAR_MINIMUM_WIDTH;
+
         showRecentReactions = (
             <PostRecentReactions
                 channelId={post.channel_id}
                 postId={post.id}
                 teamId={props.teamId}
                 emojis={props.recentEmojis}
-                size={props.isExpanded || props.location === 'CENTER' ? 3 : 1}
+                size={showMoreReactions ? 3 : 1}
             />
         );
     }
