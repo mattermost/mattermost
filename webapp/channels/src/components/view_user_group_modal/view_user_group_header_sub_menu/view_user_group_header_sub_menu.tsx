@@ -86,7 +86,7 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                 stopPropagationOnToggle={false}
                 id={`detailsCustomWrapper-${group.id}`}
             >
-                <button className='action-wrapper btn-icon'>
+                <button className='btn btn-icon'>
                     <LocalizedIcon
                         className='icon icon-dots-vertical'
                         ariaLabel={{id: t('user_groups_modal.goBackLabel'), defaultMessage: 'Back'}}

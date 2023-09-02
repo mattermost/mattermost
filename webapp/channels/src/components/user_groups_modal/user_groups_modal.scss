@@ -136,27 +136,8 @@
                 margin-left: 44px;
             }
 
-            button.user-groups-create {
-                box-sizing: border-box;
-                border: 1px solid var(--button-bg);
-                margin: auto;
-                margin-right: 46px;
-                background-color: var(--center-channel-bg);
-                border-radius: 4px;
-                color: var(--button-bg);
-
-                &:hover {
-                    background-color: rgba(var(--button-bg-rgb), 0.08);
-                }
-
-                &:active {
-                    background-color: rgba(var(--button-bg-rgb), 0.16);
-                }
-
-                &:focus {
-                    box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-                    outline: none;
-                }
+            .user-groups-create {
+                margin-right: 42px;
             }
         }
     }
@@ -416,27 +397,6 @@
 
                 .multi-select__footer {
                     padding-top: 24px;
-
-                    button {
-                        height: 40px;
-                        padding: 0 20px;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        font-weight: 600;
-                    }
-
-                    button[disabled] {
-                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                        color: rgba(var(--center-channel-color-rgb), 0.32);
-                    }
-
-                    button.multiselect-back {
-                        padding: 13px 20px;
-                        margin-right: 8px;
-                        background: rgba(var(--button-bg-rgb), 0.08);
-                        color: rgb(var(--button-bg-rgb));
-                        line-height: 14px;
-                    }
                 }
             }
         }

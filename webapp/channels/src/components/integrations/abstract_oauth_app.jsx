@@ -443,7 +443,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
-                                className='btn btn-tertiary btn-sm'
+                                className='btn btn-tertiary'
                                 to={`/${this.props.team.name}/integrations/oauth2-apps`}
                             >
                                 <FormattedMessage

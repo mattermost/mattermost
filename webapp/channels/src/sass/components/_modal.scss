@@ -1169,12 +1169,20 @@
                 height: 4rem;
                 color: rgba(var(--center-channel-color-rgb), 0.56);
                 float: left;
+                border: none;
+                background: transparent;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 4px;
 
                 &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
                     color: rgba(var(--center-channel-color-rgb), 0.72);
                 }
 
                 &:active {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
                     background-color: rgba(var(--button-bg-rgb), 0.08);
                     color: var(--button-bg);
                 }

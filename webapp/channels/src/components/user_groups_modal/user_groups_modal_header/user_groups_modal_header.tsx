@@ -46,7 +46,7 @@ const UserGroupsModalHeader = (props: Props) => {
             {
                 props.canCreateCustomGroups &&
                 <button
-                    className='user-groups-create btn btn-md btn-primary'
+                    className='user-groups-create btn btn-secondary'
                     onClick={goToCreateModal}
                 >
                     <FormattedMessage

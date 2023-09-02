@@ -719,7 +719,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 errors={[this.state.error]}
                             />
                             <Link
-                                className='btn btn-tertiary btn-sm'
+                                className='btn btn-tertiary'
                                 to={`/${this.props.team.name}/integrations/bots`}
                             >
                                 <FormattedMessage

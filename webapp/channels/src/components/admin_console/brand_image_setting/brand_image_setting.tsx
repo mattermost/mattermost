@@ -258,7 +258,7 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                     <div className='file__upload mt-5'>
                         <button
                             type='button'
-                            className='btn-tertiary'
+                            className='btn btn-tertiary'
                             disabled={this.props.disabled}
                         >
                             <FormattedMessage

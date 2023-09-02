@@ -524,7 +524,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                                         this.props.backButtonClick();
                                     }
                                 }}
-                                className={classNames('btn', this.props.backButtonClass)}
+                                className={classNames('btn btn-tertiary', this.props.backButtonClass)}
                             >
                                 {this.props.backButtonText || localizeMessage('multiselect.backButton', 'Back')}
                             </button>

@@ -367,7 +367,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
-                                className='btn btn-tertiary btn-sm'
+                                className='btn btn-tertiary'
                                 to={`/${this.props.team.name}/integrations/incoming_webhooks`}
                             >
                                 <FormattedMessage

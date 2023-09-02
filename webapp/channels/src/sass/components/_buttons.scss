@@ -47,10 +47,23 @@ button {
     justify-content: center;
     gap: 8px;
 
-
     &.btn-icon {
         width: 40px;
         padding: 0;
+        background-color: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 24px;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        &:focus,
+        &:active {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+            color: rgba(var(--button-bg-rgb), 1);
+        }
     }
 
     &:not(.a11y--active) {
@@ -175,6 +188,14 @@ button {
 
         &:active {
             background-color: rgb(var(--button-bg-rgb), 0.16);
+        }
+
+        &:disabled,
+        &:disabled:hover,
+        &:disabled:active {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            opacity: 1;
         }
     }
 
