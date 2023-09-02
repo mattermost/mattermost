@@ -54,12 +54,18 @@ const determineVisibleSearchHintOptions = (searchTerms: string, searchType: Sear
     const pretext = pretextArray[pretextArray.length - 1];
     const penultimatePretext = pretextArray[pretextArray.length - 2];
 
-    const shouldShowHintOptions = penultimatePretext ? !options.some(({searchTerm}) => penultimatePretext.toLowerCase().endsWith(searchTerm.toLowerCase())) || penultimatePretext.startsWith('@') : !options.some(({searchTerm}) => searchTerms.toLowerCase().endsWith(searchTerm.toLowerCase())) || searchTerms.startsWith('@');
+    let shouldShowHintOptions: boolean;
+
+    if (penultimatePretext) {
+        shouldShowHintOptions = !(options.some(({searchTerm}) => penultimatePretext.toLowerCase().endsWith(searchTerm.toLowerCase())) && penultimatePretext !== '@');
+    } else {
+        shouldShowHintOptions = !options.some(({searchTerm}) => searchTerms.toLowerCase().endsWith(searchTerm.toLowerCase())) || searchTerms === '@';
+    }
 
     if (shouldShowHintOptions) {
         try {
             newVisibleSearchHintOptions = options.filter((option) => {
-                if (pretext.startsWith('@') && option.searchTerm === 'From:') {
+                if (pretext === '@' && option.searchTerm === 'From:') {
                     return true;
                 }
 
