@@ -217,7 +217,7 @@ const UpdateUserGroupModal = (props: Props) => {
                                 e.preventDefault();
                                 goBack();
                             }}
-                            className='btn update-group-back'
+                            className='btn btn-tertiary'
                         >
                             {Utils.localizeMessage('multiselect.backButton', 'Back')}
                         </button>
