@@ -477,6 +477,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         );
     }
 
+    let rootId = '';
+    if (editingPost.post) {
+        rootId = editingPost.post.root_id || editingPost.post.id;
+    }
+
     return (
         <div
             className={classNames('post--editing__wrapper', {
@@ -486,7 +491,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         >
             <Textbox
                 tabIndex={0}
-                rootId={editingPost.post ? Utils.getRootId(editingPost.post) : ''}
+                rootId={rootId}
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}

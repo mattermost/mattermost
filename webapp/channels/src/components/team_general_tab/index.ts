@@ -10,6 +10,8 @@ import {Permissions} from 'mattermost-redux/constants';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
+import {getIsMobileView} from 'selectors/views/browser';
+
 import {GlobalState} from 'types/store/index';
 
 import {Team} from '@mattermost/types/teams';
@@ -33,6 +35,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {
         maxFileSize,
         canInviteTeamMembers,
+        isMobileView: getIsMobileView(state),
     };
 }
 

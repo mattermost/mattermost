@@ -1950,7 +1950,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
+	isMobileDevice := utils.IsMobileRequest(r)
+	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, isMobileDevice, false, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -2044,7 +2045,8 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	audit.AddEventParameterAuditable(auditRec, "user", user)
 	c.LogAuditWithUserId(user.Id, "authenticated")
-	err = c.App.DoLogin(c.AppContext, w, r, user, "", false, false, false)
+	isMobileDevice := utils.IsMobileRequest(r)
+	err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobileDevice, false, false)
 	if err != nil {
 		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
