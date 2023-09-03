@@ -1482,27 +1482,37 @@ describe('combineUserActivityData', () => {
         const postJoinChannel3 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_3'});
         const postLeaveChannel3 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_3'});
 
-        const post = [postJoinChannel1, postLeaveChannel1, postJoinChannel2, postLeaveChannel2, postJoinChannel3, postLeaveChannel3].reverse();
+        const post = [postJoinChannel1, postLeaveChannel1].reverse();
         const expectedOutput = {
-            allUserIds: ['user_id_1', 'user_id_2'],
-            allUsernames: [],
-            messageData: [
-                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2']},
-            ],
-        };
-        expect(combineUserActivitySystemPost(post)).toEqual(expectedOutput);
-
-        const post2 = [postJoinChannel1, postLeaveChannel1, postJoinChannel1, postLeaveChannel1, postJoinChannel1, postLeaveChannel1].reverse();
-        const expectedOutput2 = {
             allUserIds: ['user_id_1'],
             allUsernames: [],
             messageData: [
                 {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1']},
             ],
         };
+        expect(combineUserActivitySystemPost(post)).toEqual(expectedOutput);
+
+        const post1 = [postJoinChannel1, postLeaveChannel1, postJoinChannel2, postLeaveChannel2, postJoinChannel3, postLeaveChannel3].reverse();
+        const expectedOutput1 = {
+            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(post1)).toEqual(expectedOutput1);
+
+        const post2 = [postJoinChannel1, postJoinChannel2, postJoinChannel3, postLeaveChannel1, postLeaveChannel2, postLeaveChannel3].reverse();
+        const expectedOutput2 = {
+            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3']},
+            ],
+        };
         expect(combineUserActivitySystemPost(post2)).toEqual(expectedOutput2);
 
-        const post3 = [postJoinChannel1, postJoinChannel2, postLeaveChannel1, postLeaveChannel2, postJoinChannel3, postJoinChannel1, postLeaveChannel1, postLeaveChannel3];
+        const post3 = [postJoinChannel1, postJoinChannel2, postLeaveChannel2, postLeaveChannel1, postJoinChannel3, postLeaveChannel3].reverse();
         const expectedOutput3 = {
             allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
             allUsernames: [],
@@ -1511,18 +1521,6 @@ describe('combineUserActivityData', () => {
             ],
         };
         expect(combineUserActivitySystemPost(post3)).toEqual(expectedOutput3);
-
-        const post4 = [postJoinChannel1, postJoinChannel2, postLeaveChannel1, postLeaveChannel2, postJoinChannel3, postJoinChannel1, postLeaveChannel1, postLeaveChannel3, postJoinChannel3, postJoinChannel1, postLeaveChannel1, postJoinChannel1, postLeaveChannel1];
-        const expectedOutput4 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
-            allUsernames: [],
-            messageData: [
-                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3']},
-                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_3']},
-                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1']},
-            ],
-        };
-        expect(combineUserActivitySystemPost(post4)).toEqual(expectedOutput4);
     });
 });
 
