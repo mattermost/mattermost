@@ -30,7 +30,6 @@ type Props = {
     hasMention?: boolean;
     disableHighlight?: boolean;
     disableGroupHighlight?: boolean;
-    isRHS?: boolean;
 }
 
 type State = {
@@ -43,7 +42,6 @@ export default class AtMention extends React.PureComponent<Props, State> {
     buttonRef: React.RefObject<HTMLAnchorElement>;
 
     static defaultProps: Partial<Props> = {
-        isRHS: false,
         hasMention: false,
         disableHighlight: false,
         disableGroupHighlight: false,
@@ -92,10 +90,18 @@ export default class AtMention extends React.PureComponent<Props, State> {
 
         if (!this.props.disableGroupHighlight && !user) {
             const group = getUserOrGroupFromMentionName(this.props.groupsByName, this.props.mentionName) as Group | '';
+
             if (group && group.allow_reference) {
-                return (<span>
-                    <AtMentionGroup group={group}/>
-                </span>);
+                const suffix = this.props.mentionName.substring(group.name.length);
+
+                return (
+                    <>
+                        <span>
+                            <AtMentionGroup group={group}/>
+                        </span>
+                        {suffix}
+                    </>
+                );
             }
         }
 
@@ -124,7 +130,6 @@ export default class AtMention extends React.PureComponent<Props, State> {
                             className='user-profile-popover'
                             userId={user.id}
                             src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                            isRHS={this.props.isRHS}
                             hasMention={this.props.hasMention}
                             hide={this.hideOverlay}
                             channelId={this.props.channelId}

@@ -3639,6 +3639,38 @@ func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppEr
 	return r0
 }
 
+// SendPushNotification provides a mock function with given fields: notification, userID
+func (_m *API) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	ret := _m.Called(notification, userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.PushNotification, string) *model.AppError); ok {
+		r0 = rf(notification, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SetFileSearchableContent provides a mock function with given fields: fileID, content
+func (_m *API) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	ret := _m.Called(fileID, content)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+		r0 = rf(fileID, content)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SetProfileImage provides a mock function with given fields: userID, data
 func (_m *API) SetProfileImage(userID string, data []byte) *model.AppError {
 	ret := _m.Called(userID, data)

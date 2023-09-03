@@ -25,7 +25,6 @@ import ChannelCategoryTypes from './channel_categories';
 import CloudTypes from './cloud';
 import AppsTypes from './apps';
 import ThreadTypes from './threads';
-import InsightTypes from './insights';
 import HostedCustomerTypes from './hosted_customer';
 import PlaybookType from './playbooks';
 
@@ -53,7 +52,6 @@ export {
     CloudTypes,
     AppsTypes,
     ThreadTypes,
-    InsightTypes,
     HostedCustomerTypes,
     DraftTypes,
     PlaybookType,

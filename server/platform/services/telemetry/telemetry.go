@@ -829,10 +829,8 @@ func (ts *TelemetryService) trackConfig() {
 	ts.SendTelemetry(TrackConfigDataRetention, map[string]any{
 		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
-		"enable_boards_deletion":        *cfg.DataRetentionSettings.EnableBoardsDeletion,
 		"message_retention_days":        *cfg.DataRetentionSettings.MessageRetentionDays,
 		"file_retention_days":           *cfg.DataRetentionSettings.FileRetentionDays,
-		"boards_retention_days":         *cfg.DataRetentionSettings.BoardsRetentionDays,
 		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,
 		"time_between_batches":          *cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds,
@@ -857,6 +855,7 @@ func (ts *TelemetryService) trackConfig() {
 	ts.SendTelemetry(TrackConfigDisplay, map[string]any{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomURLSchemes) != 0,
+		"isdefault_max_markdown_nodes": isDefault(*cfg.DisplaySettings.MaxMarkdownNodes, 0),
 	})
 
 	ts.SendTelemetry(TrackConfigGuestAccounts, map[string]any{

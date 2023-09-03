@@ -39,6 +39,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
@@ -54,6 +55,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -207,7 +209,6 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on step 1 (s.Platform must be non-nil)
 	s.initEnterprise()
 
-	// Needed to run before loading license.
 	s.userService, err = users.New(users.ServiceConfig{
 		UserStore:    s.Store().User(),
 		SessionStore: s.Store().Session(),
@@ -219,11 +220,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
-	}
-
-	if model.BuildEnterpriseReady == "true" {
-		// Dependent on user service
-		s.LoadLicense()
 	}
 
 	s.licenseWrapper = &licenseWrapper{
@@ -1382,8 +1378,6 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 }
 
 func (s *Server) doLicenseExpirationCheck() {
-	s.LoadLicense()
-
 	// This takes care of a rare edge case reported here https://mattermost.atlassian.net/browse/MM-40962
 	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
 	// Then restart using BUILD_ENTERPRISE=false make restart-server to enter Team Edition
@@ -1393,7 +1387,6 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	license := s.License()
-
 	if license == nil {
 		mlog.Debug("License cannot be found.")
 		return
@@ -1569,6 +1562,11 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypeS3PathMigration,
+		s3_path_migration.MakeWorker(s.Jobs, s.Store(), s.FileBackend()),
+		nil)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,
 		export_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		export_delete.MakeScheduler(s.Jobs),
@@ -1638,6 +1636,12 @@ func (s *Server) initJobs() {
 		model.JobTypeHostedPurchaseScreening,
 		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
 		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeCleanupDesktopTokens,
+		cleanup_desktop_tokens.MakeWorker(s.Jobs, s.Store()),
+		cleanup_desktop_tokens.MakeScheduler(s.Jobs),
 	)
 
 	s.platform.Jobs = s.Jobs

@@ -25,11 +25,6 @@ type Props = {
     imageProps?: Record<string, any>;
 
     /*
-     * Whether or not this text is part of the RHS
-     */
-    isRHS?: boolean;
-
-    /*
      * The post text to be rendered
      */
     message: string;
@@ -72,7 +67,6 @@ type Props = {
 
 export default class PostMarkdown extends React.PureComponent<Props> {
     static defaultProps = {
-        isRHS: false,
         pluginHooks: [],
         options: {},
         showPostEditedIndicator: true,
@@ -135,7 +129,6 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         return (
             <Markdown
                 imageProps={this.props.imageProps}
-                isRHS={this.props.isRHS}
                 message={message}
                 proxyImages={proxyImages}
                 mentionKeys={mentionKeys}

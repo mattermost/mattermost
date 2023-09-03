@@ -40,6 +40,7 @@ const SidebarHeaderContainer = styled(Flex).attrs(() => ({
 }))<SidebarHeaderContainerProps>`
     height: 52px;
     padding: 0 16px;
+    gap: 8px;
 
     .dropdown-menu {
         position: absolute;
@@ -54,11 +55,6 @@ const SidebarHeaderContainer = styled(Flex).attrs(() => ({
     }
 `;
 
-const HEADING_WIDTH = 200;
-const CHEVRON_WIDTH = 26;
-const ADD_CHANNEL_DROPDOWN_WIDTH = 28;
-const TITLE_WIDTH = (HEADING_WIDTH - CHEVRON_WIDTH - ADD_CHANNEL_DROPDOWN_WIDTH).toString();
-
 const SidebarHeading = styled(Heading).attrs(() => ({
     element: 'h1',
     margin: 'none',
@@ -69,7 +65,6 @@ const SidebarHeading = styled(Heading).attrs(() => ({
     display: flex;
 
     .title {
-        max-width: ${TITLE_WIDTH}px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

@@ -2473,7 +2473,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.Error(t, err)
 		assert.IsType(t, &url.Error{}, err)
-		assert.Equal(t, httpservice.AddressForbidden, err.(*url.Error).Err)
+		assert.Equal(t, httpservice.ErrAddressForbidden, err.(*url.Error).Err)
 
 		requestURL = th.App.GetSiteURL() + "/api/v4/image?url=" + url.QueryEscape(requestURL)
 
@@ -2763,6 +2763,58 @@ func TestContainsPermalink(t *testing.T) {
 			assert.Equal(t, testCase.Expected, actual)
 		})
 	}
+}
+
+func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableLinkPreviews = true
+		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+	})
+
+	directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+	assert.Nil(t, err)
+
+	userID := model.NewId()
+	post := &model.Post{
+		Id: userID,
+		Metadata: &model.PostMetadata{
+			Embeds: []*model.PostEmbed{
+				{
+					Type: model.PostEmbedOpengraph,
+					URL:  "ogURL",
+					Data: &opengraph.OpenGraph{
+						Images: []*ogimage.Image{
+							{
+								URL: "imageURL",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	previewedPost := model.NewPreviewPost(post, th.BasicTeam, directChannel)
+
+	actual := th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, th.BasicUser2.Id)
+	assert.NotNil(t, actual.Metadata.Embeds[0].Data)
+
+	guestID := model.NewId()
+	guest := &model.User{
+		Email:         "success+" + guestID + "@simulator.amazonses.com",
+		Username:      "un_" + guestID,
+		Nickname:      "nn_" + guestID,
+		Password:      "Password1",
+		EmailVerified: true,
+	}
+	guest, appErr := th.App.CreateGuest(th.Context, guest)
+	require.Nil(t, appErr)
+
+	actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, guest.Id)
+	assert.Nil(t, actual.Metadata.Embeds[0].Data)
 }
 
 func TestSanitizePostMetaDataForAudit(t *testing.T) {

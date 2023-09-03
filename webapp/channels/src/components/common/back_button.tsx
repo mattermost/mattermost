@@ -25,11 +25,9 @@ const BackButton = ({url, className, onClick}: Props): JSX.Element => {
     const {formatMessage} = useIntl();
 
     return (
-        <div
-            id='back_button'
-            className={classNames('signup-header', className)}
-        >
+        <div className={classNames('signup-header', className)}>
             <Link
+                data-testid='back_button'
                 onClick={onClick}
                 to={url}
             >

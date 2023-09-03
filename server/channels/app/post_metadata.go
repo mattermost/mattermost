@@ -190,6 +190,18 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 	return post
 }
 
+func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
+	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 || previewedPost == nil {
+		return post
+	}
+
+	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
+		post.Metadata.Embeds[0].Data = nil
+	}
+
+	return post
+}
+
 func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
 		return post, nil
@@ -572,6 +584,11 @@ func (a *App) containsPermalink(post *model.Post) bool {
 
 func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
+
+	// If it's an embedded image, nothing to do.
+	if strings.HasPrefix(strings.ToLower(requestURL), "data:image/") {
+		return nil, nil, nil, nil
+	}
 
 	timestamp = model.FloorToNearestHour(timestamp)
 

@@ -33,12 +33,12 @@ describe('Actions.Posts', () => {
                 general: {
                     config: {
                         CollapsedThreads: 'always_on',
+                        EnableJoinLeaveMessageByDefault: 'true',
                     },
                 },
             },
         });
     });
-
     afterAll(() => {
         TestHelper.tearDown();
     });
@@ -603,65 +603,80 @@ describe('Actions.Posts', () => {
                         },
                     },
                 },
+                groups: {
+                    groups: [
+                        {
+                            id: '1',
+                            name: 'zzz',
+                        },
+                    ],
+                },
             },
         } as unknown as GlobalState;
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: 'aaa'}),
             ])).toEqual(
             new Set(),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@aaa'}),
             ])).toEqual(
             new Set(),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
-                TestHelper.getPostMock({message: '@aaa @bbb @ccc'}),
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
+                TestHelper.getPostMock({message: '@zzz'}),
+            ])).toEqual(
+            new Set(),
+        );
+
+        expect(
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
+                TestHelper.getPostMock({message: '@aaa @bbb @ccc @zzz'}),
             ])).toEqual(
             new Set(['bbb', 'ccc']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@bbb. @ccc.ddd'}),
             ])).toEqual(
             new Set(['bbb.', 'bbb', 'ccc.ddd']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@bbb- @ccc-ddd'}),
             ])).toEqual(
             new Set(['bbb-', 'bbb', 'ccc-ddd']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@bbb_ @ccc_ddd'}),
             ])).toEqual(
             new Set(['bbb_', 'ccc_ddd']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '(@bbb/@ccc) ddd@eee'}),
             ])).toEqual(
             new Set(['bbb', 'ccc']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({
                     message: '@aaa @bbb',
                     props: {
                         attachments: [
-                            {text: '@ccc @ddd'},
+                            {text: '@ccc @ddd @zzz'},
                             {pretext: '@eee @fff', text: '@ggg'},
                         ],
                     },
@@ -673,7 +688,7 @@ describe('Actions.Posts', () => {
 
         // should never try to request usernames matching special mentions
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@all'}),
                 TestHelper.getPostMock({message: '@here'}),
                 TestHelper.getPostMock({message: '@channel'}),
@@ -1118,7 +1133,7 @@ describe('Actions.Posts', () => {
         const {dispatch, getState} = store;
 
         nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats`).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
 
         await dispatch(getChannelStats(TestHelper.basicChannel!.id));
@@ -1157,7 +1172,7 @@ describe('Actions.Posts', () => {
         const {dispatch, getState} = store;
 
         nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats`).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
 
         await dispatch(getChannelStats(TestHelper.basicChannel!.id));
@@ -1333,36 +1348,6 @@ describe('Actions.Posts', () => {
         expect(emojis).toBeTruthy();
         expect(emojis[created.id]).toBeTruthy();
         expect(state.entities.emojis.nonExistentEmoji.has(missingEmojiName)).toBeTruthy();
-    });
-
-    it('getOpenGraphMetadata', async () => {
-        const {dispatch, getState} = store;
-
-        const url = 'https://mattermost.com';
-        const docs = 'https://docs.mattermost.com/';
-
-        nock(Client4.getBaseRoute()).
-            post('/opengraph').
-            reply(200, {type: 'article', url: 'https://mattermost.com/', title: 'Mattermost private cloud messaging', description: 'Open source,  private cloud\nSlack-alternative, \nWorkplace messaging for web, PCs and phones.'});
-        await dispatch(Actions.getOpenGraphMetadata(url));
-
-        nock(Client4.getBaseRoute()).
-            post('/opengraph').
-            reply(200, {type: '', url: '', title: '', description: ''});
-        await dispatch(Actions.getOpenGraphMetadata(docs));
-
-        nock(Client4.getBaseRoute()).
-            post('/opengraph').
-            reply(200, undefined);
-        await dispatch(Actions.getOpenGraphMetadata(docs));
-
-        const state = getState();
-        const metadata = state.entities.posts.openGraph;
-        expect(metadata).toBeTruthy();
-        expect(metadata[url]).toBeTruthy();
-        if (metadata[docs]) {
-            throw new Error('unexpected metadata[docs]');
-        }
     });
 
     it('doPostAction', async () => {
@@ -1542,7 +1527,7 @@ describe('Actions.Posts', () => {
         expect(index === 2).toBeTruthy();
     });
 
-    describe('getProfilesAndStatusesForPosts', () => {
+    describe('getMentionsAndStatusesForPosts', () => {
         describe('different values for posts argument', () => {
             // Mock the state to prevent any followup requests since we aren't testing those
             const currentUserId = 'user';
@@ -1566,13 +1551,13 @@ describe('Actions.Posts', () => {
             })) as unknown as GetStateFunc;
 
             it('null', async () => {
-                await Actions.getProfilesAndStatusesForPosts(null as any, dispatch as any, getState);
+                await Actions.getMentionsAndStatusesForPosts(null as any, dispatch as any, getState);
             });
 
             it('array of posts', async () => {
                 const posts = [post];
 
-                await Actions.getProfilesAndStatusesForPosts(posts, dispatch as any, getState);
+                await Actions.getMentionsAndStatusesForPosts(posts, dispatch as any, getState);
             });
 
             it('object map of posts', async () => {
@@ -1580,7 +1565,7 @@ describe('Actions.Posts', () => {
                     [post.id]: post,
                 };
 
-                await Actions.getProfilesAndStatusesForPosts(posts, dispatch as any, getState);
+                await Actions.getMentionsAndStatusesForPosts(posts, dispatch as any, getState);
             });
         });
     });

@@ -10,17 +10,17 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
+
 	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
@@ -1104,7 +1104,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 
 	for _, channelModerationPatch := range channelModerationsPatch {
 		permissionModified := *channelModerationPatch.Name
-		if channelModerationPatch.Roles.Guests != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch)) {
+		if channelModerationPatch.Roles.Guests != nil && pUtils.Contains(model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch), permissionModified) {
 			if *channelModerationPatch.Roles.Guests {
 				c.Logger().Info("Permission enabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
@@ -1112,7 +1112,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 			}
 		}
 
-		if channelModerationPatch.Roles.Members != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch)) {
+		if channelModerationPatch.Roles.Members != nil && pUtils.Contains(model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch), permissionModified) {
 			if *channelModerationPatch.Roles.Members {
 				c.Logger().Info("Permission enabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
@@ -2971,57 +2971,32 @@ func (a *App) SearchChannelsUserNotIn(c request.CTX, teamID string, userID strin
 }
 
 func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
-	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
-	channelsToClearPushNotifications := []string{}
-	if a.canSendPushNotifications() {
-		for _, channelID := range channelIDs {
-			channel, errCh := a.Srv().Store().Channel().Get(channelID, true)
-			if errCh != nil {
-				c.Logger().Warn("Failed to get channel", mlog.Err(errCh))
-				continue
-			}
+	var err error
 
-			member, err := a.Srv().Store().Channel().GetMember(context.Background(), channelID, userID)
-			if err != nil {
-				c.Logger().Warn("Failed to get membership", mlog.Err(err))
-				continue
-			}
-
-			notify := member.NotifyProps[model.PushNotifyProp]
-			if notify == model.ChannelNotifyDefault {
-				user, err := a.GetUser(userID)
-				if err != nil {
-					c.Logger().Warn("Failed to get user", mlog.String("user_id", userID), mlog.Err(err))
-					continue
-				}
-				notify = user.NotifyProps[model.PushNotifyProp]
-			}
-			if notify == model.UserNotifyAll {
-				if count, err := a.Srv().Store().User().GetAnyUnreadPostCountForChannel(userID, channelID); err == nil {
-					if count > 0 {
-						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelID)
-					}
-				}
-			} else if notify == model.UserNotifyMention || channel.Type == model.ChannelTypeDirect {
-				if count, err := a.Srv().Store().User().GetUnreadCountForChannel(userID, channelID); err == nil {
-					if count > 0 {
-						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelID)
-					}
-				}
-			}
-		}
+	user, err := a.Srv().Store().User().Get(c.Context(), userID)
+	if err != nil {
+		return nil, model.NewAppError("MarkChannelsAsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var err error
+	// We use channelsToView to later only update those, or early return if no channel is to be read
+	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(c.Context(), channelIDs, userID, user.NotifyProps)
+	if err != nil {
+		return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.get_channels_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(channelsToView) == 0 {
+		return times, nil
+	}
+
 	updateThreads := *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !isCRTEnabled)
 	if updateThreads {
-		err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, channelIDs)
+		err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, channelsToView)
 		if err != nil {
-			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.thread.mark_all_as_read_by_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	times, err := a.Srv().Store().Channel().UpdateLastViewedAt(channelIDs, userID)
+	_, err = a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -3033,19 +3008,18 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 	}
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
-		for _, channelID := range channelIDs {
-			message := model.NewWebSocketEvent(model.WebsocketEventChannelViewed, "", "", userID, nil, "")
-			message.Add("channel_id", channelID)
-			a.Publish(message)
-		}
+		message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
+		message.Add("channel_times", times)
+		a.Publish(message)
 	}
+
 	for _, channelID := range channelsToClearPushNotifications {
 		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
 	if updateThreads && isCRTEnabled {
 		timestamp := model.GetMillis()
-		for _, channelID := range channelIDs {
+		for _, channelID := range channelsToView {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
 			a.Publish(message)
@@ -3517,67 +3491,4 @@ func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*m
 	}
 
 	return channel, nil
-}
-
-func (a *App) GetTopChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topChannels, err := a.Srv().Store().Channel().GetTopChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, nil
-}
-
-func (a *App) GetTopChannelsForUserSince(c request.CTX, userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topChannels, err := a.Srv().Store().Channel().GetTopChannelsForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, nil
-}
-
-// PostCountsByDuration returns the post counts for the given channels, grouped by day, starting at the given time.
-// Unless one is specifically itending to omit results from part of the calendar day, it will typically makes the most sense to
-// use a sinceUnixMillis parameter value as returned by model.GetStartOfDayMillis.
-//
-// WARNING: PostCountsByDuration PERFORMS NO AUTHORIZATION CHECKS ON THE GIVEN CHANNELS.
-func (a *App) PostCountsByDuration(c request.CTX, channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("PostCountsByDuration", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-	postCountByDay, err := a.Srv().Store().Channel().PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
-	if err != nil {
-		return nil, model.NewAppError("PostCountsByDuration", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return postCountByDay, nil
-}
-
-func (a *App) GetTopInactiveChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-	topChannels, err := a.Srv().Store().Channel().GetTopInactiveChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopInactiveChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, nil
-}
-
-func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topChannels, err := a.Srv().Store().Channel().GetTopInactiveChannelsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopInactiveChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, nil
 }
