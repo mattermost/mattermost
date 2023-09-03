@@ -423,12 +423,10 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
             const isSameActors = (prePrevPost && isSameActorsInUserActivities(prePrevPost, prevPost));
             if (isJoinedPrePrevPost && isLeftPrevPost && isSameActors) {
                 userActivities.pop();
-                prePrevPost.actorId.push(...prevPost.actorId);
                 prePrevPost.postType = Posts.POST_TYPES.JOIN_LEAVE_CHANNEL;
                 mergeLastSimilarPosts(userActivities);
             }
         } else if (isJoinedPrevPost && isLeftCurrentPost && prevPost.actorId.length === 1 && isSameActor) {
-            prevPost.actorId.push(actorId);
             prevPost.postType = Posts.POST_TYPES.JOIN_LEAVE_CHANNEL;
             mergeLastSimilarPosts(userActivities);
         } else {
