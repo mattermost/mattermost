@@ -4361,7 +4361,7 @@
   },
   {
     "id": "model.preference.is_valid.category.app_error",
-    "translation": "不正なカテゴリーです。"
+    "translation": "不正なカテゴリです。"
   },
   {
     "id": "model.preference.is_valid.id.app_error",
@@ -9858,5 +9858,9 @@
   {
     "id": "app.save_config.plugin_hook_error",
     "translation": "設定保存時のplugin hookを実行する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "ファイル保存先ドライバはリンク生成をサポートしていません。"
   }
 ]
