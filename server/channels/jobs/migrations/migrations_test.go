@@ -19,7 +19,7 @@ func TestGetMigrationState(t *testing.T) {
 		t.SkipNow()
 	}
 	store := Setup(t)
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	migrationKey := model.NewId()
 

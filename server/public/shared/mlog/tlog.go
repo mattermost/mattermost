@@ -36,7 +36,7 @@ func AddWriterTarget(logger *Logger, w io.Writer, useJSON bool, levels ...Level)
 // CreateConsoleTestLogger creates a logger for unit tests. Log records are output to `os.Stdout`.
 // All log messanges with level trace or lower are logged.
 // The returned logger get Shutdown() when the tests completes. The caller should not shut it down.
-func CreateConsoleTestLogger(tb testing.TB, useJSON bool) *Logger {
+func CreateConsoleTestLogger(tb testing.TB) *Logger {
 	tb.Helper()
 
 	logger, err := NewLogger()
@@ -48,13 +48,7 @@ func CreateConsoleTestLogger(tb testing.TB, useJSON bool) *Logger {
 		Lvl:        LvlTrace,
 		Stacktrace: LvlPanic,
 	}
-
-	var formatter logr.Formatter
-	if useJSON {
-		formatter = &formatters.JSON{EnableCaller: true}
-	} else {
-		formatter = &formatters.Plain{EnableCaller: true}
-	}
+	formatter := &formatters.Plain{EnableCaller: true}
 
 	target := targets.NewWriterTarget(os.Stdout)
 	if err := logger.log.Logr().AddTarget(target, "_testcon", filter, formatter, 1000); err != nil {

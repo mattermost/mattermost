@@ -79,7 +79,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			oAuthStore:   s.OAuth(),
 			config:       configStore.Get,
 		},
-		Context:     request.EmptyContext(mlog.CreateConsoleTestLogger(tb, true)),
+		Context:     request.EmptyContext(mlog.CreateConsoleTestLogger(tb)),
 		configStore: configStore,
 		dbStore:     s,
 		LogBuffer:   buffer,

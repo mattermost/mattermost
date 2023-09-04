@@ -23,7 +23,7 @@ func TestBleveIndexer(t *testing.T) {
 	defer mockStore.AssertExpectations(t)
 
 	t.Run("Call GetOldestEntityCreationTime for the first indexing call", func(t *testing.T) {
-		logger := mlog.CreateConsoleTestLogger(t, true)
+		logger := mlog.CreateConsoleTestLogger(t)
 		job := &model.Job{
 			Id:       model.NewId(),
 			CreateAt: model.GetMillis(),

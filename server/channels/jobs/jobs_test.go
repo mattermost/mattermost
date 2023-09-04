@@ -57,7 +57,7 @@ func makeTeamEditionJobServer(t *testing.T) (*JobServer, *storetest.Store) {
 		mockStore.AssertExpectations(t)
 	})
 
-	jobServer := NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t, true))
+	jobServer := NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t))
 
 	return jobServer, mockStore
 }
@@ -501,7 +501,7 @@ func TestUpdateInProgressJobData(t *testing.T) {
 func TestHandleJobPanic(t *testing.T) {
 	t.Run("no panic", func(t *testing.T) {
 		jobServer, _, _ := makeJobServer(t)
-		logger := mlog.CreateConsoleTestLogger(t, true)
+		logger := mlog.CreateConsoleTestLogger(t)
 
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
@@ -520,7 +520,7 @@ func TestHandleJobPanic(t *testing.T) {
 
 	t.Run("with panic string", func(t *testing.T) {
 		jobServer, mockStore, metrics := makeJobServer(t)
-		logger := mlog.CreateConsoleTestLogger(t, true)
+		logger := mlog.CreateConsoleTestLogger(t)
 
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
@@ -542,7 +542,7 @@ func TestHandleJobPanic(t *testing.T) {
 
 	t.Run("with panic error", func(t *testing.T) {
 		jobServer, mockStore, metrics := makeJobServer(t)
-		logger := mlog.CreateConsoleTestLogger(t, true)
+		logger := mlog.CreateConsoleTestLogger(t)
 
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
@@ -564,7 +564,7 @@ func TestHandleJobPanic(t *testing.T) {
 }
 
 func TestRequestCancellation(t *testing.T) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 	t.Run("error cancelling", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 

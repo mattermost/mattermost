@@ -22,7 +22,7 @@ type mockServer struct {
 }
 
 func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
-	logger := mlog.CreateConsoleTestLogger(t, true)
+	logger := mlog.CreateConsoleTestLogger(t)
 
 	return &mockServer{
 		remotes: remotes,

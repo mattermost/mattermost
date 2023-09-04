@@ -608,7 +608,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 
 	translationFunc := i18n.GetUserTranslations("en")
 	c.AppContext.SetT(translationFunc)
-	c.Logger = mlog.CreateConsoleTestLogger(t, true)
+	c.Logger = mlog.CreateConsoleTestLogger(t)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	provider := &MattermostTestProvider{}

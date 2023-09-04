@@ -36,7 +36,7 @@ func TestJobStore(t *testing.T, ss store.Store) {
 }
 
 func testJobSaveGet(t *testing.T, ss store.Store) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	job := &model.Job{
 		Id:     model.NewId(),
@@ -106,7 +106,7 @@ func testJobSaveOnce(t *testing.T, ss store.Store) {
 }
 
 func testJobGetAllByType(t *testing.T, ss store.Store) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, false))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
 
@@ -138,7 +138,7 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 }
 
 func testJobGetAllByTypeAndStatus(t *testing.T, ss store.Store) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
 
@@ -168,7 +168,7 @@ func testJobGetAllByTypeAndStatus(t *testing.T, ss store.Store) {
 }
 
 func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
 
@@ -214,7 +214,7 @@ func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
 }
 
 func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
 	jobType2 := model.NewId()
@@ -271,7 +271,7 @@ func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
 }
 
 func testJobGetAllByStatus(t *testing.T, ss store.Store) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
 	status := model.NewId()
@@ -492,7 +492,7 @@ func testJobStoreGetCountByStatusAndType(t *testing.T, ss store.Store) {
 }
 
 func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	job := &model.Job{
 		Id:       model.NewId(),
@@ -533,7 +533,7 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 }
 
 func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 	job := &model.Job{
 		Id:       model.NewId(),
 		Type:     model.JobTypeDataRetention,
@@ -606,7 +606,7 @@ func testJobDelete(t *testing.T, ss store.Store) {
 }
 
 func testJobCleanup(t *testing.T, ss store.Store) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	now := model.GetMillis()
 	ids := make([]string, 0, 10)

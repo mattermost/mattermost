@@ -20,7 +20,7 @@ func Setup(tb testing.TB) store.Store {
 }
 
 func deleteAllJobsByTypeAndMigrationKey(t *testing.T, store store.Store, jobType string, migrationKey string) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 	jobs, err := store.Job().GetAllByType(ctx, model.JobTypeMigrations)
 	require.NoError(t, err)
 

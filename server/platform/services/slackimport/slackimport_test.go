@@ -339,7 +339,7 @@ func TestOldImportChannel(t *testing.T) {
 	store := &mocks.Store{}
 	config := &model.Config{}
 	config.SetDefaults()
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	t.Run("No panic on direct channel", func(t *testing.T) {
 		// ch := th.CreateDmChannel(u1)
