@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -25,21 +26,21 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	fileDatas := []model.FileData{}
 
 	// A array of the functions that we can iterate through since they all have the same return value
-	functions := []func() (*model.FileData, error){
-		a.generateSupportPacketYaml,
-		a.createPluginsFile,
-		a.createSanitizedConfigFile,
-		a.getMattermostLog,
-		a.getNotificationsLog,
+	functions := map[string]func() (*model.FileData, error){
+		"support package":  a.generateSupportPacketYaml,
+		"plugins":          a.createPluginsFile,
+		"config":           a.createSanitizedConfigFile,
+		"mattermost log":   a.getMattermostLog,
+		"notification log": a.getNotificationsLog,
 	}
 
-	for _, fn := range functions {
+	for name, fn := range functions {
 		fileData, err := fn()
-
-		if fileData != nil {
-			fileDatas = append(fileDatas, *fileData)
-		} else {
+		if err != nil {
+			mlog.Error("Failed to generate file for support package", mlog.Err(err), mlog.String("file", name))
 			warnings = append(warnings, err.Error())
+		} else if fileData != nil {
+			fileDatas = append(fileDatas, *fileData)
 		}
 	}
 

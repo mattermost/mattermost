@@ -68,12 +68,15 @@ func TestGenerateSupportPacket(t *testing.T) {
 	require.NoError(t, err)
 
 	fileDatas := th.App.GenerateSupportPacket()
+	var rFileNames []string
 	testFiles := []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "mattermost.log", "notifications.log"}
-	for i, fileData := range fileDatas {
+	for _, fileData := range fileDatas {
 		require.NotNil(t, fileData)
-		assert.Equal(t, testFiles[i], fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
+
+		rFileNames = append(rFileNames, fileData.Filename)
 	}
+	assert.ElementsMatch(t, testFiles, rFileNames)
 
 	// Remove these two files and ensure that warning.txt file is generated
 	err = os.Remove("notifications.log")
@@ -82,11 +85,14 @@ func TestGenerateSupportPacket(t *testing.T) {
 	require.NoError(t, err)
 	fileDatas = th.App.GenerateSupportPacket()
 	testFiles = []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "warning.txt"}
-	for i, fileData := range fileDatas {
+	rFileNames = nil
+	for _, fileData := range fileDatas {
 		require.NotNil(t, fileData)
-		assert.Equal(t, testFiles[i], fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
+
+		rFileNames = append(rFileNames, fileData.Filename)
 	}
+	assert.ElementsMatch(t, testFiles, rFileNames)
 }
 
 func TestGetNotificationsLog(t *testing.T) {
