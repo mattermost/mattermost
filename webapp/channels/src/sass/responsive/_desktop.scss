@@ -3,7 +3,7 @@
 @media screen and (min-width: 1680px) {
     .sidebar--right,
     .sidebar--right--width-holder {
-        width: 500px;
+        width: var(--overrideRhsWidth, 500px);
 
         .sidebar--right__title__channel {
             max-width: 30rem;

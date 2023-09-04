@@ -508,6 +508,12 @@ export default class PluginRegistry {
         return dispatchPluginComponentAction('PostEditorAction', this.id, component);
     });
 
+    // Register a component to the add to the code block header.
+    // Accepts a React component. Returns a unique identifier.
+    registerCodeBlockActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('CodeBlockAction', this.id, component);
+    });
+
     // Register a component to the add to the new messages separator.
     // Accepts a React component. Returns a unique identifier.
     registerNewMessagesSeparatorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {

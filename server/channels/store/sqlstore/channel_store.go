@@ -3518,9 +3518,14 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			InnerJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
 			Where(sq.Eq{"RetentionPoliciesChannels.PolicyId": opts.PolicyID})
 	} else if opts.ExcludePolicyConstrained {
-		query = query.
-			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
-			Where("RetentionPoliciesChannels.ChannelId IS NULL")
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			query = query.
+				LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
+				Where("RetentionPoliciesChannels.ChannelId IS NULL")
+
+		} else {
+			query = query.Where(sq.Expr(`c.Id NOT IN (SELECT ChannelId FROM RetentionPoliciesChannels)`))
+		}
 	} else if opts.IncludePolicyID {
 		query = query.
 			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
