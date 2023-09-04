@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/client",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "description": "JavaScript/TypeScript client for Mattermost",
   "keywords": [
     "mattermost"

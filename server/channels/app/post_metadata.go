@@ -585,6 +585,11 @@ func (a *App) containsPermalink(post *model.Post) bool {
 func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
+	// If it's an embedded image, nothing to do.
+	if strings.HasPrefix(strings.ToLower(requestURL), "data:image/") {
+		return nil, nil, nil, nil
+	}
+
 	timestamp = model.FloorToNearestHour(timestamp)
 
 	// Check cache

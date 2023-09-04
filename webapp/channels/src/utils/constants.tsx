@@ -199,6 +199,8 @@ export const ActionTypes = keyMirror({
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
 
+    SET_RHS_SIZE: null,
+
     RHS_GO_BACK: null,
 
     SET_RHS_EXPANDED: null,
@@ -255,6 +257,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_LHS: null,
     OPEN_LHS: null,
     CLOSE_LHS: null,
+    SET_LHS_SIZE: null,
     SELECT_STATIC_PAGE: null,
 
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
@@ -1491,6 +1494,10 @@ export const Constants = {
     TABLET_SCREEN_WIDTH: 1020,
     MOBILE_SCREEN_WIDTH: 768,
 
+    SMALL_SIDEBAR_BREAKPOINT: 900,
+    MEDIUM_SIDEBAR_BREAKPOINT: 1200,
+    LARGE_SIDEBAR_BREAKPOINT: 1680,
+
     POST_MODAL_PADDING: 170,
     SCROLL_DELAY: 2000,
     SCROLL_PAGE_FRACTION: 3,
@@ -1574,6 +1581,7 @@ export const Constants = {
     DEFAULT_EMOJI_PICKER_LEFT_OFFSET: 87,
     DEFAULT_EMOJI_PICKER_RIGHT_OFFSET: 15,
     EMOJI_PICKER_WIDTH_OFFSET: 295,
+    SIDEBAR_MINIMUM_WIDTH: 400,
     THEME_ELEMENTS: [
         {
             group: 'sidebarElements',
