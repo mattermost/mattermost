@@ -168,14 +168,13 @@ func TestPreparePostForClient(t *testing.T) {
 		reaction1 := th.AddReactionToPost(post, th.BasicUser, "smile")
 		reaction2 := th.AddReactionToPost(post, th.BasicUser2, "smile")
 		reaction3 := th.AddReactionToPost(post, th.BasicUser2, "ice_cream")
+		reactions := []*model.Reaction{reaction1, reaction2, reaction3}
 		post.HasReactions = true
 
 		clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
 
 		assert.Len(t, clientPost.Metadata.Reactions, 3, "should've populated Reactions")
-		assert.Equal(t, reaction1, clientPost.Metadata.Reactions[0], "first reaction is incorrect")
-		assert.Equal(t, reaction2, clientPost.Metadata.Reactions[1], "second reaction is incorrect")
-		assert.Equal(t, reaction3, clientPost.Metadata.Reactions[2], "third reaction is incorrect")
+		assert.ElementsMatch(t, reactions, clientPost.Metadata.Reactions)
 	})
 
 	t.Run("files", func(t *testing.T) {
