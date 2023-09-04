@@ -117,7 +117,7 @@ services:
       - "../../e2e-tests/cypress/:/app"
 
   utils:
-    image: "mattermostdevelopment/mirrored-golang:1.20.7"
+    image: "mattermostdevelopment/mirrored-golang:1.19.5"
     entrypoint: [ "/bin/bash", "-c" ]
     command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
     environment:
