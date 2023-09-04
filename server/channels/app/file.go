@@ -1224,6 +1224,26 @@ func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	return fileInfo, appErr
 }
 
+func (a *App) SetFileSearchableContent(fileID string, data string) *model.AppError {
+	fileInfo, appErr := a.Srv().getFileInfo(fileID)
+	if appErr != nil {
+		return appErr
+	}
+
+	err := a.Srv().Store().FileInfo().SetContent(fileInfo.Id, data)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return nil
+}
+
 func (a *App) getFileInfoIgnoreCloudLimit(fileID string) (*model.FileInfo, *model.AppError) {
 	fileInfo, appErr := a.Srv().getFileInfo(fileID)
 	if appErr == nil {

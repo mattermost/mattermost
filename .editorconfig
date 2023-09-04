@@ -1,0 +1,41 @@
+# http://editorconfig.org/
+
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8
+
+[*.{go,sql}]
+indent_style = tab
+
+[*.{js,jsx,json,html,ts,tsx}]
+indent_style = space
+indent_size = 4
+
+[{package.json,.eslintrc.json}]
+indent_size = 2
+
+[i18n/**.json]
+indent_size = 2
+
+[Makefile,*.mk]
+indent_style = tab
+
+[*.scss]
+indent_style = space
+indent_size = 4
+
+[*.md]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = false
+
+[.npm-upgrade.json]
+insert_final_newline = false
+
+[*.yml,*.yaml]
+indent_style = space
+indent_size = 2

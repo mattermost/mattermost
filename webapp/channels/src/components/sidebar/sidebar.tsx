@@ -29,6 +29,7 @@ import ChannelNavigator from './channel_navigator';
 import SidebarList from './sidebar_list';
 import SidebarHeader from './sidebar_header';
 import MobileSidebarHeader from './mobile_sidebar_header';
+import ResizableLhs from 'components/resizable_sidebar/resizable_lhs';
 
 type Props = {
     teamId: string;
@@ -149,7 +150,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         this.props.actions.openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
             dialogType: BrowseChannels,
-            dialogProps: {morePublicChannelsModalType: 'public'},
         });
         trackEvent('ui', 'ui_channels_more_public_v2');
     };
@@ -229,12 +229,14 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         const ariaLabel = Utils.localizeMessage('accessibility.sections.lhsNavigator', 'channel navigator region');
 
         return (
-            <div
+            <ResizableLhs
                 id='SidebarContainer'
                 className={classNames({
                     'move--right': this.props.isOpen && this.props.isMobileView,
                     dragging: this.state.isDragging,
                 })}
+                disabled={this.props.isMobileView}
+
             >
                 {this.props.isMobileView ? <MobileSidebarHeader/> : (
                     <SidebarHeader
@@ -270,7 +272,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 />
                 <DataPrefetch/>
                 {this.renderModals()}
-            </div>
+            </ResizableLhs>
         );
     }
 }

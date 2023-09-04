@@ -14,7 +14,6 @@ import {RequestStatus} from 'mattermost-redux/constants';
 import {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import {getLatestPostId} from 'utils/post_utils';
 import {
-    checkAndSetMobileView,
     loadPosts,
     loadUnreads,
     loadPostsAround,
@@ -112,7 +111,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             loadPosts,
             loadLatestPosts,
             loadPostsAround,
-            checkAndSetMobileView,
             syncPostsInChannel,
             markChannelAsRead,
             updateNewMessagesAtInChannel,
