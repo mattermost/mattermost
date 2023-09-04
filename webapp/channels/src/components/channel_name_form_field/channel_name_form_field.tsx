@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Input from 'components/widgets/inputs/input/input';
+import Input, {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import Constants, {ItemStatus} from 'utils/constants';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {cleanUpUrlable, getSiteURL, validateChannelUrl} from 'utils/url';
-import {validateDisplayName} from 'components/new_channel_modal/new_channel_modal';
 import crypto from 'crypto';
 import URLInput from 'components/widgets/inputs/url_input/url_input';
 import {useSelector} from 'react-redux';
@@ -24,24 +23,40 @@ export type Props = {
 }
 
 import './channel_name_form_field.scss';
+import {generateSlug, localizeMessage} from "utils/utils";
+
+function validateDisplayName(displayNameParam: string) {
+    const errors: string[] = [];
+
+    const displayName = displayNameParam.trim();
+
+    if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
+        errors.push(localizeMessage('channel_modal.name.longer', 'Channel names must have at least 2 characters.'));
+    }
+
+    if (displayName.length > Constants.MAX_CHANNELNAME_LENGTH) {
+        errors.push(localizeMessage('channel_modal.name.shorter', 'Channel names must have maximum 64 characters.'));
+    }
+
+    return errors;
+}
 
 // Component for input fields for editing channel display name
 // along with stuff to edit its URL.
 const ChannelNameFormField = (props: Props): JSX.Element => {
-    const {value, name, placeholder, onDisplayNameChange, onURLChange, onErrorStateChange} = props;
-
     const intl = useIntl();
     const {formatMessage} = intl;
     const [displayNameModified, setDisplayNameModified] = useState<boolean>(false);
     const [displayNameError, setDisplayNameError] = useState<string>('');
     const [displayName, setDisplayName] = useState<string>('');
-    const [urlModified, setURLModified] = useState<boolean>(false);
+    const urlModified = useRef<boolean>(false);
     const [url, setURL] = useState<string>('');
     const [urlError, setURLError] = useState<string>('');
+    const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
 
     const {name: currentTeamName} = useSelector((state: GlobalState) => getCurrentTeam(state));
 
-    const handleOnDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         const {target: {value: displayName}} = e;
 
@@ -50,30 +65,30 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         // set error if any, else clear it
         setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
         setDisplayName(displayName);
-        onDisplayNameChange(displayName);
+        props.onDisplayNameChange(displayName);
 
-        if (!urlModified) {
+        if (!urlModified.current) {
             // if URL isn't explicitly modified, it's derived from the display name
-
             const cleanURL = cleanUpUrlable(displayName);
             setURL(cleanURL);
             setURLError('');
-            onURLChange(cleanURL);
+            props.onURLChange(cleanURL);
         }
-    };
+    }, [props.onDisplayNameChange, props.onURLChange]);
 
-    const handleOnDisplayNameBlur = () => {
+    const handleOnDisplayNameBlur = useCallback(() => {
         if (displayName && !url) {
-            const url = crypto.randomBytes(16).toString('hex');
+            const url = generateSlug();
             setURL(url);
-            onURLChange(url);
+            props.onURLChange(url);
         }
         if (!displayNameModified) {
             setDisplayNameModified(true);
+            setInputCustomMessage(displayNameModified ? {type: ItemStatus.ERROR, value: displayNameError} : null);
         }
-    };
+    }, [props.onURLChange]);
 
-    const handleOnURLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         const {target: {value: url}} = e;
 
@@ -82,13 +97,13 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
         setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
         setURL(cleanURL);
-        setURLModified(true);
-        onURLChange(cleanURL);
-    };
+        urlModified.current = true
+        props.onURLChange(cleanURL);
+    }, [props.onURLChange]);
 
     useEffect(() => {
-        if (onErrorStateChange) {
-            onErrorStateChange(Boolean(displayNameError) || Boolean(urlError));
+        if (props.onErrorStateChange) {
+            props.onErrorStateChange(Boolean(displayNameError) || Boolean(urlError));
         }
     }, [displayNameError, urlError]);
 
@@ -99,14 +114,14 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 autoComplete='off'
                 autoFocus={props.autoFocus !== false}
                 required={true}
-                name={name}
-                containerClassName={`${name}-container`}
-                inputClassName={`${name}-input channel-name-input-field`}
+                name={props.name}
+                containerClassName={`${props.name}-container`}
+                inputClassName={`${props.name}-input channel-name-input-field`}
                 label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
-                placeholder={placeholder}
+                placeholder={props.placeholder}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
-                value={value}
-                customMessage={displayNameModified ? {type: ItemStatus.ERROR, value: displayNameError} : null}
+                value={props.value}
+                customMessage={inputCustomMessage as CustomMessageInputType}
                 onChange={handleOnDisplayNameChange}
                 onBlur={handleOnDisplayNameBlur}
             />

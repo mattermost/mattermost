@@ -36,7 +36,7 @@ import {ChannelType, Channel} from '@mattermost/types/channels';
 import {ServerError} from '@mattermost/types/errors';
 
 import './new_channel_modal.scss';
-import ChannelNameFormField from 'components/channel_name_form_field/chanenl_name_form_field';
+import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 
 export function getChannelTypeFromPermissions(canCreatePublicChannel: boolean, canCreatePrivateChannel: boolean) {
     let channelType = Constants.OPEN_CHANNEL;
@@ -50,22 +50,6 @@ export function getChannelTypeFromPermissions(canCreatePublicChannel: boolean, c
     }
 
     return channelType as ChannelType;
-}
-
-export function validateDisplayName(displayNameParam: string) {
-    const errors: string[] = [];
-
-    const displayName = displayNameParam.trim();
-
-    if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.longer', 'Channel names must have at least 2 characters.'));
-    }
-
-    if (displayName.length > Constants.MAX_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.shorter', 'Channel names must have maximum 64 characters.'));
-    }
-
-    return errors;
 }
 
 const enum ServerErrorId {

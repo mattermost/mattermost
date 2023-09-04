@@ -368,7 +368,6 @@ function renderMeMessage(post: Post): ReactNode {
     return renderFormattedText(message);
 }
 
-// LOL
 const systemMessageRenderers = {
     [Posts.POST_TYPES.JOIN_CHANNEL]: renderJoinChannelMessage,
     [Posts.POST_TYPES.LEAVE_CHANNEL]: renderLeaveChannelMessage,

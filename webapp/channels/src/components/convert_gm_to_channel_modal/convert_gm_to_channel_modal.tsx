@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {GenericModal} from '@mattermost/components';
 import {useIntl} from 'react-intl';
 
 import './convert_gm_to_channel_modal.scss';
 import WarningTextSection from 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section';
 
-import ChannelNameFormField from 'components/channel_name_form_field/chanenl_name_form_field';
+import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import {Channel} from '@mattermost/types/channels';
 import {Actions} from 'components/convert_gm_to_channel_modal/index';
 import {ModalIdentifiers} from 'utils/constants';
@@ -22,6 +22,7 @@ import loadingIcon from 'images/spinner-48x48-blue.apng';
 import classNames from 'classnames';
 import NoCommonTeamsError from 'components/convert_gm_to_channel_modal/no_common_teams/no_common_teams';
 import AllMembersDeactivatedError from 'components/convert_gm_to_channel_modal/all_members_deactivated/all_members_deactivated';
+import {bool} from "yup";
 
 export type Props = {
     onExited: () => void;
@@ -36,30 +37,30 @@ const ConvertGmToChannelModal = (props: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
-    const handleCancel = () => {
+    const handleCancel = useCallback(() => {
         props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
-    };
+    }, [props.actions.closeModal]);
 
     const [channelName, setChannelName] = useState<string>('');
-    const handleChannelNameChange = (newName: string) => {
+    const handleChannelNameChange = useCallback((newName: string) => {
         setChannelName(newName);
-    };
+    }, []);
 
     const [channelURL, setChannelChannelURL] = useState<string>('');
-    const handleChannelURLChange = (newURL: string) => {
+    const handleChannelURLChange = useCallback((newURL: string) => {
         setChannelChannelURL(newURL);
-    };
+    }, []);
 
     const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting));
 
     const [commonTeamsById, setCommonTeamsById] = useState<{[id: string]: Team}>({});
     const [commonTeamsFetched, setCommonTeamsFetched] = useState<boolean>(false);
     const [loadingAnimationTimeout, setLoadingAnimationTimeout] = useState<boolean>(false);
-
     const [selectedTeamId, setSelectedTeamId] = useState<string>();
-    const handleTeamChange = (teamId: string) => {
+    const [nameError, setNameError] = useState<boolean>(false);
+    const handleTeamChange = useCallback((teamId: string) => {
         setSelectedTeamId(teamId);
-    };
+    }, []);
 
     useEffect(() => {
         const work = async () => {
@@ -78,7 +79,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         };
 
         work();
-        setTimeout(() => setLoadingAnimationTimeout(true), 2000);
+        setTimeout(() => setLoadingAnimationTimeout(true), 1200);
     }, [props.channel.id]);
 
     const handleConfirm = () => {
@@ -86,16 +87,19 @@ const ConvertGmToChannelModal = (props: Props) => {
             return;
         }
 
-        const {actions} = props;
-        actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.trim());
+        props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.trim());
         if (props.channelsCategoryId) {
-            actions.moveChannelsInSidebar(props.channelsCategoryId, 0, props.channel.id, false);
+            props.actions.moveChannelsInSidebar(props.channelsCategoryId, 0, props.channel.id, false);
         }
         trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
         props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
     };
 
     const showLoader = () => !commonTeamsFetched || !loadingAnimationTimeout;
+
+    const canCreate = (): boolean => {
+        return selectedTeamId !== undefined && channelName !== '' && !nameError
+    }
 
     if (props.profilesInChannel.length === 0) {
         return (
@@ -144,7 +148,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             handleConfirm={showLoader() ? undefined : handleConfirm}
             onExited={handleCancel}
             autoCloseOnConfirmButton={false}
-            isConfirmDisabled={selectedTeamId === undefined || channelName === ''}
+            isConfirmDisabled={!canCreate()}
         >
             <div
                 className={classNames({
@@ -184,6 +188,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                                 autoFocus={false}
                                 onDisplayNameChange={handleChannelNameChange}
                                 onURLChange={handleChannelURLChange}
+                                onErrorStateChange={setNameError}
                             />
                         </React.Fragment>
                     )
