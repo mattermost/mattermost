@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import matchMedia from 'tests/helpers/match_media.mock'; // eslint-disable-line import/order side-effect necessary before other imports
+
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -17,7 +19,6 @@ import store from 'stores/redux_store.jsx';
 
 import Root from 'components/root/root';
 
-import matchMedia from 'tests/helpers/match_media.mock';
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
 
 import type {ProductComponent} from 'types/store/plugins';
