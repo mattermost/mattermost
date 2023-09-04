@@ -672,11 +672,11 @@ const defaultServerConfig: AdminConfig = {
         SendWelcomePost: true,
         PostPriority: true,
         WysiwygEditor: false,
-        PeopleProduct: false,
         ThreadsEverywhere: false,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
         CloudReverseTrial: false,
+        StreamlinedMarketplace: true
     },
     ImportSettings: {
         Directory: './import',

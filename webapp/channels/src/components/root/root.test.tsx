@@ -6,6 +6,8 @@ import {RouteComponentProps} from 'react-router-dom';
 import {shallow} from 'enzyme';
 import rudderAnalytics from 'rudder-sdk-js';
 
+import matchMedia from 'tests/helpers/match_media.mock';
+
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Client4} from 'mattermost-redux/client';
@@ -14,7 +16,6 @@ import {GeneralTypes} from 'mattermost-redux/action_types';
 import Root from 'components/root/root';
 import * as GlobalActions from 'actions/global_actions';
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
-import matchMedia from 'tests/helpers/match_media.mock';
 import {ProductComponent} from 'types/store/plugins';
 import {ServiceEnvironment} from '@mattermost/types/config';
 

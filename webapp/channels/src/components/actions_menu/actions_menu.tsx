@@ -29,6 +29,8 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {PluginComponent} from 'types/store/plugins';
 import {createCallContext} from 'utils/apps';
 
+import {ActionsMenuIcon} from './actions_menu_icon';
+
 const MENU_BOTTOM_MARGIN = 80;
 
 export const PLUGGABLE_COMPONENT = 'PostDropdownMenuItem';
@@ -217,7 +219,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         className='btn btn-primary visit-marketplace-button'
                         onClick={this.handleOpenMarketplace}
                     >
-                        {Utils.getMenuItemIcon('icon-view-grid-plus-outline visit-marketplace-button-icon')}
+                        <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
                         <span className='visit-marketplace-button-text'>
                             <FormattedMarkdownMessage
                                 id='post_info.actions.visitMarketplace'
@@ -270,8 +272,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         if (isSystemMessage) {
             return null;
         }
-
-        // const isMobile = this.props.isMobileView TODO;
 
         const pluginItems = this.props.pluginMenuItems?.
             filter((item) => {
@@ -339,7 +339,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         key={`marketplace_${this.props.post.id}`}
                         show={true}
                         text={formatMessage({id: 'post_info.marketplace', defaultMessage: 'App Marketplace'})}
-                        icon={Utils.getMenuItemIcon('icon-view-grid-plus-outline')}
+                        icon={<ActionsMenuIcon name='icon-view-grid-plus-outline'/>}
                         onClick={this.handleOpenMarketplace}
                     />
                 </React.Fragment>

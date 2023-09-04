@@ -4,8 +4,6 @@
 import React, {CSSProperties} from 'react';
 import classNames from 'classnames';
 
-import {isMobile} from 'utils/utils';
-
 import SubMenuItem from './menu_items/submenu_item';
 
 import MenuHeader from './menu_header';
@@ -123,15 +121,6 @@ export default class Menu extends React.PureComponent<Props> {
         let styles: CSSProperties = {};
         if (customStyles) {
             styles = customStyles;
-        } else {
-            if (openLeft) {
-                styles.left = 'inherit';
-                styles.right = 0;
-            }
-            if (openUp && !isMobile()) {
-                styles.bottom = '100%';
-                styles.top = 'auto';
-            }
         }
 
         return (
@@ -145,7 +134,14 @@ export default class Menu extends React.PureComponent<Props> {
                     id={listId}
                     ref={this.node}
                     style={styles}
-                    className={classNames('Menu__content dropdown-menu', this.props.className)}
+                    className={classNames(
+                        'Menu__content dropdown-menu',
+                        {
+                            openLeft,
+                            openUp,
+                        },
+                        this.props.className,
+                    )}
                     onClick={this.handleMenuClick}
                 >
                     {children}
