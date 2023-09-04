@@ -1740,8 +1740,8 @@ export default class Client4 {
         );
     };
 
-    getChannelStats = (channelId: string, excludeFilesCount = false) => {
-        const param = excludeFilesCount ? `?exclude_files_count=${excludeFilesCount}` : '';
+    getChannelStats = (channelId: string, includeFileCount = false) => {
+        const param = !includeFileCount ? '?exclude_files_count=true' : '';
         return this.doFetch<ChannelStats>(
             `${this.getChannelRoute(channelId)}/stats${param}`,
             {method: 'get'},
