@@ -73,7 +73,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		actualManifest, appErr := th.App.ch.installPluginLocally(&nilReadSeeker{}, nil, installPluginLocallyOnlyIfNew)
+		actualManifest, appErr := th.App.ch.installPluginLocally(&nilReadSeeker{}, installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.plugin.extract.app_error", appErr.Id, appErr.Error())
 		require.Nil(t, actualManifest)
@@ -87,7 +87,7 @@ func TestInstallPluginLocally(t *testing.T) {
 			{"test", "test file"},
 		})
 
-		actualManifest, appErr := th.App.ch.installPluginLocally(reader, nil, installPluginLocallyOnlyIfNew)
+		actualManifest, appErr := th.App.ch.installPluginLocally(reader, installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.plugin.manifest.app_error", appErr.Id, appErr.Error())
 		require.Nil(t, actualManifest)
@@ -106,7 +106,7 @@ func TestInstallPluginLocally(t *testing.T) {
 			{"plugin.json", string(manifestJSON)},
 		})
 
-		actualManifest, appError := th.App.ch.installPluginLocally(reader, nil, installationStrategy)
+		actualManifest, appError := th.App.ch.installPluginLocally(reader, installationStrategy)
 		if actualManifest != nil {
 			require.Equal(t, manifest, actualManifest)
 		}
@@ -165,17 +165,6 @@ func TestInstallPluginLocally(t *testing.T) {
 		require.NotNil(t, manifest)
 
 		assertBundleInfoManifests(t, th, []*model.Manifest{manifest})
-	})
-
-	t.Run("doesn't install if ID on block list", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-		cleanExistingBundles(t, th)
-
-		_, appErr := installPlugin(t, th, "com.mattermost.plugin-incident-response", "0.0.1", installPluginLocallyAlways)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.plugin.blocked.app_error", appErr.Id)
-		assertBundleInfoManifests(t, th, []*model.Manifest{})
 	})
 
 	t.Run("different plugin already installed", func(t *testing.T) {

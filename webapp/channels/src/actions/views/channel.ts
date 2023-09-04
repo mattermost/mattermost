@@ -57,20 +57,9 @@ import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
-import {isMobile} from 'utils/utils';
 import LocalStorageStore from 'stores/local_storage_store';
 import {isArchivedChannel} from 'utils/channel_utils';
 import type {GlobalState} from 'types/store';
-
-export function checkAndSetMobileView() {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.UPDATE_MOBILE_VIEW,
-            data: isMobile(),
-        });
-        return {data: true};
-    };
-}
 
 export function goToLastViewedChannel() {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

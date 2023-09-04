@@ -6,6 +6,7 @@ import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
 
 import {RHSStates} from 'utils/constants';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 export type SearchType = '' | 'files' | 'messages';
 
@@ -37,6 +38,7 @@ export type RhsViewState = {
     isSidebarExpanded: boolean;
     isMenuOpen: boolean;
     editChannelMembers: boolean;
+    size: SidebarSize;
 };
 
 export type RhsState = typeof RHSStates[keyof typeof RHSStates] | null;

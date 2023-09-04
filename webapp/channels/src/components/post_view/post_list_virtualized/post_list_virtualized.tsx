@@ -113,11 +113,6 @@ type Props = {
         canLoadMorePosts: (type: CanLoadMorePosts) => Promise<void>;
 
         /*
-         * Function to check and set if app is in mobile view
-         */
-        checkAndSetMobileView: () => void;
-
-        /*
          * Function to change the post selected for postList
          */
         changeUnreadChunkTimeStamp: (lastViewedAt: number) => void;
@@ -208,7 +203,6 @@ export default class PostList extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.mounted = true;
-        this.props.actions.checkAndSetMobileView();
 
         window.addEventListener('resize', this.handleWindowResize);
         EventEmitter.addListener(EventTypes.POST_LIST_SCROLL_TO_BOTTOM, this.scrollToLatestMessages);
@@ -318,7 +312,6 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     handleWindowResize = () => {
-        this.props.actions.checkAndSetMobileView();
         this.showSearchHintThreshold = this.getShowSearchHintThreshold();
     };
 
@@ -380,6 +373,8 @@ export default class PostList extends React.PureComponent<Props, State> {
                     isLastPost={isLastPost}
                     loadingNewerPosts={this.props.loadingNewerPosts}
                     loadingOlderPosts={this.props.loadingOlderPosts}
+                    lastViewedAt={this.props.lastViewedAt}
+                    channelId={this.props.channelId}
                 />
             </div>
         );

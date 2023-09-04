@@ -97,6 +97,7 @@ function PostPriorityPickerOverlay({
                 {...getTooltipReferenceProps()}
             >
                 <IconContainer
+                    id='messagePriority'
                     ref={pickerRef}
                     className={classNames({control: true, active: pickerOpen})}
                     disabled={disabled}

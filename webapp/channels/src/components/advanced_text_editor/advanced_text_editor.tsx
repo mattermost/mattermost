@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties, useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import classNames from 'classnames';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
@@ -42,8 +42,8 @@ import SendButton from './send_button';
 import {IconContainer} from './formatting_bar/formatting_icon';
 
 import './advanced_text_editor.scss';
-import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
 import SuggestionList from 'components/suggestion/suggestion_list';
+import ToggleFormattingBar from './toggle_formatting_bar';
 
 type Props = {
 
@@ -168,7 +168,6 @@ const AdvanceTextEditor = ({
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
 
-    const [scrollbarWidth, setScrollbarWidth] = useState(0);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
@@ -177,13 +176,7 @@ const AdvanceTextEditor = ({
 
     const handleHeightChange = useCallback((height: number, maxHeight: number) => {
         setRenderScrollbar(height > maxHeight);
-
-        window.requestAnimationFrame(() => {
-            if (textboxRef.current) {
-                setScrollbarWidth(Utils.scrollbarWidth(textboxRef.current.getInputBox()));
-            }
-        });
-    }, [textboxRef]);
+    }, []);
 
     const handleShowFormat = useCallback(() => {
         setShowPreview(!shouldShowPreview);
@@ -430,11 +423,6 @@ const AdvanceTextEditor = ({
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     scroll: renderScrollbar,
                 })}
-                style={
-                    renderScrollbar && scrollbarWidth ? ({
-                        '--detected-scrollbar-width': `${scrollbarWidth}px`,
-                    } as CSSProperties) : undefined
-                }
             >
                 <div
                     id={'speak-'}
@@ -486,7 +474,6 @@ const AdvanceTextEditor = ({
                             characterLimit={maxPostSize}
                             preview={shouldShowPreview}
                             badConnection={badConnection}
-                            listenForMentionKeyClick={true}
                             useChannelMentions={useChannelMentions}
                             rootId={postId}
                             onWidthChange={handleWidthChange}

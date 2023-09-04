@@ -7,14 +7,13 @@ import {Dispatch, bindActionCreators, ActionCreatorsMapObject} from 'redux';
 import {getRecentPostsChunkInChannel, makeGetPostsChunkAroundPost, getUnreadPostsChunk, getPost, isPostsChunkIncludingUnreadsPosts, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {Action} from 'mattermost-redux/types/actions';
-import {markChannelAsRead, markChannelAsViewed} from 'mattermost-redux/actions/channels';
+import {markChannelAsRead} from 'mattermost-redux/actions/channels';
 import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
 import {RequestStatus} from 'mattermost-redux/constants';
 
 import {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import {getLatestPostId} from 'utils/post_utils';
 import {
-    checkAndSetMobileView,
     loadPosts,
     loadUnreads,
     loadPostsAround,
@@ -36,7 +35,7 @@ const memoizedGetLatestPostId = memoizeResult((postIds: string[]) => getLatestPo
 
 interface Props {
     focusedPostId?: string;
-    unreadChunkTimeStamp: number;
+    unreadChunkTimeStamp?: number;
     changeUnreadChunkTimeStamp: (lastViewedAt: number) => void;
     channelId: string;
 }
@@ -75,7 +74,10 @@ function makeMapStateToProps() {
             atOldestPost = Boolean(chunk.oldest);
         }
 
-        const shouldHideNewMessageIndicator = shouldStartFromBottomWhenUnread && !isPostsChunkIncludingUnreadsPosts(state, chunk!, unreadChunkTimeStamp);
+        let shouldHideNewMessageIndicator = false;
+        if (unreadChunkTimeStamp != null) {
+            shouldHideNewMessageIndicator = shouldStartFromBottomWhenUnread && !isPostsChunkIncludingUnreadsPosts(state, chunk!, unreadChunkTimeStamp);
+        }
 
         if (postIds) {
             formattedPostIds = preparePostIdsForPostList(state, {postIds, lastViewedAt, indicateNewMessages: !shouldHideNewMessageIndicator});
@@ -109,9 +111,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             loadPosts,
             loadLatestPosts,
             loadPostsAround,
-            checkAndSetMobileView,
             syncPostsInChannel,
-            markChannelAsViewed,
             markChannelAsRead,
             updateNewMessagesAtInChannel,
         }, dispatch),

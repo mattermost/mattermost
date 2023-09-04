@@ -185,6 +185,32 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 	})
 
+	t.Run("test user manager access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserManagerRoleId,
+		}
+
+		// test non bot, contains wrapped error
+		err = th.App.SessionHasPermissionToManageBot(session, "12345")
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.Error(t, err.Unwrap())
+
+		// test existing bot, without PermissionManageOthersBots - no wrapped error
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.NoError(t, err.Unwrap())
+
+		// test with correct permissions
+		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+	})
+
 	t.Run("test sysadmin role", func(t *testing.T) {
 		session := model.Session{
 			UserId: th.SystemAdminUser.Id,
@@ -229,6 +255,17 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
 		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser2.Id,
+		})
+		require.Nil(t, err)
+		assert.NotNil(t, bot)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		assert.False(t, th.App.SessionHasPermissionToUser(session, bot.UserId))
 	})
 
 	t.Run("test admin user access", func(t *testing.T) {

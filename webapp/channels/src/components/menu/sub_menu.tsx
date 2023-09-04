@@ -29,7 +29,7 @@ import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
 import {MenuItem, Props as MenuItemProps} from './menu_item';
-import {SubMenuContext} from './menu_context';
+import {SubMenuContext, useMenuContextValue} from './menu_context';
 
 import './sub_menu.scss';
 
@@ -85,12 +85,7 @@ export function SubMenu(props: Props) {
         setAnchorElement(null);
     }, []);
 
-    const providerValue = useMemo(() => {
-        return {
-            close: closeSubMenu,
-            isOpen: Boolean(anchorElement),
-        };
-    }, [anchorElement, closeSubMenu]);
+    const providerValue = useMenuContextValue(closeSubMenu, Boolean(anchorElement));
 
     const hasSubmenuItems = Boolean(children);
     if (!hasSubmenuItems) {

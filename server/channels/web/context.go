@@ -59,10 +59,11 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 		EventName: event,
 		Status:    initialStatus,
 		Actor: audit.EventActor{
-			UserId:    c.AppContext.Session().UserId,
-			SessionId: c.AppContext.Session().Id,
-			Client:    c.AppContext.UserAgent(),
-			IpAddress: c.AppContext.IPAddress(),
+			UserId:        c.AppContext.Session().UserId,
+			SessionId:     c.AppContext.Session().Id,
+			Client:        c.AppContext.UserAgent(),
+			IpAddress:     c.AppContext.IPAddress(),
+			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
 		Meta: map[string]interface{}{
 			audit.KeyAPIPath:   c.AppContext.Path(),
