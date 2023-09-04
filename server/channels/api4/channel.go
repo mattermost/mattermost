@@ -2232,6 +2232,12 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	var gmConversionRequest *model.GroupMessageConversionRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&gmConversionRequest); err != nil {
+		c.SetInvalidParamWithErr("body", err)
+		return
+	}
+
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -2242,9 +2248,8 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var gmConversionRequest *model.GroupMessageConversionRequestBody
-	if err := json.NewDecoder(r.Body).Decode(&gmConversionRequest); err != nil {
-		c.SetInvalidParamWithErr("body", err)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), gmConversionRequest.TeamID, model.PermissionCreatePrivateChannel) {
+		c.SetPermissionError(model.PermissionCreatePrivateChannel)
 		return
 	}
 

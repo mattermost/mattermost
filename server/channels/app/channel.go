@@ -3542,8 +3542,37 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 }
 
 func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, originalChannel *model.Channel, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
+	commonTeams, appErr := a.GetGroupMessageMembersCommonTeams(c, originalChannel.Id)
+	if appErr != nil {
+		return appErr
+	}
+
+	teamFound := false
+	for _, team := range commonTeams {
+		if team.Id == gmConversionRequest.TeamID {
+			teamFound = true
+			break
+		}
+	}
+
+	if !teamFound {
+		return model.NewAppError(
+			"validateForConvertGroupMessageToChannel",
+			"app.channel.group_message_conversion.incorrect_team",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
 	if originalChannel.Type != model.ChannelTypeGroup {
-		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
+		return model.NewAppError(
+			"ConvertGroupMessageToChannel",
+			"app.channel.group_message_conversion.original_channel_not_gm",
+			nil,
+			"",
+			http.StatusNotFound,
+		)
 	}
 
 	channelMember, appErr := a.GetChannelMember(c, gmConversionRequest.ChannelID, convertedByUserId)
@@ -3552,7 +3581,7 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 	}
 
 	if channelMember == nil {
-		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
+		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.group_message_conversion.channel_member_missing", nil, "", http.StatusNotFound)
 	}
 
 	teamMember, appErr := a.GetTeamMember(gmConversionRequest.TeamID, convertedByUserId)
@@ -3561,7 +3590,7 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 	}
 
 	if teamMember == nil {
-		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
+		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.group_message_conversion.team_member_missing", nil, "", http.StatusNotFound)
 	}
 
 	// apply dummy changes to check validity
@@ -3587,8 +3616,10 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 		return appErr
 	}
 
+	userIDs := make([]string, len(users))
 	usernames := make([]string, len(users))
 	for i, user := range users {
+		userIDs[i] = user.Id
 		usernames[i] = user.Username
 	}
 
@@ -3607,8 +3638,8 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 	}
 
 	// these props are used for re-constructing a localized message on the client
-	post.AddProp("convertedByUsername", convertedByUser.Username)
-	post.AddProp("gmMembersDuringConversion", usernames)
+	post.AddProp("convertedByUserId", convertedByUser.Id)
+	post.AddProp("gmMembersDuringConversionIDs", userIDs)
 
 	channel, appErr := a.GetChannel(c, channelID)
 	if appErr != nil {
@@ -3620,7 +3651,7 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 
 		return model.NewAppError(
 			"postMessageForConvertGroupMessageToChannel",
-			"api.channel.group_message.converted.to_private_channel.post_message.error",
+			"app.channel.group_message_conversion.post_message.error",
 			nil,
 			"",
 			http.StatusInternalServerError,

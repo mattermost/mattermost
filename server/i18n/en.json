@@ -304,10 +304,6 @@
     "translation": "{{.ConvertedByUsername}} created this channel from a group message with {{.GMMembers}}."
   },
   {
-    "id": "api.channel.group_message.converted.to_private_channel.post_message.error",
-    "translation": "Failed to create group message to channel conversion post"
-  },
-  {
     "id": "api.channel.guest_join_channel.post_and_forget",
     "translation": "%v joined the channel as guest."
   },
@@ -4862,6 +4858,26 @@
   {
     "id": "app.channel.get_unread.app_error",
     "translation": "Unable to get the channel unread messages."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Cannot find user's channel membership"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "The specified team ID in conversion request does not contain all the group message members"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "The channel being converted is not a group message. You can only convert group messages"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Failed to create group message to channel conversion post"
+  },
+  {
+    "id": "app.channel.group_message_conversion.team_member_missing",
+    "translation": "Cannot find user's team membership"
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
