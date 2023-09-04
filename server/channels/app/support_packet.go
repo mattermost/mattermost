@@ -198,7 +198,7 @@ func (a *App) createPluginsFile() (*model.FileData, error) {
 
 func (a *App) getNotificationsLog() (*model.FileData, error) {
 	if !*a.Config().NotificationLogSettings.EnableFile {
-		return nil, errors.New("Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json")
+		return nil, errors.New("Unable to retrieve notifications.log because LogSettings: EnableFile is set to false")
 	}
 
 	notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
@@ -216,7 +216,7 @@ func (a *App) getNotificationsLog() (*model.FileData, error) {
 
 func (a *App) getMattermostLog() (*model.FileData, error) {
 	if !*a.Config().LogSettings.EnableFile {
-		return nil, errors.New("Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json")
+		return nil, errors.New("Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
 	}
 
 	mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)

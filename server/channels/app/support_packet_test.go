@@ -100,7 +100,7 @@ func TestGetNotificationsLog(t *testing.T) {
 
 	fileData, err := th.App.getNotificationsLog()
 	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json")
+	assert.ErrorContains(t, err, "Unable to retrieve notifications.log because LogSettings: EnableFile is set to false")
 
 	// Enable notifications file but delete any notifications file to get an error trying to read the file
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -138,7 +138,7 @@ func TestGetMattermostLog(t *testing.T) {
 
 	fileData, err := th.App.getMattermostLog()
 	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json")
+	assert.ErrorContains(t, err, "Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
 
 	// We enable the setting but delete any mattermost log file
 	th.App.UpdateConfig(func(cfg *model.Config) {
