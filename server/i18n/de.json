@@ -9869,5 +9869,13 @@
   {
     "id": "model.config.is_valid.local_mode_socket.app_error",
     "translation": "Das Verzeichnis der lokalen Socket-Dateien kann nicht gefunden werden."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Ungelesene Nachrichten und Erwähnungen können nicht überprüft werden"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Unterhaltungen können nicht als gelesen markiert werden"
   }
 ]
