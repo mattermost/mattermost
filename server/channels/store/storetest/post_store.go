@@ -744,7 +744,6 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
-		t.Skip("MM-46134")
 		teamId := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
