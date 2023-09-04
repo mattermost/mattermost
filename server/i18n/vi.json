@@ -1,1 +1,5490 @@
-{}
+[
+  {
+    "id": "api.back_to_app",
+    "translation": "Quay lại {{.SiteName}}"
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v Rời kênh."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "Tích hợp chỉ được giới hạn trong quản trị viên."
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Người dùng được chỉ định không phải là thành viên của kênh được chỉ định."
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "vắng"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Xóa thành viên khỏi kênh"
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Hiển thị danh sách các phím tắt"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "phím tắt"
+  },
+  {
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "Phím tắt không được hỗ trợ trên thiết bị của bạn"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "Giấy phép của bạn không hỗ trợ nhóm ldap"
+  },
+  {
+    "id": "api.user.update_password.failed.app_error",
+    "translation": "Cập nhật mật khẩu thất bại"
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Đã xảy ra lỗi khi rời khỏi kênh."
+  },
+  {
+    "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "translation": "Không thể nhận được tất cả các phản ứng với tên biểu tượng cảm xúc này"
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Không thể lưu phản ứng"
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Gặp phải lỗi mã hóa JSON cho hội thoại tương tác."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Nhóm này đã đạt đến số lượng tài khoản được phép tối đa. Liên hệ với Quản trị viên hệ thống của bạn để đặt giới hạn cao hơn."
+  },
+  {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "Không thể đổi tên nhóm, tên này đã được sử dụng"
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Không được gọi lưu cho các điều khoản dịch vụ hiện có."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ Elaticsearch."
+  },
+  {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "Trường AD / LDAP \"BaseDN\" là bắt buộc."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "Trường AD / LDAP \"Thuộc tính email\" là bắt buộc."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Giá trị không hợp lệ cho bảo mật kết nối máy chủ web."
+  },
+  {
+    "id": "April",
+    "translation": "Tháng Tư"
+  },
+  {
+    "id": "August",
+    "translation": "Tháng Tám"
+  },
+  {
+    "id": "December",
+    "translation": "Tháng Mười Hai"
+  },
+  {
+    "id": "February",
+    "translation": "Tháng Hai"
+  },
+  {
+    "id": "January",
+    "translation": "Tháng Một"
+  },
+  {
+    "id": "July",
+    "translation": "Tháng Bảy"
+  },
+  {
+    "id": "June",
+    "translation": "Tháng Sáu"
+  },
+  {
+    "id": "March",
+    "translation": "Tháng Ba"
+  },
+  {
+    "id": "May",
+    "translation": "Tháng Năm"
+  },
+  {
+    "id": "November",
+    "translation": "Tháng Mười Một"
+  },
+  {
+    "id": "October",
+    "translation": "Tháng Mười"
+  },
+  {
+    "id": "September",
+    "translation": "Tháng Chín"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Bạn không thể gỡ nội dung trong kênh đã lưu trữ."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Bạn không thể xoá nội dung sau 5 phút."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Bạn không thể đăng nội dung trong kênh đã lưu trữ."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Không có tệp tin 'certificate' trong yêu cầu."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Không có tệp tin 'certificate' trong yêu cầu."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Không thể mở tập tin chứng chỉ."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Lỗi trong quá trình đọc request dữ liệu multiform"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Không thể lưu tệp tin certificate."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Không thể xóa hình ảnh thương hiệu, không tìm thấy."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Lỗi khi đọc tệp log."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Kho chứa ảnh chưa được cài đặt."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "Giao thức LDAP không có sẵn."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Một lỗi đã xảy ra trong quá trình xóa chứng chỉ."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Không thể lưu tệp tin certificate."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Lỗi xuất hiện khi xây dựng dữ liệu Cung cấp Dịch vụ Metadata."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 không được cấu hình hoặc không hổ trợ trên máy chủ này."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Chứng chỉ văn bản không hợp lệ"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Định dạng nội dung không hợp lệ."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Thiếu định dạng nội dung."
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Thông tin email tài khoản Mattermost của bạn đã được cấu hình chính xác!"
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "Bạn cần nhập thông tin máy chủ SMTP"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "Máy chủ, cổng hoặc tên người dùng SMTP đã thay đổi. Vui lòng nhập lại mật khẩu SMTP để kiểm thử kết nối."
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Kiểm tra Cài đặt Email"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket là bắt buộc"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Dữ liệu trong trường 'image' bị trống"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Không có tệp tin trong trường 'image' của yêu cầu"
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Không thể phân tích form với định dạng multipart"
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Không thể tải hình ảnh lên. Kho dữ liệu ảnh chưa được cấu hình."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Không thể tải tệp tin lên. Tệp tin quá lớn."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Tạo bot đã bị vô hiệu hóa."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Xin hãy thêm tôi vào các nhóm và kênh mà bạn muốn tôi tương tác trong đó. Để làm điều này, hãy sử dụng trình duyệt hoặc ứng dụng dành cho desktop."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v được thêm vào làm khách trong kênh bởi %v."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v được thêm vào kênh bởi %v."
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Lỗi khi thêm thành viên (một hoặc nhiều)."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Tư cách thành viên kênh bị từ chối đối với những người dùng sau vì các ràng buộc nhóm: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Lỗi khi thêm người dùng vào kênh"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Lỗi khi thêm người dùng vào kênh vì họ đã bị xoá khỏi nhóm."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Không thể thêm người dùng vào kiểu kênh này"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Kênh này đã được chuyển đổi thành Kênh công cộng và bất kỳ thành viên nhóm nào cũng có thể tham gia."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Kênh này đã được chuyển thành Kênh riêng tư."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ nhóm ldap"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Yêu cầu sử dụng dịch vụ createDirectChannel API cho tạo quá trình kênh giao tiếp trực tiếp"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Không thể tạo kênh kết nối trực tiếp giữa những người dùng này vì họ không cùng thuộc về một nhóm chung."
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Không thể tạo nhiều hơn {{.MaxChannelsPerTeam}} kênh cho nhóm hiện tại"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Chủ đề ngoài lề"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Không gian chung"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "ID người dùng không hợp lệ để tạo kênh trực tiếp"
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Các kênh tin nhắn nhóm phải chứa ít nhất 3 và không quá 8 người dùng"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "Một trong những người dùng được cung cấp không tồn tại"
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v Đã lưu trữ kênh."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Không thể xóa kênh mặc định {{.Channel}}."
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "Kênh này đã bị đóng hoặc xoá bỏ."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Xóa thành viên kênh bị từ chối đối với những người dùng sau vì các ràng buộc nhóm: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Không thể gỡ người dùng từ kiểu kênh này"
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Không thể xoá tin nhắn trực tiếp hoặc kênh tin nhắn nhóm"
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ Lưu giữ dữ liệu."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v tham gia kênh với vai trò khách mời"
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Bạn không có đủ thẩm quyền truy cập"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v tham gia kênh."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Không thể rời khỏi kênh mặc định {{.Channel}}."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Không thể để lại tin nhắn trực tiếp."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Bạn là thành viên duy nhất còn lại, hãy thử loại bỏ các Kênh Riêng tư thay vì để lại."
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Không thể di chuyển kênh trực tiếp hoặc kênh nhắn tin nhóm"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ Lưu giữ dữ liệu."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Không thể cập nhật kênh."
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Không thể đăng thông báo cập nhật quyền riêng tư của kênh."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Không thể đăng thông báo cập nhật displayname"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Không thể truy xuất người dùng trong khi cập nhật trường kênh DisplayName"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s đã cập nhật tên hiển thị của kênh từ: %s sang: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Thất bại để gửi cập nhật tiêu đề kênh tin nhắn"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s loại bỏ các kênh đầu (was: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Không thể truy xuất người dùng trong khi cập nhật tiêu đề kênh"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s cập nhật các tiêu đề kênh từ: %s: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s cập nhật các kênh tiêu đề: %s"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Không thể đăng bài tham gia / để lại tin nhắn"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Không thể xóa người dùng khỏi kênh mặc định {{.Channel}}"
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Không thể xoá người dùng từ một kênh."
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Không thể xóa người dùng khỏi kênh bị ràng buộc theo nhóm."
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v đã được gỡ bỏ từ các kênh."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Bạn không thể đổi tên kênh tin nhắn trực tiếp"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Bạn không thể đổi tên kênh tin nhắn nhóm"
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "Kênh này đã bị đóng hoặc xoá bỏ"
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Cố gắng thực hiện một cập nhật không hợp lệ của kênh mặc định {{.Channel}}"
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Không thể cập nhật loại kênh"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Cập nhật thành viên kênh không hợp lệ: Bạn không thể thêm hoặc xóa vai trò khách theo cách thủ công"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Cập nhật thành viên kênh không hợp lệ: Người dùng phải là khách hoặc người dùng nhưng không phải cả hai."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Vai trò được cung cấp được quản lý bởi chương trình và do đó không thể được áp dụng trực tiếp cho một thành viên kênh"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Kênh mặc định không thể riêng tư"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ cập nhật scheme của kênh"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Không thể đặt scheme cho kênh vì scheme được cung cấp không phải là scheme kênh."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Cập nhật thành viên nhóm không hợp lệ: Bạn không thể thêm hoặc xóa vai trò khách theo cách thủ công"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "Vai trò được cung cấp được quản lý bởi một Scheme và do đó không thể được áp dụng trực tiếp cho một Team Member"
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Các lệnh đã bị vô hiệu hóa bởi quản trị viên hệ thống."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Từ kích hoạt này đã được sử dụng. Vui lòng có một từ khác."
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Lệnh '{{.Trigger}}' không thể gửi phản hồi. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "Lệnh với một kích hoạt của '{{.Trigger}}' không thành công"
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "Lệnh với một kích hoạt của '{{.Trigger}}' Trả lời phản hồi trống rỗng"
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "Lệnh với một kích hoạt của '{{.Trigger}}' Trả lại đáp ứng {{.Status}}"
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Không tìm thấy lệnh kích hoạt '{{.Trigger}}'. Để gửi tin nhắn bắt đầu bằng \"/\", hãy thử thêm một khoảng trống ở đầu tin nhắn."
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "Không tìm thấy kích hoạt lệnh nào"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Gửi một email mời nhóm Mattermost của bạn"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Lời mời qua email bị tắt, không có lời mời nào được gửi"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "Email chưa được định cấu hình, không có lời mời nào được gửi"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Đã xảy ra lỗi khi gửi (các) lời mời qua email"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[name@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Tạo người dùng đã bị tắt trên máy chủ này, không có lời mời nào được gửi"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Vui lòng chỉ định một hoặc nhiều địa chỉ email hợp lệ"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Đã gửi (các) email mời"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Không thể cập nhật lệnh trên các nhóm"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Đặt trạng thái thành vắng"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Bạn hiện đang vắng mặt"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Lỗi khi truy xuất kênh hiện tại."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Chỉnh sửa tiêu đề kênh"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Văn bản phải được cung cấp với lệnh /header."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "đầu trang"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Bạn không có quyền để chỉnh sửa tiêu đề kênh."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Lỗi cập nhật kênh hiện tại."
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Lỗi khi truy xuất kênh hiện tại."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Chỉnh sửa mục đích kênh"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Không thể đặt mục đích cho các kênh tin nhắn trực tiếp. Sử dụng lệnh /header để đặt tiêu đề thay thế."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Một tin nhắn phải được cung cấp bằng lệnh /purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "mục đích"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Bạn không có quyền để chỉnh sửa mục đích kênh."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Lỗi cập nhật kênh hiện tại."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Lỗi khi truy xuất kênh hiện tại."
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Lỗi khi truy xuất kênh hiện tại."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Đổi tên kênh"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Không thể đổi tên kênh tin nhắn trực tiếp."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Một tin nhắn phải được cung cấp bằng lệnh /rename."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "đổi tên"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Bạn không có quyền để đổi tên kênh."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Tên kênh phải ít hơn hoặc bằng {{.Length}} ký tự"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Tên kênh phải bằng hoặc nhiều hơn {{.Length}} ký tự"
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Lỗi cập nhật kênh hiện tại."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Hiển thị văn bản dưới dạng khối mã lệnh"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "trợ giúp"
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Lỗi khi truy xuất kênh hiện tại."
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Tin nhắn phải được cung cấp bằng lệnh /code."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "mã"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Bật tự động thu gọn bản xem trước hình ảnh"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "thu gọn"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Liên kết hình ảnh hiện tại bị thu gọn theo mặc định"
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "Không làm phiền vô hiệu hóa thông báo đẩy trên thiết bị di động và máy tính để bàn."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Không làm phiền được bật. Bạn sẽ không nhận được thông báo đẩy trên thiết bị di động hoặc máy tính để bàn cho đến khi Không làm phiền được tắt."
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Thời gian trễ phải dưới 10000 giây"
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "Nhập lại văn bản từ tài khoản của bạn"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "Khối lượng lớn yêu cầu cho echo, không thể xử lý yêu cầu"
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "'tin nhắn' [trì hoãn trong vài giây]"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "Tin nhắn phải được cung cấp bằng lệnh /echo."
+  },
+  {
+    "id": "api.command_echo.name",
+    "translation": "echo"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Tắt tính năng tự động thu gọn bản xem trước hình ảnh"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "mở rộng"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Liên kết hình ảnh hiện được mở rộng theo mặc định"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "Đã xảy ra lỗi khi mở bản xem trước"
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Gửi tin nhắn nhóm cho người dùng được chỉ định"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Đã xảy ra lỗi khi nhắn tin cho người dùng."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Đã xảy ra lỗi khi tạo tin nhắn nhóm."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'message'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "other": "Không thể tìm thấy thành viên: {{.Users}}Không thể tìm thấy các thành viên: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Tin nhắn nhóm được giới hạn tối đa {{.MaxUsers}} người dùng."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Tin nhắn nhóm được giới hạn ở mức tối thiểu {{.MinUsers}} người dùng."
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "tin nhắn"
+  },
+  {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "Bạn không có quyền để tạo một tin nhắn nhóm mới."
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Mở trang trợ giúp Mattermost"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "Không thể tìm thấy kênh {{.Channel}}. Vui lòng sử dụng [xử lý kênh](https://about.mattermost.com/default-channel-handle-documentation) để xác định các kênh."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Mời người dùng vào một kênh"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "Bạn không thể thêm ai đó vào kênh tin nhắn trực tiếp."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Đã xảy ra lỗi khi tham gia kênh."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[username] ~[channel]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Thiếu Tên người dùng và Kênh."
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "Chúng tôi không thể tìm thấy người dùng. Họ có thể đã bị vô hiệu hóa bởi Quản trị viên hệ thống."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "mời"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "Bạn không có đủ quyền để thêm {{.User}} vào {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Không thể tìm thấy kênh {{.Channel}}. Vui lòng sử dụng xử lý kênh để xác định kênh."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} đã được thêm vào kênh {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} đã có trong kênh."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "{{.Username}} không phải là thành viên của team này."
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Bạn không được phép mời người dùng mới vào máy chủ này."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "Tham gia kênh công cộng"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Đã xảy ra lỗi khi tham gia kênh."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "~[channel]"
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "Đã xảy ra lỗi khi liệt kê các kênh."
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "Không thể tìm thấy kênh"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "tham gia"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "đuổi"
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Rời khỏi kênh hiện tại"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Đã xảy ra lỗi khi rời khỏi kênh."
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "rời khỏi"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Đăng xuất"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "đăng xuất"
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "Thực hiện một hành động"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "tôi"
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Gửi tin nhắn trực tiếp tới người dùng"
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Đã xảy ra lỗi trong khi tạo tin nhắn trực tiếp."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Đã xảy ra lỗi khi nhắn tin cho người dùng."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[username] 'message'"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Không thể tìm thấy người dùng."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "tin nhắn"
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "Bạn không có quyền thích hợp để gửi tin nhắn trực tiếp đến người dùng này."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Tắt thông báo trên màn hình, email và thông báo đẩy cho kênh hiện tại hoặc [channel] được chỉ định."
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "Không thể tìm thấy kênh {{.Channel}}. Vui lòng sử dụng [xử lý kênh] (https://about.mattermost.com/default-channel-handle-documentation) để xác định các kênh."
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "~[channel]"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "tắt tiếng"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "Không thể tìm thấy kênh chỉ định. Vui lòng sử dụng [xử lý kênh] (https://about.mattermost.com/default-channel-handle-documentation) để xác định các kênh."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Không thể tắt tiếng kênh {{.Channel}} vì bạn không phải là thành viên."
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "Bạn sẽ không nhận được thông báo cho {{.Channel}} cho đến khi tắt tiếng kênh được tắt."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "Bạn sẽ không nhận được thông báo cho kênh này cho đến khi tắt tiếng kênh được tắt."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} không còn bị tắt tiếng nữa."
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "Kênh này không còn bị tắt tiếng nữa."
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Đặt trạng thái của bạn thành offline"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "Bạn đang ngoại tuyến"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Đặt trạng thái của bạn thành trực tuyến"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "trực tuyến"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Bạn đang trực tuyến"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "mở"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "Bạn không thể gỡ ai đó khỏi kênh tin nhắn trực tiếp."
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "Người dùng không thể được gỡ bỏ khỏi kênh của bạn bởi vì họ là một thành viên của nhóm liên quan đến kênh này. Để loại bỏ khỏi kênh này, họ phải được loại bỏ khỏi nhóm liên kết."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[username]"
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "Một tin nhắn phải được cung cấp bằng lệnh /remove hoặc /kick."
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "Chúng tôi không thể tìm thấy người dùng. Họ có thể đã bị vô hiệu hóa bởi Quản trị viên hệ thống."
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "xóa"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Bạn không có quyền để xoá bỏ thành viên."
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} không phải là thành viên của kênh này."
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Tìm kiếm văn bản trong tin nhắn"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "tìm kiếm"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "Lệnh tìm kiếm không được hỗ trợ trên thiết bị của bạn"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Mở hộp thoại Cài đặt tài khoản"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "thiết lập"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "Lệnh cài đặt không được hỗ trợ trên thiết bị của bạn"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Thêm ¯\\_(ツ)_/¯ vào tin nhắn của bạn"
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "shrug"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "Định dạng mới cho cấu hình máy khách chưa được hỗ trợ. Vui lòng xác định format=old trong chuỗi truy vấn."
+  },
+  {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Không thể hợp nhất cấu hình đã cho."
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "Xin lỗi, chúng tôi không thể tìm thấy trang."
+  },
+  {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Không hợp lệ hoặc thiếu {{.Name}} trong thân yêu cầu"
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "Parameter {{.Name}} không hợp lệ"
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "Phiên không hợp lệ token={{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Không hợp lệ hoặc bị thiếu tham số {{.Name}} trong URL yêu cầu"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Xác thực đa yếu tố được yêu cầu trên máy chủ này."
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "Bạn không có đủ thẩm quyền truy cập"
+  },
+  {
+    "id": "api.context.server_busy.app_error",
+    "translation": "Máy chủ bận, các dịch vụ không quan trọng tạm thời không khả dụng"
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "Không hợp lệ hoặc hết hạn, xin vui lòng nhập một lần nữa."
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "Phiên không phải là OAuth nhưng mã thông báo đã được cung cấp trong chuỗi truy vấn"
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "Tùy chỉnh về vụ năng bị vô hiệu hóa"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Xin vui lòng nhập vào văn bản cho Điều Khoản của Dịch vụ."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "Email trộn công việc của nhận được kênh đã được đầy đủ. Xin tăng EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Email trộn đã vô hiệu hóa hệ thống quản trị"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "other": "[{{.SiteName}}] Thông báo mới cho ngày {{.Month}} {{.Day}}, {{.Year}}[{{.SiteName}}] Các thông báo mới cho ngày {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "Không thể tạo emoji. Một emoji với cùng một tên đã tồn tại."
+  },
+  {
+    "id": "api.emoji.create.other_user.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "Không thể tạo emoji. Không thể hiểu được yêu cầu."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Không thể tạo emoji. Hình ảnh phải có kích thước nhỏ hơn 1 MB."
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Các biểu tượng cảm xúc tuỳ biến đã bị vô hiệu hóa bởi quản trị viên hệ thống."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Không thể giải mã tập tin hình ảnh cho emoji."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "Không thể đọc tệp hình ảnh cho emoji."
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "File lưu trữ không được cấu hình đúng. Xin vui lòng cấu hình cho cả hai S3 hay máy chủ lưu trữ local."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "Không thể tạo emoji. Định dạng file phải là PNG, JPEG, hoặc GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Không thể tạo emojii. Một lỗi xảy ra khi cố gắng giải mã các hình ảnh."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Không thể tạo emoji. Một lỗi xảy ra khi cố gắng để mã hóa các hình ảnh."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Không thể tạo emoji. Một lỗi xảy ra khi cố gắng giải mã các hình ảnh GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Không thể tạo emoji. Có lỗi xảy ra khi tiến hành mã hóa file ảnh GIF đầu vào."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Không thể tạo emoji. Hình ảnh phải nhỏ hơn {{.MaxWidth}} và {{.MaxHeight}}."
+  },
+  {
+    "id": "api.emoji.upload.open.app_error",
+    "translation": "Không thể tạo emoji. Một lỗi xảy ra khi cố gắng để mở ảnh đính kèm."
+  },
+  {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "File đính kèm đã bị disabled trên server."
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "Link không hợp lệ"
+  },
+  {
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "File không có hình ảnh xem trước"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "File không có hình ảnh thu nhỏ"
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "Public links đã bị diabled"
+  },
+  {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Không thể lấy liên kết public cho tệp tin. Tệp tin phải được gắn vào bài đăng và có thể được đọc bởi người dùng hiện tại."
+  },
+  {
+    "id": "api.file.no_driver.app_error",
+    "translation": "Không có file driver nào được chọn."
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "Có lỗi đọc trên server chứa file cục bộ"
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "Không thể tải tệp tin. Có {{.NumClientIds}} client_ids cho {{.NumFiles}} tệp tin."
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "Tệp tin vượt quá kích thước tối đa có thể không được tải lên: {{.Filename}}"
+  },
+  {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "{{.Filename}} kích thước ({{.Width}} x {{.Height}} điểm ảnh) vượt quá giới hạn"
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "Không thể tải tệp tin. Nhiều vấn đề xung đột về channel_ids."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "Không thể upload file. Lỗi đọc giá trị {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Không thể upload file. Lỗi đọc hoặc phân tích dữ liệu."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Không thể tải hình ảnh lên. Kho dữ liệu ảnh chưa được định hình."
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "Không thể upload file {{.Filename}}. {{.Length}} byte vượt quá dung lượng {{.Limit}} cho phép."
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_error",
+    "translation": "Các webhooks sắp tới đã bị vô hiệu hóa bởi quản trị viên hệ thống."
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "User id không hợp lệ."
+  },
+  {
+    "id": "api.io_error",
+    "translation": "lỗi đầu vào/đầu ra"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "Không tìm thấy nhóm ldap"
+  },
+  {
+    "id": "api.ldap_groups.existing_group_name_error",
+    "translation": "thành viên nhóm đã tồn tại"
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Mảng 'giấy phép' trống trong yêu cầu"
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "Giấy phép đã hết hạn hoặc chưa được kích hoạt."
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "File giấy phép không hợp lệ."
+  },
+  {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "Không thể đếm tổng số người dùng riêng biệt."
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "Không có tệp tin 'license' trong yêu cầu"
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "Không thể mở tập tin license"
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "Giấy phép không được lưu hoàn chỉnh."
+  },
+  {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "ID giấy phép hoạt động không lưu đúng cách."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "Giấy phép này chỉ hỗ trợ người dùng, khi hệ thống của bạn có người dùng duy nhất. Người dùng duy nhất được tính khác biệt theo địa chỉ email. Bạn có thể thấy tổng số người dùng trong Báo cáo Trang web -> Xem Thống kê."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "Định dạng mới cho cấu hình máy khách chưa được hỗ trợ. Vui lòng xác định format=old trong chuỗi truy vấn."
+  },
+  {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "Không thể gửi email tài khoản hủy kích hoạt thành công"
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "Lỗi sắp đặt"
+  },
+  {
+    "id": "api.oauth.allow_oauth.redirect_callback.app_error",
+    "translation": "yêu cầu không hợp lệ: Redirect_uri được cung cấp không hợp kệ với callback_url đã được đăng ký"
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "Quản trị viên hệ thống đã tắt Nhà cung cấp dịch vụ OAuth2."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "Quản trị viên hệ thống đã tắt Nhà cung cấp dịch vụ OAuth2."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "Yêu cầu không hợp lệ: Id khách hàng xấu"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "không hợp lệ: thiếu client_secret"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "yêu cầu không hợp lệ: Bad Grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client: thông tin khách hàng không hợp lệ"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "Quản trị viên hệ thống đã tắt Nhà cung cấp dịch vụ OAuth2."
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "Cấp không hợp lệ: Mã ủy quyền không hợp lệ hoặc đã hết hạn"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error: Gặp phải lỗi máy chủ nội bộ khi truy cập cơ sở dữ liệu"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "lỗi máy chủ: Gặp lỗi máy chủ nội bộ trong khi lưu mã thông báo truy cập vào cơ sở dữ liệu"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error: Gặp lỗi máy chủ nội bộ trong khi lưu phiên vào cơ sở dữ liệu"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error:Gặp phải lỗi máy chủ nội bộ trong khi kéo người dùng từ cơ sở dữ liệu"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "không hợp lệ: thiếu mã"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request: Thiếu refresh_token"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request: Redirect_uri được cung cấp không hợp lệ với mã ủy quyền redirect_uri"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "Cấp không hợp lệ: Mã thông báo làm mới không hợp lệ"
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Mã thông báo trạng thái không hợp lệ"
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "Quản trị viên hệ thống đã tắt Nhà cung cấp dịch vụ OAuth2."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "Lỗi xóa phiên từ DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "Lỗi xóa mã thông báo truy cập khỏi DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "Lỗi nhận mã thông báo truy cập từ DB trước khi xóa"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "Đăng ký người dùng bị vô hiệu hóa."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "Liên kết đăng ký đã hết hạn"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "Link đăng ký không hợp lệ"
+  },
+  {
+    "id": "api.outgoing_webhook.disabled.app_error",
+    "translation": "Outgoing webhooks đã bị vô hiệu hóa bởi quản trị viên hệ thống."
+  },
+  {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "Đã xảy ra lỗi trong khi tải xuống plugin."
+  },
+  {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "Mảng tệp trống trong yêu cầu nhiều phần / biểu mẫu"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Không thể mở tệp trong yêu cầu nhiều phần / biểu mẫu"
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Thiếu tệp trong yêu cầu nhiều phần / biểu mẫu"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Không thể xác minh chữ ký cho plugin"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "@{{.Usernames}} và @{{.LastUsername}} không được thông báo bởi đề cập này vì chúng không nằm trong kênh. Họ không thể được thêm vào kênh vì họ không phải là thành viên của các nhóm được liên kết. Để thêm chúng vào kênh này, chúng phải được thêm vào các nhóm được liên kết."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "@{{.Usernames}} không nhận được thông báo bởi vì họ không nằm trong kênh giao tiếp. Họ không thể được thêm vào kênh vì họ không phải là thành viên của các nhóm được liên kết. Để thêm họ vào kênh này, họ phải được thêm vào các nhóm được liên kết."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "@{{.Username}} và @{{.LastUsername}} không nhận được thông báo vì họ không ở trong kênh giao tiếp."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "@{{.Username}} không nhận được thông báo vì họ không ở trong kênh giao tiếp."
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "Không thể đăng lên kênh đã bị xóa."
+  },
+  {
+    "id": "api.post.create_post.channel_root_id.app_error",
+    "translation": "ChannelId không hợp lệ cho tham số RootId"
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "Tham số RootId không hợp lệ"
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "Lỗi tạo bài"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Không thể tìm nạp bài gốc sau khi lặp lại một khách hàng lặp lại cùng một yêu cầu."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Bài viết bị từ chối vì một khách hàng khác đang thực hiện cùng một yêu cầu."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Không thể xóa một bài đăng trong một kênh bị xóa."
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all đã bị vô hiệu hóa vì kênh đã vượt quá {{.Users}} thành viên."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel đã bị vô hiệu hóa vì kênh đã vượt quá {{.Users}} thành viên."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here đã bị vô hiệu hóa vì kênh đã vượt quá {{.Users}} thành viên."
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "ID hoạt động không hợp lệ"
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Lỗi tích hợp hành động"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "other": "{{.Count}} tệp tin đã gửi: {{.Filenames}}{{.Count}} các tệp tin đã gử: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "other": "{{.Count}} hình ảnh đã gửi: {{.Filenames}}{{.Count}} các hình ảnh đã gửi: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Liên kết xem trước đã bị vô hiệu hóa bởi quản trị viên hệ thống."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Không thể cập nhật một bài đăng trong một kênh bị xóa."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " thông báo của kênh."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " đã bình luận vào bài đăng của bạn."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " đã bình luận về một chủ đề bạn tham gia."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
+    "translation": " đề cập đến bạn."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_general_message",
+    "translation": " đã nhắn tin."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " đã tải file lên."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": "đã gửi cho bạn một tin nhắn."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Không thể cập nhật một bài đăng trong một kênh bị xóa."
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "Chúng tôi không thể tìm thấy kênh."
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "Đã xoá id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Thay đổi sau chỉ cho phép trong khoảng thời gian {{.timeLimit}} giây. Vui lòng hỏi lại hệ thống quản trị của bạn để biết chi tiết."
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Không thể cập nhật tin nhắn hệ thống"
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "Không thể nhận bài"
+  },
+  {
+    "id": "api.preference.delete_preferences.delete.app_error",
+    "translation": "Không thể xóa tùy chọn người dùng."
+  },
+  {
+    "id": "api.preference.preferences_category.get.app_error",
+    "translation": "Không thể lấy tùy chọn người dùng."
+  },
+  {
+    "id": "api.preference.update_preferences.set.app_error",
+    "translation": "Không thể đặt tùy chọn người dùng."
+  },
+  {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Thông báo đẩy bị vô hiệu hóa trên máy chủ này."
+  },
+  {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "Bạn đã nhận được một tin nhắn mới"
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "Đã xảy ra lỗi khi gửi giao nhận đến dịch vụ thông báo đẩy"
+  },
+  {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "Bạn không thể loại bỏ một phản ứng trong một kênh lưu trữ."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "Bạn không thể phản ứng trong một kênh lưu trữ."
+  },
+  {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Phản ứng không hợp lệ."
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "Bạn không thể lưu phản ứng cho người dùng khác."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "Hành động này bị cấm đối với một quản trị viên hệ thống bị hạn chế."
+  },
+  {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ cập nhật scheme của kênh."
+  },
+  {
+    "id": "api.scheme.create_scheme.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ cập nhật scheme của kênh."
+  },
+  {
+    "id": "api.scheme.delete_scheme.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ xóa các chương trình cấp phép"
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "Không thể đặt scheme cho kênh vì scheme được cung cấp không phải là scheme kênh."
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "Không thể đặt scheme cho kênh vì scheme được cung cấp không phải là scheme kênh."
+  },
+  {
+    "id": "api.scheme.patch_scheme.license.error",
+    "translation": "Giấy phép của bạn không cho phép cập nhật"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Phải bật Forward80To443 khi sử dụng LetsEncrypt"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Không thể chuyển tiếp cổng 80 sang cổng 443 trong khi nghe trên cổng %s: tắt Chuyển tiếp 80 đến 443 nếu sử dụng máy chủ proxy"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Không thể khởi tạo tốc độ giới hạn bộ nhớ lưu trữ. Kiểm tra cài đặt cấu hình MemoryStoreSize."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "Không thể khởi tạo giới hạn tỷ lệ."
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "Lỗi khởi động máy chủ, err:%v"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Tài khoản người dùng dạng Tích hợp/Slack Bot với email {{.Email}} và password {{.Password}} đã được lưu trữ.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Không thể lưu nhập tài khoản người dùng {{.Username}} dạng Tích hợp/Slack Bot.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "\nĐã thêm kênh:\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "Không thể thêm tài khoản Slack {{.Username}} cho kênh.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed",
+    "translation": "Không thể lưu nhập kênh Slack {{.DisplayName}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.merge",
+    "translation": "Kênh Slack {{.DisplayName}} đã tồn tại như một kênh hoạt động trong hệ thống. Hai kênh này đã được gộp vào.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "\nNgười dùng đã tạo:\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email_pwd",
+    "translation": "Tài khoản Slack với email {{.Email}} và password {{.Password}} đã được lưu nhập.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Tài khoản Slack đã được gộp với tài khoản hệ thống tương ứng với email {{.Email}} và tên tài khoản {{.Username}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Tài khoản Slack đã được gộp với tài khoản hệ thống tướng ứng với email {{.Email}} và tên tài khoản {{.Username}}, nhưng không thể thêm người dùng này vào nhóm của họ.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "Tài khoản người dùng {{.Username}} không có địa chỉ email trong dữ liệu trích xuất từ Slack. Đã sử dụng {{.Email}} như là dữ liệu thay thế. Người dùng nên cập nhật tài khoản của họ ngay khi đăng nhập hệ thống.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "Không thể lưu nhập tài khoản Slack: {{.Username}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.log",
+    "translation": "Nhật ký nhập Mattermost Slack\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "Một số tin nhắn có thể chưa được nhập vì chúng không được nhà nhập khẩu này hỗ trợ.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "- Tin nhắn bot trùng hiện không được hỗ trợ.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "-Lỗi bổ sung có thể được tìm thấy trong nhật ký máy chủ.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "\nGhi chú:\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.open.app_error",
+    "translation": "Không thể mở tập tin: {{.Filename}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "Không thể đặt nhóm để nhập vào.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.app_error",
+    "translation": "Không thể mở Slack xuất tệp zip.\n"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "Không tìm thấy người dùng"
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "Lỗi khi thêm thành viên (một hoặc nhiều)."
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v được thêm vào kênh bới %v."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Tham số cần thiết để thêm người dùng vào nhóm."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Không thể gia nhập team với vai trò khách từ liên kết mời. Hãy yêu cầu một email để mời gia nhập team."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "Tài khoản khách đã bị vô hiệu hoá."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ tài khoản khách."
+  },
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "Bạn không có quyền để chỉnh sửa tiêu đề kênh."
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "Mời không hợp lệ vì đây không phải là một nhóm mở."
+  },
+  {
+    "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
+    "translation": "Tên trình điều khiển không hợp lệ cho cài đặt tệp. Phải là 'local' hoặc 'amazons3'"
+  },
+  {
+    "id": "api.team.get_team_icon.read_file.app_error",
+    "translation": "Không thể đọc tập tin biểu tượng nhóm."
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Mảng rỗng ứng với 'file' trong request"
+  },
+  {
+    "id": "api.team.import_team.integer.app_error",
+    "translation": "Kích thước tệp không phải là số nguyên"
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "Không có tệp tin 'file' trong yêu cầu"
+  },
+  {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Yêu cầu không đúng: trường importFrom không có."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "Một lỗi đã xảy ra khi cập nhật biểu tượng nhóm"
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Người dùng được chỉ định không phải là thành viên của kênh được chỉ định."
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Không thể mở tập tin"
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "Không thể phân tích form với định dạng multipart"
+  },
+  {
+    "id": "api.team.import_team.unavailable.app_error",
+    "translation": "Yêu cầu không đúng: trường kích thước tập tin không có."
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Lỗi vô hiệu hóa lời mời email."
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "Các kênh được mời vào phải là của các team gửi lời mời."
+  },
+  {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Lời mời email bị vô hiệu hóa."
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "Những địa chỉ email sau đây không thuộc về một tên miên được chấp nhận: {{.Addresses}}. Vui lòng liên hệ Quản trị hệ thống để được hỗ trợ."
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "Không có ai để mời."
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "Tạo nhóm đã bị vô hiệu hóa. Vui lòng hỏi Quản trị viên hệ thống của bạn để biết chi tiết."
+  },
+  {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v đã tham gia nhóm."
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "%v đã rời khỏi nhóm."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Không thể đăng bài tham gia / để lại tin nhắn."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Kênh này đã được chuyển đến nhóm này từ %v."
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Không thể gỡ bỏ người dùng khỏi kênh bị ràng buộc theo nhóm."
+  },
+  {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "Xảy ra lỗi khi nhận nhóm"
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "Người dùng dường như không phải là một phần của nhóm này."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v đã được gỡ khỏi kênh"
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Dữ liệu trong trường 'image' bị trống"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Không thể giải mã biểu tượng nhóm"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Không thể mã hóa biểu tượng nhóm"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "Xảy ra lỗi khi nhận nhóm"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Không có tệp tin trong trường 'image' của yêu cầu"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Không thể mở tập tin hình ảnh"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Không thể phân tích form với định dạng multipart"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Không thể tải hình ảnh icon lên. Kho dữ liệu ảnh chưa được cấu hình."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Không thể tải hình ảnh biểu tượng lên. File quá lớn."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Không thể lưu biểu tượng nhóm"
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Nhóm giới hạn đối với {{.Domain}} không được cấu hình hệ thống cho phép. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Cập nhật thành viên của kênh không hợp lệ: Người dùng phải là Khách hoặc Người dùng nhưng không phải cả hai."
+  },
+  {
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "Giấy phép bản quyền của bạn không hỗ trợ cập nhật scheme của kênh"
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "Không thể đặt scheme cho kênh vì scheme được cung cấp không phải là scheme kênh."
+  },
+  {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "Bạn đã hủy kích hoạt tài khoản của mình trên {{.SiteURL}}."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Tài khoản của bạn đã bị vô hiệu hóa tại {{.ServerURL}}"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "Nếu thay đổi này không phải do bạn bắt đầu hoặc bạn muốn kích hoạt lại tài khoản của mình, hãy liên hệ với quản trị viên hệ thống của bạn."
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{.SiteName}}] Tài khoản của bạn tại {{.ServerURL}} đã bị hủy kích hoạt"
+  },
+  {
+    "id": "api.templates.email_change_body.info",
+    "translation": "Địa chỉ email của bạn trong {{.TeamDisplayName}} đã được đổi thành {{.NewEmail}}."
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "Bạn đã cập nhật email của bạn"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "[{{.SiteName}}] Địa chỉ email của bạn đã thay đổi"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Xác nhận Email"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "Để kết thúc việc cập nhật địa chỉ email cho {{.TeamDisplayName}}, vui lòng chọn đường dẫn bên dưới để xác minh địa chỉ đúng"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "Bạn đã cập nhật email của bạn"
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "[{{ .SiteName }}] Xác minh địa chỉ email mới"
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "Để thay đổi tùy chọn thông báo của bạn, đăng nhập vào trang nhóm của bạn và đi tới Cài đặt tài khoản> Thông báo."
+  },
+  {
+    "id": "api.templates.email_info1",
+    "translation": "Hãy gửi email cho chúng tôi khi có bất kỳ câu hỏi nào: "
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "Những lời chúc tốt đẹp nhất,"
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "Nhóm {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.email_organization",
+    "translation": "Được gửi bởi "
+  },
+  {
+    "id": "api.templates.email_warning",
+    "translation": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ với quản trị viên hệ thống."
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Tham gia nhóm"
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "Bạn đã được mời"
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{.SiteName}}] {{.SenderName}} đã mời bạn tham gia team {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "[{{.SiteName}}] {{.SenderName}} đã mời bạn tham gia nhóm {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Xác thực đa yếu tố đã được thêm vào tài khoản của bạn trên {{.SiteURL}}."
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Xác thực đa yếu tố đã được thêm vào"
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "[{{.SiteName}}] MFA của bạn đã được cập nhật"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Xác thực đa yếu tố đã bị xóa khỏi tài khoản của bạn trên {{.SiteURL}}."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Xác thực đa yếu tố đã bị xóa"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "Mật khẩu của bạn đã được cập nhật tại {{.TeamDisplayName}} vào {{.TeamURL}} bởi {{.Method}}."
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "Mật khẩu của bạn đã được cập nhật"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "[{{.SiteName}}] Mật khẩu của bạn đã được cập nhật"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Di chuyển đến bài viết"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Đặt lại mật khẩu"
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "Bạn đã yêu cầu đặt lại mật khẩu"
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "[{{.SiteName}}] Đặt lại mật khẩu của bạn"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Bạn đã cập nhật phương thức đăng nhập của mình trên {{.SiteName}} thành {{.Method}}."
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "email và mật khẩu"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Bạn đã cập nhật phương thức đăng nhập của mình"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{.SiteName}}] Phương thức đăng nhập của bạn đã được cập nhật"
+  },
+  {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "Token truy cập cá nhân đã được thêm vào tài khoản của bạn trên {{.SiteURL}}. Chúng có thể được sử dụng để truy cập {{.SiteName}} bằng tài khoản của bạn."
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "Mã thông báo truy cập cá nhân được thêm vào tài khoản của bạn"
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "[{{.SiteName}}] Token truy cập cá nhân được thêm vào tài khoản của bạn"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Tên người dùng của bạn trong team {{.TeamDisplayName}} đã được đổi thành {{.NewUsername}}."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "Bạn đã cập nhật tên người dùng của bạn"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "[{{.SiteName}}] Tên người dùng của bạn đã thay đổi"
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Xác nhận Email"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Vui lòng xác thực địa chỉ email bằng cách bấm vào link dưới."
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "Bạn đã tham gia {{.ServerURL}}"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{.SiteName}}] Xác thực email"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "Để có trải nghiệm tốt nhất, hãy tải xuống các ứng dụng cho PC, Mac, iOS và Android từ:"
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Xác nhận Email"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Vui lòng xác thực địa chỉ email bằng cách bấm vào link dưới."
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "Bạn đã tham gia {{.ServerURL}}"
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "[{{.SiteName}}] Bạn đã tham gia {{.ServerURL}}"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA không có sẵn cho loại tài khoản này"
+  },
+  {
+    "id": "api.user.add_direct_channels_and_forget.failed.error",
+    "translation": "Không thể thêm tùy chọn kênh trực tiếp cho người dùng user_id = {{. UserId}}, team_id = {{. TeamId}}, err = {{. Error}}"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "Phản hồi xấu từ yêu cầu mã thông báo"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "Loại mã thông báo xấu"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "User id không hợp lệ."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "Thiếu mã thông báo truy cập"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Nhận được phản hồi không hợp lệ từ nhà cung cấp dịch vụ OAuth"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "Yêu cầu mã thông báo (token) đến {{.Service}} không thành công"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "Yêu cầu mã thông báo không thành công"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "Nhà cung cấp dịch vụ OAuth không được hỗ trợ"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "Tài khoản của bạn bị khóa do quá nhiều lần thử mật khẩu thất bại. Xin hãy thiết lập lại mật khẩu của bạn."
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Token MFA không hợp lệ."
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "Đăng nhập thất bại vì mật khẩu không hợp lệ"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Email trống"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.parse.app_error",
+    "translation": "Không thể tạo dữ liệu xác thực người dùng từ {{.Service}}"
+  },
+  {
+    "id": "api.user.create_email_token.error",
+    "translation": "Không thể tạo dữ liệu mã thông báo để xác minh email"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "Đã có một tài khoản được liên kết với địa chỉ email này bằng phương thức đăng nhập khác với {{.Service}}. Vui lòng đăng nhập bằng {{.Auth}}."
+  },
+  {
+    "id": "api.user.create_oauth_user.create.app_error",
+    "translation": "Không thể tạo người dùng từ {{.Service}}"
+  },
+  {
+    "id": "api.user.create_password_token.error",
+    "translation": "Không thể tạo mã thông báo khôi phục mật khẩu"
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "Không thể tạo phông chữ hình ảnh hồ sơ mặc định"
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "Không thể mã hóa hình ảnh hồ sơ mặc định"
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "Không thể thêm người dùng ban đầu vào ảnh hồ sơ mặc định"
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "Email bạn cung cấp không thuộc về một miền được chấp nhận. Vui lòng liên hệ với quản trị viên của bạn hoặc đăng ký với một email khác."
+  },
+  {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "Tạo người dùng bị vô hiệu hóa."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "Tài khoản khách đã bị vô hiệu hoá."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "Giấy phép của bạn không hỗ trợ tài khoản khách."
+  },
+  {
+    "id": "api.user.create_user.invalid_invitation_type.app_error",
+    "translation": "Không thể tạo user, thư mời không hợp lệ"
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "Máy chủ này không cho phép mở đăng ký. Vui lòng nói chuyện với Quản trị viên của bạn để nhận được lời mời."
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "Người dùng đăng ký với email bị vô hiệu hóa."
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "Liên kết đăng ký đã hết hạn"
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "Link đăng ký không hợp lệ"
+  },
+  {
+    "id": "api.user.demote_user_to_guest.already_guest.app_error",
+    "translation": "Không thể chuyển đổi user thành khách vì đang là khách"
+  },
+  {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "AD/LDAP không khả dụng trên máy chủ này"
+  },
+  {
+    "id": "api.user.email_to_oauth.not_available.app_error",
+    "translation": "Chuyển giao xác thực không được cấu hình hoặc có sẵn trên máy chủ này."
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Không thể có được người dùng với thông tin email."
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "AD/LDAP không khả dụng trên máy chủ này"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "Tài khoản người dùng này không sử dụng AD / LDAP"
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "Trường mật khẩu không được để trống"
+  },
+  {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "Bot đăng nhập bị cấm"
+  },
+  {
+    "id": "api.user.login.client_side_cert.certificate.app_error",
+    "translation": "Đã cố đăng nhập bằng tính năng thử nghiệm ClientSideCert mà không cung cấp chứng chỉ hợp lệ"
+  },
+  {
+    "id": "api.user.login.client_side_cert.license.app_error",
+    "translation": "Cố gắng sử dụng tính năng thử nghiệm ClientSideCertEnable mà không có giấy phép doanh nghiệp hợp lệ"
+  },
+  {
+    "id": "api.user.login.guest_accounts.disabled.error",
+    "translation": "Tài khoản khách đã bị vô hiệu hoá."
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ tài khoản khách"
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "Đăng nhập thất bại vì tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ với quản trị viên."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Nhập email và / hoặc mật khẩu hợp lệ"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Nhập email hoặc tên người dùng hợp lệ và/hoặc mật khẩu."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Nhập email hoặc tên người dùng và/hoặc mật khẩu hợp lệ, hoặc đăng nhập bằng phương pháp khác."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Nhập tên người dùng và/hoặc mật khẩu hợp lệ."
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "Đăng nhập thất bại vì địa chỉ email chưa được xác minh"
+  },
+  {
+    "id": "api.user.login.use_auth_service.app_error",
+    "translation": "Vui lòng đăng nhập bằng {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
+    "translation": "Bot đăng nhập bị cấm"
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "{{.Service}} SSO qua OAuth 2.0 không khả dụng trên máy chủ này"
+  },
+  {
+    "id": "api.user.login_by_oauth.parse.app_error",
+    "translation": "Không thể tạo dữ liệu xác thực người dùng từ {{.Service}}"
+  },
+  {
+    "id": "api.user.login_ldap.not_available.app_error",
+    "translation": "AD/LDAP không khả dụng trên máy chủ này"
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "Cập nhật mật khẩu không thành công vì định nghĩa user_id không khớp với id người dùng được cung cấp"
+  },
+  {
+    "id": "api.user.oauth_to_email.not_available.app_error",
+    "translation": "Chuyển giao xác thực không được cấu hình hoặc có sẵn trên máy chủ này."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.no_guest.app_error",
+    "translation": "Không thể chuyển đổi tài khoản khách thành user khi không phải là tài khoản khách."
+  },
+  {
+    "id": "api.user.reset_password.broken_token.app_error",
+    "translation": "Mã thông báo đặt lại mật khẩu dường như không hợp lệ."
+  },
+  {
+    "id": "api.user.reset_password.invalid_link.app_error",
+    "translation": "Liên kết đặt lại mật khẩu dường như không hợp lệ."
+  },
+  {
+    "id": "api.user.reset_password.link_expired.app_error",
+    "translation": "Liên kết đặt lại mật khẩu đã hết hạn."
+  },
+  {
+    "id": "api.user.reset_password.method",
+    "translation": "sử dụng liên kết đặt lại mật khẩu"
+  },
+  {
+    "id": "api.user.reset_password.sso.app_error",
+    "translation": "Không thể thiết lập lại mật khẩu cho tài khoản SSO"
+  },
+  {
+    "id": "api.user.reset_password.token_parse.error",
+    "translation": "Không thể phân tích mã thông báo đặt lại mật khẩu"
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 không được cấu hình hoặc không được hỗ trợ trên hệ thống này."
+  },
+  {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Không thể gửi email tài khoản hủy kích hoạt thành công"
+  },
+  {
+    "id": "api.user.send_email_change_verify_email_and_forget.error",
+    "translation": "Thất bại gửi email xác minh \"thay đổi email thành công\""
+  },
+  {
+    "id": "api.user.send_password_reset.send.app_error",
+    "translation": "Thất bại gửi email \"đặt lại mật khẩu thành công\""
+  },
+  {
+    "id": "api.user.send_password_reset.sso.app_error",
+    "translation": "Không thể thiết lập lại mật khẩu cho tài khoản SSO"
+  },
+  {
+    "id": "api.user.send_sign_in_change_email_and_forget.error",
+    "translation": "Không thể gửi email cập nhật mật khẩu thành công"
+  },
+  {
+    "id": "api.user.send_verify_email_and_forget.failed.error",
+    "translation": "Thất bại gửi email xác minh"
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "Bạn không thể tự hủy kích hoạt vì tính năng này không được bật. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "Bạn không có đủ thẩm quyền truy cập"
+  },
+  {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Không thể lấy thông tin người dùng từ {{.Service}}"
+  },
+  {
+    "id": "api.user.update_password.context.app_error",
+    "translation": "Cập nhật mật khẩu không thành công vì định nghĩa user_id không khớp với id người dùng được cung cấp."
+  },
+  {
+    "id": "api.user.update_password.incorrect.app_error",
+    "translation": "\"Mật khẩu hiện tại\" bạn vừa nhập không đúng. Xin vui lòng tắt Caps Locks và thử lại."
+  },
+  {
+    "id": "api.user.update_password.menu",
+    "translation": "sử dụng menu cài đặt"
+  },
+  {
+    "id": "api.user.update_password.oauth.app_error",
+    "translation": "Cập nhật mật khẩu thất bại vì người dùng đã đăng nhập thông qua dịch vụ OAuth"
+  },
+  {
+    "id": "api.user.update_password.valid_account.app_error",
+    "translation": "Cập nhật mật khẩu thất bại vì chúng tôi không thể tìm thấy tài khoản hợp lệ"
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "Email bạn cung cấp không thuộc về một miền được chấp nhận. Vui lòng liên hệ với quản trị viên của bạn hoặc đăng ký với một email khác."
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "Email bạn cung cấp không thuộc về một miền được chấp nhận. Vui lòng liên hệ với quản trị viên của bạn hoặc đăng ký với một email khác."
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Dữ liệu trong trường 'image' bị trống"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "Không thể giải mã hình ảnh hồ sơ"
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "Không thể đọc được hình ảnh trong hồ sơ."
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "Không có tệp tin trong trường 'image' của yêu cầu"
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "Không thể mở tập tin hình ảnh"
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "Không thể phân tích form với định dạng multipart"
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "Không thể tải hình ảnh lên. Kho dữ liệu ảnh chưa được cấu hình."
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "Không thể tải hình ảnh lên. File quá lớn."
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "Không thể tải hình ảnh hồ sơ lên."
+  },
+  {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "Liên kết email xác minh có hại"
+  },
+  {
+    "id": "api.user.verify_email.broken_token.app_error",
+    "translation": "Loại mã thông báo email xác minh có hại"
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "Liên kết xác minh email đã hết hạn."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Không thể đọc chuỗi xác thực từ email xác minh."
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "Nâng cấp kết nối websocket thất bại"
+  },
+  {
+    "id": "api.web_socket_router.bad_action.app_error",
+    "translation": "Hoạt động WebSocket không xác định."
+  },
+  {
+    "id": "api.web_socket_router.bad_seq.app_error",
+    "translation": "Trình tự không hợp lệ cho tin nhắn WebSocket."
+  },
+  {
+    "id": "api.web_socket_router.no_action.app_error",
+    "translation": "Không có hoạt động websocket nào."
+  },
+  {
+    "id": "api.web_socket_router.not_authenticated.app_error",
+    "translation": "Kết nối WebSocket không được xác thực. Hãy đăng nhập và thử lại."
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "Các outgoing webhook từ cùng một kênh không thể có cùng các trigger word hoặc callback URL"
+  },
+  {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "Các Outgoing webhook chỉ có thể được tạo cho các kênh công cộng."
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "Quyền hạn không hợp lệ để tạo outgoig webhook."
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "Phải đặt trigger_words hoặc channel_id"
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Không thể giải mã gói dữ liệu nhiều phần của webhook sắp tới."
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Không thể cập nhật webhook giữa các nhóm."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Các outgoing webhook từ cùng một kênh không thể có cùng các trigger word hoặc callback URL"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "Parameter {{.Name}} không hợp lệ"
+  },
+  {
+    "id": "api.websocket_handler.server_busy.app_error",
+    "translation": "Máy chủ bận, các dịch vụ không quan trọng tạm thời không khả dụng"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Kết nối không thành công: {{.Error}}"
+  },
+  {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "Đây không phải là URL hợp lệ."
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi kiểm lỗi"
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi xoá các kiểm duyệt"
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi lưu kiểm toán"
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "Không thể lưu bot"
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "Không thể cập nhật bot"
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "Không thể lấy các bot"
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "Không thể cập nhật bot"
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "Không thể xoá bot"
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "Không thể lưu kênh"
+  },
+  {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Phải chỉ định ID nhóm để tạo kênh"
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "Không thể lưu kênh"
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Kênh không tồn tại"
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "Không tìm thấy kênh nào"
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Chúng tôi không thể tìm kệnh đã xoá"
+  },
+  {
+    "id": "app.channel.get_deleted.missing.app_error",
+    "translation": "Không có kênh bị xóa tồn tại"
+  },
+  {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "Không thể di chuyển một kênh trừ khi tất cả các thành viên của nhóm đã là thành viên của nhóm mà kênh sẽ được chuyển đến."
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Không thể gửi tin nhắn đến kênh"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s loại bỏ các kênh đầu (was: %s)."
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "Không thể truy xuất người dùng trong khi cập nhật thông điệp kênh %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s cập nhật các tiêu đề kênh từ: %s: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s cập nhật các kênh tiêu đề: %s"
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "Không thể cập nhật kênh"
+  },
+  {
+    "id": "app.channel_member_history.log_join_event.internal_error",
+    "translation": "Không thể ghi lại lịch sử thành viên kênh"
+  },
+  {
+    "id": "app.channel_member_history.log_leave_event.internal_error",
+    "translation": "Không thể ghi lại lịch sử thành viên kênh. Không thể cập nhật hồ sơ tham gia hiện có"
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "Không thể xoá emoji"
+  },
+  {
+    "id": "app.emoji.delete.no_results",
+    "translation": "Chúng tôi không thể tìm thấy biểu tượng cảm xúc để xóa"
+  },
+  {
+    "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+    "translation": "Không thể sao chép hình ảnh biểu tượng cảm xúc tùy chỉnh"
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "Đã xảy ra lỗi khi ghi dữ liệu xuất."
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "Đã xảy ra lỗi khi sắp xếp dữ liệu JSON để xuất."
+  },
+  {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "Lỗi khi đọc tệp tại: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "Lỗi khi tải tệp lên: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "Lỗi đọc tệp dữ liệu nhập."
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "Giải mã JSON của dòng không thành công."
+  },
+  {
+    "id": "app.import.bulk_import.unsupported_version.error",
+    "translation": "Phiên bản không chính xác hoặc thiếu trong tệp nhập dữ liệu. Hãy chắc chắn rằng phiên bản này là đối tượng đầu tiên trong tệp nhập của bạn và thử lại."
+  },
+  {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Lỗi đọc tệp ảnh biểu tượng. Tên biểu tượng: \"{{.EmojiName}}\""
+  },
+  {
+    "id": "app.import.import_channel.scheme_deleted.error",
+    "translation": "Không thể đặt kênh để sử dụng một kế hoạch đã xóa."
+  },
+  {
+    "id": "app.import.import_channel.scheme_wrong_scope.error",
+    "translation": "Kênh phải được chỉ định cho kế hoạch phạm vi kênh."
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "Lỗi nhập kênh. Không thể tìm thấy nhóm có tên \"{{.TeamName}}\"."
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Tạo kênh điều hướng không thành công"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Tạo kênh nhóm không thành công"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Không thể cập nhật kênh."
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "tạo kênh trực tiếp không thành công"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Không thể lấy thông tin kênh."
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "Dòng dữ liệu nhập có loại \"kênh\" nhưng đối tượng kênh không hợp lệ."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "Dòng dữ liệu nhập có loại \"direct_channel\" nhưng đối tượng direct_channel không hợp lệ."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "Dòng dữ liệu nhập có loại \"direct_post\" nhưng đối tượng post_channel không hợp lệ."
+  },
+  {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "Dòng dữ liệu nhập có loại \"biểu tượng cảm xúc\" nhưng đối tượng biểu tượng cảm xúc không hợp lệ."
+  },
+  {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "Dòng dữ liệu nhập có loại \"bài đăng\" nhưng đối tượng bài đăng không hợp lệ"
+  },
+  {
+    "id": "app.import.import_line.null_scheme.error",
+    "translation": "Dòng dữ liệu nhập có loại \"kế hoạch\" nhưng đối tượng kế hoạch không hợp lệ"
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "Dòng dữ liệu nhập có loại \"nhóm\" nhưng đối tượng nhóm không hợp lệ"
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "Dòng dữ liệu nhập có loại \"người dùng\" nhưng đối tượng người dùng không hợp lệ"
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "Dòng dữ liệu nhập có loại không xác định \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "Lỗi nhập bài. Không thể tìm thấy kênh có tên \"{{.ChannelName}}\"."
+  },
+  {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Lỗi nhập bài. Lưu tùy chọn không thành công."
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "Lỗi nhập bài tin. Không thể tìm thấy người dùng có tên người dùng \"{{.Username}}\"."
+  },
+  {
+    "id": "app.import.import_scheme.scope_change.error",
+    "translation": "Nhà nhập khẩu số lượng lớn không thể thay đổi phạm vi của kế hoạch đã tồn tại."
+  },
+  {
+    "id": "app.import.import_team.scheme_deleted.error",
+    "translation": "Không thể đặt một nhóm sử dụng một kế hoạch đã bị xóa."
+  },
+  {
+    "id": "app.import.import_team.scheme_wrong_scope.error",
+    "translation": "Nhóm phải được chỉ định cho kế hoạch phạm vi nhóm."
+  },
+  {
+    "id": "app.import.import_user.save_preferences.error",
+    "translation": "Lỗi nhập tùy chọn người dùng. Lưu tùy chọn không thành công."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Lỗi nhập thành viên kênh người dùng. Lưu tùy chọn không thành công."
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": "Không thể lưu tùy chọn chủ đề nhóm"
+  },
+  {
+    "id": "app.import.process_import_data_file_version_line.invalid_version.error",
+    "translation": "Không thể đọc phiên bản của tệp nhập dữ liệu."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "Kênh display_name không nằm trong giới hạn độ dài cho phép."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "Tên kênh quá dài."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "Tên kênh chứa các ký tự không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "Tên kênh quá dài."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "Thiếu thuộc tính kênh yêu cầu: tên"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "Tên kênh quá dài."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.scheme_invalid.error",
+    "translation": "Tên chương trình không hợp lệ cho kênh."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "Missing required channel property: team"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "Loại kênh không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "Thiếu thuộc tính kênh yêu cầu: loại."
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Tiêu đề kênh trực tiếp quá dài"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Thiếu thuộc tính kênh trực tiếp cần thiết: thành viên"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "Danh sách thành viên kênh trực tiếp chứa quá ít mục"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "Danh sách thành viên kênh trực tiếp chứa quá nhiều mục"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Kênh trực tiếp chỉ có thể được ưa thích bởi các thành viên. \"{{.Username}}\" không phải là thành viên."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Thiếu thuộc tính bài đăng trực tiếp cần thiết: channel_members"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "Danh sách thành viên kênh bài trực tiếp chứa quá ít mục"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "Danh sách thành viên kênh trực tiếp chứa quá nhiều mục"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Thiếu thuộc tính bài đăng trực tiếp yêu cầu: created_at"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "CreatAt phải lớn hơn 0"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Tin nhắn quá dài"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Thiếu thuộc tính bài đăng trực tiếp yêu cầu: tin nhắn"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Bài đăng trực tiếp chỉ có thể được gắn cờ bởi các thành viên của kênh đó. \"{{.Username}}\" không phải là thành viên."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Thiếu thuộc tính bài đăng trực tiếp yêu cầu: người dùng"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Nhập dữ liệu biểu tượng cảm xúc trống."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Nhập trường hình ảnh biểu tượng cảm xúc bị thiếu hoặc trống."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Nhập trường tên biểu tượng cảm xúc bị thiếu hoặc trống."
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "Thiếu thuộc tính bài đăng yêu cầu: Kênh."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "Thiếu thuộc tính bài đăng yêu cầu: create_at."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "Trường CreateAt trong bài đăng không được bằng không."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "Thuộc tính tin nhắn bài viết dài hơn chiều dài tối đa được phép."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "Thiếu thuộc tính bài dăng yêu cầu: Tin nhắn."
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "Thiếu thuộc tính bài đăng yêu cầu: Nhóm."
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Thiếu thuộc tính bài đăng yêu cầu: Người dùng."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "Thuộc tính Reaction CreatAt phải lớn hơn bài đăng gốc của CreatAt."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Thiếu thuộc tính Reaction cần thiết: created_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "Thuộc tính Reaction CreateAt không được bằng không."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "Thuộc tính Reaction EmojiName dài hơn so với độ dài tối đa được cho phép."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Thiếu thuộc tính Reaction yêu cầu: EmojiName."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Thiếu thuộc tính Reaction yêu cầu: Người dùng."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Thiếu thuộc tình Trả lời yêu cầu: create_at."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "Thuộc tính trả lời CreateAt không được bằng không."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "Trả lời thuộc tính Tin nhắn dài hơn độ dài tối đa được phép."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Thiếu thuộc tính Trả lời yêu cầu: Tin nhắn."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "Thiếu thuộc tính Trả lời yêu cầu: Người dùng."
+  },
+  {
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "Mô tả vai trò không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "Tên hiển thị vai trò không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_role_import_data.invalid_permission.error",
+    "translation": "Quyền không hợp lệ về vai trò."
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "Tên vai trò không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "Mô tả kế hoạch không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "Tên hiển thị kế hoạch không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "Tên scheme không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.null_scope.error",
+    "translation": "Phạm vi kế hoạch là cần thiết."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
+    "translation": "Phạm vi kế hoạch không xác định."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
+    "translation": "Các vai trò sai đã được cung cấp cho một kế hoạch với phạm vi này."
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "Mô tả nhóm quá dài."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "Nhóm display_name không nằm trong giới hạn độ dài cho phép."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "Thiếu thuộc tính bắt buộc của nhóm: display_name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "Tên nhóm chứa các ký tự không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "Tên nhóm quá dài."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "Thiếu thuộc tính nhóm yêu cầu: tên."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "Tên nhóm chứa các từ dành riêng."
+  },
+  {
+    "id": "app.import.validate_team_import_data.scheme_invalid.error",
+    "translation": "Tên kế hoạch không hợp lệ cho nhóm."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "Loại nhóm không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "Thiếu thuộc tính nhóm yêu cầu: loại."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "Tên kênh bị thiếu trong Tư cách thành viên kênh của người dùng."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Desktop NotifyProps không khả dụng cho Tư cách thành viên kênh của người dùng."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "MarkUnread NotifyProps không hợp lệ cho tư cách thành viên kênh của người dùng."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "Vai trò không hợp lệ cho Tư cách thành viên kênh của người dùng."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Vai trò không hợp lệ cho Tư cách thành viên kênh của người dùng."
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+    "translation": "Cài đặt khoảng thời gian xử lý email không hợp lệ cho Người dùng"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
+    "translation": "Cài đặt xem trước đánh dấu không hợp lệ cho người dùng"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
+    "translation": "Cài đặt định dạng bài đăng không hợp lệ cho Người dùng"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
+    "translation": "Hiển thị cài đặt phần chưa đọc không hợp lệ cho Người dùng"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "Người dùng AuthData và Mật khẩu là loại trừ lẫn nhau."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "Người dùng AuthData quá dài."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "Email người dùng có độ dài không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "Thiếu thuộc tính Người dùng yêu cầu: email"
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "Tên người dùng quá dài."
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "Họ người dùng quá dài."
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "Biệt danh người dùng quá dài."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "Thuộc tính kích hoạt thông báo kênh không hợp lệ cho người dùng."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
+    "translation": "Địa chỉ nhận email thông báo không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "Desktop Notify Prop không hợp lệ"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "Desktop Sound Notify Prop không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "Địa chỉ nhận email thông báo không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "Mobile Notify Prop không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "Thuộc tính đẩy thông báo trạng thái trên điện thoại không hợp lệ cho người dùng."
+  },
+  {
+    "id": "app.import.validate_user_import_data.password_length.error",
+    "translation": "Mật khẩu người dùng có độ dài không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "Chức vụ người dùng quá dài."
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Hình ảnh hồ sơ không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "Vai trò người dùng không hợp lệ."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "Tên người dùng không hợp lệ"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "Thiếu thuộc tính người dùng yêu cầu: tên người dùng."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Vai trò không hợp lệ cho Tư cách thành viên nhóm của người dùng."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+    "translation": "Chủ đề nhóm không hợp lệ cho Người dùng"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Tên nhóm bị thiếu trong Tư cách thành viên nhóm của người dùng."
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "[{{.SiteName}}] Tin nhắn trực tiếp từ {{.SenderDisplayName}} trên {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{.SiteName}}] Tin nhắn mới từ nhóm lúc {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{.SiteName}}] Tin Nhóm mới vào ngày {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "[{{.SiteName}}] Có thông báo lúc {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "Cấu hình plugin trong tệp config.json của bạn phải được cập nhật thủ công khi sử dụng ReadOnlyConfig với tính năng phân cụm."
+  },
+  {
+    "id": "app.plugin.config.app_error",
+    "translation": "Lỗi lưu trạng thái plugin trong cấu hình"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Không thể vô hiệu hoá plugin"
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Một lỗi đã xảy ra trong quá trình xóa chứng chỉ."
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Plugin đã bị vô hiệu hóa. Vui lòng kiểm tra nhật ký của bạn để biết thêm chi tiết."
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Gặp lỗi hệ thống tập tin"
+  },
+  {
+    "id": "app.plugin.flag_managed.app_error",
+    "translation": "Không thể đặt plugin như được quản lý bởi kho lưu trữ tệp."
+  },
+  {
+    "id": "app.plugin.get_cluster_plugin_statuses.app_error",
+    "translation": "Không thể có được trạng thái plugin từ cụm."
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Không thể kích hoạt plugins"
+  },
+  {
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "Không thể lấy trạng thái plugin"
+  },
+  {
+    "id": "app.plugin.install.app_error",
+    "translation": "Không thể cài đặt plugin."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "Không thể cài đặt plugin. Một plugin có cùng ID đã được cài đặt."
+  },
+  {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "Không thể cài đặt plugin. Một plugin có cùng ID đã được cài đặt và không thể xóa được."
+  },
+  {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": "Không thể bổ sung các plugin trên marketplace."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Plugin Id phải có ít nhất {{.Min}} ký tự, nhiều nhất {{.Max}} ký tự và khớp với định dạng {{.Regex}}."
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Không thể tìm thấy bảng kê khai cho plugin được giải nén"
+  },
+  {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "Tạo marketplace client thất bại."
+  },
+  {
+    "id": "app.plugin.marketplace_client.failed_to_fetch",
+    "translation": "Lấy danh sách plugins từ marketplace server thất bại."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Plugin đã bị vô hiệu hóa. Vui lòng kiểm tra nhật ký của bạn để biết thêm chi tiết."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "Không thể bổ sung các plugin trên marketplace."
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Không thể di chuyển plugin từ thư mục tạm thời đến đích cuối cùng. Một plugin khác có thể đang sử dụng cùng tên thư mục."
+  },
+  {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Plugin chưa được cài đặt"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Không thể xoá plugin"
+  },
+  {
+    "id": "app.plugin.remove_bundle.app_error",
+    "translation": "Không thể xóa gói plugin khỏi tệp lưu trữ."
+  },
+  {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Không thể khởi động lại plugin khi nâng cấp."
+  },
+  {
+    "id": "app.plugin.store_bundle.app_error",
+    "translation": "Không thể lưu trữ plugin vào kho lưu trữ tệp được định cấu hình."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Không thể lưu trữ plugin vào kho lưu trữ tệp được định cấu hình."
+  },
+  {
+    "id": "app.plugin.sync.list_filestore.app_error",
+    "translation": "Lỗi đọc tệp từ thư mục plugin trong kho lưu trữ tệp."
+  },
+  {
+    "id": "app.plugin.sync.read_local_folder.app_error",
+    "translation": "Lỗi đọc thư mục plugin cục bộ."
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Plugin và / hoặc plugin tải lên đã bị vô hiệu hóa."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Không thể tạo ra webapp bundle cho plugin"
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Đã xảy ra lỗi khi rời khỏi kênh."
+  },
+  {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "Vai trò được cung cấp không tồn tại"
+  },
+  {
+    "id": "app.save_config.app_error",
+    "translation": "Xảy ra lỗi lưu cấu hình"
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Không thể lấy về scheme"
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "Chúng tôi không thể xóa vĩnh viễn các kế hoạch"
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Không thể tạo scheme"
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "kế hoạch được cung cấp không hợp lệ"
+  },
+  {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "Điểm cuối API này không thể truy cập được do quá trình di chuyển được yêu cầu chưa hoàn thành."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Không thể phân tích ngày cài đặt"
+  },
+  {
+    "id": "app.team.invite_id.group_constrained.error",
+    "translation": "Không thể tham gia lời mời nhóm group-constrained"
+  },
+  {
+    "id": "app.team.invite_token.group_constrained.error",
+    "translation": "Không thể tham gia nhóm group-constrained bằng mã thông báo."
+  },
+  {
+    "id": "app.user_access_token.disabled",
+    "translation": "Mã thông báo truy cập cá nhân bị vô hiệu hóa trên máy chủ này. Vui lòng liên hệ với quản trị viên hệ thống của bạn để biết chi tiết."
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "Mã thông báo không hợp lệ hoặc bị thiếu"
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Không thể xóa điều khoản dịch vụ."
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "Không thể xoá kênh."
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "Không thể xoá thông điệp."
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "Không thể xoá người dùng"
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "Không thể tạo chỉ mục cho kênh"
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "Không thể tạo chỉ mục cho thông điệp"
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "Không thể tạo chỉ mục cho người dùng"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_end_time.error",
+    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian kết thúc"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_start_time.error",
+    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian bắt đầu"
+  },
+  {
+    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Cố gắng lập chỉ mục một đợt mới khi tất cả các thực thể được hoàn thành."
+  },
+  {
+    "id": "bleveengine.search_channels.error",
+    "translation": "Tìm kiếm không hoàn thành"
+  },
+  {
+    "id": "bleveengine.search_posts.error",
+    "translation": "Tìm kiếm không hoàn thành"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.nuchan.error",
+    "translation": "Tìm kiếm không hoàn thành"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.uchan.error",
+    "translation": "Tìm kiếm không hoàn thành"
+  },
+  {
+    "id": "bleveengine.search_users_in_team.error",
+    "translation": "Tìm kiếm không hoàn thành"
+  },
+  {
+    "id": "brand.save_brand_image.decode.app_error",
+    "translation": "Không thể giải mã dữ liệu hình ảnh."
+  },
+  {
+    "id": "brand.save_brand_image.encode.app_error",
+    "translation": "Không thể chuyển đổi dữ liệu hình ảnh sang định dạng PNG. Vui lòng thử lại."
+  },
+  {
+    "id": "brand.save_brand_image.open.app_error",
+    "translation": "Không thể tải lên hình ảnh thương hiệu tùy chỉnh. Đảm bảo kích thước hình ảnh nhỏ hơn 2 MB và thử lại."
+  },
+  {
+    "id": "brand.save_brand_image.save_image.app_error",
+    "translation": "Không thể ghi tệp hình ảnh vào bộ lưu trữ tệp của bạn. Vui lòng kiểm tra kết nối của bạn và thử lại."
+  },
+  {
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "Không thể nhận thông tin người dùng."
+  },
+  {
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "Không thể nhận người dùng dạng SAML."
+  },
+  {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "Cấu hình cụm được thay đổi cho id={{ .id }}. Cụm này có thể trở nên không ổn định. Bạn cần chắc chắn cấu hình đúng và hãy khởi động lại ngay tức thì"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "Bảng điều khiển hệ thống được đặt thành chỉ đọc khi Tính khả dụng cao được bật trừ khi ReadOnlyConfig bị tắt trong tệp cấu hình."
+  },
+  {
+    "id": "ent.compliance.bad_export_type.appError",
+    "translation": "Không thể kết xuất theo dạng {{.ExportType}}"
+  },
+  {
+    "id": "ent.compliance.csv.attachment.copy.appError",
+    "translation": "Không thể sao chép tệp đính kèm vào tệp zip."
+  },
+  {
+    "id": "ent.compliance.csv.attachment.export.appError",
+    "translation": "Không thể thêm tệp đính kèm vào CSV export."
+  },
+  {
+    "id": "ent.compliance.csv.file.creation.appError",
+    "translation": "Không thể tạo tệp CSV export tạm thời."
+  },
+  {
+    "id": "ent.compliance.csv.header.export.appError",
+    "translation": "Không thể thêm tiêu đề vào CSV export."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.export.appError",
+    "translation": "Không thể thêm tệp siêu dữ liệu vào tệp zip."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "translation": "Không thể chuyển đổi siêu dữ liệu sang json."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "Không thể tạo tệp eml."
+  },
+  {
+    "id": "ent.compliance.csv.post.export.appError",
+    "translation": "Không thể xuất một bài đăng."
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Không thể tạo tệp eml."
+  },
+  {
+    "id": "ent.compliance.csv.zip.creation.appError",
+    "translation": "Không thể tạo tệp xuất zip."
+  },
+  {
+    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "translation": "Tệp đã tải lên đã bị xóa khỏi Global Relay export vì quá lớn để gửi."
+  },
+  {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "Không thể mở tệp xuất tạm thời."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Không thể đọc lại tệp xuất tạm thời Global Relay."
+  },
+  {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "Chức năng tuân thủ bị vô hiệu hóa bởi giấy phép hiện tại. Vui lòng liên hệ với quản trị viên hệ thống của bạn về việc nâng cấp giấy phép doanh nghiệp của bạn."
+  },
+  {
+    "id": "ent.compliance.run_export.template_watcher.appError",
+    "translation": "Không thể tải mẫu xuất. Vui lòng thử lại."
+  },
+  {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "Kết xuất thất bại: '{{.JobName}}' cho '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "Giấy phép của bạn không hỗ trợ Lưu giữ dữ liệu."
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Phần mềm tra cứu tổng hợp thất bại trong việc tạo mục lục"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Phần mềm tra cứu tổng hợp thất bại trong việc xóa mục lục"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Phần mềm tra cứu tổng hợp thất bại trong việc lấy mục lục"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Phần mềm tra cứu tổng hợp thất bại do việc tạo mục lục không thành công"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Thiết lập Client của phần mềm tra cứu không thành công"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
+    "translation": "Không thể tạo mẫu Elaticsearch cho các kênh"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
+    "translation": "Không thể tạo mẫu Elaticsearch cho bài viết"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
+    "translation": "Không thể tạo mẫu Elaticsearch cho người dùng"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "Không thể xóa chỉ mục Elaticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "Không thể lấy chỉ mục Elaticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Không thể xoá kênh."
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Không thể xoá thông điệp."
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Không thể xoá người dùng"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "Tìm kiếm Elaticsearch không được kích hoạt trên máy chủ này"
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Không thể tạo chỉ mục cho kênh"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Không thể tạo chỉ mục cho thông điệp"
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Không thể tạo chỉ mục cho người dùng"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian kết thúc"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian bắt đầu"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Cố gắng lập chỉ mục một đợt mới khi tất cả các thực thể được hoàn thành."
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch không được bật."
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Không thể xóa chỉ mục Elaticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+    "translation": "Không thể lấy chỉ mục Elaticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "Tìm kiếm Elaticsearch bị vô hiệu hóa trên máy chủ này"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "Tìm kiếm không hoàn thành"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Không thể giải mã kết quả tìm kiếm"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "Tìm kiếm Elaticsearch bị vô hiệu hóa trên máy chủ này"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "Không thể phân tích kết quả tìm kiếm phù hợp"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "Tìm kiếm không hoàn thành"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "Không thể giải mã kết quả tìm kiếm"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "Tìm kiếm không hoàn thành"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+    "translation": "Không thể giải mã kết quả tìm kiếm"
+  },
+  {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Không thể tạo bộ xử lý hàng loạt Elaticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Không thể khởi động bộ xử lý hàng loạt Elaticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "Elasticsearch đã bị dừng"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "Elaticsearch bị vô hiệu hóa."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "URL hoặc tên người dùng của Elaticsearch đã thay đổi. Vui lòng nhập lại mật khẩu Elaticsearch để kiểm tra kết nối."
+  },
+  {
+    "id": "ent.ldap.app_error",
+    "translation": "giao diện ldap là con số không"
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "Không thể tạo người dùng LDAP."
+  },
+  {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "AD / LDAP bị vô hiệu hóa hoặc giấy phép không hỗ trợ AD / LDAP."
+  },
+  {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "Không thể liên kết với máy chủ AD / LDAP. Kiểm tra BindUsername và BindPassword."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "Mật khẩu không hợp lệ"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "Chức năng AD / LDAP bị vô hiệu hóa bởi giấy phép hiện tại. Vui lòng liên hệ với quản trị viên hệ thống của bạn về việc nâng cấp giấy phép doanh nghiệp của bạn."
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "Tên người dùng phù hợp với nhiều người dùng"
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "Không thể tìm kiếm máy chủ AD / LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "Không thể kết nối với máy chủ AD / LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "Tài khoản AD / LDAP của bạn không có quyền sử dụng máy chủ Mattermost sever này. Vui lòng yêu cầu Quản trị viên hệ thống của bạn kiểm tra bộ lọc người dùng AD / LDAP."
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "Người dùng chưa đăng ký trên máy chủ AD / LDAP"
+  },
+  {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "lỗi xóa nhóm hoặc thành viên kênh"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "Không thể có được tất cả người dùng sử dụng AD / LDAP"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "Lỗi truy xuất nhóm"
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "lỗi đồng bộ hóa"
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "translation": "Không thể tìm kiếm người dùng trong AD / LDAP. Kiểm tra xem máy chủ Mattermost có thể kết nối với máy chủ AD / LDAP của bạn không và thử lại."
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "Vượt quá giới hạn kích thước. Hãy thử kiểm tra [kích thước trang tối đa] của bạn (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Bộ lọc AD / LDAP không hợp lệ"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Bộ lọc AD / LDAP không hợp lệ"
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Bộ lọc AD / LDAP không hợp lệ"
+  },
+  {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "lỗi lấy nhóm ldap"
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "lỗi lấy các nhóm ldap"
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "lỗi lấy thành viên của nhóm"
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "không tìm thấy nhóm nào phù hợp với uid"
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "lỗi truy xuất nhóm cho người dùng"
+  },
+  {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "Không thể thêm tệp đính kèm vào Global Relay export."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Không thể đóng tệp zip."
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "Không thể tạo tệp eml."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Không thể tạo dữ liệu tệp eml."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
+    "translation": "Không thể gửi email đến Global Relay."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "Không thể đặt email Từ địa chỉ."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "Không thể đặt thông báo email."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "Không thể viết tin nhắn email."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "Không thể đọc thông tin email."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "Không thể đặt email đến địa chỉ."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "Không thể lấy thông tin của tệp tạm thời xuất"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "Không thể nhận email từ tệp tạm thời"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "Không thể mở tệp tạm thời xuất"
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Không thể di chuyển người dùng AD / LDAP với trường được chỉ định. Phát hiện mục trùng lặp. Vui lòng xóa tất cả các bản sao và thử lại."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Không thể tìm thấy người dùng trên máy chủ AD / LDAP "
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Email đã được sử dụng bởi người dùng SAML khác."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "Không tìm thấy người dùng trong tập tin người dùng."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Tên người dùng đã được sử dụng bởi một người dùng Mattermost khác."
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "Đăng nhập SAML không thành công vì một trong các thuộc tính không chính xác. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "Đã xảy ra lỗi trong khi bắt đầu yêu cầu tới Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Đã xảy ra lỗi trong khi mã hóa yêu cầu cho Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "Đăng nhập SAML không thành công vì mã hóa không được kích hoạt. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Không tìm thấy tập tin Nhận dạng nhà cung cấp chứng chỉ công cộng. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "Đăng nhập SAML không thành công vì không tìm thấy Khóa riêng của nhà cung cấp dịch vụ. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "Đăng nhập SAML không thành công vì phản hồi của Nhà cung cấp nhận dạng không được mã hóa. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "Đăng nhập SAML không thành công vì đã xảy ra lỗi trong khi giải mã phản hồi từ Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "Chúng tôi đã nhận được phản hồi trống từ Nhà cung cấp danh tính"
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "Đã xảy ra lỗi khi phân tích phản hồi từ Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Đã xảy ra lỗi trong khi xác thực phản hồi từ Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "Giấy phép của bạn không hỗ trợ xác thực SAML."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "Lỗi xuất hiện khi xây dựng dữ liệu Service Provider Metadata."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML 2.0 không được cấu hình hoặc không được hỗ trợ trên hệ thống này."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Không thể giải mã base64 cho ID kích hoạt cho hộp thoại tương tác."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Không thể giải mã chữ ký base64 của ID kích hoạt cho hộp thoại tương tác."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "ID kích hoạt cho hộp thoại tương tác đã hết hạn. ID kích hoạt tồn tại tối đa {{.Seconds}} giây."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "ID kích hoạt thiếu dữ liệu cần thiết cho hộp thoại tương tác."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Không thể giải mã chữ ký base64 của ID kích hoạt cho hộp thoại tương tác."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Xác minh chữ ký không thành công của ID kích hoạt cho hộp thoại tương tác."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Không thể giải mã base64 cho ID kích hoạt cho hộp thoại tương tác."
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Không thể yêu cầu hủy bỏ cho công việc không ở trạng thái hủy bỏ."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Không thể đặt trạng thái công việc thành lỗi"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "Không thể phân tích URL"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "Không thể cập nhật kênh"
+  },
+  {
+    "id": "mattermost.bulletin.subject",
+    "translation": "Bản tin bảo mật tối đa"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "Token MFA không hợp lệ."
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "Lỗi tạo mã QR"
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Xác thực đa yếu tố bị vô hiệu trên máy chủ này."
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "Token MFA không hợp lệ."
+  },
+  {
+    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
+    "translation": "Di chuyển không thành công do dữ liệu tiến độ không hợp lệ."
+  },
+  {
+    "id": "migrations.worker.run_migration.unknown_key",
+    "translation": "Không thể bắt đầu việc cập nhật thay đổi do mirgration key không xác định."
+  },
+  {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "Mã thông báo truy cập không hợp lệ"
+  },
+  {
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "Cilent ID không hợp lệ"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "Uri chuyển hướng không hợp lệ"
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "Mã thông báo làm mới không hợp lệ"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "Mã ủy quyền không hợp lệ"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "Cilent ID không hợp lệ"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "Hết hạn phải được thiết lập"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "Uri chuyển hướng không hợp lệ"
+  },
+  {
+    "id": "model.cluster.is_valid.type.app_error",
+    "translation": "Kiểu phải được đặt"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Loại phản hồi không hợp lệ"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "Scope không hợp lệ"
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "User id không hợp lệ."
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "Tạo không hợp lệ tại"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "Id người tạo không hợp lệ"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "Mô tả không hợp lệ."
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Cập nhật không hợp lệ tại"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "User id không hợp lệ."
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "Id người tạo không hợp lệ"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "Tên hiển thị không hợp lệ."
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "Tiêu đề không hợp lệ"
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "Id không hợp lệ."
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Tên kênh không hợp lệ. ID người dùng không được phép có trong tên kênh cho các kênh tin nhắn không trực tiếp."
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "Mục đích không hợp lệ"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "Type không hợp lệ"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "Trường Updated_at phải là thời gian hợp lệ"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "Id kênh không hợp lệ"
+  },
+  {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Giá trị thông báo email không hợp lệ"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "Bỏ qua trạng thái kênh không hợp lệ đề cập đến"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "Cấp thông báo không hợp lệ"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Cấp đẩy thông báo không hợp lệ"
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "Cấp đánh dấu chưa đọc không hợp lệ."
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.cluster.is_valid.create_at.app_error",
+    "translation": "Phải đặt CreatAt"
+  },
+  {
+    "id": "model.cluster.is_valid.hostname.app_error",
+    "translation": "Tên máy chủ phải được đặt"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "Id không hợp lệ."
+  },
+  {
+    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "translation": "LastPingAt phải được đặt"
+  },
+  {
+    "id": "model.cluster.is_valid.name.app_error",
+    "translation": "ClusterName phải được đặt"
+  },
+  {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "Mô tả không hợp lệ."
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "Tiêu đề không hợp lệ"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "Id không hợp lệ."
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "Phương pháp không hợp lệ"
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "ID nhóm không hợp lệ"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "Token không hợp lệ."
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "Kích hoạt không hợp lệ"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "Trường Updated_at phải là thời gian hợp lệ"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "URL không hợp lệ"
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "URL không hợp lệ. Phải là một URL hợp lệ và bắt đầu bằng http: // hoặc https: //"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Id kênh không hợp lệ"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Id lệnh không hợp lệ"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Id lệnh hook không hợp lệ"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Id gốc không hợp lệ"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "Mô tả không hợp lệ."
+  },
+  {
+    "id": "model.compliance.is_valid.end_at.app_error",
+    "translation": "Phải là một thời gian hợp lệ"
+  },
+  {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "Id không hợp lệ."
+  },
+  {
+    "id": "model.compliance.is_valid.start_at.app_error",
+    "translation": "\"Từ\" phải là một khoảng thời gian có hiệu lực"
+  },
+  {
+    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "translation": "\"Đến\" phải lớn hơn \"Từ\""
+  },
+  {
+    "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
+    "translation": "Cho phép cookie cho tên miền phụ yêu cầu SiteURL được đặt."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "RemoteImageProxyOptions không hợp lệ cho atmos / camo. Phải được đặt thành khóa chia sẻ của bạn."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "RemoteImageProxyURL không hợp lệ cho atmos / camo. Phải được đặt thành khóa chia sẻ của bạn."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
+    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search AutocompleteEnabled được bật."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
+    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search SearchEnabled được bật."
+  },
+  {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Không thể bật phân cụm email khi phân cụm được bật."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "Thời gian bắt đầu công việc lưu giữ dữ liệu phải là dấu thời gian 24 giờ ở dạng HH: MM."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "Lưu giữ tệp phải là một ngày hoặc lâu hơn."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "Lưu giữ tin nhắn phải là một ngày hoặc lâu hơn."
+  },
+  {
+    "id": "model.config.is_valid.display.custom_url_schemes.app_error",
+    "translation": "URL scheme tùy chỉnh {{.Scheme}} không hợp lệ. Các URL schemes tùy chỉnh phải bắt đầu bằng một chữ cái và chỉ chứa các chữ cái, số, dấu cộng (+), dấu chấm (.) và dấu gạch nối (-)."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Cài đặt Elasticsearch AggregatePostsAfterDays phải là một số lớn hơn hoặc bằng 1"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "Cài đặt kết nối Elasticsearch phải được cung cấp khi lập chỉ mục Elasticsearch được bật."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search AutocompleteEnabled được bật."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search SearchEnabled được bật."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Live Indexing Batch Size phải có ít nhất 1"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Bài viết của ElaticsearchAggregatorJobStartTime phải là một thời gian ở định dạng \"hh: mm\""
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Thời gian chờ yêu cầu của Elaticsearch phải ít nhất 1 giây."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "Kích thước bộ đệm email không hợp lệ cho các cài đặt email. Phải là số không hoặc số dương."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Khoảng thời gian xử lý email không hợp lệ cho cài đặt email. Phải từ 30 giây trở lên."
+  },
+  {
+    "id": "model.config.is_valid.email_notification_contents_type.app_error",
+    "translation": "Loại nội dung thông báo email không hợp lệ cho cài đặt email. Phải là một trong những 'đầy đủ' hoặc 'chung chung'."
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "Bảo mật kết nối không hợp lệ cho các cài đặt email. Phải là '', 'TLS' hoặc 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.encrypt_sql.app_error",
+    "translation": "Khóa mã hóa không hợp lệ cho các cài đặt SQL. Phải từ 32 ký tự trở lên."
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "Tên trình điều khiển không hợp lệ cho cài đặt tệp. Phải là 'local' hoặc 'amazons3'"
+  },
+  {
+    "id": "model.config.is_valid.file_salt.app_error",
+    "translation": "public link salt không hợp lệ cho các thiết lập tập tin. Phải từ 32 ký tự trở lên."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Các nhóm chưa đọc nhóm không hợp lệ cho các cài đặt dịch vụ. Phải là 'bị vô hiệu hóa', 'default_on' hoặc 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Loại hình ảnh proxy không hợp lệ. Phải là 'local' hoặc 'atmos / camo'."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "Yêu cầu \"Thuộc tính ID\" của trường AD / LDAP."
+  },
+  {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "Trường AD / LDAP \"Login ID Attribute\" là bắt buộc."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Giá trị kích thước trang tối đa không hợp lệ."
+  },
+  {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "Bảo mật kết nối không hợp lệ cho cài đặt AD / LDAP. Phải là '', 'TLS' hoặc 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "Trường AD / LDAP \"Máy chủ AD / LDAP\" là bắt buộc."
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "Thời gian đồng bộ không hợp lệ. Phải ít nhất một phút."
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "Trường AD / LDAP \"Username Attribute\" là bắt buộc."
+  },
+  {
+    "id": "model.config.is_valid.listen_address.app_error",
+    "translation": "Địa chỉ nghe không hợp lệ cho cài đặt dịch vụ Phải được đặt."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Ngôn ngữ khả dụng phải chứa Ngôn ngữ khách hàng mặc định"
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "Nỗ lực đăng nhập tối đa không hợp lệ cho các cài đặt dịch vụ. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Kích thước nổ tối đa phải lớn hơn 0."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Các kênh tối đa không hợp lệ cho mỗi nhóm cho cài đặt nhóm. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Kích thước tệp tối đa không hợp lệ cho cài đặt tệp. Phải là một số nguyên lớn hơn không."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Thông báo tối đa không hợp lệ trên mỗi kênh cho cài đặt nhóm. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "Người dùng tối đa không hợp lệ cho mỗi nhóm cho cài đặt nhóm. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "BatchSize cho việc trích xuất tin nhắn phải là một số nguyên dương."
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "Công việc xuất tin nhắn DailyRuntime phải là dấu thời gian 24 giờ ở dạng HH: MM."
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "Tin nhắn được trích xuất từ cài đặt EnableExport phải là true hoặc false"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "Tin nhắn được export từ ExportFromTimestamp phải là 1 timestamp (tính bằng giây bởi thời gian unix). Chỉ những tin nhắn được gửi sau timestamp này mới được export."
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Tin nhắn được trích xuất từ ExportFormat phải là một trong các loại 'actiance, 'csv' hoặc 'globalrelay'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
+    "translation": "Tin nhắn xuất từ ExportFormat được đặt từ 'globalrelay', nhưng GlobalRelaySettings đang thiếu"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
+    "translation": "Tin nhắn được xuất từ GlobalRelaySettings.CustomerType phải được đặt từ 'A9' hoặc 'A10'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
+    "translation": "Tin nhắn xuất ra từ GlobalRelaySettings.EmailAddress phải được đặt từ 1 địa chỉ email hợp lệ"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
+    "translation": "Tin nhắn xuất ra từ GlobalRelaySettings.SmtpPassword phải được đặt"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
+    "translation": "Tin nhắn xuất ra từ GlobalRelaySettings.SmtpPassword phải được đặt"
+  },
+  {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Độ dài mật khẩu tối thiểu phải là một số nguyên lớn hơn hoặc bằng {{.MinLength}} và nhỏ hơn hoặc bằng {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.rate_mem.app_error",
+    "translation": "Kích thước cửa hàng bộ nhớ không hợp lệ cho các cài đặt giới hạn tốc độ. Phải là một số dương"
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "Không thể bật tính năng tạo email khi SiteURL không được đặt."
+  },
+  {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Tên trang web phải nhỏ hơn hoặc bằng {{.MaxLength}} ký tự"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Tuổi thọ tối đa kết nối không hợp lệ cho các cài đặt SQL. Phải là một số không âm."
+  },
+  {
+    "id": "model.config.is_valid.sql_data_src.app_error",
+    "translation": "Nguồn dữ liệu không hợp lệ cho các cài đặt SQL. Phải được thiết lập."
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "Tên trình điều khiển không hợp lệ cho cài đặt SQL. Phải là 'mysql' hoặc 'postgres'"
+  },
+  {
+    "id": "model.config.is_valid.rate_sec.app_error",
+    "translation": "Không hợp lệ mỗi giây cho cài đặt giới hạn tốc độ. Phải là một số dương"
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "Kết nối idle tối đa không hợp lệ cho các cài đặt SQL. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "Kết nối mở tối đa không hợp lệ cho các cài đặt SQL. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Thời gian chờ truy vấn không hợp lệ cho các cài đặt SQL. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Hiển thị đồng đội không hợp lệ. Phải là 'full_name', 'nickname_full_name' hoặc 'username'"
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Giá trị không hợp lệ cho thời gian chờ đọc."
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "Hạn chế tin nhắn trực tiếp không hợp lệ. Phải là 'any' hoặc 'team'"
+  },
+  {
+    "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
+    "translation": "URL đăng nhập của nhà cung cấp dịch vụ phải là một URL hợp lệ và bắt đầu bằng http:// hoặc https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_email_attribute.app_error",
+    "translation": "Thuộc tính Email không hợp lệ. Phải được thiết lập."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "Chứng chỉ nhà cung cấp nhận dạng công cộng bị thiếu. Bạn đã quên tải nó lên?"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
+    "translation": "URL nhà cung cấp nhận dạng nhà cung cấp phải là một URL hợp lệ và bắt đầu bằng http:// hoặc https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_url.app_error",
+    "translation": "URL SAML SSO phải là một URL hợp lệ và bắt đầu bằng http:// hoặc https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "Nhà cung cấp dịch vụ thiếu Private Key. Bạn đã quên tải nó lên?"
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "Service Provider Public Certificate bị thiếu. Bạn đã quên tải nó lên?"
+  },
+  {
+    "id": "model.config.is_valid.saml_username_attribute.app_error",
+    "translation": "Thuộc tính tên người dùng không hợp lệ. Phải được thiết lập."
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "URL trang web phải là một URL hợp lệ và bắt đầu bằng http:// hoặc https://"
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Giá trị không hợp lệ cho thời gian chờ ghi."
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "Id biểu tượng cảm xúc không hợp lệ"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "Tên phải từ 1 đến 64 ký tự thường hoặc chữ số"
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "Trường Updated_at phải là thời gian hợp lệ"
+  },
+  {
+    "id": "model.emoji.user_id.app_error",
+    "translation": "Id người tạo không hợp lệ"
+  },
+  {
+    "id": "model.file_info.is_valid.create_at.app_error",
+    "translation": "Giá trị không hợp lệ cho created_at."
+  },
+  {
+    "id": "model.file_info.is_valid.id.app_error",
+    "translation": "Giá trị không hợp lệ cho id."
+  },
+  {
+    "id": "model.file_info.is_valid.path.app_error",
+    "translation": "Giá trị không hợp lệ cho đường dẫn."
+  },
+  {
+    "id": "model.file_info.is_valid.post_id.app_error",
+    "translation": "Giá trị không hợp lệ cho post_id."
+  },
+  {
+    "id": "model.file_info.is_valid.update_at.app_error",
+    "translation": "Giá trị không hợp lệ cho update_at."
+  },
+  {
+    "id": "model.file_info.is_valid.user_id.app_error",
+    "translation": "Giá trị không hợp lệ cho user_id."
+  },
+  {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "Thời gian giữa các lần cập nhật gõ của người dùng không nên được đặt thành dưới 1000 mili giây."
+  },
+  {
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "Giá trị không hợp lệ được truyền cho mật mã ghi đè TLS - Vui lòng tham khảo tài liệu để biết giá trị hợp lệ"
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "URL Websocket phải là một URL hợp lệ và bắt đầu bằng ws:// hoặc wss://"
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "tạo không hợp lệ tại tài sản cho nhóm"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "tài sản mô tả cho nhóm không hợp lệ"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "thuộc tính tên cho nhóm hiển thị không hợp lệ"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "tên thuộc tính cho nhóm không hợp lệ."
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Tên phải từ 1 đến 64 ký tự thường hoặc chữ số"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "Thuộc tính remote id cho nhóm không hợp lệ"
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "tài sản nguồn cho nhóm không hợp lệ"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "Hành vi cập nhật không hợp lệ đối với thuộc tính của nhóm"
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "Id ứng dụng không hợp lệ"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "Callback URL phải là một URL hợp lệ và bắt đầu bằng http:// hoặc https://."
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "Thuộc tính id nhóm không hợp lệ cho thành viên nhóm"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "Thuộc tính id người dùng không hợp lệ cho thành viên nhóm"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "Thuộc tính id nhóm không hợp lệ cho đồng bộ nhóm"
+  },
+  {
+    "id": "model.group_syncable.syncable_id.app_error",
+    "translation": "id đồng bộ hóa không hợp lệ cho đồng bộ nhóm"
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Kênh không hợp lệ"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Kênh không hợp lệ"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "Email không hợp lệ"
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "Email không hợp lệ"
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "Id kênh không hợp lệ"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "Mô tả không hợp lệ."
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "Tiêu đề không hợp lệ"
+  },
+  {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "Biểu tượng bài viết không hợp lệ"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "Id không hợp lệ."
+  },
+  {
+    "id": "model.incoming_hook.parse_data.app_error",
+    "translation": "Không thể phân tích dữ liệu đến"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "ID nhóm không hợp lệ"
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "Trường Updated_at phải là thời gian hợp lệ"
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "User id không hợp lệ."
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "job Id không hợp lệ"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Tình trạng công việc không hợp lệ"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Loại job không hợp lệ"
+  },
+  {
+    "id": "model.license_record.is_valid.create_at.app_error",
+    "translation": "Giá trị không hợp lệ cho created_at khi tải lên giấy phép."
+  },
+  {
+    "id": "model.license_record.is_valid.id.app_error",
+    "translation": "Giá trị không hợp lệ cho id khi tải lên giấy phép."
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Dữ liệu Link metadata không thể là trống"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Dữ liệu Link metadata không phù hợp với loại đã cho"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Link metadata timestamp phải khác không và làm tròn đến giờ gần nhất"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Loại link metadata không hợp lệ"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "URL siêu dữ liệu liên kết phải được đặt"
+  },
+  {
+    "id": "model.oauth.is_valid.client_secret.app_error",
+    "translation": "client secret không hợp lệ"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "Id người tạo không hợp lệ"
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "Mô tả không hợp lệ."
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "Trang chủ phải là một URL hợp lệ và bắt đầu bằng http:// hoặc https://."
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "Biểu tượng URL phải là một URL hợp lệ và bắt đầu với http:// hoặc https://."
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "Tên không hợp lệ"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "Trường Updated_at phải là thời gian hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Icon không hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.callback.app_error",
+    "translation": "URL gọi lại không hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "Id kênh không hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.content_type.app_error",
+    "translation": "Giá trị cho content_type không hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "Mô tả không hợp lệ."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "Tiêu đề không hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "Id không hợp lệ."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "ID nhóm không hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "Token không hợp lệ."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
+    "translation": "Từ kích hoạt không hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "Trường Updated_at phải là thời gian hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "Callback URLs không hợp lệ. Each phải là một URL có hiệu lực và bắt đầu với http:// hoặc https://"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.words.app_error",
+    "translation": "Từ kích hoạt không hợp lệ"
+  },
+  {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "User id không hợp lệ."
+  },
+  {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "Đã xảy ra lỗi trong khi cố gắng thực hiện lệnh này."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Khóa không hợp lệ, phải dài hơn {{.Min}} và dài tối đa {{.Max}} ký tự."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "ID plugin không hợp lệ, phải dài hơn {{.Min}} và tối đa {{.Max}} ký tự."
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "Id kênh không hợp lệ"
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Các id tệp không hợp lệ. Lưu ý rằng tải lên được giới hạn tối đa 5 tệp. Vui lòng sử dụng bài viết bổ sung cho nhiều tập tin."
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "Tên file không hợp lệ"
+  },
+  {
+    "id": "model.post.is_valid.hashtags.app_error",
+    "translation": "Hashtags không hợp lệ"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "Id không hợp lệ."
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "Tin nhắn không hợp lệ"
+  },
+  {
+    "id": "model.post.is_valid.original_id.app_error",
+    "translation": "ID không hợp lệ"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "Props không hợp lệ"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "Id gốc không hợp lệ"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "Type không hợp lệ"
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "Trường Updated_at phải là thời gian hợp lệ"
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.preference.is_valid.category.app_error",
+    "translation": "Danh mục không hợp lệ"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "Tên không hợp lệ"
+  },
+  {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Theme không hợp lệ"
+  },
+  {
+    "id": "model.preference.is_valid.value.app_error",
+    "translation": "Giá trị quá dài"
+  },
+  {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "Tên biểu tượng cảm xúc không hợp lệ"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "Id bài đăng không hợp lệ"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "Tên phải bao gồm ít nhất 2 ký tự thường hoặc chữ số."
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "Tên công ty không hợp lệ"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Mô tả không hợp lệ."
+  },
+  {
+    "id": "model.team.is_valid.domains.app_error",
+    "translation": "Tên miền được phép không hợp lệ"
+  },
+  {
+    "id": "model.team.is_valid.email.app_error",
+    "translation": "Email không hợp lệ"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "Id không hợp lệ."
+  },
+  {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Id mời không hợp lệ"
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "Tên không hợp lệ"
+  },
+  {
+    "id": "model.team.is_valid.reserved.app_error",
+    "translation": "URL này không có sẵn. Hãy thử cái khác."
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "Type không hợp lệ"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "Trường Updated_at phải là thời gian hợp lệ"
+  },
+  {
+    "id": "model.team.is_valid.url.app_error",
+    "translation": "Mã định danh URL không hợp lệ"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "ID nhóm không hợp lệ"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Hết hạn của token không hợp lệ"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Token không hợp lệ."
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Dữ liệu xác thực không hợp lệ"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Người dùng không hợp lệ, mật khẩu và dữ liệu xác thực đều không thể được đặt"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Người dùng không hợp lệ, dữ liệu xác thực phải được đặt với loại xác thực"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Trường Create_at phải là thời gian hợp lệ."
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Email không hợp lệ"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Tên không hợp lệ"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Tên không hợp lệ"
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Ngôn ngữ không hợp lệ"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "nickname không hợp lệ"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Không thể đặt mật khẩu trên 72 ký tự do giới hạn của bcrypt."
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "Vị trí không hợp lệ: không được dài hơn 128 ký tự."
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết thường."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết thường và ít nhất một số."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết thường, ít nhất một số và ít nhất một ký hiệu (ví dụ: \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết thường và ít nhất một ký hiệu (ví dụ: \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết thường và ít nhất một chữ cái viết hoa."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết thường, ít nhất một chữ cái viết hoa và ít nhất một số."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết thường, ít nhất một chữ cái viết hoa, ít nhất một số và ít nhất một ký hiệu (ví dụ: \"~! @ # $% ^ & * () \")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết thường, ít nhất một chữ cái viết hoa và ít nhất một ký hiệu (ví dụ: \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một số."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một số và ít nhất một ký hiệu (ví dụ: \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một ký hiệu (ví dụ: \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết hoa."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết hoa và ít nhất một số."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết hoa, ít nhất một số và ít nhất một ký hiệu (ví dụ: \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết hoa và ít nhất một ký hiệu (ví dụ: \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Trường Updated_at phải là thời gian hợp lệ"
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Tên người dùng phải bắt đầu với 1 chữ cái, và chứa từ 3 đến 22 ký tự viết thường tạo bởi các số, chữ cái, và các ký tự \".\", \"-\", và \"_\""
+  },
+  {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Mô tả không hợp lệ, phải có 255 ký tự trở xuống"
+  },
+  {
+    "id": "model.user_access_token.is_valid.id.app_error",
+    "translation": "Giá trị không hợp lệ cho id."
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "Mã thông báo truy cập không hợp lệ"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "User id không hợp lệ"
+  },
+  {
+    "id": "model.utils.decode_json.app_error",
+    "translation": "không thể giải mã"
+  },
+  {
+    "id": "model.websocket_client.connect_fail.app_error",
+    "translation": "Không thể kết nối với máy chủ WebSocket."
+  },
+  {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "Điều khoản dịch vụ của GitLab đã được cập nhật. Vui lòng truy cập gitlab.com để chấp nhận chúng và sau đó thử đăng nhập lại vào Matter Extreme."
+  },
+  {
+    "id": "plugin.api.get_users_in_channel",
+    "translation": "Không thể lấy được người dùng, tiêu chí sắp xếp không hợp lệ"
+  },
+  {
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Không thể đặt trạng thái người dùng. Tình trạng người dùng không xác định."
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Người dùng bot thì không thể tạo ra người dùng bot khác"
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Public links đã bị diabled"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Không thể lấy liên kết public cho tệp tin. Tệp tin phải được gắn vào bài đăng để có thể đọc được."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Thiếu HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Thiếu chủ đề email."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Thiếu địa chỉ."
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "Bot không tồn tại"
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "Không thể tìm thấy kênh hiện có"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "Bạn không thể phản ứng trong một kênh lưu trữ"
+  },
+  {
+    "id": "store.sql_channel.save.direct_channel.app_error",
+    "translation": "Sử dụng SaveDirectChannel để tạo kênh trực tiếp"
+  },
+  {
+    "id": "store.sql_channel.save_channel.existing.app_error",
+    "translation": "Phải gọi cập nhật cho nhóm đã tồn tại"
+  },
+  {
+    "id": "store.sql_channel.save_channel.exists.app_error",
+    "translation": "Một kênh có tên đó đã tồn tại trên cùng một đội"
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "Bạn đã đạt đến giới hạn số lượng kênh được phép."
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
+    "translation": "Không có kênh trực tiếp nào được tạo bởi SaveDirectChannel"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "Không thể lấy về command"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Tìm kiếm đã bị vô hiệu hóa trên máy chủ này. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "store.sql_team.save_member.exists.app_error",
+    "translation": "Một thành viên trong nhóm với ID đó đã tồn tại"
+  },
+  {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "Không thể tìm thấy một tài khoản hiện có phù hợp với thông tin của bạn. Đội này có thể yêu cầu lời mời từ chủ nhóm để tham gia."
+  },
+  {
+    "id": "system.message.name",
+    "translation": "Hệ thống"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Không thể tìm thấy lệnh"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Không thể phân tích dữ liệu đến"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "Hãy cài đặt phiên bản Chrome mới nhất."
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "Hãy cài đặt phiên bản Firefox mới nhất."
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "Hãy cài đặt phiên bản Safari mới nhất."
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "Google Chrome"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "Microsoft Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "Firefox"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "Safari"
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "Tải xuống App"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "Tải xuống Mattermost app hoặc dùng trình duyệt được hỗ trợ để có trải nghiệm tốt nhất."
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "Tải xuống App"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.mac",
+    "translation": "Hướng dẫn cài đặt"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.windows",
+    "translation": "Hướng dẫn cài đặt"
+  },
+  {
+    "id": "web.error.unsupported_browser.learn_more",
+    "translation": "Tìm hiểu thêm về các trình duyệt được hỗ trợ."
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "Version 61+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "Version 44+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "Version 60+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "Version 12+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "macOS 10.9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "Windows 7+"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support",
+    "translation": "Trình duyệt này không còn được Mattermost hỗ trợ"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "Phiên bản hiện tại của trình duyệt không còn được Mattermost hỗ trợ"
+  },
+  {
+    "id": "web.error.unsupported_browser.open_system_browser.edge",
+    "translation": "Open Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": "Đặt làm mặc định"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "hoặc"
+  },
+  {
+    "id": "web.get_access_token.internal_saving.app_error",
+    "translation": "Không thể cập nhật dữ liệu truy cập của người dùng."
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "Không thể tìm thấy kênh"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "Webhook này không được phép đăng lên kênh được yêu cầu"
+  },
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "Các IncomingWebhook đã bị vô hiệu hóa bởi quản trị viên hệ thống."
+  },
+  {
+    "id": "web.incoming_webhook.invalid.app_error",
+    "translation": "Webhook không hợp lệ"
+  },
+  {
+    "id": "web.incoming_webhook.parse.app_error",
+    "translation": "Không thể phân tích dữ liệu đến"
+  },
+  {
+    "id": "web.incoming_webhook.permissions.app_error",
+    "translation": "Quyền kênh không phù hợp"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Không thể chia webhook props thành {{.Max}} phần ký tự"
+  },
+  {
+    "id": "web.incoming_webhook.text.app_error",
+    "translation": "Không có văn bản cụ thể"
+  },
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "Không thể tìm thấy người dùng"
+  }
+]
