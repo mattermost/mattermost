@@ -3,11 +3,10 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
 import deepEqual from 'fast-deep-equal';
 import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import type {Timezone} from 'timezones.json';
 
 import type {PreferenceType} from '@mattermost/types/preferences';

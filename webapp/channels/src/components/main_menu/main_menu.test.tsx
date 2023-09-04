@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import {createIntl} from 'react-intl';
 import {Provider} from 'react-redux';
-
-import {shallow} from 'enzyme';
 
 import {Permissions} from 'mattermost-redux/constants';
 

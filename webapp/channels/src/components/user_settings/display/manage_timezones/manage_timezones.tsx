@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {ValueType} from 'react-select';
-
 import type {Timezone} from 'timezones.json';
 
 import type {UserProfile} from '@mattermost/types/users';

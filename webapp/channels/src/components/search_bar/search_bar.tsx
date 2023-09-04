@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect, useRef} from 'react';
 import type {ChangeEvent, CSSProperties, FormEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-
-import classNames from 'classnames';
 
 import type Provider from 'components/suggestion/provider';
 import SearchSuggestionList from 'components/suggestion/search_suggestion_list';

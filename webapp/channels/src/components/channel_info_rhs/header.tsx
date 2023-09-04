@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';

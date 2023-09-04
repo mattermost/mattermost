@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {StripeCardElementChangeEvent} from '@stripe/stripe-js';
+import classNames from 'classnames';
 import React, {useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-
-import type {StripeCardElementChangeEvent} from '@stripe/stripe-js';
-import classNames from 'classnames';
 
 import type {SelfHostedSignupCustomerResponse} from '@mattermost/types/hosted_customer';
 import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';

@@ -5,7 +5,6 @@ import React, {memo, useMemo, useEffect, useRef} from 'react';
 import type {ComponentProps, CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
-
 import styled from 'styled-components';
 import tinycolor from 'tinycolor2';
 

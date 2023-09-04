@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ShallowWrapper} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
-
-import type {ShallowWrapper} from 'enzyme';
 
 import type {ChannelType} from '@mattermost/types/channels';
 import type {TeamType} from '@mattermost/types/teams';

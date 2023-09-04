@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment';
 import {useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-
-import moment from 'moment';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';

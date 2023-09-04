@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classnames from 'classnames';
 import React, {useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import classnames from 'classnames';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';

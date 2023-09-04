@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {LinkHTMLAttributes} from 'react';
-import React from 'react';
-import type {IntlShape} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
-
 import {getName} from 'country-list';
 import cssVars from 'css-vars-ponyfill';
 import type {Locale} from 'date-fns';
 import {isNil} from 'lodash';
 import moment from 'moment';
+import React from 'react';
+import type {LinkHTMLAttributes} from 'react';
+import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Address} from '@mattermost/types/cloud';

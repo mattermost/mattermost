@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
-
 import type {Action} from 'redux';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';

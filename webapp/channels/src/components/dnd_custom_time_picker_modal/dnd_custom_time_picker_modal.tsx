@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import {DateTime} from 'luxon';
 import React from 'react';
 import type {DayPickerProps} from 'react-day-picker';
 import {FormattedMessage} from 'react-intl';
-
-import classNames from 'classnames';
-import {DateTime} from 'luxon';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {GenericModal} from '@mattermost/components';

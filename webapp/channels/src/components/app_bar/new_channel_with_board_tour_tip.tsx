@@ -4,7 +4,6 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-
 import type {Placement} from 'tippy.js';
 
 import {TourTip, useMeasurePunchouts} from '@mattermost/components';

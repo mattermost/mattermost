@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import type {Moment} from 'moment-timezone';
+import moment from 'moment-timezone';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch} from 'react-router-dom';
-
-import classNames from 'classnames';
-import type {Moment} from 'moment-timezone';
-import moment from 'moment-timezone';
 
 import {GenericModal} from '@mattermost/components';
 import type {Emoji} from '@mattermost/types/emojis';

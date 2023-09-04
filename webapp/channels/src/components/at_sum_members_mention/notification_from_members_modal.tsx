@@ -5,7 +5,6 @@ import React, {useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
-
 import styled from 'styled-components';
 
 import {GenericModal} from '@mattermost/components';

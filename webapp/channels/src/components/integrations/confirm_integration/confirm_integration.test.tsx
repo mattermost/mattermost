@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import {Router} from 'react-router-dom';
-
-import {shallow} from 'enzyme';
 
 import type {Bot} from '@mattermost/types/bots';
 import type {IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';

@@ -4,7 +4,6 @@
 import React, {memo} from 'react';
 import type {CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import styled from 'styled-components';
 
 import {CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';

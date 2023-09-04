@@ -5,7 +5,6 @@ import React, {useRef} from 'react';
 import type {ComponentType} from 'react';
 import {Route, Switch} from 'react-router-dom';
 import type {match} from 'react-router-dom';
-
 import {createGlobalStyle} from 'styled-components';
 
 import type {Team} from '@mattermost/types/teams';

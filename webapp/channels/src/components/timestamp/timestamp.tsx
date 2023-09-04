@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {capitalize as caps, isArray} from 'lodash';
+import type {Moment} from 'moment-timezone';
+import moment from 'moment-timezone';
 import React, {PureComponent} from 'react';
 import type {ReactNode} from 'react';
 import {
@@ -12,10 +15,6 @@ import type {
     FormatDateOptions,
     FormatRelativeTimeOptions} from 'react-intl';
 import {isValidElementType} from 'react-is';
-
-import {capitalize as caps, isArray} from 'lodash';
-import type {Moment} from 'moment-timezone';
-import moment from 'moment-timezone';
 
 import type {RequireOnlyOne} from '@mattermost/types/utilities';
 

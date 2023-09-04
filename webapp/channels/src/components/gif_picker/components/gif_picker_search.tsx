@@ -5,7 +5,6 @@ import type {ChangeEvent} from 'react';
 import React, {memo, useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-
 import tinycolor from 'tinycolor2';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';

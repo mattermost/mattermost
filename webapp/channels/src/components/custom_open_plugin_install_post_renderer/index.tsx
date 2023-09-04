@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {uniqWith} from 'lodash';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
-
-import {uniqWith} from 'lodash';
 
 import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {Post} from '@mattermost/types/posts';

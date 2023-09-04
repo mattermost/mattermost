@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -8,8 +9,6 @@ import {components} from 'react-select';
 import type {ValueType, ActionMeta, InputActionMeta} from 'react-select';
 import type {Async} from 'react-select/async';
 import AsyncSelect from 'react-select/async';
-
-import classNames from 'classnames';
 
 import type {Channel} from '@mattermost/types/channels';
 

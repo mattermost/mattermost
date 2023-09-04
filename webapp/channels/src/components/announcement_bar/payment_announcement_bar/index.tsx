@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isEmpty} from 'lodash';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
-
-import {isEmpty} from 'lodash';
 
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {

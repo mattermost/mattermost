@@ -3,7 +3,6 @@
 
 import {memo} from 'react';
 import {connect} from 'react-redux';
-
 import {compose} from 'redux';
 
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';

@@ -4,7 +4,6 @@
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {withRouter} from 'react-router-dom';
-
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 

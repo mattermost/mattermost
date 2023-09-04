@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {mount} from 'enzyme';
 import React from 'react';
 import * as reactRedux from 'react-redux';
-
-import {mount} from 'enzyme';
 
 import * as cloudActions from 'mattermost-redux/actions/cloud';
 

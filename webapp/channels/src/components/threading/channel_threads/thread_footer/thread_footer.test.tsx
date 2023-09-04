@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {mount} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
-
-import {mount} from 'enzyme';
 
 import type {UserThread} from '@mattermost/types/threads';
 

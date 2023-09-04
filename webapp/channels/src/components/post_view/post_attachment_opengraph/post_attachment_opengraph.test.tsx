@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Provider} from 'react-redux';
-
 import {mount} from 'enzyme';
 import {cloneDeep, set} from 'lodash';
+import React from 'react';
+import {Provider} from 'react-redux';
 
 import type {OpenGraphMetadata, Post} from '@mattermost/types/posts';
 

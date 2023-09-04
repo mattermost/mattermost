@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import isEmpty from 'lodash/isEmpty';
+import moment from 'moment';
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-
-import isEmpty from 'lodash/isEmpty';
-import moment from 'moment';
 
 import type {GlobalState} from '@mattermost/types/store';
 

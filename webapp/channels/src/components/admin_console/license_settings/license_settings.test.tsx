@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react';
-import React from 'react';
-
 import {shallow} from 'enzyme';
 import expect from 'expect';
 import moment from 'moment';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
 import {fakeDate} from 'tests/helpers/date';
 import {LicenseSkus} from 'utils/constants';

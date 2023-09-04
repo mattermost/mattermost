@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import type {Placement} from 'tippy.js';
 
 import type {PunchOutCoordsHeightAndWidth} from '@mattermost/components';

@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useRef, useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-
-import classNames from 'classnames';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';

@@ -5,7 +5,6 @@ import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {CSSTransition} from 'react-transition-group';
-
 import styled from 'styled-components';
 
 import type {GlobalState} from '@mattermost/types/store';

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MuiMenuList from '@mui/material/MenuList';
 import React, {
     useState,
     useEffect,
@@ -13,8 +14,6 @@ import type {
     SyntheticEvent,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-
-import MuiMenuList from '@mui/material/MenuList';
 
 import {GenericModal} from '@mattermost/components';
 

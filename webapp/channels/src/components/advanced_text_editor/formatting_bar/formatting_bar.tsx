@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useFloating, offset} from '@floating-ui/react-dom';
+import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
-
-import {useFloating, offset} from '@floating-ui/react-dom';
-import classNames from 'classnames';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';

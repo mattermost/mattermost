@@ -3,7 +3,6 @@
 
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';

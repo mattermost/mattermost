@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {isValidElementType} from 'react-is';
-
 import type {Reducer} from 'redux';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';

@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
-
-import classNames from 'classnames';
 
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';

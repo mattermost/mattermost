@@ -3,7 +3,6 @@
 
 import React from 'react';
 import type {ComponentProps} from 'react';
-
 import styled from 'styled-components';
 
 import OverlayTrigger from 'components/overlay_trigger';

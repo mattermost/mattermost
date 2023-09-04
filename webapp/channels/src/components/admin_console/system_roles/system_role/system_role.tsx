@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {uniq, difference} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {uniq, difference} from 'lodash';
 
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile} from '@mattermost/types/users';

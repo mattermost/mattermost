@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
 import type {
     StripeCardElementChangeEvent,
 } from '@stripe/stripe-js';
 import {getName} from 'country-list';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {PaymentMethod} from '@mattermost/types/cloud';
 

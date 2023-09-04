@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow, mount} from 'enzyme';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {MemoryRouter} from 'react-router-dom';
-
-import {shallow, mount} from 'enzyme';
 
 import type {ClientConfig} from '@mattermost/types/config';
 

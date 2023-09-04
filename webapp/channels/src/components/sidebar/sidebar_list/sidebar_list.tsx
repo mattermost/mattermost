@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import debounce from 'lodash/debounce';
 import React from 'react';
 import type {CSSProperties} from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage} from 'react-intl';
-
-import classNames from 'classnames';
-import debounce from 'lodash/debounce';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
 

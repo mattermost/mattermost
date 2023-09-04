@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
-
-import classNames from 'classnames';
 
 import {PulsatingDot} from '@mattermost/components';
 

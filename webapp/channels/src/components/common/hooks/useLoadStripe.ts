@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useRef, useState} from 'react';
-import {useSelector} from 'react-redux';
-
 import type {Stripe} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
+import {useEffect, useRef, useState} from 'react';
+import {useSelector} from 'react-redux';
 
 import {getStripePublicKey} from 'components/payment_form/stripe';
 

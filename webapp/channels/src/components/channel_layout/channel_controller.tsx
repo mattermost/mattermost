@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {useDispatch} from 'react-redux';
-
-import classNames from 'classnames';
 
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 

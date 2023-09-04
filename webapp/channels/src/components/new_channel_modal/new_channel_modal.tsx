@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import crypto from 'crypto';
 import React, {useState} from 'react';
 import {Tooltip} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-
-import classNames from 'classnames';
-import crypto from 'crypto';
 
 import {GenericModal} from '@mattermost/components';
 import type {Board} from '@mattermost/types/boards';

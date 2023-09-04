@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ComponentProps} from 'react';
-
 import {shallow} from 'enzyme';
 import {set} from 'lodash';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
 

@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactWrapper} from 'enzyme';
+import {shallow} from 'enzyme';
+import nock from 'nock';
 import React from 'react';
 import type {ComponentProps} from 'react';
 import {act} from 'react-dom/test-utils';
 import type {match} from 'react-router-dom';
-
-import type {ReactWrapper} from 'enzyme';
-import {shallow} from 'enzyme';
-import nock from 'nock';
 
 import {getPostThread} from 'mattermost-redux/actions/posts';
 import {Client4} from 'mattermost-redux/client';

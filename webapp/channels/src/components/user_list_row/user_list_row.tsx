@@ -4,7 +4,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import type {ConnectedComponent} from 'react-redux';
-
 import styled from 'styled-components';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';

@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Stripe} from '@stripe/stripe-js';
 import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {withRouter} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
-
-import type {Stripe} from '@stripe/stripe-js';
 
 import type {Address, Feedback, Product} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';

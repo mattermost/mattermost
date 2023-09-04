@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Elements} from '@stripe/react-stripe-js';
+import type {Stripe} from '@stripe/stripe-js';
+import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
-
-import {Elements} from '@stripe/react-stripe-js';
-import type {Stripe} from '@stripe/stripe-js';
-import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';

@@ -4,7 +4,6 @@
 import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
-
 import styled from 'styled-components';
 
 import {

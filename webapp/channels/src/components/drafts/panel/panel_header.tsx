@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import cn from 'classnames';
 import React from 'react';
 import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import cn from 'classnames';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
 

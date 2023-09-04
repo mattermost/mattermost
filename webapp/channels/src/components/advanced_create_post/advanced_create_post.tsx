@@ -3,9 +3,8 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
-
 import {isNil} from 'lodash';
+import React from 'react';
 
 import type {Channel, ChannelMemberCountsByGroup} from '@mattermost/types/channels';
 import type {Emoji} from '@mattermost/types/emojis';

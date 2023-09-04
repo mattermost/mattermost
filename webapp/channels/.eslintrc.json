@@ -50,11 +50,6 @@
         ],
         "pathGroups": [
           {
-            "pattern": "react*{,/**}",
-            "group": "builtin",
-            "position": "before"
-          },
-          {
             "pattern": "@mattermost/**",
             "group": "external",
             "position": "after"

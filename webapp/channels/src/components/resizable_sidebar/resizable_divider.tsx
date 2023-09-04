@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import type {MouseEventHandler, RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
-
-import classNames from 'classnames';
 import styled, {createGlobalStyle, css} from 'styled-components';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';

@@ -5,7 +5,6 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
 import {bindActionCreators} from 'redux';
 import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 

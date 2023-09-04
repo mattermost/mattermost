@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {memo} from 'react';
-
 import styled, {css} from 'styled-components';
 
 type TexteditorActionsProps = {

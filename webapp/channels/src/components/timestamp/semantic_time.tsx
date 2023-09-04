@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DateTime} from 'luxon';
 import React, {memo} from 'react';
 import type {FC, ReactNode, TimeHTMLAttributes} from 'react';
-
-import {DateTime} from 'luxon';
 
 export type Props = {
     value: Date;

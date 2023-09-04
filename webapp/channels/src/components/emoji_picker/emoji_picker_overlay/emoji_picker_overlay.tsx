@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import memoize from 'memoize-one';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {Overlay} from 'react-bootstrap';
-
-import memoize from 'memoize-one';
 
 import type {Emoji} from '@mattermost/types/emojis';
 

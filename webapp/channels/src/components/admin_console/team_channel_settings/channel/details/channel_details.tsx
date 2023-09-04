@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {cloneDeep} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {cloneDeep} from 'lodash';
 
 import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';

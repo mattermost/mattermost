@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
 import {bindActionCreators} from 'redux';
 
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';

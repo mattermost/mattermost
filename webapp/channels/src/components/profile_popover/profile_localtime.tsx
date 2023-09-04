@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DateTime, Duration} from 'luxon';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {DateTime, Duration} from 'luxon';
 
 import type {UserTimezone} from '@mattermost/types/users';
 

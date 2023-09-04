@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {Redirect} from 'react-router-dom';
-
 import semver from 'semver';
 
 import type {Channel} from '@mattermost/types/channels';

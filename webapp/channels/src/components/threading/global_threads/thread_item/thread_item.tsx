@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-
-import classNames from 'classnames';
 
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';

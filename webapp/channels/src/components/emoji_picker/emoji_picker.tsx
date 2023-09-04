@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import throttle from 'lodash/throttle';
 import React, {useRef, useState, useEffect, useCallback, memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {FixedSizeList} from 'react-window';
 import type InfiniteLoader from 'react-window-infinite-loader';
-
-import throttle from 'lodash/throttle';
 
 import type {Emoji, EmojiCategory} from '@mattermost/types/emojis';
 

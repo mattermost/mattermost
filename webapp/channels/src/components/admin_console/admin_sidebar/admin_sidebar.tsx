@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import isEqual from 'lodash/isEqual';
 import React from 'react';
 import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
-
-import classNames from 'classnames';
-import isEqual from 'lodash/isEqual';
 
 import type {PluginRedux} from '@mattermost/types/plugins';
 

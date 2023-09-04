@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';

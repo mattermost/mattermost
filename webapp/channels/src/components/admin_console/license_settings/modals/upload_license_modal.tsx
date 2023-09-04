@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import marked from 'marked';
 import React, {useRef} from 'react';
 import {FormattedDate, FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
-
-import marked from 'marked';
 
 import {GenericModal} from '@mattermost/components';
 import type {ClientLicense} from '@mattermost/types/config';

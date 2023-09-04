@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DynamicSizeList} from 'dynamic-virtualized-list';
+import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-
-import {DynamicSizeList} from 'dynamic-virtualized-list';
-import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';

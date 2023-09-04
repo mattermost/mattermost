@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Tabs, Tab} from 'react-bootstrap';
@@ -8,9 +10,6 @@ import type {SelectCallback} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
-
-import classNames from 'classnames';
-import debounce from 'lodash/debounce';
 
 import {MagnifyIcon} from '@mattermost/compass-icons/components';
 import {FooterPagination, GenericModal} from '@mattermost/components';

@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {getOptionValue} from 'react-select/src/builtins';
 import type {InputActionMeta} from 'react-select/src/types';
-
-import classNames from 'classnames';
 
 import LocalizedIcon from 'components/localized_icon';
 import SaveButton from 'components/save_button';

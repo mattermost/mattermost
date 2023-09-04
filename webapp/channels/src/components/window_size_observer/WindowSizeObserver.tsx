@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import throttle from 'lodash/throttle';
 import {useCallback, useEffect} from 'react';
 import {useDispatch} from 'react-redux';
-
-import throttle from 'lodash/throttle';
 
 import {setLhsSize} from 'actions/views/lhs';
 import {setRhsSize} from 'actions/views/rhs';

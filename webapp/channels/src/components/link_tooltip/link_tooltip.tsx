@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import Popper from 'popper.js';
 import React from 'react';
 import type {RefObject, CSSProperties} from 'react';
 import ReactDOM from 'react-dom';
-
-import classNames from 'classnames';
-import Popper from 'popper.js';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';

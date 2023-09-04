@@ -4,7 +4,6 @@
 import {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch} from 'react-router-dom';
-
 import type {AnyAction, Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';

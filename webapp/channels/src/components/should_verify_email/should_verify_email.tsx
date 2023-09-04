@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useState, useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useLocation, useHistory} from 'react-router-dom';
-
-import classNames from 'classnames';
 
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';

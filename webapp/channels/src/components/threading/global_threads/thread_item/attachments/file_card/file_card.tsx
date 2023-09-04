@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, memo} from 'react';
-
 import cn from 'classnames';
+import React, {useMemo, memo} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 

@@ -5,7 +5,6 @@ import type {ComponentProps} from 'react';
 import {connect} from 'react-redux';
 import {withRouter, matchPath} from 'react-router-dom';
 import type {RouteChildrenProps} from 'react-router-dom';
-
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 

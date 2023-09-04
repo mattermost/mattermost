@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-
 import styled, {css} from 'styled-components';
 
 import {AlertOutlineIcon, CheckIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';

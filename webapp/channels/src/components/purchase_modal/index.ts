@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Stripe} from '@stripe/stripe-js';
 import React from 'react';
 import {connect} from 'react-redux';
-
-import type {Stripe} from '@stripe/stripe-js';
 import {bindActionCreators} from 'redux';
 import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 

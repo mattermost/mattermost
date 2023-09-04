@@ -3,7 +3,6 @@
 
 import React, {useEffect, useRef, useState} from 'react';
 import {CSSTransition} from 'react-transition-group';
-
 import styled from 'styled-components';
 
 interface LineLimiterProps {

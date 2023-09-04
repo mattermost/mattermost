@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MuiMenuList from '@mui/material/MenuList';
+import type {PopoverOrigin} from '@mui/material/Popover';
 import React, {
     useState,
     useEffect,
@@ -12,9 +14,6 @@ import type {
     MouseEvent,
     KeyboardEvent} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-
-import MuiMenuList from '@mui/material/MenuList';
-import type {PopoverOrigin} from '@mui/material/Popover';
 
 import {GenericModal} from '@mattermost/components';
 

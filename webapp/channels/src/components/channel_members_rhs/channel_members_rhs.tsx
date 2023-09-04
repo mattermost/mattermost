@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {debounce} from 'lodash';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
-
-import {debounce} from 'lodash';
 import styled from 'styled-components';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';

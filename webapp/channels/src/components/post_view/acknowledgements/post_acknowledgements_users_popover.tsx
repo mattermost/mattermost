@@ -4,7 +4,6 @@
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
-
 import styled from 'styled-components';
 
 import type {PostAcknowledgement} from '@mattermost/types/posts';

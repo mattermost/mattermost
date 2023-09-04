@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useRef, useState} from 'react';
 import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import type {ValueType} from 'react-select';
-
-import classNames from 'classnames';
 
 import {GenericModal} from '@mattermost/components';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';

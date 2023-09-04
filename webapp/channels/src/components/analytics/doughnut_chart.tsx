@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
 import type {ChartData} from 'chart.js';
 import Chart from 'chart.js/auto';
 import deepEqual from 'fast-deep-equal';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 type Props = {
     title: React.ReactNode;

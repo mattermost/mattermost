@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {fireEvent, screen, render, waitForElementToBeRemoved, waitFor} from '@testing-library/react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import AccessHistoryModal from 'components/access_history_modal/access_history_modal';
 import AuditTable from 'components/audit_table';

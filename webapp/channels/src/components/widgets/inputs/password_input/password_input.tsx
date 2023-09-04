@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useState} from 'react';
 import type {ChangeEventHandler, FocusEventHandler} from 'react';
 import {useIntl} from 'react-intl';
-
-import classNames from 'classnames';
 
 import {ItemStatus} from 'utils/constants';
 

@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
 import {shallow} from 'enzyme';
 import type {ReactWrapper} from 'enzyme';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import DisplayName from 'components/create_team/components/display_name';
 

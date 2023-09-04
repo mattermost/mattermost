@@ -4,7 +4,6 @@
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
-
 import type {AnyAction} from 'redux';
 import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';

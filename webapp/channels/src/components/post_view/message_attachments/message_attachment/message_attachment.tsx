@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import truncate from 'lodash/truncate';
 import React from 'react';
 import type {CSSProperties} from 'react';
-
-import truncate from 'lodash/truncate';
 
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 import type {

@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment-timezone';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import moment from 'moment-timezone';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isEmpty} from 'lodash';
 import React, {memo, useCallback, useEffect} from 'react';
 import type {PropsWithChildren} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-
-import {isEmpty} from 'lodash';
 
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 import type {UserThread} from '@mattermost/types/threads';

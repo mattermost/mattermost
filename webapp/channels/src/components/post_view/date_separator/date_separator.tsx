@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import type {FC} from 'react';
-
-import PropTypes from 'prop-types';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import BasicSeparator from 'components/widgets/separator/basic-separator';

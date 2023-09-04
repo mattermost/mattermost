@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
-
-import {shallow} from 'enzyme';
 import rudderAnalytics from 'rudder-sdk-js';
 
 import {ServiceEnvironment} from '@mattermost/types/config';

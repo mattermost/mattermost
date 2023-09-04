@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Route, Switch, Redirect} from 'react-router-dom';
-import type {RouteComponentProps} from 'react-router-dom';
-
 import classNames from 'classnames';
 import deepEqual from 'fast-deep-equal';
 import throttle from 'lodash/throttle';
+import React from 'react';
+import {Route, Switch, Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import {ServiceEnvironment} from '@mattermost/types/config';
 import type {UserProfile} from '@mattermost/types/users';

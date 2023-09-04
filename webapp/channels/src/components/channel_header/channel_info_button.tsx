@@ -3,7 +3,6 @@
 
 import React, {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-
 import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';

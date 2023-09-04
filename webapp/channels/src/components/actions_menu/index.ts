@@ -3,7 +3,6 @@
 
 import type {ComponentProps} from 'react';
 import {connect} from 'react-redux';
-
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 

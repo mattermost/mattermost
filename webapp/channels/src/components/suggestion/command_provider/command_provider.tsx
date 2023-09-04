@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import type {Store} from 'redux';
 
 import {DockWindowIcon} from '@mattermost/compass-icons/components';

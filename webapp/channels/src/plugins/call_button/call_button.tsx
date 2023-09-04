@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useState, useEffect, useRef} from 'react';
 import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
-
-import classNames from 'classnames';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import PhoneOutlineIcon from '@mattermost/compass-icons/components/phone-outline';

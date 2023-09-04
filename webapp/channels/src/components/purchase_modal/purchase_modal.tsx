@@ -3,16 +3,15 @@
 
 /* eslint-disable max-lines */
 
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {IntlShape} from 'react-intl';
-import {FormattedMessage, injectIntl} from 'react-intl';
-
 import {Elements} from '@stripe/react-stripe-js';
 import type {Stripe, StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import classnames from 'classnames';
 import {isEmpty} from 'lodash';
+import React from 'react';
+import type {ReactNode} from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import type {Address, CloudCustomer, Product, Invoice, Feedback} from '@mattermost/types/cloud';
 import {areShippingDetailsValid} from '@mattermost/types/cloud';

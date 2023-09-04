@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import classNames from 'classnames';
 
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import NextIcon from 'components/widgets/icons/fa_next_icon';

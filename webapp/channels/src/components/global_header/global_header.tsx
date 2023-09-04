@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {useSelector} from 'react-redux';
-
 import styled from 'styled-components';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';

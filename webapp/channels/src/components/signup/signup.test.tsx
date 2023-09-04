@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactWrapper} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
-
-import type {ReactWrapper} from 'enzyme';
-import {shallow} from 'enzyme';
 
 import type {ClientConfig} from '@mattermost/types/config';
 

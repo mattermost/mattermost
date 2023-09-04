@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {mount, shallow} from 'enzyme';
+import React from 'react';
 
 import ShowStartTrialModal from 'components/announcement_bar/show_start_trial_modal/show_start_trial_modal';
 import * as getTotalUsersHook from 'components/common/hooks/useGetTotalUsersNoBots';

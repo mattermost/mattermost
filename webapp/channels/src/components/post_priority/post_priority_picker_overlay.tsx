@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useState} from 'react';
-import {useIntl} from 'react-intl';
-
 import {
     FloatingFocusManager,
     FloatingPortal,
@@ -18,6 +15,8 @@ import {
     shift,
 } from '@floating-ui/react-dom-interactions';
 import classNames from 'classnames';
+import React, {memo, useCallback, useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';

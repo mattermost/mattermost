@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
-
-import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 
 import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';

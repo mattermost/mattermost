@@ -8,7 +8,6 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList} from 'react-window';
 import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
-
 import styled, {css} from 'styled-components';
 
 import {SendIcon} from '@mattermost/compass-icons/components';

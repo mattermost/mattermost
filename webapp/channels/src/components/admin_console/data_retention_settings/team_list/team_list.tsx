@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {debounce} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {debounce} from 'lodash';
 
 import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 

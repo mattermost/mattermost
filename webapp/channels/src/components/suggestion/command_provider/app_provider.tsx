@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
-
 import type {Store} from 'redux';
 
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Placement} from 'popper.js';
 import React from 'react';
 import type {RefObject} from 'react';
 import {usePopper} from 'react-popper';
 import {CSSTransition} from 'react-transition-group';
-
-import type {Placement} from 'popper.js';
 import styled from 'styled-components';
 
 const Overlay = styled.div`

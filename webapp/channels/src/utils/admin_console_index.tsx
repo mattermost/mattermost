@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {IntlShape} from 'react-intl';
-
 import FlexSearch from 'flexsearch/dist/flexsearch.es5';
+import type {IntlShape} from 'react-intl';
 
 import type {PluginRedux} from '@mattermost/types/plugins';
 

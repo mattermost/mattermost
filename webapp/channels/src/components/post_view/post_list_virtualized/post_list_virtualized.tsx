@@ -3,11 +3,10 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
-import AutoSizer from 'react-virtualized-auto-sizer';
-
 import {DynamicSizeList} from 'dynamic-virtualized-list';
 import type {OnItemsRenderedArgs} from 'dynamic-virtualized-list';
+import React from 'react';
+import AutoSizer from 'react-virtualized-auto-sizer';
 
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import {isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';

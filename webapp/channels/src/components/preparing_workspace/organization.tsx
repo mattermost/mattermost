@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import debounce from 'lodash/debounce';
 import React, {useState, useEffect, useRef} from 'react';
 import type {ChangeEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {CSSTransition} from 'react-transition-group';
-
-import debounce from 'lodash/debounce';
 
 import type {Team} from '@mattermost/types/teams';
 

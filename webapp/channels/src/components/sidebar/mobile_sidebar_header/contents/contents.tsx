@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import styled from 'styled-components';
 
 import type {UserProfile} from '@mattermost/types/users';
