@@ -222,11 +222,7 @@ func (srv *JobServer) HandleJobPanic(job *model.Job) {
 
 	sb := &strings.Builder{}
 	pprof.Lookup("goroutine").WriteTo(sb, 2)
-	if job.Logger != nil {
-		logger.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
-	} else {
-		logger.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
-	}
+	logger.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
 
 	rerr, ok := r.(error)
 	if !ok {
@@ -235,11 +231,7 @@ func (srv *JobServer) HandleJobPanic(job *model.Job) {
 
 	appErr := srv.SetJobError(job, model.NewAppError("HandleJobPanic", "app.job.update.app_error", nil, "", http.StatusInternalServerError)).Wrap(rerr)
 	if appErr != nil {
-		if job.Logger != nil {
-			logger.Error("Failed to set the job status to 'failed'", mlog.Err(appErr), mlog.Any("job", job))
-		} else {
-			logger.Error("Failed to set the job status to 'failed'", mlog.Err(appErr), mlog.Any("job", job))
-		}
+		logger.Error("Failed to set the job status to 'failed'", mlog.Err(appErr), mlog.Any("job", job))
 	}
 
 	panic(r)
