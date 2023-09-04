@@ -81,6 +81,32 @@ SOFTWARE.
 
 ---
 
+## @giphy/js-fetch-api
+
+This product contains '@giphy/js-fetch-api' by Giphy.
+
+Javascript API to fetch gifs and stickers from the GIPHY API.
+
+* HOMEPAGE:
+  * https://github.com/Giphy/giphy-js/tree/master/packages/fetch-api
+
+* LICENSE: MIT
+
+---
+
+## @giphy/react-components
+
+This product contains '@giphy/react-components' by Giphy.
+
+The GIPHY React SDK lets you and your users easily access the world’s largest GIF library anywhere on your website. 
+
+* HOMEPAGE:
+  * https://github.com/Giphy/giphy-js/tree/master/packages/react-components
+
+* LICENSE: MIT
+
+---
+
 ## @guyplusplus/turndown-plugin-gfm
 
 This product contains '@guyplusplus/turndown-plugin-gfm' by Dom Christie.

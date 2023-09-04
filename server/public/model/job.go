@@ -38,6 +38,7 @@ const (
 	JobTypeInstallPluginNotifyAdmin     = "install_plugin_notify_admin"
 	JobTypeHostedPurchaseScreening      = "hosted_purchase_screening"
 	JobTypeS3PathMigration              = "s3_path_migration"
+	JobTypeCleanupDesktopTokens         = "cleanup_desktop_tokens"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -68,6 +69,7 @@ var AllJobTypes = [...]string{
 	JobTypeExtractContent,
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
+	JobTypeCleanupDesktopTokens,
 }
 
 type Job struct {
