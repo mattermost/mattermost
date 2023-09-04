@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import matchMedia from 'tests/helpers/match_media.mock'; // eslint-disable-line import/order side-effect necessary before other imports
+// side-effect necessary before other imports
+import matchMedia from 'tests/helpers/match_media.mock'; // eslint-disable-line import/order
 
 import {shallow} from 'enzyme';
 import React from 'react';
