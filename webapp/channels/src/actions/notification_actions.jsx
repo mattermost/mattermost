@@ -102,7 +102,7 @@ export function sendDesktopNotification(post, msgProps) {
             notifyLevel = user?.notify_props?.desktop || NotificationLevels.ALL;
         }
 
-        if (channel.type === 'G' && channelNotifyProp === NotificationLevels.DEFAULT) {
+        if (channel.type === 'G' && channelNotifyProp === NotificationLevels.DEFAULT && user?.notify_props?.desktop === NotificationLevels.MENTION) {
             notifyLevel = NotificationLevels.ALL;
         }
 

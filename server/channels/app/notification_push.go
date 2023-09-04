@@ -525,6 +525,14 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 		channelNotify = model.ChannelNotifyDefault
 	}
 
+	notify := channelNotify
+	if channelNotify == model.ChannelNotifyDefault {
+		notify = userNotify
+		if isGM && userNotify == model.UserNotifyMention {
+			notify = model.ChannelNotifyAll
+		}
+	}
+
 	// If the channel is muted do not send push notifications
 	if channelNotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention {
 		return false
@@ -534,26 +542,17 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 		return false
 	}
 
-	if channelNotify == model.UserNotifyNone {
+	if notify == model.ChannelNotifyNone {
 		return false
 	}
 
-	if channelNotify == model.ChannelNotifyMention && !wasMentioned {
+	if notify == model.ChannelNotifyMention && !wasMentioned {
 		return false
 	}
 
-	if userNotify == model.UserNotifyMention && channelNotify == model.ChannelNotifyDefault && !isGM && !wasMentioned {
-		return false
-	}
-
-	if (userNotify == model.UserNotifyAll || channelNotify == model.ChannelNotifyAll || (isGM && channelNotify == model.ChannelNotifyDefault)) &&
+	if (notify == model.ChannelNotifyAll) &&
 		(post.UserId != user.Id || post.GetProp("from_webhook") == "true") {
 		return true
-	}
-
-	if userNotify == model.UserNotifyNone &&
-		channelNotify == model.ChannelNotifyDefault && !isGM {
-		return false
 	}
 
 	return true

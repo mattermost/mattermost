@@ -58,12 +58,12 @@ export type DesktopNotificationProps = Pick<State, 'desktopNotifyLevel' | 'deskt
 export type PushNotificationProps = Pick<State, 'pushNotifyLevel' | 'pushThreadsNotifyLevel'>
 
 const getDefaultDesktopNotificationLevel = (currentUserNotifyProps: UserNotifyProps, isGM: boolean): Exclude<ChannelMemberNotifyProps['desktop'], undefined> => {
-    if (isGM) {
-        return NotificationLevels.ALL;
-    }
-
     if (currentUserNotifyProps?.desktop) {
-        if (currentUserNotifyProps.desktop === 'default') {
+        if (currentUserNotifyProps.desktop === NotificationLevels.DEFAULT) {
+            return NotificationLevels.ALL;
+        }
+
+        if (isGM && currentUserNotifyProps.desktop === NotificationLevels.MENTION) {
             return NotificationLevels.ALL;
         }
         return currentUserNotifyProps.desktop;
@@ -92,13 +92,15 @@ const getDefaultDesktopThreadsNotifyLevel = (currentUserNotifyProps: UserNotifyP
 };
 
 const getDefaultPushNotifyLevel = (currentUserNotifyProps: UserNotifyProps, isGM: boolean): Exclude<ChannelMemberNotifyProps['push'], undefined> => {
-    if (isGM) {
-        return NotificationLevels.ALL;
-    }
     if (currentUserNotifyProps?.push) {
-        if (currentUserNotifyProps.push === 'default') {
+        if (currentUserNotifyProps.push === NotificationLevels.DEFAULT) {
             return NotificationLevels.ALL;
         }
+
+        if (isGM && currentUserNotifyProps.desktop === NotificationLevels.MENTION) {
+            return NotificationLevels.ALL;
+        }
+
         return currentUserNotifyProps.push;
     }
     return NotificationLevels.ALL;

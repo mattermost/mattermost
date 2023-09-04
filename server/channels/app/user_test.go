@@ -1825,6 +1825,11 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
+
+		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
+		require.Nil(t, appErr)
+		assert.Equal(t, "GMasDM", gmASdmNoticeViewedPref.Name)
+		assert.Equal(t, "true", gmASdmNoticeViewedPref.Value)
 	})
 
 	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
@@ -1842,6 +1847,11 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
+
+		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
+		require.Nil(t, appErr)
+		assert.Equal(t, "GMasDM", gmASdmNoticeViewedPref.Name)
+		assert.Equal(t, "true", gmASdmNoticeViewedPref.Value)
 	})
 }
 
