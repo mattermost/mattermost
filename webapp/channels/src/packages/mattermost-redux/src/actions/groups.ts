@@ -9,7 +9,7 @@ import {General} from 'mattermost-redux/constants';
 import {Client4} from 'mattermost-redux/client';
 
 import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {GroupPatch, SyncableType, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearachParams, GroupSource} from '@mattermost/types/groups';
+import {GroupPatch, SyncableType, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GroupSource, GetGroupsParams, GetGroupsForUserParams} from '@mattermost/types/groups';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -156,18 +156,15 @@ export function getGroup(id: string, includeMemberCount = false): ActionFunc {
     });
 }
 
-export function getGroups(filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false): ActionFunc {
+export function getGroups(opts: GetGroupsParams): ActionFunc {
     return bindClientFunc({
-        clientFunc: async (param1, param2, param3, param4) => {
-            const result = await Client4.getGroups(param1, param2, param3, param4);
+        clientFunc: async (opts) => {
+            const result = await Client4.getGroups(opts);
             return result;
         },
         onSuccess: [GroupTypes.RECEIVED_GROUPS],
         params: [
-            filterAllowReference,
-            page,
-            perPage,
-            includeMemberCount,
+            opts,
         ],
     });
 }
@@ -302,19 +299,15 @@ export function getGroupsByUserId(userID: string): ActionFunc {
     });
 }
 
-export function getGroupsByUserIdPaginated(userId: string, filterAllowReference = false, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, includeMemberCount = false): ActionFunc {
+export function getGroupsByUserIdPaginated(opts: GetGroupsForUserParams): ActionFunc {
     return bindClientFunc({
-        clientFunc: async (param1, param2, param3, param4, param5) => {
-            const result = await Client4.getGroups(param1, param2, param3, param4, param5);
+        clientFunc: async (opts) => {
+            const result = await Client4.getGroups(opts);
             return result;
         },
         onSuccess: [GroupTypes.RECEIVED_MY_GROUPS, GroupTypes.RECEIVED_GROUPS],
         params: [
-            filterAllowReference,
-            page,
-            perPage,
-            includeMemberCount,
-            userId,
+            opts,
         ],
     });
 }
@@ -391,7 +384,7 @@ export function removeUsersFromGroup(groupId: string, userIds: string[]): Action
     };
 }
 
-export function searchGroups(params: GroupSearachParams): ActionFunc {
+export function searchGroups(params: GroupSearchParams): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data;
         try {
@@ -404,7 +397,7 @@ export function searchGroups(params: GroupSearachParams): ActionFunc {
 
         const dispatches: AnyAction[] = [{type: GroupTypes.RECEIVED_GROUPS, data}];
 
-        if (params.user_id) {
+        if (params.filter_has_member) {
             dispatches.push({type: GroupTypes.RECEIVED_MY_GROUPS, data});
         }
         if (params.include_channel_member_count) {
@@ -430,6 +423,29 @@ export function archiveGroup(groupId: string): ActionFunc {
             {
                 type: GroupTypes.ARCHIVED_GROUP,
                 id: groupId,
+                data,
+            },
+        );
+
+        return {data};
+    };
+}
+
+export function restoreGroup(groupId: string): ActionFunc {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let data;
+        try {
+            data = await Client4.restoreGroup(groupId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
+
+        dispatch(
+            {
+                type: GroupTypes.RESTORED_GROUP,
+                id: groupId,
+                data,
             },
         );
 

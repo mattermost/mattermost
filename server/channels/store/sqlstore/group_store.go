@@ -384,9 +384,11 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	}
 
 	time := model.GetMillis()
+	group.DeleteAt = time
+	group.UpdateAt = time
 	if _, err := s.GetMasterX().Exec(`UPDATE UserGroups
 		SET DeleteAt=?, UpdateAt=?
-		WHERE Id=? AND DeleteAt=0`, time, time, groupID); err != nil {
+		WHERE Id=? AND DeleteAt=0`, group.DeleteAt, group.UpdateAt, groupID); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Group with id=%s", groupID)
 	}
 
@@ -410,10 +412,11 @@ func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 		return nil, errors.Wrapf(err, "failed to get Group with id=%s", groupID)
 	}
 
-	time := model.GetMillis()
+	group.UpdateAt = model.GetMillis()
+	group.DeleteAt = 0
 	if _, err := s.GetMasterX().Exec(`UPDATE UserGroups
 		SET DeleteAt=0, UpdateAt=?
-		WHERE Id=? AND DeleteAt!=0`, time, groupID); err != nil {
+		WHERE Id=? AND DeleteAt!=0`, group.UpdateAt, groupID); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Group with id=%s", groupID)
 	}
 
@@ -1516,15 +1519,25 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 	}
 
 	groupsQuery = groupsQuery.
-		From("UserGroups g").
-		OrderBy("g.DisplayName")
+		From("UserGroups g")
 
 	if opts.Since > 0 {
 		groupsQuery = groupsQuery.Where(sq.Gt{
 			"g.UpdateAt": opts.Since,
 		})
-	} else {
+	}
+
+	if opts.FilterArchived {
+		groupsQuery = groupsQuery.Where("g.DeleteAt > 0")
+	} else if !opts.IncludeArchived && opts.Since <= 0 {
+		// Mobile needs to return archived groups when the since parameter is set, will need to keep this for backwards compatibility
 		groupsQuery = groupsQuery.Where("g.DeleteAt = 0")
+	}
+
+	if opts.IncludeArchived {
+		groupsQuery = groupsQuery.OrderBy("CASE WHEN g.DeleteAt = 0 THEN g.DisplayName end, CASE WHEN g.DeleteAt != 0 THEN g.DisplayName END")
+	} else {
+		groupsQuery = groupsQuery.OrderBy("g.DisplayName")
 	}
 
 	if perPage != 0 {

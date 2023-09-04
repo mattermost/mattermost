@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {
-    getProfilesAndStatusesForPosts,
+    getMentionsAndStatusesForPosts,
     getThreadsForPosts,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
@@ -44,7 +44,7 @@ import {
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
     getThreadsForPosts: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
-    getProfilesAndStatusesForPosts: jest.fn(),
+    getMentionsAndStatusesForPosts: jest.fn(),
 }));
 
 jest.mock('mattermost-redux/actions/groups', () => ({
@@ -491,7 +491,7 @@ describe('handleNewPostEvent', () => {
         };
 
         testStore.dispatch(handleNewPostEvent(msg));
-        expect(getProfilesAndStatusesForPosts).toHaveBeenCalledWith([post], expect.anything(), expect.anything());
+        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith([post], expect.anything(), expect.anything());
         expect(handleNewPost).toHaveBeenCalledWith(post, msg);
     });
 
@@ -623,7 +623,7 @@ describe('handleNewPostEvents', () => {
             },
         ]);
         expect(getThreadsForPosts).toHaveBeenCalledWith(posts);
-        expect(getProfilesAndStatusesForPosts).toHaveBeenCalledWith(posts, expect.anything(), expect.anything());
+        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith(posts, expect.anything(), expect.anything());
     });
 });
 

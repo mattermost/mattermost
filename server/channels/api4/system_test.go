@@ -828,6 +828,8 @@ func TestPushNotificationAck(t *testing.T) {
 }
 
 func TestCompleteOnboarding(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
 	th := Setup(t)
 	defer th.TearDown()
 

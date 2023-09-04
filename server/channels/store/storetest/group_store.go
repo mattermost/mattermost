@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func TestGroupStore(t *testing.T, ss store.Store) {
@@ -3962,6 +3962,26 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			},
 			Restrictions: nil,
 		},
+		{
+			Name:    "Include archived groups",
+			Opts:    model.GroupSearchOpts{IncludeArchived: true, Q: "group-deleted"},
+			Page:    0,
+			PerPage: 1,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 1
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Only return archived groups",
+			Opts:    model.GroupSearchOpts{FilterArchived: true, Q: "group-1"},
+			Page:    0,
+			PerPage: 1,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 0
+			},
+			Restrictions: nil,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -4805,7 +4825,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(members), 4) // sanity check for team membership
 
 			for _, member := range members {
-				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
+				if pUtils.Contains(tt.inUserIDs, member.UserId) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)
@@ -4915,7 +4935,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
 
 			for _, member := range members {
-				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
+				if pUtils.Contains(tt.inUserIDs, member.UserId) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)
