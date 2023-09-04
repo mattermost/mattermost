@@ -110,10 +110,6 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
 	}
-	complianceJobs, err := a.Srv().Store().Job().GetAllByTypePage("compliance", 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting compliance jobs"))
-	}
 
 	licenseTo := ""
 	supportedUsers := 0
@@ -147,7 +143,6 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		BlevePostIndexingJobs:      blevePostIndexingJobs,
 		LdapSyncJobs:               ldapSyncJobs,
 		MigrationJobs:              migrationJobs,
-		ComplianceJobs:             complianceJobs,
 	}
 
 	analytics, appErr := a.GetAnalytics("standard", "")
