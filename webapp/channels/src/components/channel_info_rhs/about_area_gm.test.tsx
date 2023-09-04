@@ -107,6 +107,11 @@ const initialState = {
             config: {PostEditTimeLimit: -1},
         },
     },
+    views: {
+        browser: {
+            windowSize: '',
+        },
+    },
 };
 
 describe('channel_info_rhs/about_area_gm', () => {

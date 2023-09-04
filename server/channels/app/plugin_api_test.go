@@ -195,7 +195,6 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
-	t.Skip("MM-47612")
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -210,7 +209,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, 2, len(preferences))
 
 	err = api.DeletePreferencesForUser(user1.Id, preferences)
 	require.Nil(t, err)
@@ -237,15 +236,17 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 4, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
 	require.Nil(t, err)
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
 	assert.Equal(t, 2, len(preferences))
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.ElementsMatch(t,
+		[]string{model.PreferenceRecommendedNextSteps, model.PreferenceCategoryTutorialSteps},
+		[]string{preferences[0].Category, preferences[1].Category},
+	)
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {

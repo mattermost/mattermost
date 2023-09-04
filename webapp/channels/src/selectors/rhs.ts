@@ -13,9 +13,14 @@ import {localizeMessage} from 'utils/utils';
 import {GlobalState} from 'types/store';
 import {RhsState, FakePost, SearchType} from 'types/store/rhs';
 import {PostDraft} from 'types/store/draft';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;
+}
+
+export function getRhsSize(state: GlobalState): SidebarSize {
+    return state.views.rhs.size;
 }
 
 export function getSelectedPostFocussedAt(state: GlobalState): number {

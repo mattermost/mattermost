@@ -26,6 +26,7 @@ type TimerLayer struct {
 	CommandStore                    store.CommandStore
 	CommandWebhookStore             store.CommandWebhookStore
 	ComplianceStore                 store.ComplianceStore
+	DesktopTokensStore              store.DesktopTokensStore
 	DraftStore                      store.DraftStore
 	EmojiStore                      store.EmojiStore
 	FileInfoStore                   store.FileInfoStore
@@ -93,6 +94,10 @@ func (s *TimerLayer) CommandWebhook() store.CommandWebhookStore {
 
 func (s *TimerLayer) Compliance() store.ComplianceStore {
 	return s.ComplianceStore
+}
+
+func (s *TimerLayer) DesktopTokens() store.DesktopTokensStore {
+	return s.DesktopTokensStore
 }
 
 func (s *TimerLayer) Draft() store.DraftStore {
@@ -272,6 +277,11 @@ type TimerLayerCommandWebhookStore struct {
 
 type TimerLayerComplianceStore struct {
 	store.ComplianceStore
+	Root *TimerLayer
+}
+
+type TimerLayerDesktopTokensStore struct {
+	store.DesktopTokensStore
 	Root *TimerLayer
 }
 
@@ -2966,6 +2976,86 @@ func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model
 		s.Root.Metrics.ObserveStoreMethodDuration("ComplianceStore.Update", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerDesktopTokensStore) Delete(token string) error {
+	start := time.Now()
+
+	err := s.DesktopTokensStore.Delete(token)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DesktopTokensStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDesktopTokensStore) DeleteByUserId(userId string) error {
+	start := time.Now()
+
+	err := s.DesktopTokensStore.DeleteByUserId(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DesktopTokensStore.DeleteByUserId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDesktopTokensStore) DeleteOlderThan(minCreatedAt int64) error {
+	start := time.Now()
+
+	err := s.DesktopTokensStore.DeleteOlderThan(minCreatedAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DesktopTokensStore.DeleteOlderThan", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDesktopTokensStore) GetUserId(token string, minCreatedAt int64) (*string, error) {
+	start := time.Now()
+
+	result, err := s.DesktopTokensStore.GetUserId(token, minCreatedAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DesktopTokensStore.GetUserId", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
+	start := time.Now()
+
+	err := s.DesktopTokensStore.Insert(token, createdAt, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DesktopTokensStore.Insert", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerDraftStore) Delete(userID string, channelID string, rootID string) error {
@@ -11613,6 +11703,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.CommandStore = &TimerLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &TimerLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
 	newStore.ComplianceStore = &TimerLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
+	newStore.DesktopTokensStore = &TimerLayerDesktopTokensStore{DesktopTokensStore: childStore.DesktopTokens(), Root: &newStore}
 	newStore.DraftStore = &TimerLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
 	newStore.EmojiStore = &TimerLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &TimerLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}
