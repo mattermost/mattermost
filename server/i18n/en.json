@@ -1978,10 +1978,6 @@
     "translation": "Invalid username."
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights is behind a feature flag which is not enabled."
-  },
-  {
     "id": "api.invalid_channel",
     "translation": "Channel listed in the request doesn't belong to the user"
   },
@@ -2394,10 +2390,6 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -4296,6 +4288,10 @@
     "translation": "Login failed because email address has not been verified."
   },
   {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Login failed because remote users are not allow to log in."
+  },
+  {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "Please sign in using {{.AuthService}}."
   },
@@ -4788,6 +4784,10 @@
     "translation": "Unable to find member count."
   },
   {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Unable to check unreads and mentions"
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -5080,6 +5080,18 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Token does not exist or is expired"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token is not valid or is expired"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Cannot find a user for this token"
+  },
+  {
     "id": "app.draft.delete.app_error",
     "translation": "Unable to delete the Draft."
   },
@@ -5236,6 +5248,10 @@
     "translation": "Unable to save the file info."
   },
   {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Unable to set the searchable content of the file."
+  },
+  {
     "id": "app.group.crud_permission",
     "translation": "Unable to perform operation for that source type."
   },
@@ -5302,6 +5318,10 @@
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
     "translation": "Some users not found"
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Unable to archive imported channel."
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -5832,10 +5852,6 @@
     "translation": "insert error"
   },
   {
-    "id": "app.insights.feature_disabled",
-    "translation": "Insights feature is disabled."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -6030,10 +6046,6 @@
   {
     "id": "app.oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app."
-  },
-  {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -6294,18 +6306,6 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Unable to get top DMs for user."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Unable to get top threads for team."
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Unable to get top threads for user."
   },
   {
     "id": "app.post.marshal.app_error",
@@ -6766,6 +6766,10 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Unable to mark all threads as read by channel"
   },
   {
     "id": "app.update_error",
@@ -8640,6 +8644,10 @@
     "translation": "AD/LDAP field \"Username Attribute\" is required."
   },
   {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Invalid value for link metadata timeout. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
   },
@@ -8860,6 +8868,10 @@
     "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values."
   },
   {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Invalid value for user status away timeout. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Invalid value for webserver connection security."
   },
@@ -9070,10 +9082,6 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Invalid time range."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -9813,7 +9821,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 112+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",

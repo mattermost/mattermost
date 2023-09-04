@@ -496,6 +496,30 @@ export default class PluginRegistry {
         return id;
     });
 
+    // Register a component to the add to the post message menu shown on hover.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostAction', this.id, component);
+    });
+
+    // Register a component to the add to the post text editor menu.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostEditorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostEditorAction', this.id, component);
+    });
+
+    // Register a component to the add to the code block header.
+    // Accepts a React component. Returns a unique identifier.
+    registerCodeBlockActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('CodeBlockAction', this.id, component);
+    });
+
+    // Register a component to the add to the new messages separator.
+    // Accepts a React component. Returns a unique identifier.
+    registerNewMessagesSeparatorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('NewMessagesSeparatorAction', this.id, component);
+    });
+
     // Register a post menu list item by providing some text and an action function.
     // Accepts the following:
     // - text - A string or React element to display in the menu
@@ -1153,63 +1177,5 @@ export default class PluginRegistry {
             type: ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER,
             data,
         });
-    });
-
-    registerInsightsHandler = reArg(['handler'], ({handler}) => {
-        store.dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_INSIGHT,
-            data: {
-                pluginId: this.id,
-                handler,
-            },
-        });
-    });
-
-    // Register a hook to intercept desktop notifications before they occur.
-    // Accepts a function to run before the desktop notification is triggered.
-    // The function has the following signature:
-    //   (post: Post, msgProps: NewPostMessageProps, channel: Channel,
-    //    teamId: string, args: DesktopNotificationArgs) => Promise<{
-    //         error?: string;
-    //         args?: DesktopNotificationArgs;
-    //     }>)
-    //
-    // DesktopNotificationArgs is the following type:
-    //   export type DesktopNotificationArgs = {
-    //     title: string;
-    //     body: string;
-    //     silent: boolean;
-    //     soundName: string;
-    //     url: string;
-    //     notify: boolean;
-    // };
-    //
-    // To stop a desktop notification and allow subsequent hooks to process the notification, return:
-    //   {args: {...args, notify: false}}
-    // To enable a desktop notification and allow subsequent hooks to process the notification, return:
-    //   {args: {...args, notify: true}}
-    // To stop a desktop notification and prevent subsequent hooks from processing the notification, return either:
-    //   {error: 'log this error'}, or {}
-    // To allow subsequent hooks to process the notification, return:
-    //   {args}, or null or undefined (thanks js)
-    //
-    // The args returned by the hook will be used as the args for the next hook, until all hooks are
-    // completed. The resulting args will be used as the arguments for the `notifyMe` function.
-    //
-    // Returns a unique identifier.
-    registerDesktopNotificationHook = reArg(['hook'], ({hook}) => {
-        const id = generateId();
-
-        store.dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
-            name: 'DesktopNotificationHooks',
-            data: {
-                id,
-                pluginId: this.id,
-                hook,
-            },
-        });
-
-        return id;
     });
 }

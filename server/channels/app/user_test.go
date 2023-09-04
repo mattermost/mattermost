@@ -205,6 +205,7 @@ func TestUpdateUser(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, u)
 		require.Less(t, u.LastPictureUpdate, iLastPictureUpdate)
+		require.Empty(t, u.Password)
 	})
 
 	t.Run("fails if profile picture is updated when user has custom profile picture and username is changed", func(t *testing.T) {
@@ -1731,11 +1732,12 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
-		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
+		u, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
 			Username: model.NewString(model.NewId()),
 		}, true)
 
 		require.Nil(t, err)
+		require.Empty(t, u.Password)
 	})
 }
 
@@ -1810,15 +1812,9 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
 		th.ConfigStore.SetReadOnlyFF(false)
 		defer th.ConfigStore.SetReadOnlyFF(true)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
-
-		insightsPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryInsights, model.PreferenceNameInsights)
-		require.Nil(t, appErr)
-		assert.Equal(t, "insights_tutorial_state", insightsPref.Name)
-		assert.Equal(t, "{\"insights_modal_viewed\":true}", insightsPref.Value)
 
 		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)
@@ -1831,37 +1827,11 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
 	})
 
-	t.Run("successfully create a user with insights feature flag disabled", func(t *testing.T) {
+	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
 		th.Server.platform.SetConfigReadOnlyFF(false)
 		defer th.Server.platform.SetConfigReadOnlyFF(true)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-		testUser := th.CreateUser()
-		defer th.App.PermanentDeleteUser(th.Context, testUser)
-
-		insightsPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryInsights, model.PreferenceNameInsights)
-		require.Nil(t, appErr)
-		assert.Equal(t, "insights_tutorial_state", insightsPref.Name)
-		assert.Equal(t, "{\"insights_modal_viewed\":false}", insightsPref.Value)
-
-		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(testUser.Id, model.PreferenceRecommendedNextSteps)
-		require.Nil(t, appErr)
-		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
-		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
-		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
-	})
-
-	t.Run("successfully create a guest user with initial tutorial, insights and recommended steps preferences", func(t *testing.T) {
-		th.Server.platform.SetConfigReadOnlyFF(false)
-		defer th.Server.platform.SetConfigReadOnlyFF(true)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateGuest()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
-
-		insightsPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryInsights, model.PreferenceNameInsights)
-		require.Nil(t, appErr)
-		assert.Equal(t, "insights_tutorial_state", insightsPref.Name)
-		assert.Equal(t, "{\"insights_modal_viewed\":true}", insightsPref.Value)
 
 		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)

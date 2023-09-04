@@ -97,17 +97,17 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	ctx.Logger().Info("Bulk export: exporting channels")
-	if err = a.exportAllChannels(ctx, job, writer, teamNames); err != nil {
+	if err = a.exportAllChannels(ctx, job, writer, teamNames, opts.IncludeArchivedChannels); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting users")
-	if err = a.exportAllUsers(ctx, job, writer); err != nil {
+	if err = a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments)
+	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
 	if err != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 	return teamNames, nil
 }
 
-func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Writer, teamNames map[string]bool) *model.AppError {
+func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Writer, teamNames map[string]bool, withArchived bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	for {
@@ -239,7 +239,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 			afterId = channel.Id
 
 			// Skip deleted.
-			if channel.DeleteAt != 0 {
+			if channel.DeleteAt != 0 && !withArchived {
 				continue
 			}
 			// Skip channels on deleted teams.
@@ -257,7 +257,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 	return nil
 }
 
-func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
+func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	for {
@@ -319,7 +319,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) 
 			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
 
 			// Do the Team Memberships.
-			members, err := a.buildUserTeamAndChannelMemberships(user.Id)
+			members, err := a.buildUserTeamAndChannelMemberships(user.Id, includeArchivedChannels)
 			if err != nil {
 				return err
 			}
@@ -335,7 +335,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) 
 	return nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
 	var memberships []imports.UserTeamImportData
 
 	members, err := a.Srv().Store().Team().GetTeamMembersForExport(userID)
@@ -353,7 +353,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.User
 		memberData := ImportUserTeamDataFromTeamMember(member)
 
 		// Do the Channel Memberships.
-		channelMembers, err := a.buildUserChannelMemberships(userID, member.TeamId)
+		channelMembers, err := a.buildUserChannelMemberships(userID, member.TeamId, includeArchivedChannels)
 		if err != nil {
 			return nil, err
 		}
@@ -372,8 +372,8 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.User
 	return &memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]imports.UserChannelImportData, *model.AppError) {
-	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID)
+func (a *App) buildUserChannelMemberships(userID string, teamID string, includeArchivedChannels bool) (*[]imports.UserChannelImportData, *model.AppError) {
+	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID, includeArchivedChannels)
 	if nErr != nil {
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -411,7 +411,7 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNot
 	}
 }
 
-func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
@@ -424,7 +424,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 			logCheckpoint = time.Now()
 		}
 
-		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId)
+		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId, includeArchivedChannels)
 		if nErr != nil {
 			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
