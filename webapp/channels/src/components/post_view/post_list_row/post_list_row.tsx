@@ -24,6 +24,8 @@ import NewMessageSeparator from 'components/post_view/new_message_separator/new_
 import {PostListRowListIds, Locations} from 'utils/constants';
 import {isIdNotPost} from 'utils/post_utils';
 
+import type {PluginComponent} from 'types/store/plugins';
+
 export type PostListRowProps = {
     listId: string;
     previousListId?: string;
@@ -56,6 +58,10 @@ export type PostListRowProps = {
     limitsLoaded: boolean;
     exceededLimitChannelId?: string;
     firstInaccessiblePostTime?: number;
+    lastViewedAt: number;
+    channelId: string;
+
+    newMessagesSeparatorActions: PluginComponent[];
 
     actions: {
 
@@ -111,7 +117,12 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
 
         if (PostListUtils.isStartOfNewMessages(listId)) {
             return (
-                <NewMessageSeparator separatorId={listId}/>
+                <NewMessageSeparator
+                    separatorId={listId}
+                    newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
+                    channelId={this.props.channelId}
+                    lastViewedAt={this.props.lastViewedAt}
+                />
             );
         }
 

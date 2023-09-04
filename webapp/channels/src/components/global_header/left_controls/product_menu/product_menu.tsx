@@ -24,7 +24,7 @@ import {
     useHandleOnBoardingTaskData,
 } from 'components/onboarding_tasks';
 import {FINISHED, TutorialTourName} from 'components/tours';
-import {BoardsTourTip, PlaybooksTourTip} from 'components/tours/onboarding_explore_tools_tour';
+import {PlaybooksTourTip} from 'components/tours/onboarding_explore_tools_tour';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
@@ -82,9 +82,8 @@ const ProductMenu = (): JSX.Element => {
     const triggerStep = useSelector((state: GlobalState) => getInt(state, OnboardingTaskCategory, OnboardingTasksName.EXPLORE_OTHER_TOOLS, FINISHED));
     const exploreToolsTourTriggered = triggerStep === GenericTaskSteps.STARTED;
 
-    const {boardsPlugin, playbooksPlugin} = useGetPluginsActivationState();
+    const {playbooksPlugin} = useGetPluginsActivationState();
 
-    const showBoardsTour = enableTutorial && tutorialStep === ExploreOtherToolsTourSteps.BOARDS_TOUR && exploreToolsTourTriggered && boardsPlugin;
     const showPlaybooksTour = enableTutorial && tutorialStep === ExploreOtherToolsTourSteps.PLAYBOOKS_TOUR && exploreToolsTourTriggered && playbooksPlugin;
 
     const handleClick = () => dispatch(setProductMenuSwitcherOpen(!switcherOpen));
@@ -108,14 +107,9 @@ const ProductMenu = (): JSX.Element => {
     const productItems = products?.map((product) => {
         let tourTip;
 
-        // focalboard
-        if (boardsPlugin && showBoardsTour) {
-            tourTip = (<BoardsTourTip singleTip={!playbooksPlugin}/>);
-        }
-
         // playbooks
         if (product.pluginId === suitePluginIds.playbooks && showPlaybooksTour) {
-            tourTip = (<PlaybooksTourTip singleTip={!boardsPlugin}/>);
+            tourTip = (<PlaybooksTourTip singleTip={true}/>);
         }
 
         return (

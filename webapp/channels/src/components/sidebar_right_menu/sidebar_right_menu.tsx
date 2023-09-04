@@ -12,13 +12,13 @@ import * as GlobalActions from 'actions/global_actions';
 import MainMenu from 'components/main_menu';
 
 import {Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 type Action = {
     openRhsMenu: () => void;
 }
 
 type Props = {
+    isMobileView: boolean;
     isOpen: boolean;
     teamDisplayName?: string;
     siteName?: string;
@@ -44,7 +44,7 @@ export default class SidebarRightMenu extends React.PureComponent<Props> {
 
         return (
             <div
-                className={classNames('sidebar--menu', {'move--left': this.props.isOpen && Utils.isMobile()})}
+                className={classNames('sidebar--menu', {'move--left': this.props.isOpen && this.props.isMobileView})}
                 id='sidebar-menu'
             >
                 <div className='team__header theme'>
@@ -58,7 +58,7 @@ export default class SidebarRightMenu extends React.PureComponent<Props> {
 
                 <div className='nav-pills__container mobile-main-menu'>
                     <CSSTransition
-                        in={this.props.isOpen && Utils.isMobile()}
+                        in={this.props.isOpen && this.props.isMobileView}
                         classNames='MobileRightSidebarMenu'
                         enter={true}
                         exit={true}

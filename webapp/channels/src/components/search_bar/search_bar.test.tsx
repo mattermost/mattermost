@@ -22,14 +22,6 @@ const suggestionProviders = [
     new SearchUserProvider(jest.fn()),
 ];
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
-    return {
-        ...original,
-        isMobile: jest.fn(() => false),
-    };
-});
-
 const wrapIntl = (component: JSX.Element) => (
     <IntlProvider
         locale={'en'}

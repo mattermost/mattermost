@@ -6,6 +6,7 @@ package app
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -246,7 +247,6 @@ func TestGetDraftsForUser(t *testing.T) {
 
 	draft1 := &model.Draft{
 		CreateAt:  00001,
-		UpdateAt:  00001,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",
@@ -254,7 +254,6 @@ func TestGetDraftsForUser(t *testing.T) {
 
 	draft2 := &model.Draft{
 		CreateAt:  00005,
-		UpdateAt:  00005,
 		UserId:    user.Id,
 		ChannelId: channel2.Id,
 		Message:   "draft2",
@@ -263,11 +262,13 @@ func TestGetDraftsForUser(t *testing.T) {
 	_, createDraftErr1 := th.App.UpsertDraft(th.Context, draft1, "")
 	assert.Nil(t, createDraftErr1)
 
+	// Wait a bit so the second draft gets a newer UpdateAt
+	time.Sleep(100 * time.Millisecond)
+
 	_, createDraftErr2 := th.App.UpsertDraft(th.Context, draft2, "")
 	assert.Nil(t, createDraftErr2)
 
 	t.Run("get drafts", func(t *testing.T) {
-		t.Skip("MM-52088")
 		draftResp, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
 		assert.Nil(t, err)
 
@@ -283,7 +284,7 @@ func TestGetDraftsForUser(t *testing.T) {
 		sent, readFileErr := testutils.ReadTestFile("test.png")
 		require.NoError(t, readFileErr)
 
-		fileResp, updateDraftErr := th.App.UploadFile(th.Context, sent, channel.Id, "test.png")
+		fileResp, updateDraftErr := th.App.UploadFileForUserAndTeam(th.Context, sent, channel.Id, "test.png", user.Id, "")
 		assert.Nil(t, updateDraftErr)
 
 		draftWithFiles := draft1
@@ -303,9 +304,45 @@ func TestGetDraftsForUser(t *testing.T) {
 		assert.Equal(t, draftWithFiles.ChannelId, draftsWithFilesResp[0].ChannelId)
 		assert.ElementsMatch(t, draftWithFiles.FileIds, draftsWithFilesResp[0].FileIds)
 
+		assert.Len(t, draftsWithFilesResp[0].Metadata.Files, 1)
 		assert.Equal(t, fileResp.Name, draftsWithFilesResp[0].Metadata.Files[0].Name)
 
 		assert.Len(t, draftsWithFilesResp, 2)
+	})
+
+	t.Run("get draft with invalid files", func(t *testing.T) {
+		// upload file
+		sent, readFileErr := testutils.ReadTestFile("test.png")
+		require.NoError(t, readFileErr)
+
+		fileResp1, updateDraftErr := th.App.UploadFileForUserAndTeam(th.Context, sent, channel.Id, "test1.png", user.Id, "")
+		assert.Nil(t, updateDraftErr)
+
+		fileResp2, updateDraftErr := th.App.UploadFileForUserAndTeam(th.Context, sent, channel.Id, "test2.png", th.BasicUser2.Id, "")
+		assert.Nil(t, updateDraftErr)
+
+		draftWithFiles := draft1
+		draftWithFiles.FileIds = []string{fileResp1.Id, fileResp2.Id}
+
+		draftResp, updateDraftErr := th.App.UpsertDraft(th.Context, draft1, "")
+		assert.Nil(t, updateDraftErr)
+
+		assert.Equal(t, draftWithFiles.Message, draftResp.Message)
+		assert.Equal(t, draftWithFiles.ChannelId, draftResp.ChannelId)
+		assert.ElementsMatch(t, draftWithFiles.FileIds, draftResp.FileIds)
+
+		assert.Len(t, draftWithFiles.Metadata.Files, 1)
+		assert.Equal(t, fileResp1.Name, draftWithFiles.Metadata.Files[0].Name)
+
+		draftsWithFilesResp, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
+
+		assert.Equal(t, draftWithFiles.Message, draftsWithFilesResp[0].Message)
+		assert.Equal(t, draftWithFiles.ChannelId, draftsWithFilesResp[0].ChannelId)
+		assert.ElementsMatch(t, draftWithFiles.FileIds, draftsWithFilesResp[0].FileIds)
+
+		assert.Len(t, draftsWithFilesResp[0].Metadata.Files, 1)
+		assert.Equal(t, fileResp1.Name, draftsWithFilesResp[0].Metadata.Files[0].Name)
 	})
 
 	t.Run("get drafts feature flag", func(t *testing.T) {

@@ -25,7 +25,6 @@ import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import dragster from 'utils/dragster';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-import {getHtmlTable} from 'utils/paste';
 import {
     isIosChrome,
     isMobileApp,
@@ -452,7 +451,7 @@ export class FileUpload extends PureComponent<Props, State> {
     pasteUpload = (e: ClipboardEvent) => {
         const {formatMessage} = this.props.intl;
 
-        if (!e.clipboardData || !e.clipboardData.items || getHtmlTable(e.clipboardData)) {
+        if (!e.clipboardData || !e.clipboardData.items || e.clipboardData.getData('text/html')) {
             return;
         }
 

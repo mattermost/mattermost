@@ -38,6 +38,11 @@ describe('Selectors.Posts', () => {
 
     const testState = deepFreezeAndThrowOnMutation({
         entities: {
+            general: {
+                config: {
+                    EnableJoinLeaveMessageByDefault: 'true',
+                },
+            },
             users: {
                 currentUserId: user1.id,
                 profiles,
@@ -797,6 +802,9 @@ describe('Selectors.Posts', () => {
 
             const state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -828,6 +836,9 @@ describe('Selectors.Posts', () => {
 
             const state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -859,6 +870,9 @@ describe('Selectors.Posts', () => {
 
             let state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -978,6 +992,9 @@ describe('Selectors.Posts', () => {
 
             const state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -2467,6 +2484,11 @@ describe('makeGetProfilesForThread', () => {
 
         const state = {
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 posts: {
                     posts: {
                         1001: {id: '1001', create_at: 1001, user_id: 'user1'},
@@ -2502,6 +2524,11 @@ describe('makeGetProfilesForThread', () => {
 
         const state = {
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 posts: {
                     posts: {
                         1001: {id: '1001', create_at: 1001, user_id: 'user1'},

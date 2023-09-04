@@ -36,7 +36,7 @@ export function makeGetMentionKeysForPost(): (
         getCurrentUserMentionKeys,
         (state: GlobalState, post?: Post) => post,
         (state: GlobalState, post?: Post, channel?: Channel) =>
-            (channel ? getMyGroupMentionKeysForChannel(state, channel.team_id, channel.id) : getMyGroupMentionKeys(state)),
+            (channel ? getMyGroupMentionKeysForChannel(state, channel.team_id, channel.id) : getMyGroupMentionKeys(state, false)),
         (mentionKeysWithoutGroups, post, groupMentionKeys) => {
             let mentionKeys = mentionKeysWithoutGroups;
             if (!post?.props?.disable_group_highlight) {

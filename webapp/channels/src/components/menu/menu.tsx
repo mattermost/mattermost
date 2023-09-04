@@ -4,14 +4,14 @@
 import React, {
     useState,
     useEffect,
-    useMemo,
     useCallback,
 } from 'react';
 import type {
     ReactNode,
     MouseEvent,
     KeyboardEvent,
-    SyntheticEvent} from 'react';
+    SyntheticEvent,
+} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import MuiMenuList from '@mui/material/MenuList';
@@ -30,12 +30,12 @@ import Tooltip from 'components/tooltip';
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
-import {MenuContext} from './menu_context';
+import {MenuContext, useMenuContextValue} from './menu_context';
 import {MuiMenuStyled} from './menu_styled';
 
 const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;
-export const MENU_CLOSE_ANIMATION_DURATION = 100;
+const MENU_CLOSE_ANIMATION_DURATION = 100;
 
 type MenuButtonProps = {
     id: string;
@@ -213,12 +213,7 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
-    const providerValue = useMemo(() => {
-        return {
-            close: closeMenu,
-            isOpen: Boolean(anchorElement),
-        };
-    }, [anchorElement, closeMenu]);
+    const providerValue = useMenuContextValue(closeMenu, Boolean(anchorElement));
 
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
@@ -228,32 +223,33 @@ export function Menu(props: Props) {
     return (
         <CompassDesignProvider theme={theme}>
             {renderMenuButton()}
-            <MuiMenuStyled
-                anchorEl={anchorElement}
-                open={isMenuOpen}
-                onClose={handleMenuClose}
-                onClick={handleMenuClick}
-                onKeyDown={handleMenuKeyDown}
-                className={A11yClassNames.POPUP}
-                width={props.menu.width}
-                disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
-                MenuListProps={{
-                    id: props.menu.id,
-                    'aria-label': props.menu?.['aria-label'] ?? '',
-                }}
-                TransitionProps={{
-                    mountOnEnter: true,
-                    unmountOnExit: true,
-                    timeout: {
-                        enter: MENU_OPEN_ANIMATION_DURATION,
-                        exit: MENU_CLOSE_ANIMATION_DURATION,
-                    },
-                }}
-            >
-                <MenuContext.Provider value={providerValue}>
+            <MenuContext.Provider value={providerValue}>
+                <MuiMenuStyled
+                    anchorEl={anchorElement}
+                    open={isMenuOpen}
+                    onClose={handleMenuClose}
+                    onClick={handleMenuClick}
+                    onTransitionExited={providerValue.handleClosed}
+                    onKeyDown={handleMenuKeyDown}
+                    className={A11yClassNames.POPUP}
+                    width={props.menu.width}
+                    disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
+                    MenuListProps={{
+                        id: props.menu.id,
+                        'aria-label': props.menu?.['aria-label'] ?? '',
+                    }}
+                    TransitionProps={{
+                        mountOnEnter: true,
+                        unmountOnExit: true,
+                        timeout: {
+                            enter: MENU_OPEN_ANIMATION_DURATION,
+                            exit: MENU_CLOSE_ANIMATION_DURATION,
+                        },
+                    }}
+                >
                     {props.children}
-                </MenuContext.Provider>
-            </MuiMenuStyled>
+                </MuiMenuStyled>
+            </MenuContext.Provider>
         </CompassDesignProvider>
     );
 }

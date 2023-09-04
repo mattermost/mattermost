@@ -5,11 +5,42 @@ import {selectChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
+import {SidebarSize} from 'components/resizable_sidebar/constants';
+
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes} from 'utils/constants';
+import Constants, {ActionTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import {LhsItemType} from 'types/store/lhs';
+
+export const setLhsSize = (sidebarSize?: SidebarSize) => {
+    let newSidebarSize = sidebarSize;
+    if (!sidebarSize) {
+        const width = window.innerWidth;
+
+        switch (true) {
+        case width <= Constants.SMALL_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.SMALL;
+            break;
+        }
+        case width > Constants.SMALL_SIDEBAR_BREAKPOINT && width <= Constants.MEDIUM_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.MEDIUM;
+            break;
+        }
+        case width > Constants.MEDIUM_SIDEBAR_BREAKPOINT && width <= Constants.LARGE_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.LARGE;
+            break;
+        }
+        default: {
+            newSidebarSize = SidebarSize.XLARGE;
+        }
+        }
+    }
+    return {
+        type: ActionTypes.SET_LHS_SIZE,
+        size: newSidebarSize,
+    };
+};
 
 export const toggle = () => ({
     type: ActionTypes.TOGGLE_LHS,

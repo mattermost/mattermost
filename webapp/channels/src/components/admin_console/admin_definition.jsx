@@ -2277,6 +2277,15 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'TeamSettings.EnableJoinLeaveMessageByDefault',
+                        label: t('admin.team.enableJoinLeaveMessageTitle'),
+                        label_default: 'Enable join/leave messages by default:',
+                        help_text: t('admin.team.enableJoinLeaveMessageDescription'),
+                        help_text_default: 'Choose the default configuration of system messages displayed when users join or leave channels. Users can override this default by configuring Join/Leave messages in Account Settings > Advanced.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_DROPDOWN,
                         key: 'TeamSettings.RestrictDirectMessage',
                         label: t('admin.team.restrictDirectMessage'),
@@ -2352,7 +2361,7 @@ const AdminDefinition = {
                         label: t('admin.privacy.showEmailTitle'),
                         label_default: 'Show Email Address:',
                         help_text: t('admin.privacy.showEmailDescription'),
-                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators.',
+                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators and the System Roles with read/write access to Compliance, Billing, or User Management.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
@@ -3044,6 +3053,15 @@ const AdminDefinition = {
                         type: Constants.SettingsTypes.TYPE_CUSTOM,
                         component: CustomURLSchemesSetting,
                         key: 'DisplaySettings.CustomURLSchemes',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'DisplaySettings.MaxMarkdownNodes',
+                        label: t('admin.customization.maxMarkdownNodesTitle'),
+                        label_default: 'Max Markdown Nodes:',
+                        help_text: t('admin.customization.maxMarkdownNodesDesc'),
+                        help_text_default: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {
@@ -6099,36 +6117,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableGifPickerTitle'),
                         label_default: 'Enable GIF Picker:',
                         help_text: t('admin.customization.enableGifPickerDesc'),
-                        help_text_default: 'Allow users to select GIFs from the emoji picker via a Gfycat integration.',
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
-                    },
-                    {
-                        type: Constants.SettingsTypes.TYPE_TEXT,
-                        key: 'ServiceSettings.GfycatAPIKey',
-                        label: t('admin.customization.gfycatApiKey'),
-                        label_default: 'Gfycat API Key:',
-                        help_text: t('admin.customization.gfycatApiKeyDescription'),
-                        help_text_default: 'Request an API key at <link>https://developers.gfycat.com/signup/#</link>. Enter the client ID you receive via email to this field. When blank, uses the default API key provided by Gfycat.',
-                        help_text_markdown: false,
-                        help_text_values: {
-                            link: (msg) => (
-                                <ExternalLink
-                                    location='admin_console'
-                                    href='https://developers.gfycat.com/signup/#'
-                                >
-                                    {msg}
-                                </ExternalLink>
-                            ),
-                        },
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
-                    },
-                    {
-                        type: Constants.SettingsTypes.TYPE_TEXT,
-                        key: 'ServiceSettings.GfycatAPISecret',
-                        label: t('admin.customization.gfycatApiSecret'),
-                        label_default: 'Gfycat API Secret:',
-                        help_text: t('admin.customization.gfycatApiSecretDescription'),
-                        help_text_default: 'The API secret generated by Gfycat for your API key. When blank, uses the default API secret provided by Gfycat.',
+                        help_text_default: 'Allows users to select GIFs from the emoji picker.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
                     },
                 ],

@@ -1,90 +1,50 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import type {SyntheticEvent} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
-import type {GifsAppState, GfycatAPIItem} from '@mattermost/types/gifs';
+import type {IGif} from '@giphy/js-types';
 
-import App from 'components/gif_picker/components/App';
-import Categories from 'components/gif_picker/components/Categories';
-import Search from 'components/gif_picker/components/Search';
-import Trending from 'components/gif_picker/components/Trending';
-import constants from 'components/gif_picker/utils/constants';
+import GifPickerItems from './components/gif_picker_items';
+import GifPickerSearch from './components/gif_picker_search';
 
-export const appProps: GifsAppState = {
-    appName: constants.appName.mattermost,
-    basePath: '/mattermost',
-    itemTapType: constants.ItemTapAction.SHARE,
-    appClassName: 'gfycat',
-    shareEvent: 'shareMattermost',
-    appId: 'mattermostwebviews',
-    enableHistory: true,
-    header: {
-        tabs: [constants.Tab.TRENDING, constants.Tab.REACTIONS],
-        displayText: false,
-    },
-};
+const GIF_DEFAULT_WIDTH = 350;
+const GIF_MARGIN_ENDS = 12;
 
 type Props = {
+    filter: string;
     onGifClick?: (gif: string) => void;
-    defaultSearchText?: string;
-    handleSearchTextChange: (text: string) => void;
+    handleFilterChange: (filter: string) => void;
+    getRootPickerNode: () => HTMLDivElement | null;
 }
 
 const GifPicker = (props: Props) => {
-    const [action, setAction] = useState(props.defaultSearchText ? 'search' : 'trending');
+    const handleItemClick = useCallback((gif: IGif, event: SyntheticEvent<HTMLElement, Event>) => {
+        if (props.onGifClick) {
+            event.preventDefault();
 
-    const handleTrending = () => setAction('trending');
-    const handleCategories = () => setAction('reactions');
-    const handleSearch = () => setAction('search');
+            const imageWithMarkdown = `![${gif.title}](${gif.images.fixed_height.url})`;
+            props.onGifClick(imageWithMarkdown);
+        }
+    }, [props.onGifClick]);
 
-    const handleItemClick = (gif: GfycatAPIItem) => {
-        props.onGifClick?.('![' + gif.title?.replace(/]|\[/g, '\\$&') + '](' + gif.max5mbGif + ')');
-    };
+    const pickerWidth = useMemo(() => {
+        const pickerWidth = props.getRootPickerNode?.()?.getBoundingClientRect()?.width ?? GIF_DEFAULT_WIDTH;
+        return (pickerWidth - (2 * GIF_MARGIN_ENDS));
+    }, [props.getRootPickerNode]);
 
-    let component;
-    switch (action) {
-    case 'reactions':
-        component = (
-            <Categories
-                appProps={appProps}
-                onTrending={handleTrending}
-                onSearch={handleSearch}
-            />
-        );
-        break;
-    case 'search':
-        component = (
-            <Search
-                appProps={appProps}
-                onCategories={handleCategories}
-                handleItemClick={handleItemClick}
-            />
-        );
-        break;
-    case 'trending':
-        component = (
-            <Trending
-                appProps={appProps}
-                onCategories={handleCategories}
-                handleItemClick={handleItemClick}
-            />
-        );
-        break;
-    }
     return (
         <div>
-            <App
-                appProps={appProps}
-                action={action}
-                onTrending={handleTrending}
-                onCategories={handleCategories}
-                onSearch={handleSearch}
-                defaultSearchText={props.defaultSearchText}
-                handleSearchTextChange={props.handleSearchTextChange}
-            >
-                {component}
-            </App>
+            <GifPickerSearch
+                value={props.filter}
+                onChange={props.handleFilterChange}
+            />
+            <GifPickerItems
+                width={pickerWidth}
+                filter={props.filter}
+                onClick={handleItemClick}
+            />
         </div>
     );
 };

@@ -24,7 +24,7 @@ import {isAnyModalOpen} from 'selectors/views/modals';
 
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
 import CollapsedReplyThreadsModal
-    from 'components/tours/crt_tour/collapsed_reply_threads_modal/collapsed_reply_threads_modal';
+    from 'components/tours/crt_tour/collapsed_reply_threads_modal';
 import CRTWelcomeTutorialTip
     from 'components/tours/crt_tour/crt_welcome_tutorial_tip';
 

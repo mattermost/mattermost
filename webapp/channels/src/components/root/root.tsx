@@ -48,6 +48,7 @@ import SidebarRight from 'components/sidebar_right';
 import SidebarRightMenu from 'components/sidebar_right_menu';
 import SystemNotice from 'components/system_notice';
 import TeamSidebar from 'components/team_sidebar';
+import WindowSizeObserver from 'components/window_size_observer/WindowSizeObserver';
 
 import webSocketClient from 'client/web_websocket_client.jsx';
 import {initializePlugins} from 'plugins';
@@ -639,6 +640,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                 transitionDirection={Animations.Reasons.EnterFromBefore}
                             />
                         )}
+                        <WindowSizeObserver/>
                         <ModalController/>
                         <AnnouncementBarController/>
                         <SystemNotice/>

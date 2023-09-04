@@ -12,6 +12,7 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openMenu as openRhsMenu} from 'actions/views/rhs';
 import {getIsRhsMenuOpen} from 'selectors/rhs';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store';
 
@@ -25,6 +26,7 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         teamDisplayName: currentTeam && currentTeam.display_name,
+        isMobileView: getIsMobileView(state),
         isOpen: getIsRhsMenuOpen(state),
         siteName,
     };

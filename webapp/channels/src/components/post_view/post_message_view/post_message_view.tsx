@@ -8,6 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import PostMarkdown from 'components/post_markdown';
 import ShowMore from 'components/post_view/show_more';
@@ -129,7 +130,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         }
 
         let message = post.message;
-        const isEphemeral = Utils.isPostEphemeral(post);
+        const isEphemeral = isPostEphemeral(post);
         if (compactDisplay && isEphemeral) {
             const visibleMessage = Utils.localizeMessage('post_info.message.visible.compact', ' (Only visible to you)');
             message = message.concat(visibleMessage);

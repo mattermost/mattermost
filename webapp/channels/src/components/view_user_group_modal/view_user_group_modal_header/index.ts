@@ -6,11 +6,10 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {addUsersToGroup, archiveGroup, removeUsersFromGroup} from 'mattermost-redux/actions/groups';
+import {addUsersToGroup, archiveGroup, removeUsersFromGroup, restoreGroup} from 'mattermost-redux/actions/groups';
 import {Permissions} from 'mattermost-redux/constants';
 import {getGroup as getGroupById, isMyGroup} from 'mattermost-redux/selectors/entities/groups';
 import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
@@ -25,6 +24,7 @@ type Actions = {
     removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
     addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
     archiveGroup: (groupId: string) => Promise<ActionResult>;
+    restoreGroup: (groupId: string) => Promise<ActionResult>;
 };
 
 type OwnProps = {
@@ -39,15 +39,16 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const permissionToJoinGroup = haveIGroupPermission(state, ownProps.groupId, Permissions.MANAGE_CUSTOM_GROUP_MEMBERS);
     const permissionToLeaveGroup = haveIGroupPermission(state, ownProps.groupId, Permissions.MANAGE_CUSTOM_GROUP_MEMBERS);
     const permissionToArchiveGroup = haveIGroupPermission(state, ownProps.groupId, Permissions.DELETE_CUSTOM_GROUP);
+    const permissionToRestoreGroup = haveIGroupPermission(state, ownProps.groupId, Permissions.RESTORE_CUSTOM_GROUP);
 
     return {
         permissionToEditGroup,
         permissionToJoinGroup,
         permissionToLeaveGroup,
         permissionToArchiveGroup,
+        permissionToRestoreGroup,
         isGroupMember,
         group,
-        currentUserId: getCurrentUserId(state),
     };
 }
 
@@ -58,6 +59,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             removeUsersFromGroup,
             addUsersToGroup,
             archiveGroup,
+            restoreGroup,
         }, dispatch),
     };
 }

@@ -41,7 +41,7 @@ import {IconContainer} from './formatting_bar/formatting_icon';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
-import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
+import ToggleFormattingBar from './toggle_formatting_bar';
 
 import './advanced_text_editor.scss';
 

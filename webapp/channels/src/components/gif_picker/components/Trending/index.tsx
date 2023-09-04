@@ -13,7 +13,6 @@ import {
 } from 'mattermost-redux/actions/gifs';
 
 import SearchGrid from 'components/gif_picker/components/SearchGrid';
-import type {appProps} from 'components/gif_picker/gif_picker';
 
 const mapDispatchToProps = ({
     searchCategory,
@@ -22,7 +21,7 @@ const mapDispatchToProps = ({
 });
 
 type Props = {
-    appProps: typeof appProps;
+    appProps: any;
     searchIfNeededInitial: (searchText: string) => void;
     onCategories: () => void;
     saveSearchScrollPosition: (scrollPosition: number) => void;

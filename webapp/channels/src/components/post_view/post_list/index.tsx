@@ -15,7 +15,6 @@ import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
 
 import {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import {
-    checkAndSetMobileView,
     loadPosts,
     loadUnreads,
     loadPostsAround,
@@ -40,7 +39,7 @@ const memoizedGetLatestPostId = memoizeResult((postIds: string[]) => getLatestPo
 
 interface Props {
     focusedPostId?: string;
-    unreadChunkTimeStamp: number;
+    unreadChunkTimeStamp?: number;
     changeUnreadChunkTimeStamp: (lastViewedAt: number) => void;
     channelId: string;
 }
@@ -79,7 +78,10 @@ function makeMapStateToProps() {
             atOldestPost = Boolean(chunk.oldest);
         }
 
-        const shouldHideNewMessageIndicator = shouldStartFromBottomWhenUnread && !isPostsChunkIncludingUnreadsPosts(state, chunk!, unreadChunkTimeStamp);
+        let shouldHideNewMessageIndicator = false;
+        if (unreadChunkTimeStamp != null) {
+            shouldHideNewMessageIndicator = shouldStartFromBottomWhenUnread && !isPostsChunkIncludingUnreadsPosts(state, chunk!, unreadChunkTimeStamp);
+        }
 
         if (postIds) {
             formattedPostIds = preparePostIdsForPostList(state, {postIds, lastViewedAt, indicateNewMessages: !shouldHideNewMessageIndicator});
@@ -113,7 +115,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             loadPosts,
             loadLatestPosts,
             loadPostsAround,
-            checkAndSetMobileView,
             syncPostsInChannel,
             markChannelAsRead,
             updateNewMessagesAtInChannel,

@@ -10,7 +10,6 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
 
 import SearchBar from 'components/gif_picker/components/SearchBar';
-import type {appProps} from 'components/gif_picker/gif_picker';
 import constants from 'components/gif_picker/utils/constants';
 import GifReactionsIcon from 'components/widgets/icons/gif_reactions_icon';
 import GifTrendingIcon from 'components/widgets/icons/gif_trending_icon';
@@ -60,7 +59,7 @@ const getStyle = makeStyleFromTheme((theme) => {
 
 type Props = {
     action: string;
-    appProps: typeof appProps;
+    appProps: any;
     saveSearchBarText: (searchBarText: string) => void;
     searchTextUpdate: (searchText: string) => void;
     theme: Theme;
@@ -105,7 +104,7 @@ export class Header extends PureComponent<Props, State> {
     renderTabs(props: Props, style: Style) {
         const {appProps, onTrending, onCategories} = props;
         const {header} = appProps;
-        return header.tabs.map((tab, index) => {
+        return header.tabs.map((tab: any, index: any) => {
             let link;
             if (tab === constants.Tab.TRENDING) {
                 link = this.renderTab({name: 'trending', callback: onTrending, Icon: GifTrendingIcon, index, style});

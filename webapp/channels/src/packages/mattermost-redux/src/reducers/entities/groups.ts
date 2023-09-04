@@ -165,8 +165,7 @@ function myGroups(state: string[] = [], action: GenericAction) {
 
         return nextState;
     }
-    case GroupTypes.REMOVE_MY_GROUP:
-    case GroupTypes.ARCHIVED_GROUP: {
+    case GroupTypes.REMOVE_MY_GROUP: {
         const groupId = action.id;
         const index = state.indexOf(groupId);
 
@@ -204,6 +203,8 @@ function groups(state: Record<string, Group> = {}, action: GenericAction) {
     switch (action.type) {
     case GroupTypes.CREATE_GROUP_SUCCESS:
     case GroupTypes.PATCHED_GROUP:
+    case GroupTypes.RESTORED_GROUP:
+    case GroupTypes.ARCHIVED_GROUP:
     case GroupTypes.RECEIVED_GROUP: {
         return {
             ...state,
@@ -240,11 +241,6 @@ function groups(state: Record<string, Group> = {}, action: GenericAction) {
             nextState[group.id] = group;
         }
 
-        return nextState;
-    }
-    case GroupTypes.ARCHIVED_GROUP: {
-        const nextState = {...state};
-        Reflect.deleteProperty(nextState, action.id);
         return nextState;
     }
     default:

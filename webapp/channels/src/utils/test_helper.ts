@@ -22,9 +22,22 @@ import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
+import type {PostDraft} from 'types/store/draft';
 import type {ProductComponent} from 'types/store/plugins';
 
 export class TestHelper {
+    public static getPostDraftMock(override?: Partial<PostDraft>): PostDraft {
+        const defaultPostDraft: PostDraft = {
+            message: 'Test message',
+            fileInfos: [],
+            uploadsInProgress: [],
+            channelId: '',
+            rootId: '',
+            createAt: 0,
+            updateAt: 0,
+        };
+        return Object.assign({}, defaultPostDraft, override);
+    }
     public static getUserMock(override: Partial<UserProfile> = {}): UserProfile {
         const defaultUser: UserProfile = {
             id: 'user_id',

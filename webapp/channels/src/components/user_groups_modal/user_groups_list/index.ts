@@ -6,7 +6,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {archiveGroup} from 'mattermost-redux/actions/groups';
+import {archiveGroup, restoreGroup} from 'mattermost-redux/actions/groups';
 import {getGroupListPermissions} from 'mattermost-redux/selectors/entities/roles';
 import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
@@ -20,6 +20,7 @@ import UserGroupsList from './user_groups_list';
 type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;
     archiveGroup: (groupId: string) => Promise<ActionResult>;
+    restoreGroup: (groupId: string) => Promise<ActionResult>;
 };
 
 function mapStateToProps(state: GlobalState) {
@@ -34,6 +35,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
             openModal,
             archiveGroup,
+            restoreGroup,
         }, dispatch),
     };
 }

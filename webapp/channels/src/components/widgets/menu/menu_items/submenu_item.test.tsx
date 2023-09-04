@@ -9,6 +9,10 @@ import Constants from 'utils/constants';
 
 import SubMenuItem from './submenu_item';
 
+jest.mock('../is_mobile_view_hack', () => ({
+    isMobile: jest.fn(() => false),
+}));
+
 describe('components/widgets/menu/menu_items/submenu_item', () => {
     test('empty subMenu should match snapshot', () => {
         const wrapper = mount(

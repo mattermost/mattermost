@@ -15,7 +15,7 @@ import SharedUserIndicator from 'components/shared_user_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {imageURLForUser, isMobile} from 'utils/utils';
+import {imageURLForUser} from 'utils/utils';
 
 import {generateColor} from './utils';
 
@@ -32,6 +32,7 @@ export type UserProfileProps = {
     colorize?: boolean;
     hasMention?: boolean;
     hideStatus?: boolean;
+    isMobileView: boolean;
     isRHS?: boolean;
     channelId?: string;
     theme?: Theme;
@@ -66,6 +67,7 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
             displayName,
             displayUsername,
             isBusy,
+            isMobileView,
             isRHS,
             isShared,
             hasMention,
@@ -108,7 +110,7 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
         }
 
         let placement = 'right';
-        if (isRHS && !isMobile()) {
+        if (isRHS && !isMobileView) {
             placement = 'left';
         }
 

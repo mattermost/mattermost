@@ -16,6 +16,7 @@ import type {GlobalState} from 'types/store';
 
 import MarketplaceModal from './marketplace_modal';
 import type {OpenedFromType} from './marketplace_modal';
+import WebMarketplaceBanner from './web_marketplace_banner';
 
 let mockState: GlobalState;
 
@@ -80,6 +81,12 @@ describe('components/marketplace/', () => {
             entities: {
                 general: {
                     firstAdminCompleteSetup: false,
+                    config: {
+                        FeatureFlagStreamlinedMarketplace: 'false',
+                    },
+                    license: {
+                        Cloud: 'false',
+                    },
                 },
                 admin: {
                     pluginStatuses: {},
@@ -159,5 +166,50 @@ describe('components/marketplace/', () => {
         wrapper.update();
 
         expect(wrapper.shallow()).toMatchSnapshot();
+    });
+
+    test('hides search, shows web marketplace banner in FeatureFlags.StreamlinedMarketplace', () => {
+        const setState = jest.fn();
+        const useStateSpy = jest.spyOn(React, 'useState');
+        useStateSpy.mockImplementation(() => [true, setState]);
+
+        mockState.views.marketplace.plugins = [
+            samplePlugin,
+            sampleInstalledPlugin,
+        ];
+
+        (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
+
+        const wrapper = shallow(
+            <MarketplaceModal {...defaultProps}/>,
+        );
+
+        wrapper.update();
+        const content = wrapper.shallow();
+
+        expect(content.exists('#searchMarketplaceTextbox')).toBe(false);
+        expect(content.exists(WebMarketplaceBanner)).toBe(true);
+
+        expect(content).toMatchSnapshot();
+    });
+
+    test("doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud", () => {
+        const setState = jest.fn();
+        const useStateSpy = jest.spyOn(React, 'useState');
+        useStateSpy.mockImplementation(() => [true, setState]);
+
+        (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
+        mockState.entities.general.license.Cloud = 'true';
+
+        const wrapper = shallow(
+            <MarketplaceModal {...defaultProps}/>,
+        );
+
+        wrapper.update();
+        const content = wrapper.shallow();
+
+        expect(content.exists(WebMarketplaceBanner)).toBe(false);
+
+        expect(content).toMatchSnapshot();
     });
 });

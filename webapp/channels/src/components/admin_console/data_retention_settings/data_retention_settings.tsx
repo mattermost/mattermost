@@ -71,7 +71,6 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
         this.loadPage(0);
     };
 
-    includeBoards = this.props.config.PluginSettings?.PluginStates?.focalboard?.Enable && this.props.config.FeatureFlags?.BoardsDataRetention;
     getGlobalPolicyColumns = (): Column[] => {
         const columns: Column[] = [
             {
@@ -102,19 +101,6 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 field: 'files',
             },
         ];
-        if (this.includeBoards) {
-            columns.push(
-                {
-                    name: (
-                        <FormattedMessage
-                            id='admin.data_retention.globalPoliciesTable.boards'
-                            defaultMessage='Boards'
-                        />
-                    ),
-                    field: 'boards',
-                },
-            );
-        }
         columns.push(
             {
                 name: '',
@@ -205,11 +191,6 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 files: (
                     <div data-testid='global_file_retention_cell'>
                         {this.getMessageRetentionSetting(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionDays)}
-                    </div>
-                ),
-                boards: (
-                    <div data-testid='global_boards_retention_cell'>
-                        {this.getMessageRetentionSetting(DataRetentionSettings?.EnableBoardsDeletion, DataRetentionSettings?.BoardsRetentionDays)}
                     </div>
                 ),
                 actions: (

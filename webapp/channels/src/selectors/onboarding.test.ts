@@ -34,6 +34,11 @@ describe('selectors/onboarding', () => {
                         profiles,
                     },
                 },
+                views: {
+                    browser: {
+                        windowSize: '',
+                    },
+                },
             } as unknown as GlobalState;
 
             const [showTaskList, firstTimeOnboarding] = getShowTaskListBool(state);
@@ -64,6 +69,11 @@ describe('selectors/onboarding', () => {
                         profiles,
                     },
                 },
+                views: {
+                    browser: {
+                        windowSize: '',
+                    },
+                },
             } as unknown as GlobalState;
 
             const [showTaskList, firstTimeOnboarding] = getShowTaskListBool(state);
@@ -92,6 +102,11 @@ describe('selectors/onboarding', () => {
                     users: {
                         currentUserId: user.id,
                         profiles,
+                    },
+                },
+                views: {
+                    browser: {
+                        windowSize: '',
                     },
                 },
             } as unknown as GlobalState;
@@ -125,6 +140,11 @@ describe('selectors/onboarding', () => {
                     users: {
                         currentUserId: user.id,
                         profiles,
+                    },
+                },
+                views: {
+                    browser: {
+                        windowSize: '',
                     },
                 },
             } as unknown as GlobalState;
@@ -162,6 +182,11 @@ describe('selectors/onboarding', () => {
                     users: {
                         currentUserId: user.id,
                         profiles,
+                    },
+                },
+                views: {
+                    browser: {
+                        windowSize: '',
                     },
                 },
             } as unknown as GlobalState;

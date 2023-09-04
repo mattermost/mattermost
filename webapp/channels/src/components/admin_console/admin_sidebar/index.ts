@@ -18,10 +18,9 @@ import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getAdminDefinition, getConsoleAccess} from 'selectors/admin_console';
 import {getNavigationBlocked} from 'selectors/views/admin';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
-
-import {isMobile} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -36,7 +35,7 @@ function mapStateToProps(state: GlobalState) {
     const consoleAccess = getConsoleAccess(state);
     const taskListStatus = getBool(state, OnboardingTaskCategory, OnboardingTaskList.ONBOARDING_TASK_LIST_SHOW);
     const isUserFirstAdmin = isFirstAdmin(state);
-    const isMobileView = isMobile();
+    const isMobileView = getIsMobileView(state);
     const showTaskList = isUserFirstAdmin && taskListStatus && !isMobileView;
     const subscriptionProduct = getSubscriptionProduct(state);
 

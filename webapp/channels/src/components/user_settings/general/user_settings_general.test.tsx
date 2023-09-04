@@ -35,6 +35,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         activeSection: '',
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
+        isMobileView: false,
         actions: {
             logError: jest.fn(),
             clearErrors: jest.fn(),

@@ -17,7 +17,6 @@ import PostList from './post_list_virtualized';
 
 describe('PostList', () => {
     const baseActions = {
-        checkAndSetMobileView: jest.fn(),
         loadOlderPosts: jest.fn(),
         loadNewerPosts: jest.fn(),
         canLoadMorePosts: jest.fn(),

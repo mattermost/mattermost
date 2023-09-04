@@ -8,14 +8,13 @@ import {connect} from 'react-redux';
 import {saveAppProps} from 'mattermost-redux/actions/gifs';
 
 import Header from 'components/gif_picker/components/Header';
-import type {appProps} from 'components/gif_picker/gif_picker';
 
 const mapDispatchToProps = ({
     saveAppProps,
 });
 
 type Props = {
-    appProps: typeof appProps;
+    appProps: any;
     action: string;
     onCategories: () => void;
     onSearch?: () => void;

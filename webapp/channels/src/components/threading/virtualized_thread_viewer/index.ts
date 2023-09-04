@@ -11,6 +11,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
+import {getIsMobileView} from 'selectors/views/browser';
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import type {GlobalState} from 'types/store';
@@ -45,12 +46,16 @@ function makeMapStateToProps() {
             showDate: !useRelativeTimestamp,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
+        const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
         return {
             currentUserId,
             directTeammate,
+            isMobileView: getIsMobileView(state),
             lastPost,
             replyListIds,
+            lastViewedAt,
+            newMessagesSeparatorActions,
         };
     };
 }

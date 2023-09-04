@@ -126,11 +126,6 @@ export interface Props {
         loadPosts: (parameters: LoadPostsParameters) => Promise<LoadPostsReturnValue>;
 
         /*
-         * Used to set mobile view on resize
-         */
-        checkAndSetMobileView: () => Promise<void>;
-
-        /*
          * Used to loading posts since a timestamp to sync the posts
          */
         syncPostsInChannel: (channelId: string, since: number, prefetch: boolean) => Promise<void>;
@@ -157,7 +152,6 @@ export default class PostList extends React.PureComponent<Props, State> {
     private actionsForPostList: {
         loadOlderPosts: () => Promise<void>;
         loadNewerPosts: () => Promise<void>;
-        checkAndSetMobileView: () => void;
         canLoadMorePosts: (type: CanLoadMorePosts) => Promise<void>;
         changeUnreadChunkTimeStamp: (lastViewedAt: number) => void;
         updateNewMessagesAtInChannel: typeof updateNewMessagesAtInChannel;
@@ -182,7 +176,6 @@ export default class PostList extends React.PureComponent<Props, State> {
         this.actionsForPostList = {
             loadOlderPosts: this.getPostsBefore,
             loadNewerPosts: this.getPostsAfter,
-            checkAndSetMobileView: props.actions.checkAndSetMobileView,
             canLoadMorePosts: this.canLoadMorePosts,
             changeUnreadChunkTimeStamp: props.changeUnreadChunkTimeStamp,
             toggleShouldStartFromBottomWhenUnread: props.toggleShouldStartFromBottomWhenUnread,

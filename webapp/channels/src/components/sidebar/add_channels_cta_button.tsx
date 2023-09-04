@@ -57,7 +57,6 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
         dispatch(openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
             dialogType: BrowseChannels,
-            dialogProps: {morePublicChannelsModalType: 'public'},
         }));
         trackEvent('ui', 'browse_channels_button_is_clicked');
     };

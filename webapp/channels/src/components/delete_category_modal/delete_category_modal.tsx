@@ -39,6 +39,10 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
         this.props.actions.deleteCategory(this.props.category.id);
     };
 
+    handleCancel = () => {
+        this.props.onExited();
+    };
+
     render() {
         return (
             <GenericModal
@@ -50,6 +54,7 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
                         defaultMessage='Delete this category?'
                     />
                 )}
+                handleCancel={this.handleCancel}
                 handleConfirm={this.handleConfirm}
                 confirmButtonText={(
                     <FormattedMessage

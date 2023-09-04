@@ -5,10 +5,11 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetCategory, getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {getIsMobileView} from 'selectors/views/browser';
+
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
 import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
-import {isMobile} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -124,9 +125,8 @@ export const getShowTaskListBool = createSelector(
     (state: GlobalState) => state,
     (state: GlobalState) => getCategory(state, OnboardingTaskCategory),
     (state: GlobalState) => getCategory(state, Preferences.RECOMMENDED_NEXT_STEPS),
-    (state, onboardingPreferences, legacyStepsPreferences) => {
-        const isMobileView = isMobile();
-
+    getIsMobileView,
+    (state, onboardingPreferences, legacyStepsPreferences, isMobileView) => {
         // conditions to validate scenario where users (initially first_admins) had already set any of the onboarding task list preferences values.
         // We check wether the preference value exists meaning the onboarding tasks list already started no matter what the state of the process is
         const hasUserStartedOnboardingTaskListProcess = onboardingPreferences?.some((pref) =>

@@ -29,7 +29,7 @@ import CompassDesignProvider from 'components/compass_design_provider';
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
-import {SubMenuContext} from './menu_context';
+import {SubMenuContext, useMenuContextValue} from './menu_context';
 import {MenuItem} from './menu_item';
 import type {Props as MenuItemProps} from './menu_item';
 import {MuiMenuStyled} from './menu_styled';
@@ -88,12 +88,7 @@ export function SubMenu(props: Props) {
         setAnchorElement(null);
     }, []);
 
-    const providerValue = useMemo(() => {
-        return {
-            close: closeSubMenu,
-            isOpen: Boolean(anchorElement),
-        };
-    }, [anchorElement, closeSubMenu]);
+    const providerValue = useMenuContextValue(closeSubMenu, Boolean(anchorElement));
 
     const hasSubmenuItems = Boolean(children);
     if (!hasSubmenuItems) {

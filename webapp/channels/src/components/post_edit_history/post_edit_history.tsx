@@ -108,7 +108,7 @@ const PostEditHistory = ({
         return (
             <div
                 id='rhsContainer'
-                className='sidebar-right__body'
+                className='sidebar-right__body sidebar-right__edit-post-history'
             >
                 <LoadingScreen
                     style={{
@@ -139,7 +139,7 @@ const PostEditHistory = ({
     return (
         <div
             id='rhsContainer'
-            className='sidebar-right__body'
+            className='sidebar-right__body sidebar-right__edit-post-history'
         >
             <Scrollbars
                 ref={scrollbars}

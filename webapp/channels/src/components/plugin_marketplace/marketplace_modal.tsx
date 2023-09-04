@@ -9,6 +9,7 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
+import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 
 import {MagnifyIcon} from '@mattermost/compass-icons/components';
@@ -16,7 +17,8 @@ import {FooterPagination, GenericModal} from '@mattermost/components';
 
 import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {setFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/actions/general';
-import {getFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/selectors/entities/general';
+import {getFirstAdminVisitMarketplaceStatus, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {streamlinedMarketplaceEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {fetchListing, filterListing} from 'actions/marketplace';
@@ -29,10 +31,12 @@ import LoadingScreen from 'components/loading_screen';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {isCloudLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
 import MarketplaceList, {ITEMS_PER_PAGE} from './marketplace_list/marketplace_list';
+import WebMarketplaceBanner from './web_marketplace_banner';
 
 import './marketplace_modal.scss';
 
@@ -67,6 +71,9 @@ const MarketplaceModal = ({
     const installedListing = useSelector(getInstalledListing);
     const pluginStatuses = useSelector((state: GlobalState) => state.entities.admin.pluginStatuses);
     const hasFirstAdminVisitedMarketplace = useSelector(getFirstAdminVisitMarketplaceStatus);
+    const isStreamlinedMarketplaceEnabled = useSelector(streamlinedMarketplaceEnabled);
+    const license = useSelector(getLicense);
+    const isCloud = isCloudLicense(license);
 
     const [tabKey, setTabKey] = useState(MarketplaceTabs.ALL_LISTING);
     const [filter, setFilter] = useState('');
@@ -166,39 +173,62 @@ const MarketplaceModal = ({
         handleChangeTab(MarketplaceTabs.ALL_LISTING);
     }, [handleChangeTab]);
 
-    const getHeaderInput = useCallback(() => (
-        <Input
-            id='searchMarketplaceTextbox'
-            name='searchMarketplaceTextbox'
-            containerClassName='marketplace-modal-search'
-            inputClassName='search_input'
-            type='text'
-            inputSize={SIZE.LARGE}
-            inputPrefix={<MagnifyIcon size={24}/>}
-            placeholder={formatMessage({id: 'marketplace_modal.search', defaultMessage: 'Search marketplace'})}
-            useLegend={false}
-            autoFocus={true}
-            clearable={true}
-            value={filter}
-            onChange={handleOnChange}
-            onClear={handleOnClear}
-        />
-    ), [filter, handleOnChange, handleOnClear]);
+    const getHeaderInput = useCallback(() => {
+        if (isStreamlinedMarketplaceEnabled) {
+            return null;
+        }
 
-    const getFooterContent = useCallback(() => (
-        <FooterPagination
-            page={page}
-            total={tabKey === MarketplaceTabs.ALL_LISTING ? listing.length : installedListing.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onNextPage={handleOnNextPage}
-            onPreviousPage={handleOnPreviousPage}
-        />
-    ), [installedListing.length, listing.length, page, handleOnNextPage, handleOnPreviousPage, tabKey]);
+        return (
+            <Input
+                id='searchMarketplaceTextbox'
+                name='searchMarketplaceTextbox'
+                containerClassName='marketplace-modal-search'
+                inputClassName='search_input'
+                type='text'
+                inputSize={SIZE.LARGE}
+                inputPrefix={<MagnifyIcon size={24}/>}
+                placeholder={formatMessage({id: 'marketplace_modal.search', defaultMessage: 'Search marketplace'})}
+                useLegend={false}
+                autoFocus={true}
+                clearable={true}
+                value={filter}
+                onChange={handleOnChange}
+                onClear={handleOnClear}
+            />
+        );
+    }, [filter, handleOnChange, handleOnClear]);
+
+    const getFooterContent = useCallback(() => {
+        if (isStreamlinedMarketplaceEnabled && listing.length <= ITEMS_PER_PAGE) {
+            return null;
+        }
+
+        return (
+            <FooterPagination
+                page={page}
+                total={tabKey === MarketplaceTabs.ALL_LISTING ? listing.length : installedListing.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onNextPage={handleOnNextPage}
+                onPreviousPage={handleOnPreviousPage}
+            />
+        );
+    }, [installedListing.length, listing.length, page, handleOnNextPage, handleOnPreviousPage, tabKey, isStreamlinedMarketplaceEnabled]);
+
+    const getAppendedContent = useCallback(() => {
+        if (!isStreamlinedMarketplaceEnabled || isCloud) {
+            return null;
+        }
+
+        return <WebMarketplaceBanner/>;
+    }, [isStreamlinedMarketplaceEnabled, isCloud]);
 
     return (
         <GenericModal
             id='marketplace-modal'
-            className='marketplace-modal'
+            className={classNames('marketplace-modal', {
+                'streamlined-marketplace': isStreamlinedMarketplaceEnabled,
+                'with-web-marketplace-link': isStreamlinedMarketplaceEnabled && !isCloud,
+            })}
             modalHeaderText={formatMessage({id: 'marketplace_modal.title', defaultMessage: 'App Marketplace'})}
             ariaLabel={formatMessage({id: 'marketplace_modal.title', defaultMessage: 'App Marketplace'})}
             errorText={serverError ? (
@@ -213,58 +243,72 @@ const MarketplaceModal = ({
             show={show}
             compassDesign={true}
             bodyPadding={false}
+            bodyDivider={isStreamlinedMarketplaceEnabled}
             footerDivider={true}
             onExited={handleOnClose}
             footerContent={getFooterContent()}
+            appendedContent={getAppendedContent()}
             headerInput={getHeaderInput()}
         >
-            <Tabs
-                id='marketplaceTabs'
-                className='tabs'
-                defaultActiveKey={MarketplaceTabs.ALL_LISTING}
-                activeKey={tabKey}
-                onSelect={handleChangeTab}
-                unmountOnExit={true}
-            >
-                <Tab
-                    eventKey={MarketplaceTabs.ALL_LISTING}
-                    title={formatMessage({id: 'marketplace_modal.tabs.all_listing', defaultMessage: 'All'})}
-                >
-                    {loading ? (
-                        <LoadingScreen className='loading'/>
-                    ) : (
-                        <MarketplaceList
-                            listRef={listRef}
-                            listing={listing}
-                            page={page}
-                            filter={filter}
-                            noResultsMessage={formatMessage({id: 'marketplace_modal.no_plugins', defaultMessage: 'No plugins found'})}
-                        />
-                    )}
-                </Tab>
-                <Tab
-                    eventKey={MarketplaceTabs.INSTALLED_LISTING}
-                    title={formatMessage(
-                        {id: 'marketplace_modal.tabs.installed_listing', defaultMessage: 'Installed ({count})'},
-                        {count: installedListing.length},
-                    )}
-                >
+            {isStreamlinedMarketplaceEnabled ? (
+                <>
                     <MarketplaceList
                         listRef={listRef}
-                        listing={installedListing}
+                        listing={listing}
                         page={page}
                         filter={filter}
-                        noResultsMessage={formatMessage({
-                            id: 'marketplace_modal.no_plugins_installed',
-                            defaultMessage: 'No plugins installed found',
-                        })}
-                        noResultsAction={{
-                            label: formatMessage({id: 'marketplace_modal.install_plugins', defaultMessage: 'Install plugins'}),
-                            onClick: handleNoResultsButtonClick,
-                        }}
+                        noResultsMessage={formatMessage({id: 'marketplace_modal.no_plugins', defaultMessage: 'No plugins found'})}
                     />
-                </Tab>
-            </Tabs>
+                </>
+            ) : (
+                <Tabs
+                    id='marketplaceTabs'
+                    className='tabs'
+                    defaultActiveKey={MarketplaceTabs.ALL_LISTING}
+                    activeKey={tabKey}
+                    onSelect={handleChangeTab}
+                    unmountOnExit={true}
+                >
+                    <Tab
+                        eventKey={MarketplaceTabs.ALL_LISTING}
+                        title={formatMessage({id: 'marketplace_modal.tabs.all_listing', defaultMessage: 'All'})}
+                    >
+                        {loading ? (
+                            <LoadingScreen className='loading'/>
+                        ) : (
+                            <MarketplaceList
+                                listRef={listRef}
+                                listing={listing}
+                                page={page}
+                                filter={filter}
+                                noResultsMessage={formatMessage({id: 'marketplace_modal.no_plugins', defaultMessage: 'No plugins found'})}
+                            />
+                        )}
+                    </Tab>
+                    <Tab
+                        eventKey={MarketplaceTabs.INSTALLED_LISTING}
+                        title={formatMessage(
+                            {id: 'marketplace_modal.tabs.installed_listing', defaultMessage: 'Installed ({count})'},
+                            {count: installedListing.length},
+                        )}
+                    >
+                        <MarketplaceList
+                            listRef={listRef}
+                            listing={installedListing}
+                            page={page}
+                            filter={filter}
+                            noResultsMessage={formatMessage({
+                                id: 'marketplace_modal.no_plugins_installed',
+                                defaultMessage: 'No plugins installed found',
+                            })}
+                            noResultsAction={{
+                                label: formatMessage({id: 'marketplace_modal.install_plugins', defaultMessage: 'Install plugins'}),
+                                onClick: handleNoResultsButtonClick,
+                            }}
+                        />
+                    </Tab>
+                </Tabs>
+            )}
         </GenericModal>
     );
 };

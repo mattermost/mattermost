@@ -209,13 +209,14 @@ describe('Selectors.Groups', () => {
         expect(Selectors.getGroupsAssociatedToChannelForReference(testState, channelID)).toEqual(expected);
     });
 
-    it('getAllAssociatedGroupsForReference', () => {
+    it('makeGetAllAssociatedGroupsForReference', () => {
         const expected = [
             group1,
             group4,
             group5,
         ];
-        expect(Selectors.getAllAssociatedGroupsForReference(testState)).toEqual(expected);
+        const getAllAssociatedGroupsForReference = Selectors.makeGetAllAssociatedGroupsForReference();
+        expect(getAllAssociatedGroupsForReference(testState, false)).toEqual(expected);
     });
 
     it('getMyGroupMentionKeys', () => {
@@ -227,7 +228,7 @@ describe('Selectors.Groups', () => {
                 key: `@${group4.name}`,
             },
         ];
-        expect(Selectors.getMyGroupMentionKeys(testState)).toEqual(expected);
+        expect(Selectors.getMyGroupMentionKeys(testState, false)).toEqual(expected);
     });
 
     it('getMyGroupMentionKeysForChannel', () => {

@@ -1355,13 +1355,6 @@ function storeAcknowledgementsForPost(state: any, post: Post) {
 
 export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: GenericAction) {
     switch (action.type) {
-    case PostTypes.RECEIVED_OPEN_GRAPH_METADATA: {
-        const nextState = {...state};
-        nextState[action.url] = action.data;
-
-        return nextState;
-    }
-
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
         const post = action.data;

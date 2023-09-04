@@ -6,7 +6,11 @@ import {Modal} from 'react-bootstrap';
 
 import {shallow, mount} from 'enzyme';
 
-import SubMenuModal from 'components/widgets/menu/menu_modals/submenu_modal/submenu_modal';
+import SubMenuModal from './submenu_modal';
+
+jest.mock('../../is_mobile_view_hack', () => ({
+    isMobile: jest.fn(() => false),
+}));
 
 (global as any).MutationObserver = class {
     public disconnect() {}

@@ -11,7 +11,6 @@ import {requestCategoriesList, requestCategoriesListIfNeeded, saveSearchBarText,
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';
-import type {appProps} from 'components/gif_picker/gif_picker';
 
 import {getImageSrc} from 'utils/post_utils';
 
@@ -39,7 +38,7 @@ const mapDispatchToProps = ({
 });
 
 type Props = {
-    appProps: typeof appProps;
+    appProps: any;
     gifs?: Record<string, GfycatAPIItem>;
     hasMore?: boolean;
     onSearch: () => void;

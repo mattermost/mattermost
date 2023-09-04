@@ -29,16 +29,17 @@ import type {Action, ActionResult, DispatchFunc, GenericAction, GetStateFunc} fr
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
 
+import {SidebarSize} from 'components/resizable_sidebar/constants';
+
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
-import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
 function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const postRootId = Utils.getRootId(post);
+        const postRootId = post.root_id || post.id;
         await dispatch(PostActions.getPostThread(postRootId));
         const state = getState() as GlobalState;
 
@@ -137,6 +138,35 @@ export function updateSearchTerms(terms: string) {
     return {
         type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
         terms,
+    };
+}
+
+export function setRhsSize(rhsSize?: SidebarSize) {
+    let newSidebarSize = rhsSize;
+    if (!newSidebarSize) {
+        const width = window.innerWidth;
+
+        switch (true) {
+        case width <= Constants.SMALL_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.SMALL;
+            break;
+        }
+        case width > Constants.SMALL_SIDEBAR_BREAKPOINT && width <= Constants.MEDIUM_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.MEDIUM;
+            break;
+        }
+        case width > Constants.MEDIUM_SIDEBAR_BREAKPOINT && width <= Constants.LARGE_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.LARGE;
+            break;
+        }
+        default: {
+            newSidebarSize = SidebarSize.XLARGE;
+        }
+        }
+    }
+    return {
+        type: ActionTypes.SET_RHS_SIZE,
+        size: newSidebarSize,
     };
 }
 

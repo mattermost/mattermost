@@ -327,7 +327,6 @@ describe('components/new_channel_modal', () => {
 
         // Change display name to invalid
         userEvent.clear(channelNameInput);
-        userEvent.type(channelNameInput, '');
 
         // Confirm button should be disabled
         expect(createChannelButton).toBeDisabled();

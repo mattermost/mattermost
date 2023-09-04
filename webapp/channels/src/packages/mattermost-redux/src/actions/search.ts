@@ -17,7 +17,7 @@ import {getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
 import {receivedFiles} from './files';
 import {forceLogoutIfNecessary} from './helpers';
-import {getProfilesAndStatusesForPosts, receivedPosts} from './posts';
+import {getMentionsAndStatusesForPosts, receivedPosts} from './posts';
 
 const WEBAPP_SEARCH_PER_PAGE = 20;
 
@@ -79,7 +79,7 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
         try {
             posts = await Client4.searchPostsWithParams(teamId, params);
 
-            const profilesAndStatuses = getProfilesAndStatusesForPosts(posts.posts, dispatch, getState);
+            const profilesAndStatuses = getMentionsAndStatusesForPosts(posts.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(posts.posts));
             const arr: [Promise<any>, Promise<any>] = [profilesAndStatuses, missingChannels];
             await Promise.all(arr);
@@ -210,7 +210,7 @@ export function getFlaggedPosts(): ActionFunc {
         try {
             posts = await Client4.getFlaggedPosts(userId);
 
-            await Promise.all([getProfilesAndStatusesForPosts(posts.posts, dispatch, getState) as any, dispatch(getMissingChannelsFromPosts(posts.posts)) as any]);
+            await Promise.all([getMentionsAndStatusesForPosts(posts.posts, dispatch, getState) as any, dispatch(getMissingChannelsFromPosts(posts.posts)) as any]);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE, error});
@@ -241,7 +241,7 @@ export function getPinnedPosts(channelId: string): ActionFunc {
         try {
             result = await Client4.getPinnedPosts(channelId);
 
-            const profilesAndStatuses = getProfilesAndStatusesForPosts(result.posts, dispatch, getState);
+            const profilesAndStatuses = getMentionsAndStatusesForPosts(result.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(result.posts));
             const arr: [Promise<any>, Promise<any>] = [profilesAndStatuses, missingChannels];
             await Promise.all(arr);

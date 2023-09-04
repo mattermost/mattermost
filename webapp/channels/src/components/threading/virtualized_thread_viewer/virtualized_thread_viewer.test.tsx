@@ -55,7 +55,6 @@ describe('components/threading/VirtualizedThreadViewer', () => {
         socketConnectionStatus: true,
         actions,
         directTeammate,
-        isCollapsedThreadsEnabled: false,
         posts: [post],
         lastPost: post,
         onCardClick: () => {},
@@ -63,7 +62,10 @@ describe('components/threading/VirtualizedThreadViewer', () => {
         replyListIds: [],
         teamId: '',
         useRelativeTimestamp: true,
+        isMobileView: false,
         isThreadView: true,
+        lastViewedAt: 0,
+        newMessagesSeparatorActions: [],
     };
     test('should scroll to the bottom when the current user makes a new post in the thread', () => {
         const scrollToBottom = jest.fn();

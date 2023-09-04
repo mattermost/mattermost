@@ -8,11 +8,17 @@ import {
 
 import {makeGetDraftsCount} from 'selectors/drafts';
 
+import type {SidebarSize} from 'components/resizable_sidebar/constants';
+
 import type {GlobalState} from 'types/store';
 import type {StaticPage} from 'types/store/lhs';
 
 export function getIsLhsOpen(state: GlobalState): boolean {
     return state.views.lhs.isOpen;
+}
+
+export function getLhsSize(state: GlobalState): SidebarSize {
+    return state.views.lhs.size;
 }
 
 export function getCurrentStaticPageId(state: GlobalState): string {

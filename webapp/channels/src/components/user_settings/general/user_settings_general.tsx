@@ -102,6 +102,7 @@ export type Props = {
     activeSection?: string;
     closeModal: () => void;
     collapseModal: () => void;
+    isMobileView: boolean;
     maxFileSize: number;
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
@@ -935,7 +936,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     defaultMessage="Click 'Edit' to add your full name"
                 />
             );
-            if (Utils.isMobile()) {
+            if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.mobile.emptyName'
@@ -985,7 +986,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         defaultMessage='Nickname'
                     />
                 );
-                if (Utils.isMobile()) {
+                if (this.props.isMobileView) {
                     nicknameLabel = '';
                 }
 
@@ -1047,7 +1048,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     defaultMessage="Click 'Edit' to add a nickname"
                 />
             );
-            if (Utils.isMobile()) {
+            if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.mobile.emptyNickname'
@@ -1087,7 +1088,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         defaultMessage='Username'
                     />
                 );
-                if (Utils.isMobile()) {
+                if (this.props.isMobileView) {
                     usernameLabel = '';
                 }
 
@@ -1188,7 +1189,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         defaultMessage='Position'
                     />
                 );
-                if (Utils.isMobile()) {
+                if (this.props.isMobileView) {
                     positionLabel = '';
                 }
 
@@ -1251,7 +1252,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     defaultMessage="Click 'Edit' to add your job title / position"
                 />
             );
-            if (Utils.isMobile()) {
+            if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.mobile.emptyPosition'
@@ -1333,7 +1334,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         }
 
         let minMessage: JSX.Element|string = formatMessage(holders.uploadImage);
-        if (Utils.isMobile()) {
+        if (this.props.isMobileView) {
             minMessage = formatMessage(holders.uploadImageMobile);
         }
         if (user.last_picture_update > 0) {

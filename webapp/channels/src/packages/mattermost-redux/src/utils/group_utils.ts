@@ -35,6 +35,16 @@ export function filterGroupsMatchingTerm(groups: Group[], term: string): Group[]
 
 export function sortGroups(groups: Group[] = [], locale: string = General.DEFAULT_LOCALE): Group[] {
     return groups.sort((a, b) => {
-        return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
+        if ((a.delete_at === 0 && b.delete_at === 0) || (a.delete_at > 0 && b.delete_at > 0)) {
+            return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
+        }
+        if (a.delete_at < b.delete_at) {
+            return -1;
+        }
+        if (a.delete_at > b.delete_at) {
+            return 1;
+        }
+
+        return 0;
     });
 }

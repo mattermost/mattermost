@@ -38,6 +38,10 @@ export default function UnreadChannels({
         trackEvent('ui', 'ui_sidebar_category_menu_viewUnreadCategory');
     }, [unreadChannels, dispatch]);
 
+    if (unreadChannels.length === 0) {
+        return null;
+    }
+
     return (
         <div className='SidebarChannelGroup dropDisabled a11y__section'>
             <SidebarCategoryHeaderStatic displayName={intl.formatMessage({id: 'sidebar.types.unreads', defaultMessage: 'UNREADS'})}>

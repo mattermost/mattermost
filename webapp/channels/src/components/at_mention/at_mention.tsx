@@ -90,10 +90,18 @@ export default class AtMention extends React.PureComponent<Props, State> {
 
         if (!this.props.disableGroupHighlight && !user) {
             const group = getUserOrGroupFromMentionName(this.props.groupsByName, this.props.mentionName) as Group | '';
+
             if (group && group.allow_reference) {
-                return (<span>
-                    <AtMentionGroup group={group}/>
-                </span>);
+                const suffix = this.props.mentionName.substring(group.name.length);
+
+                return (
+                    <>
+                        <span>
+                            <AtMentionGroup group={group}/>
+                        </span>
+                        {suffix}
+                    </>
+                );
             }
         }
 

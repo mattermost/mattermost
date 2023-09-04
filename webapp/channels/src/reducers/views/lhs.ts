@@ -6,6 +6,8 @@ import {combineReducers} from 'redux';
 import {TeamTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
+import {SidebarSize} from 'components/resizable_sidebar/constants';
+
 import {ActionTypes} from 'utils/constants';
 
 function isOpen(state = false, action: GenericAction) {
@@ -30,6 +32,15 @@ function isOpen(state = false, action: GenericAction) {
     }
 }
 
+function size(state = SidebarSize.MEDIUM, action: GenericAction) {
+    switch (action.type) {
+    case ActionTypes.SET_LHS_SIZE:
+        return action.size;
+    default:
+        return state;
+    }
+}
+
 function currentStaticPageId(state = '', action: GenericAction) {
     switch (action.type) {
     case ActionTypes.SELECT_STATIC_PAGE:
@@ -43,6 +54,6 @@ function currentStaticPageId(state = '', action: GenericAction) {
 
 export default combineReducers({
     isOpen,
-
+    size,
     currentStaticPageId,
 });

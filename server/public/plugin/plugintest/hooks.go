@@ -193,6 +193,32 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 	return r0, r1
 }
 
+// NotificationWillBePushed provides a mock function with given fields: pushNotification, userID
+func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	ret := _m.Called(pushNotification, userID)
+
+	var r0 *model.PushNotification
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*model.PushNotification, string) (*model.PushNotification, string)); ok {
+		return rf(pushNotification, userID)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PushNotification, string) *model.PushNotification); ok {
+		r0 = rf(pushNotification, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PushNotification)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PushNotification, string) string); ok {
+		r1 = rf(pushNotification, userID)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}
+
 // OnActivate provides a mock function with given fields:
 func (_m *Hooks) OnActivate() error {
 	ret := _m.Called()
@@ -315,6 +341,11 @@ func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 
 // UserHasBeenCreated provides a mock function with given fields: c, user
 func (_m *Hooks) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+	_m.Called(c, user)
+}
+
+// UserHasBeenDeactivated provides a mock function with given fields: c, user
+func (_m *Hooks) UserHasBeenDeactivated(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
 }
 

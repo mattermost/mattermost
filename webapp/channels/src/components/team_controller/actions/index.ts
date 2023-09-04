@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {GetGroupsForUserParams, GetGroupsParams} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 
 import {fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
@@ -49,8 +50,20 @@ export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
         if (license &&
             license.IsLicensed === 'true' &&
             (license.LDAPGroups === 'true' || customGroupEnabled)) {
+            const groupsParams: GetGroupsParams = {
+                filter_allow_reference: false,
+                page: 0,
+                per_page: 60,
+                include_member_count: true,
+                include_archived: false,
+            };
+            const myGroupsParams: GetGroupsForUserParams = {
+                ...groupsParams,
+                filter_has_member: currentUser.id,
+            };
+
             if (currentUser) {
-                dispatch(getGroupsByUserIdPaginated(currentUser.id, false, 0, 60, true));
+                dispatch(getGroupsByUserIdPaginated(myGroupsParams));
             }
 
             if (license.LDAPGroups === 'true') {
@@ -60,7 +73,7 @@ export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
             if (team.group_constrained && license.LDAPGroups === 'true') {
                 dispatch(getAllGroupsAssociatedToTeam(team.id, true));
             } else {
-                dispatch(getGroups(false, 0, 60, true));
+                dispatch(getGroups(groupsParams));
             }
         }
 

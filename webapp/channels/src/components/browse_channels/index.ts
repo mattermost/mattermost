@@ -6,9 +6,9 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelSearchOpts} from '@mattermost/types/channels';
 
-import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount} from 'mattermost-redux/actions/channels';
+import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
@@ -17,7 +17,6 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {Action, ActionResult} from 'mattermost-redux/types/actions';
 
-import {searchMoreChannels} from 'actions/channel_actions';
 import {setGlobalItem} from 'actions/storage';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -43,6 +42,12 @@ const getArchivedOtherChannels = createSelector(
     (channels: Channel[]) => channels && channels.filter((c) => c.delete_at !== 0),
 );
 
+const getPrivateChannelsSelector = createSelector(
+    'getPrivateChannelsSelector',
+    getChannelsInCurrentTeam,
+    (channels: Channel[]) => channels && channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL),
+);
+
 function mapStateToProps(state: GlobalState) {
     const team = getCurrentTeam(state) || {};
     const getGlobalItem = makeGetGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, 'false');
@@ -50,6 +55,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         channels: getChannelsWithoutArchived(state) || [],
         archivedChannels: getArchivedOtherChannels(state) || [],
+        privateChannels: getPrivateChannelsSelector(state) || [],
         currentUserId: getCurrentUserId(state),
         teamId: team.id,
         teamName: team.name,
@@ -66,8 +72,9 @@ function mapStateToProps(state: GlobalState) {
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[], Error>>;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[], Error>>;
+    getPrivateChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[], Error>>;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
-    searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean) => Promise<ActionResult>;
+    searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<Channel[], Error>>;
     openModal: <P>(modalData: ModalData<P>) => void;
     closeModal: (modalId: string) => void;
     setGlobalItem: (name: string, value: string) => void;
@@ -81,7 +88,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getChannels,
             getArchivedChannels,
             joinChannel,
-            searchMoreChannels,
+            searchAllChannels,
             openModal,
             closeModal,
             setGlobalItem,
