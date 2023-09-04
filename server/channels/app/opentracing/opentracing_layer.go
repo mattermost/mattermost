@@ -18,8 +18,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/opentracing/opentracing-go/ext"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -38,6 +36,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/opentracing/opentracing-go/ext"
 
 	spanlog "github.com/opentracing/opentracing-go/log"
 )
