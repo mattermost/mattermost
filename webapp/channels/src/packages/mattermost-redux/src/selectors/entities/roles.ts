@@ -60,7 +60,7 @@ export const getGroupListPermissions: (state: GlobalState) => Record<string, Gro
     getMySystemPermissions,
     (state) => state.entities.groups.groups,
     (myGroupRoles, roles, systemPermissions, allGroups) => {
-        const groups = Object.entries(allGroups).filter((entry) => (entry[1].allow_reference && entry[1].delete_at === 0)).map((entry) => entry[1]);
+        const groups = Object.entries(allGroups).filter((entry) => (entry[1].allow_reference)).map((entry) => entry[1]);
 
         const permissions = new Set<string>();
         groups.forEach((group) => {
@@ -83,8 +83,9 @@ export const getGroupListPermissions: (state: GlobalState) => Record<string, Gro
         const groupPermissionsMap: Record<string, GroupPermissions> = {};
         groups.forEach((g) => {
             groupPermissionsMap[g.id] = {
-                can_delete: permissions.has(Permissions.DELETE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap',
-                can_manage_members: permissions.has(Permissions.MANAGE_CUSTOM_GROUP_MEMBERS) && g.source.toLowerCase() !== 'ldap',
+                can_delete: permissions.has(Permissions.DELETE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap' && g.delete_at === 0,
+                can_manage_members: permissions.has(Permissions.MANAGE_CUSTOM_GROUP_MEMBERS) && g.source.toLowerCase() !== 'ldap' && g.delete_at === 0,
+                can_restore: permissions.has(Permissions.RESTORE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap' && g.delete_at !== 0,
             };
         });
         return groupPermissionsMap;
@@ -175,12 +176,34 @@ export function haveITeamPermission(state: GlobalState, teamId: string, permissi
     );
 }
 
-export function haveIGroupPermission(state: GlobalState, groupID: string, permission: string): boolean {
-    return (
-        getMySystemPermissions(state).has(permission) ||
-        (getMyPermissionsByGroup(state)[groupID] ? getMyPermissionsByGroup(state)[groupID].has(permission) : false)
-    );
-}
+export const haveIGroupPermission: (state: GlobalState, groupID: string, permission: string) => boolean = createSelector(
+    'haveIGroupPermission',
+    getMySystemPermissions,
+    getMyPermissionsByGroup,
+    (state: GlobalState, groupID: string) => state.entities.groups.groups[groupID],
+    (state: GlobalState, groupID: string, permission: string) => permission,
+    (systemPermissions, permissionGroups, group, permission) => {
+        if (permission === Permissions.RESTORE_CUSTOM_GROUP) {
+            if ((group.source !== 'ldap' && group.delete_at !== 0) && (systemPermissions.has(permission) || (permissionGroups[group.id] && permissionGroups[group.id].has(permission)))) {
+                return true;
+            }
+            return false;
+        }
+
+        if (group.source === 'ldap' || group.delete_at !== 0) {
+            return false;
+        }
+
+        if (systemPermissions.has(permission)) {
+            return true;
+        }
+
+        if (permissionGroups[group.id] && permissionGroups[group.id].has(permission)) {
+            return true;
+        }
+        return false;
+    },
+);
 
 export function haveIChannelPermission(state: GlobalState, teamId: string, channelId: string, permission: string): boolean {
     return (

@@ -143,11 +143,11 @@
     }
 
     .modal-body {
-        overflow: hidden;
         max-height: 100%;
         padding: 0;
 
         .no-results__wrapper {
+            max-width: 350px;
             padding-bottom: 60px;
         }
 
@@ -223,7 +223,7 @@
 
             &.user-groups-list {
                 position: relative;
-                max-height: 450px;
+                max-height: 460px;
                 padding-top: 24px;
                 padding-bottom: 16px;
                 overflow-y: scroll; // for Firefox and browsers that doesn't support overflow-y:overlay property
@@ -265,6 +265,11 @@
                         max-width: 200px;
                         text-overflow: ellipsis;
                         white-space: nowrap;
+
+                        i {
+                            color: rgba(var(--center-channel-color-rgb), 0.56);
+                            font-size: 16px;
+                        }
                     }
 
                     .group-name {
@@ -286,6 +291,13 @@
                         .MenuWrapper {
                             width: 24px;
                             margin-left: auto;
+
+                            .Menu {
+                                position: absolute;
+                                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                                margin-top: 8px;
+                                border-radius: 4px;
+                            }
                         }
 
                         .group-actions-menu {

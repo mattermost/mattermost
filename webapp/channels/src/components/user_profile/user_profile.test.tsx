@@ -13,6 +13,7 @@ describe('components/UserProfile', () => {
     const baseProps = {
         displayName: 'nickname',
         isBusy: false,
+        isMobileView: false,
         user: {username: 'username'} as UserProfileType,
         userId: 'user_id',
         theme: Preferences.THEMES.onyx,

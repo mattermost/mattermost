@@ -447,7 +447,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
             inputType = 'textarea';
         }
 
-        let value = this.state[setting.key] || '';
+        let value = this.state[setting.key] ?? '';
         if (setting.dynamic_value) {
             value = setting.dynamic_value(value, this.props.config, this.state, this.props.license);
         }

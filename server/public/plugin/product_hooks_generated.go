@@ -122,6 +122,10 @@ type NotificationWillBePushedIFace interface {
 	NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
 }
 
+type UserHasBeenDeactivatedIFace interface {
+	UserHasBeenDeactivated(c *Context, user *model.User)
+}
+
 type HooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
@@ -378,6 +382,15 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has NotificationWillBePushed method but does not implement plugin.NotificationWillBePushed interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements UserHasBeenDeactivated interface.
+	tt = reflect.TypeOf((*UserHasBeenDeactivatedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserHasBeenDeactivatedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserHasBeenDeactivated"); ok {
+		return nil, errors.New("hook has UserHasBeenDeactivated method but does not implement plugin.UserHasBeenDeactivated interface")
+	}
+
 	return a, nil
 }
 
@@ -621,5 +634,14 @@ func (a *HooksAdapter) NotificationWillBePushed(pushNotification *model.PushNoti
 	}
 
 	return a.productHooks.(NotificationWillBePushedIFace).NotificationWillBePushed(pushNotification, userID)
+
+}
+
+func (a *HooksAdapter) UserHasBeenDeactivated(c *Context, user *model.User) {
+	if _, ok := a.implemented[UserHasBeenDeactivatedID]; !ok {
+		panic("product hooks must implement UserHasBeenDeactivated")
+	}
+
+	a.productHooks.(UserHasBeenDeactivatedIFace).UserHasBeenDeactivated(c, user)
 
 }
