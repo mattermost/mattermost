@@ -9862,5 +9862,13 @@
   {
     "id": "api.user.invalidate_password_recovery_tokens_parse.error",
     "translation": "在使密码恢复令牌失效时无法解析令牌"
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "无法检查未读和提及的消息"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "无法以频道标记所有话题为已读"
   }
 ]
