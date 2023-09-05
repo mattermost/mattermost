@@ -4,9 +4,11 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"runtime"
+	"runtime/pprof"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -32,6 +34,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 		"config":           a.createSanitizedConfigFile,
 		"mattermost log":   a.getMattermostLog,
 		"notification log": a.getNotificationsLog,
+		"goroutines":       a.createGoroutineProfile,
 	}
 
 	for name, fn := range functions {
@@ -243,6 +246,21 @@ func (a *App) createSanitizedConfigFile() (*model.FileData, error) {
 	fileData := &model.FileData{
 		Filename: "sanitized_config.json",
 		Body:     sanitizedConfigPrettyJSON,
+	}
+	return fileData, nil
+}
+
+func (a *App) createGoroutineProfile() (*model.FileData, error) {
+	var b bytes.Buffer
+
+	err := pprof.Lookup("goroutine").WriteTo(&b, 2)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to lookup heap profile")
+	}
+
+	fileData := &model.FileData{
+		Filename: "goroutines",
+		Body:     b.Bytes(),
 	}
 	return fileData, nil
 }
