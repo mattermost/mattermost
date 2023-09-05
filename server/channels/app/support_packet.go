@@ -121,20 +121,31 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
-		LicenseTo:             licenseTo,
-		ServerOS:              runtime.GOOS,
-		ServerArchitecture:    runtime.GOARCH,
-		ServerVersion:         model.CurrentVersion,
-		BuildHash:             model.BuildHash,
+		// Build information
+		ServerOS:           runtime.GOOS,
+		ServerArchitecture: runtime.GOARCH,
+		ServerVersion:      model.CurrentVersion,
+		BuildHash:          model.BuildHash,
+
+		// DB
 		DatabaseType:          databaseType,
 		DatabaseVersion:       databaseVersion,
 		DatabaseSchemaVersion: databaseSchemaVersion,
-		LdapVendorName:        vendorName,
-		LdapVendorVersion:     vendorVersion,
-		ElasticServerVersion:  elasticServerVersion,
-		ElasticServerPlugins:  elasticServerPlugins,
-		ActiveUsers:           int(uniqueUserCount),
+
+		// LDAP
+		LdapVendorName:    vendorName,
+		LdapVendorVersion: vendorVersion,
+
+		// Elastic Search
+		ElasticServerVersion: elasticServerVersion,
+		ElasticServerPlugins: elasticServerPlugins,
+
+		// License
+		LicenseTo:             licenseTo,
 		LicenseSupportedUsers: supportedUsers,
+
+		// Server stats
+		ActiveUsers: int(uniqueUserCount),
 
 		// Jobs
 		DataRetentionJobs:          dataRetentionJobs,
