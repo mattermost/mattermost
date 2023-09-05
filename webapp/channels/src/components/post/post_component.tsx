@@ -509,13 +509,20 @@ const PostComponent = (props: Props): JSX.Element => {
         priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
     }
 
+    let postAriaLabelDivTestId = '';
+    if (props.location === Locations.CENTER) {
+        postAriaLabelDivTestId = 'postView';
+    } else if (props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT) {
+        postAriaLabelDivTestId = 'rhsPostView';
+    }
+
     return (
         <>
             {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
                 id={getTestId()}
-                data-testid={props.location === 'CENTER' ? 'postView' : ''}
+                data-testid={postAriaLabelDivTestId}
                 tabIndex={0}
                 post={post}
                 className={getClassName()}
