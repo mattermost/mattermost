@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func TestGroupStore(t *testing.T, ss store.Store) {
@@ -4825,7 +4825,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(members), 4) // sanity check for team membership
 
 			for _, member := range members {
-				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
+				if pUtils.Contains(tt.inUserIDs, member.UserId) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)
@@ -4935,7 +4935,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
 
 			for _, member := range members {
-				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
+				if pUtils.Contains(tt.inUserIDs, member.UserId) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)
