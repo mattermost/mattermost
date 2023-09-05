@@ -114,7 +114,7 @@ describe('components/admin_console/jobs/table', () => {
             <JobTable {...baseProps}/>,
         );
 
-        wrapper.find('.job-table__create-button > div > .btn-default').simulate('click', {preventDefault: jest.fn()});
+        wrapper.find('.job-table__create-button > div > .btn-tertiary').simulate('click', {preventDefault: jest.fn()});
         expect(createJob).toHaveBeenCalledTimes(1);
     });
 

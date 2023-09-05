@@ -448,7 +448,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -934,7 +934,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

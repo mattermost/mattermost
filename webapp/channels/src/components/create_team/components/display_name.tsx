@@ -10,7 +10,6 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 import Constants from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
 import logoImage from 'images/logo.png';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
 
 type CreateTeamState = {
     team?: Partial<Team>;

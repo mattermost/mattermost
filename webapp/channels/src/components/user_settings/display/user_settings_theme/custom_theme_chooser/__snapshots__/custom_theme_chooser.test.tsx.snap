@@ -603,7 +603,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
         className="mt-3"
       >
         <button
-          className="btn btn-link copy-theme-button"
+          className="btn btn-tertiary"
           onClick={[Function]}
         >
           <MemoizedFormattedMessage

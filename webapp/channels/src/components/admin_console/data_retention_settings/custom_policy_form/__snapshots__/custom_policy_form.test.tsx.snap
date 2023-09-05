@@ -229,7 +229,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -486,7 +486,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"

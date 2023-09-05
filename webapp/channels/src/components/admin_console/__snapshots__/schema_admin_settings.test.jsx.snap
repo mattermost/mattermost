@@ -691,7 +691,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"

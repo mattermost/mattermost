@@ -280,7 +280,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -633,7 +633,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -988,7 +988,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -1409,7 +1409,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"

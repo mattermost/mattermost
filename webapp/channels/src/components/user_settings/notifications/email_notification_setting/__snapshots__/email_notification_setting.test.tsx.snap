@@ -195,7 +195,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           >
             <hr />
             <SaveButton
-              btnClass="btn-primary"
+              btnClass=""
               defaultMessage={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Save"
@@ -214,7 +214,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               }
             >
               <button
-                className="save-button btn btn-primary"
+                className="btn btn-primary "
                 data-testid="saveSetting"
                 disabled={false}
                 id="saveSetting"
@@ -244,7 +244,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               </button>
             </SaveButton>
             <button
-              className="btn btn-sm btn-cancel cursor--pointer style--none"
+              className="btn btn-tertiary"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -612,7 +612,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           >
             <hr />
             <SaveButton
-              btnClass="btn-primary"
+              btnClass=""
               defaultMessage={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Save"
@@ -631,7 +631,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               }
             >
               <button
-                className="save-button btn btn-primary"
+                className="btn btn-primary "
                 data-testid="saveSetting"
                 disabled={false}
                 id="saveSetting"
@@ -661,7 +661,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               </button>
             </SaveButton>
             <button
-              className="btn btn-sm btn-cancel cursor--pointer style--none"
+              className="btn btn-tertiary"
               id="cancelSetting"
               onClick={[Function]}
             >

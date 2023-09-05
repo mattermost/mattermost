@@ -113,7 +113,7 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/undefined/emoji"
         >
           <MemoizedFormattedMessage
@@ -288,7 +288,7 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/undefined/emoji"
         >
           <MemoizedFormattedMessage
@@ -427,7 +427,7 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/undefined/emoji"
         >
           <MemoizedFormattedMessage

@@ -36,7 +36,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
     />
   </ModalTitle>
   <button
-    className="user-groups-create btn btn-md btn-primary"
+    className="user-groups-create btn btn-secondary btn-sm"
     onClick={[Function]}
   >
     <MemoizedFormattedMessage

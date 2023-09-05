@@ -20,7 +20,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
     >
       <button
         aria-label="Create New Channel"
-        className="btn outlineButton"
+        className="btn btn-secondary btn-sm"
         id="createNewChannelButton"
         onClick={[Function]}
         type="button"

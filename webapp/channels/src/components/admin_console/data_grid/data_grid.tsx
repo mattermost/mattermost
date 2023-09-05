@@ -15,7 +15,6 @@ import DataGridRow from './data_grid_row';
 import DataGridSearch from './data_grid_search';
 
 import './data_grid.scss';
-import IconButton from '@mattermost/compass-components/components/icon-button';
 
 export type Column = {
     name: string | JSX.Element;

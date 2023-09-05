@@ -27,7 +27,7 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
       >
         <hr />
         <SaveButton
-          btnClass="btn-primary"
+          btnClass=""
           defaultMessage={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Save"
@@ -46,7 +46,7 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
           }
         />
         <button
-          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          className="btn btn-tertiary"
           id="cancelSetting"
           onClick={[Function]}
         >
@@ -98,7 +98,7 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
           </label>
         </div>
         <SaveButton
-          btnClass="btn-primary"
+          btnClass=""
           defaultMessage={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Save"
@@ -117,7 +117,7 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
           }
         />
         <button
-          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          className="btn btn-tertiary"
           id="cancelSetting"
           onClick={[Function]}
         >
@@ -169,7 +169,7 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
           </label>
         </div>
         <SaveButton
-          btnClass="btn-primary"
+          btnClass=""
           defaultMessage={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Save"
@@ -188,7 +188,7 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
           }
         />
         <button
-          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          className="btn btn-tertiary"
           id="cancelSetting"
           onClick={[Function]}
         >
@@ -230,7 +230,7 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
       >
         <hr />
         <SaveButton
-          btnClass="btn-primary"
+          btnClass=""
           defaultMessage="CustomText"
           disabled={false}
           extraClasses=""
@@ -244,7 +244,7 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
           }
         />
         <button
-          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          className="btn btn-tertiary"
           id="cancelSetting"
           onClick={[Function]}
         >
@@ -286,7 +286,7 @@ exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
       >
         <hr />
         <button
-          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          className="btn btn-tertiary"
           id="cancelSetting"
           onClick={[Function]}
         >

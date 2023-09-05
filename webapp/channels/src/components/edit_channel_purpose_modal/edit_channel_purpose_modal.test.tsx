@@ -198,7 +198,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
             {disableLifecycleMethods: true},
         );
 
-        wrapper.find('.save-button').simulate('click');
+        wrapper.find('.btn-primary').simulate('click');
 
         expect(patchChannel).toBeCalledWith('channel_id', {purpose: 'testPurpose'});
     });

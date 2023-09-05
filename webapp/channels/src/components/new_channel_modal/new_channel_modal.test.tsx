@@ -162,11 +162,11 @@ describe('components/new_channel_modal', () => {
 
         const cancelButton = screen.getByText('Cancel');
         expect(cancelButton).toBeInTheDocument();
-        expect(cancelButton).toHaveClass('GenericModal__button cancel');
+        expect(cancelButton).toHaveClass('btn-tertiary');
 
         const createChannelButton = screen.getByText('Create channel');
         expect(createChannelButton).toBeInTheDocument();
-        expect(createChannelButton).toHaveClass('GenericModal__button confirm');
+        expect(createChannelButton).toHaveClass('btn-primary');
         expect(createChannelButton).toBeDisabled();
     });
 

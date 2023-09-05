@@ -110,13 +110,13 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
         className="update-buttons-wrapper"
       >
         <button
-          className="btn update-group-back"
+          className="btn btn-tertiary"
           onClick={[Function]}
         >
           Back
         </button>
         <SaveButton
-          btnClass="btn-primary"
+          btnClass=""
           defaultMessage="Save Details"
           disabled={true}
           extraClasses=""

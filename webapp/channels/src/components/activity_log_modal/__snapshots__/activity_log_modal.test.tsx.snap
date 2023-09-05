@@ -69,7 +69,7 @@ exports[`components/ActivityLogModal should match snapshot 1`] = `
     componentClass="div"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       id="closeModalButton"
       type="button"
     >
@@ -151,7 +151,7 @@ exports[`components/ActivityLogModal should match snapshot when submitRevoke is 
     componentClass="div"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       id="closeModalButton"
       type="button"
     >

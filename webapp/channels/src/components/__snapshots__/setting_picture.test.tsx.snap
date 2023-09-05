@@ -69,7 +69,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
           />
           <button
             aria-label="Select"
-            className="btn btn-sm btn-primary btn-file sel-btn"
+            className="btn btn-sm btn-primary btn-file"
             data-testid="inputSettingPictureButton"
             disabled={false}
             onClick={[Function]}
@@ -100,7 +100,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
         </span>
         <button
           aria-label="Cancel"
-          className="btn btn-link btn-sm theme"
+          className="btn btn-tertiary btn-sm theme ml-2"
           data-testid="cancelSettingPicture"
           onClick={[Function]}
         >
@@ -174,7 +174,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
           />
           <button
             aria-label="Select"
-            className="btn btn-sm btn-primary btn-file sel-btn"
+            className="btn btn-sm btn-primary btn-file"
             data-testid="inputSettingPictureButton"
             disabled={false}
             onClick={[Function]}
@@ -205,7 +205,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
         </span>
         <button
           aria-label="Cancel"
-          className="btn btn-link btn-sm theme"
+          className="btn btn-tertiary btn-sm theme ml-2"
           data-testid="cancelSettingPicture"
           onClick={[Function]}
         >
@@ -289,7 +289,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
           />
           <button
             aria-label="Select"
-            className="btn btn-sm btn-primary btn-file sel-btn"
+            className="btn btn-sm btn-primary btn-file"
             data-testid="inputSettingPictureButton"
             disabled={true}
             onClick={[Function]}
@@ -320,7 +320,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
         </span>
         <button
           aria-label="Cancel"
-          className="btn btn-link btn-sm theme"
+          className="btn btn-tertiary btn-sm theme ml-2"
           data-testid="cancelSettingPicture"
           onClick={[Function]}
         >
@@ -416,7 +416,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
           />
           <button
             aria-label="Select"
-            className="btn btn-sm btn-primary btn-file sel-btn"
+            className="btn btn-sm btn-primary btn-file"
             data-testid="inputSettingPictureButton"
             disabled={false}
             onClick={[Function]}
@@ -447,7 +447,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
         </span>
         <button
           aria-label="Cancel"
-          className="btn btn-link btn-sm theme"
+          className="btn btn-tertiary btn-sm theme ml-2"
           data-testid="cancelSettingPicture"
           onClick={[Function]}
         >
@@ -531,7 +531,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
           />
           <button
             aria-label="Select"
-            className="btn btn-sm btn-primary btn-file sel-btn"
+            className="btn btn-sm btn-primary btn-file"
             data-testid="inputSettingPictureButton"
             disabled={false}
             onClick={[Function]}
@@ -562,7 +562,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
         </span>
         <button
           aria-label="Cancel"
-          className="btn btn-link btn-sm theme"
+          className="btn btn-tertiary btn-sm theme ml-2"
           data-testid="cancelSettingPicture"
           onClick={[Function]}
         >
@@ -658,7 +658,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
           />
           <button
             aria-label="Select"
-            className="btn btn-sm btn-primary btn-file sel-btn"
+            className="btn btn-sm btn-primary btn-file"
             data-testid="inputSettingPictureButton"
             disabled={false}
             onClick={[Function]}
@@ -689,7 +689,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
         </span>
         <button
           aria-label="Cancel"
-          className="btn btn-link btn-sm theme"
+          className="btn btn-tertiary btn-sm theme ml-2"
           data-testid="cancelSettingPicture"
           onClick={[Function]}
         >
@@ -827,7 +827,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
           />
           <button
             aria-label="Select"
-            className="btn btn-sm btn-primary btn-file sel-btn"
+            className="btn btn-sm btn-primary btn-file"
             data-testid="inputSettingPictureButton"
             disabled={false}
             onClick={[Function]}
@@ -858,7 +858,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
         </span>
         <button
           aria-label="Cancel"
-          className="btn btn-link btn-sm theme"
+          className="btn btn-tertiary btn-sm theme ml-2"
           data-testid="cancelSettingPicture"
           onClick={[Function]}
         >
@@ -996,7 +996,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
           />
           <button
             aria-label="Select"
-            className="btn btn-sm btn-primary btn-file sel-btn"
+            className="btn btn-sm btn-primary btn-file"
             data-testid="inputSettingPictureButton"
             disabled={false}
             onClick={[Function]}
@@ -1027,7 +1027,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
         </span>
         <button
           aria-label="Cancel"
-          className="btn btn-link btn-sm theme"
+          className="btn btn-tertiary btn-sm theme ml-2"
           data-testid="cancelSettingPicture"
           onClick={[Function]}
         >

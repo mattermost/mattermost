@@ -275,7 +275,7 @@ https://test.com/callback2"
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/test/integrations/oauth2-apps"
         >
           <MemoizedFormattedMessage
@@ -580,7 +580,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/test/integrations/oauth2-apps"
         >
           <MemoizedFormattedMessage

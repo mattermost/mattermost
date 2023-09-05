@@ -233,7 +233,7 @@ describe('components/admin_console/permission_schemes_settings/permission_system
             <PermissionSystemSchemeSettings {...defaultProps}/>,
         );
         expect(wrapper.state().showResetDefaultModal).toBe(false);
-        wrapper.find('.reset-defaults-btn').first().simulate('click');
+        wrapper.find('.btn-quaternary').first().simulate('click');
         expect(wrapper.state().showResetDefaultModal).toBe(true);
     });
 

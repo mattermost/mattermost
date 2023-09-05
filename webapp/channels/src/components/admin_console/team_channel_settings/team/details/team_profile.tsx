@@ -22,8 +22,6 @@ import OverlayTrigger from 'components/overlay_trigger';
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import UnarchiveIcon from 'components/widgets/icons/unarchive_icon';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import './team_profile.scss';

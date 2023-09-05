@@ -39,11 +39,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
         className="AdminChannelDetails_archiveContainer"
       >
         <button
-          className="btn btn-secondary ArchiveButton ArchiveButton___unarchived"
+          className="btn btn-secondary btn-danger"
           type="button"
         >
-          <ArchiveIcon
-            className="channel-icon channel-icon__archive"
+          <i
+            className="icon icon-archive-outline"
           />
           <MemoizedFormattedMessage
             defaultMessage="Archive Channel"
@@ -112,11 +112,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
         className="AdminChannelDetails_archiveContainer"
       >
         <button
-          className="btn btn-secondary ArchiveButton ArchiveButton___unarchived"
+          className="btn btn-secondary btn-danger"
           type="button"
         >
-          <ArchiveIcon
-            className="channel-icon channel-icon__archive"
+          <i
+            className="icon icon-archive-outline"
           />
           <MemoizedFormattedMessage
             defaultMessage="Archive Channel"
