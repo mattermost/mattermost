@@ -14,7 +14,7 @@ import UserGroupPopover from 'components/user_group_popover';
 
 import {popOverOverlayPosition, approxGroupPopOverHeight} from 'utils/position_utils';
 import {isKeyPressed} from 'utils/keyboard';
-import {getUserOrGroupFromMentionName} from 'utils/post_utils';
+import {getMentionDetails} from 'utils/post_utils';
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
 import {getViewportSize} from 'utils/utils';
 
@@ -109,22 +109,52 @@ export const AtMention = (props: Props) => {
         ));
     };
 
-    const user = getUserOrGroupFromMentionName(props.usersByUsername, props.mentionName) as UserProfile | '';
+    const getPopOver = (user: UserProfile | '', group: Group | '') => {
+        if (user) {
+            return (
+                <ProfilePopover
+                    className='user-profile-popover'
+                    userId={user.id}
+                    src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                    hasMention={props.hasMention}
+                    hide={hideOverlay}
+                    channelId={props.channelId}
+                />
+            );
+        }
 
-    // prioritizes user if user exists with the same name as a group.
-    let group = !user && props.disableGroupHighlight ? '' : getUserOrGroupFromMentionName(props.groupsByName, props.mentionName) as Group | '';
+        if (group) {
+            return (
+                <UserGroupPopover
+                    group={group}
+                    hide={hideOverlay}
+                    showUserOverlay={showGroupUserOverlay}
+                    returnFocus={returnFocus}
+                />
+            );
+        }
 
-    if (group && !group.allow_reference) {
-        group = ''; // remove group mention if not allowed to reference
-    }
+        return '';
+    };
+
+    const [user, group] = getMentionDetails(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight);
 
     if (!user && !group) {
         return <>{props.children}</>;
     }
 
-    const suffix = props.mentionName.substring(user ? user.username.length : group.name.length); // handles punctuation
-    const mentionName = user ? displayUsername(user, props.teammateNameDisplay) : group.name;
-    const highlightMention = !props.disableHighlight && user?.id === props.currentUserId; // only for user
+    let suffix = '';
+    let displayName = '';
+    let highlightMention = false; // only for user
+
+    if (user) {
+        suffix = props.mentionName.substring(user.username.length);
+        displayName = displayUsername(user, props.teammateNameDisplay);
+        highlightMention = !props.disableHighlight && user.id === props.currentUserId;
+    } else if (group) { // if statement needed for union
+        suffix = props.mentionName.substring(group.name.length);
+        displayName = group.name;
+    }
 
     return (
         <>
@@ -138,24 +168,7 @@ export const AtMention = (props: Props) => {
                     rootClose={true}
                     onHide={hideOverlay}
                 >
-                    {group ? (
-                        <UserGroupPopover
-                            group={group}
-                            hide={hideOverlay}
-                            showUserOverlay={showGroupUserOverlay}
-                            returnFocus={returnFocus}
-                        />
-                    ) : (
-                        <ProfilePopover
-                            className='user-profile-popover'
-                            userId={user.id}
-                            src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                            hasMention={props.hasMention}
-                            hide={hideOverlay}
-                            channelId={props.channelId}
-                        />
-                    )
-                    }
+                    {getPopOver(user, group)}
                 </Overlay>
                 <Overlay
                     placement={placement}
@@ -164,7 +177,7 @@ export const AtMention = (props: Props) => {
                     onHide={hideGroupUserOverlay}
                     rootClose={true}
                 >
-                    {groupUser ? (
+                    {groupUser ? ( // needed for type checker
                         <ProfilePopover
                             className='user-profile-popover'
                             userId={groupUser.id}
@@ -174,7 +187,7 @@ export const AtMention = (props: Props) => {
                             hide={hideGroupUserOverlay}
                             returnFocus={returnFocus}
                         />
-                    ) : <span/>
+                    ) : ''
                     }
                 </Overlay>
                 <a
@@ -186,7 +199,7 @@ export const AtMention = (props: Props) => {
                     role='button'
                     tabIndex={0}
                 >
-                    {'@' + mentionName}
+                    {'@' + displayName}
                 </a>
             </span>
             {suffix}

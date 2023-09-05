@@ -1118,3 +1118,55 @@ describe('PostUtils.getPostURL', () => {
         expect(PostUtils.getPostURL(state, postCase)).toBe(expected);
     });
 });
+
+describe('PostUtils.getUserOrGroupFromMentionName', () => {
+    const user1 = TestHelper.getUserMock({username: 'user1'});
+    const user2 = TestHelper.getUserMock({username: 'user2'});
+    const users = {user1, user2};
+
+    test.each([
+        ['user1 data from mention', 'user1', user1],
+        ['user2 data from mention', 'user2', user2],
+        ['user1 data from mention with punctution', 'user1.', user1],
+        ['blank string when no matching user', 'user3', ''],
+    ])('should return %s', (description, mention, expected) => {
+        expect(PostUtils.getUserOrGroupFromMentionName(users, mention)).toEqual(expected);
+    });
+
+    const group1 = TestHelper.getGroupMock({name: 'group1'});
+    const group2 = TestHelper.getGroupMock({name: 'group2'});
+    const groups = {group1, group2};
+
+    test.each([
+        ['group1 data from mention', 'group1', group1],
+        ['group2 data from mention', 'group2', group2],
+        ['group1 data from mention with punctuation', 'group2.', group2],
+        ['blank string when no matching group', 'group3', ''],
+    ])('shoud return %s', (description, mention, expected) => {
+        expect(PostUtils.getUserOrGroupFromMentionName(groups, mention)).toEqual(expected);
+    });
+});
+
+describe('PostUtils.getMentionDetails', () => {
+    const userMention = 'user1';
+    const groupMention = 'group1';
+    const userAndGroupMention = 'user2';
+    const user1 = TestHelper.getUserMock({username: 'user1'});
+    const user2 = TestHelper.getUserMock({username: 'user2'});
+    const users = {user1, user2};
+    const group1 = TestHelper.getGroupMock({name: 'group1'});
+    const group2 = TestHelper.getGroupMock({name: 'user2'});
+    const groups = {group1, user2: group2};
+
+    const mockGetMention = (usersOrGroups, mention) => usersOrGroups[mention] || '';
+
+    test.each([
+        ['the found user', userMention, false, [user1, '']],
+        ['nothing when not matching user or group', 'user3', false, ['', '']],
+        ['the found group', groupMention, false, ['', group1]],
+        ['no group when groups highlights are disabled', groupMention, true, ['', '']],
+        ['user when there is a matching user and group mention', userAndGroupMention, false, [user2, '']],
+    ])('should return %s', (description, mention, disabledGroups, expected) => {
+        expect(PostUtils.getMentionDetails(mention, users, groups, disabledGroups, mockGetMention)).toEqual(expected);
+    });
+});
