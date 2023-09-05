@@ -5,8 +5,8 @@ import React, {ReactNode} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 
 import {General, Posts} from 'mattermost-redux/constants';
+import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
-import * as Utils from 'utils/utils';
 import {TextFormattingOptions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
 import Markdown from 'components/markdown';
@@ -387,7 +387,7 @@ const systemMessageRenderers = {
 };
 
 export function renderSystemMessage(post: Post, currentTeam: Team, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
-    const isEphemeral = Utils.isPostEphemeral(post);
+    const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
         return renderReminderACKMessage(post, currentTeam, Boolean(isMilitaryTime), timezone);
     }

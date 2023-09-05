@@ -3057,6 +3057,15 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'DisplaySettings.MaxMarkdownNodes',
+                        label: t('admin.customization.maxMarkdownNodesTitle'),
+                        label_default: 'Max Markdown Nodes:',
+                        help_text: t('admin.customization.maxMarkdownNodesDesc'),
+                        help_text_default: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_TEXT,
                         key: 'ServiceSettings.GoogleDeveloperKey',
                         label: t('admin.service.googleTitle'),
