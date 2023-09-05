@@ -4,10 +4,13 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"runtime"
+	"runtime/pprof"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -16,6 +19,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/config"
+)
+
+const (
+	cpuProfileDuration = 5 * time.Second
 )
 
 func (a *App) GenerateSupportPacket() []model.FileData {
@@ -32,6 +39,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 		"config":           a.createSanitizedConfigFile,
 		"mattermost log":   a.getMattermostLog,
 		"notification log": a.getNotificationsLog,
+		"cpu profile":      a.createCPUProfile,
 	}
 
 	for name, fn := range functions {
@@ -243,6 +251,25 @@ func (a *App) createSanitizedConfigFile() (*model.FileData, error) {
 	fileData := &model.FileData{
 		Filename: "sanitized_config.json",
 		Body:     sanitizedConfigPrettyJSON,
+	}
+	return fileData, nil
+}
+
+func (a *App) createCPUProfile() (*model.FileData, error) {
+	var b bytes.Buffer
+
+	err := pprof.StartCPUProfile(&b)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to start CPU profile")
+	}
+
+	time.Sleep(cpuProfileDuration)
+
+	pprof.StopCPUProfile()
+
+	fileData := &model.FileData{
+		Filename: "cpu.prof",
+		Body:     b.Bytes(),
 	}
 	return fileData, nil
 }
