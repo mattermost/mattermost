@@ -61,6 +61,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic.
 		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
+		assert.Empty(t, packet.ClusterID)
 		assert.Equal(t, "local", packet.FileDriver)
 		assert.Equal(t, "OK", packet.FileStatus)
 	})

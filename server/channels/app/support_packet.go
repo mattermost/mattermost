@@ -67,6 +67,11 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		elasticServerPlugins = a.Srv().Platform().SearchEngine.ElasticsearchEngine.GetPlugins()
 	}
 
+	var clusterID string
+	if a.Cluster() != nil {
+		clusterID = a.Cluster().GetClusterId()
+	}
+
 	fileDriver := a.Srv().Platform().FileBackend().Driver()
 
 	fileStatus := model.StatusOk
@@ -139,6 +144,9 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		DatabaseType:          databaseType,
 		DatabaseVersion:       databaseVersion,
 		DatabaseSchemaVersion: databaseSchemaVersion,
+
+		// Cluster
+		ClusterID: clusterID,
 
 		// File store
 		FileDriver: fileDriver,
