@@ -122,7 +122,7 @@ func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 
 	// Wait for all clusters to finish DB migration
 	clusterStatus := worker.app.GetClusterStatus()
-	if len(clusterStatus) > 0 {
+	if len(clusterStatus) > 1 {
 		for i := 1; i < len(clusterStatus); i++ {
 			if clusterStatus[i].SchemaVersion != clusterStatus[0].SchemaVersion {
 				// Just wait for the next loop
