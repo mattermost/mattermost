@@ -7,7 +7,7 @@ import {Channel} from '@mattermost/types/channels';
 import {favoriteChannel, unfavoriteChannel, markChannelAsRead} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getMyChannelMemberships, getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {getMyChannelMemberships, getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -52,7 +52,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     return {
         currentTeamId: currentTeam.id,
-        currentUser: getCurrentUser(state),
+        currentUserId: getCurrentUserId(state),
         categories,
         currentCategory,
         isFavorite: isFavoriteChannel(state, ownProps.channel.id),

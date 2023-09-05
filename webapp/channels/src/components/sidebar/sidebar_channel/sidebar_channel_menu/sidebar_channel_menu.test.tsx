@@ -29,7 +29,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         channel: testChannel,
         channelLink: 'http://a.fake.link',
         categories: [testCategory],
-        currentUser: TestHelper.getUserMock({id: 'user_id', username: 'user', first_name: 'First', last_name: 'Last'}),
+        currentUserId: 'user_id',
         currentCategory: testCategory,
         currentTeamId: 'team_id',
         isUnread: false,

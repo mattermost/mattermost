@@ -58,6 +58,8 @@ const ConvertGmToChannelModal = (props: Props) => {
     const [loadingAnimationTimeout, setLoadingAnimationTimeout] = useState<boolean>(false);
     const [selectedTeamId, setSelectedTeamId] = useState<string>();
     const [nameError, setNameError] = useState<boolean>(false);
+    const [conversionError, setConversionError] = useState<string>();
+
     const handleTeamChange = useCallback((teamId: string) => {
         setSelectedTeamId(teamId);
     }, []);
@@ -80,14 +82,21 @@ const ConvertGmToChannelModal = (props: Props) => {
 
         work();
         setTimeout(() => setLoadingAnimationTimeout(true), 1200);
-    }, [props.channel.id]);
+    }, []);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (!selectedTeamId) {
             return;
         }
 
-        props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.trim());
+        const {error} = await props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.trim());
+
+        if (error) {
+            setConversionError(error.message);
+            return
+        }
+
+        setConversionError(undefined);
         if (props.channelsCategoryId) {
             props.actions.moveChannelsInSidebar(props.channelsCategoryId, 0, props.channel.id, false);
         }
@@ -95,7 +104,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
     };
 
-    const showLoader = () => !commonTeamsFetched || !loadingAnimationTimeout;
+    const showLoader = !commonTeamsFetched || !loadingAnimationTimeout;
 
     const canCreate = (): boolean => {
         return selectedTeamId !== undefined && channelName !== '' && !nameError
@@ -117,7 +126,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                 </div>
             </GenericModal>
         );
-    } else if (!showLoader() && Object.keys(commonTeamsById).length === 0) {
+    } else if (!showLoader && Object.keys(commonTeamsById).length === 0) {
         return (
             <GenericModal
                 id='convert-gm-to-channel-modal'
@@ -144,8 +153,8 @@ const ConvertGmToChannelModal = (props: Props) => {
             cancelButtonText={formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'})}
             isDeleteModal={true}
             compassDesign={true}
-            handleCancel={showLoader() ? undefined : handleCancel}
-            handleConfirm={showLoader() ? undefined : handleConfirm}
+            handleCancel={showLoader ? undefined : handleCancel}
+            handleConfirm={showLoader ? undefined : handleConfirm}
             onExited={handleCancel}
             autoCloseOnConfirmButton={false}
             isConfirmDisabled={!canCreate()}
@@ -153,13 +162,13 @@ const ConvertGmToChannelModal = (props: Props) => {
             <div
                 className={classNames({
                     'convert-gm-to-channel-modal-body': true,
-                    loading: showLoader(),
+                    loading: showLoader,
                     'single-team': Object.keys(commonTeamsById).length === 1,
                     'multi-team': Object.keys(commonTeamsById).length > 1,
                 })}
             >
                 {
-                    showLoader() &&
+                    showLoader &&
                     <div className='loadingIndicator'>
                         <img
                             src={loadingIcon}
@@ -168,7 +177,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                 }
 
                 {
-                    !showLoader() &&
+                    !showLoader &&
                     (
                         <React.Fragment>
                             <WarningTextSection channelMemberNames={channelMemberNames}/>
@@ -190,6 +199,15 @@ const ConvertGmToChannelModal = (props: Props) => {
                                 onURLChange={handleChannelURLChange}
                                 onErrorStateChange={setNameError}
                             />
+
+                            {
+                                conversionError &&
+                                <div className='conversion-error'>
+                                    <i className='icon icon-alert-outline'/>
+                                    <span>{conversionError}</span>
+                                </div>
+                            }
+
                         </React.Fragment>
                     )
                 }

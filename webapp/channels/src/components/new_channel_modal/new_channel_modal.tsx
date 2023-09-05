@@ -198,14 +198,14 @@ const NewChannelModal = () => {
         }
     };
 
-    const handleOnURLChange = (updatedURL: string) => {
+    const handleOnURLChange = useCallback((updatedURL: string) => {
         setURL(updatedURL);
-    };
+    }, []);
 
-    const handleOnTypeChange = (channelType: ChannelType) => {
+    const handleOnTypeChange = useCallback((channelType: ChannelType) => {
         setType(channelType);
         setServerError('');
-    };
+    }, []);
 
     const handleOnPurposeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.preventDefault();

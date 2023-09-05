@@ -36,6 +36,10 @@
                 margin: 36px auto;
             }
         }
+
+        .conversion-error {
+            color: var(--error-text);
+        }
     }
 
     .DropDown__menu {

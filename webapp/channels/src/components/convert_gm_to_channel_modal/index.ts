@@ -5,7 +5,7 @@ import {GlobalState} from 'types/store';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
 import ConvertGmToChannelModal, {Props} from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
-import {Action} from 'mattermost-redux/types/actions';
+import {Action, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 import {closeModal} from 'actions/views/modals';
 import {
     getCurrentUserId,
@@ -38,7 +38,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
 export type Actions = {
     closeModal: (modalID: string) => void;
-    convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => void;
+    convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => Promise<ActionResult>;
     moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting?: boolean) => void;
 }
 

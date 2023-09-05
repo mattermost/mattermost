@@ -136,7 +136,7 @@ const SidebarChannelMenu = (props: Props) => {
         }
 
         function handleUnmuteChannel() {
-            props.unmuteChannel(props.currentUser.id, props.channel.id);
+            props.unmuteChannel(props.currentUserId, props.channel.id);
         }
 
         muteUnmuteChannelMenuItem = (
@@ -164,7 +164,7 @@ const SidebarChannelMenu = (props: Props) => {
         }
 
         function handleMuteChannel() {
-            props.muteChannel(props.currentUser.id, props.channel.id);
+            props.muteChannel(props.currentUserId, props.channel.id);
         }
 
         muteUnmuteChannelMenuItem = (
