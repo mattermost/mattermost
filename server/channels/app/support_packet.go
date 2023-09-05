@@ -67,6 +67,14 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		elasticServerPlugins = a.Srv().Platform().SearchEngine.ElasticsearchEngine.GetPlugins()
 	}
 
+	fileDriver := a.Srv().Platform().FileBackend().Driver()
+
+	fileStatus := model.StatusOk
+	err := a.Srv().Platform().FileBackend().TestConnection()
+	if err != nil {
+		fileStatus = model.StatusFail + ": " + err.Error()
+	}
+
 	// Here we are getting information regarding LDAP
 	ldapInterface := a.ch.Ldap
 	var vendorName, vendorVersion string
@@ -131,6 +139,10 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		DatabaseType:          databaseType,
 		DatabaseVersion:       databaseVersion,
 		DatabaseSchemaVersion: databaseSchemaVersion,
+
+		// File store
+		FileDriver: fileDriver,
+		FileStatus: fileStatus,
 
 		// LDAP
 		LdapVendorName:    vendorName,

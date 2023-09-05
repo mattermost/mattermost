@@ -57,6 +57,20 @@ func (_m *FileBackend) CopyFile(oldPath string, newPath string) error {
 	return r0
 }
 
+// Driver provides a mock function with given fields:
+func (_m *FileBackend) Driver() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // FileExists provides a mock function with given fields: path
 func (_m *FileBackend) FileExists(path string) (bool, error) {
 	ret := _m.Called(path)

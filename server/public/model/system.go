@@ -94,6 +94,11 @@ type SupportPacket struct {
 	MasterDbConnections   int    `yaml:"master_db_connections"`
 	ReplicaDbConnections  int    `yaml:"read_db_connections"`
 
+	// File store
+
+	FileDriver string `yaml:"file_driver"`
+	FileStatus string `yaml:"file_status"`
+
 	// LDAP
 
 	LdapVendorName    string `yaml:"ldap_vendor_name,omitempty"`
