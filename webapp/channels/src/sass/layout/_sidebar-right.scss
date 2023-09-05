@@ -119,8 +119,6 @@
     }
 
     .sidebar--right__expand {
-        margin: 0 4px 0 0;
-
         i {
             top: 0;
         }
@@ -206,12 +204,14 @@
 
         .btn-icon {
             font-size: 20px;
+            margin: 0 !important;
         }
 
         .controls {
             display: flex;
             align-items: center;
             justify-content: flex-end;
+            gap: 4px;
         }
     }
 

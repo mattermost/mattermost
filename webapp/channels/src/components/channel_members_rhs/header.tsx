@@ -79,7 +79,7 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                 <button
                     id='rhsCloseButton'
                     type='button'
-                    className='sidebar--right__close btn-icon'
+                    className='sidebar--right__close btn btn-icon btn-sm'
                     aria-label='Close'
                     onClick={onClose}
                 >

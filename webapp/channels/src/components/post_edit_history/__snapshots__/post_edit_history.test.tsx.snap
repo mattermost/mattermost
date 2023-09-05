@@ -30,7 +30,7 @@ exports[`components/post_edit_history should display error screen if errors are 
             class="pull-right"
           >
             <button
-              class="sidebar--right__expand btn-icon"
+              class="sidebar--right__expand btn btn-icon btn-sm"
               type="button"
             >
               <i
@@ -145,7 +145,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
             class="pull-right"
           >
             <button
-              class="sidebar--right__expand btn-icon"
+              class="sidebar--right__expand btn btn-icon btn-sm"
               type="button"
             >
               <i

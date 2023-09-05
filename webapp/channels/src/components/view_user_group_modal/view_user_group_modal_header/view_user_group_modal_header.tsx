@@ -85,7 +85,7 @@ const ViewUserGroupModalHeader = (props: Props) => {
         if (group?.source.toLowerCase() !== 'ldap' && permissionToJoinGroup) {
             return (
                 <button
-                    className='mr-2 btn btn-secondary'
+                    className='mr-2 btn btn-secondary btn-sm'
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage

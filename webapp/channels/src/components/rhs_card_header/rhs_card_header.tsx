@@ -167,7 +167,7 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                     >
                         <button
                             type='button'
-                            className='sidebar--right__expand btn-icon'
+                            className='sidebar--right__expand btn btn-icon btn-sm'
                             aria-label='Expand'
                             onClick={this.props.actions.toggleRhsExpanded}
                         >
@@ -188,7 +188,7 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                     >
                         <button
                             type='button'
-                            className='sidebar--right__close btn-icon'
+                            className='sidebar--right__close btn btn-icon btn-sm'
                             aria-label='Close'
                             onClick={this.props.actions.closeRightHandSide}
                         >
