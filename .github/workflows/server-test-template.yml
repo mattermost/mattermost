@@ -76,8 +76,8 @@ jobs:
           report_paths: server/report.xml
           check_name: ${{ inputs.name }} (Results)
           require_tests: true
-      - name: Report retried tests via webhook
-        if: ${{ steps.report.outputs.retried > 0 }}
+      - name: Report retried tests via webhook (master || release-*)
+        if: ${{ steps.report.outputs.retried > 0 && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
         run: |
           curl \
             --fail \
