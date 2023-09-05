@@ -78,36 +78,39 @@ type ServerBusyState struct {
 }
 
 type SupportPacket struct {
-	LicenseTo                  string   `yaml:"license_to"`
-	ServerOS                   string   `yaml:"server_os"`
-	ServerArchitecture         string   `yaml:"server_architecture"`
-	ServerVersion              string   `yaml:"server_version"`
-	BuildHash                  string   `yaml:"build_hash,omitempty"`
-	DatabaseType               string   `yaml:"database_type"`
-	DatabaseVersion            string   `yaml:"database_version"`
-	DatabaseSchemaVersion      string   `yaml:"database_schema_version"`
-	LdapVendorName             string   `yaml:"ldap_vendor_name,omitempty"`
-	LdapVendorVersion          string   `yaml:"ldap_vendor_version,omitempty"`
-	ElasticServerVersion       string   `yaml:"elastic_server_version,omitempty"`
-	ElasticServerPlugins       []string `yaml:"elastic_server_plugins,omitempty"`
-	ActiveUsers                int      `yaml:"active_users"`
-	LicenseSupportedUsers      int      `yaml:"license_supported_users,omitempty"`
-	TotalChannels              int      `yaml:"total_channels"`
-	TotalPosts                 int      `yaml:"total_posts"`
-	TotalTeams                 int      `yaml:"total_teams"`
-	DailyActiveUsers           int      `yaml:"daily_active_users"`
-	MonthlyActiveUsers         int      `yaml:"monthly_active_users"`
-	WebsocketConnections       int      `yaml:"websocket_connections"`
-	MasterDbConnections        int      `yaml:"master_db_connections"`
-	ReplicaDbConnections       int      `yaml:"read_db_connections"`
-	InactiveUserCount          int      `yaml:"inactive_user_count"`
-	ElasticPostIndexingJobs    []*Job   `yaml:"elastic_post_indexing_jobs"`
-	ElasticPostAggregationJobs []*Job   `yaml:"elastic_post_aggregation_jobs"`
-	LdapSyncJobs               []*Job   `yaml:"ldap_sync_jobs"`
-	MessageExportJobs          []*Job   `yaml:"message_export_jobs"`
-	DataRetentionJobs          []*Job   `yaml:"data_retention_jobs"`
-	ComplianceJobs             []*Job   `yaml:"compliance_jobs"`
-	MigrationJobs              []*Job   `yaml:"migration_jobs"`
+	LicenseTo             string   `yaml:"license_to"`
+	ServerOS              string   `yaml:"server_os"`
+	ServerArchitecture    string   `yaml:"server_architecture"`
+	ServerVersion         string   `yaml:"server_version"`
+	BuildHash             string   `yaml:"build_hash,omitempty"`
+	DatabaseType          string   `yaml:"database_type"`
+	DatabaseVersion       string   `yaml:"database_version"`
+	DatabaseSchemaVersion string   `yaml:"database_schema_version"`
+	LdapVendorName        string   `yaml:"ldap_vendor_name,omitempty"`
+	LdapVendorVersion     string   `yaml:"ldap_vendor_version,omitempty"`
+	ElasticServerVersion  string   `yaml:"elastic_server_version,omitempty"`
+	ElasticServerPlugins  []string `yaml:"elastic_server_plugins,omitempty"`
+	ActiveUsers           int      `yaml:"active_users"`
+	LicenseSupportedUsers int      `yaml:"license_supported_users,omitempty"`
+	TotalChannels         int      `yaml:"total_channels"`
+	TotalPosts            int      `yaml:"total_posts"`
+	TotalTeams            int      `yaml:"total_teams"`
+	DailyActiveUsers      int      `yaml:"daily_active_users"`
+	MonthlyActiveUsers    int      `yaml:"monthly_active_users"`
+	WebsocketConnections  int      `yaml:"websocket_connections"`
+	MasterDbConnections   int      `yaml:"master_db_connections"`
+	ReplicaDbConnections  int      `yaml:"read_db_connections"`
+	InactiveUserCount     int      `yaml:"inactive_user_count"`
+
+	// Jobs
+	DataRetentionJobs          []*Job `yaml:"data_retention_jobs"`
+	MessageExportJobs          []*Job `yaml:"message_export_jobs"`
+	ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
+	ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
+	BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
+	LdapSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
+	MigrationJobs              []*Job `yaml:"migration_jobs"`
+	ComplianceJobs             []*Job `yaml:"compliance_jobs"`
 }
 
 type FileData struct {
