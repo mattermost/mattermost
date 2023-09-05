@@ -5,7 +5,6 @@ import Input, {CustomMessageInputType} from 'components/widgets/inputs/input/inp
 import Constants, {ItemStatus} from 'utils/constants';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {cleanUpUrlable, getSiteURL, validateChannelUrl} from 'utils/url';
-import crypto from 'crypto';
 import URLInput from 'components/widgets/inputs/url_input/url_input';
 import {useSelector} from 'react-redux';
 import {GlobalState} from 'types/store';
@@ -23,7 +22,7 @@ export type Props = {
 }
 
 import './channel_name_form_field.scss';
-import {generateSlug, localizeMessage} from "utils/utils";
+import {generateSlug, localizeMessage} from 'utils/utils';
 
 function validateDisplayName(displayNameParam: string) {
     const errors: string[] = [];
@@ -97,7 +96,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
         setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
         setURL(cleanURL);
-        urlModified.current = true
+        urlModified.current = true;
         props.onURLChange(cleanURL);
     }, [props.onURLChange]);
 

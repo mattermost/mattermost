@@ -29,7 +29,6 @@ import {closeModal} from 'actions/views/modals';
 import {GlobalState} from 'types/store';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import {Board} from '@mattermost/types/boards';
 import {ChannelType, Channel} from '@mattermost/types/channels';

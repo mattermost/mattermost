@@ -5,7 +5,7 @@ import {GlobalState} from 'types/store';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
 import ConvertGmToChannelModal, {Props} from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
-import {Action, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {closeModal} from 'actions/views/modals';
 import {
     getCurrentUserId,

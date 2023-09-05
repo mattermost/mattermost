@@ -22,7 +22,6 @@ import loadingIcon from 'images/spinner-48x48-blue.apng';
 import classNames from 'classnames';
 import NoCommonTeamsError from 'components/convert_gm_to_channel_modal/no_common_teams/no_common_teams';
 import AllMembersDeactivatedError from 'components/convert_gm_to_channel_modal/all_members_deactivated/all_members_deactivated';
-import {bool} from "yup";
 
 export type Props = {
     onExited: () => void;
@@ -93,7 +92,7 @@ const ConvertGmToChannelModal = (props: Props) => {
 
         if (error) {
             setConversionError(error.message);
-            return
+            return;
         }
 
         setConversionError(undefined);
@@ -107,8 +106,8 @@ const ConvertGmToChannelModal = (props: Props) => {
     const showLoader = !commonTeamsFetched || !loadingAnimationTimeout;
 
     const canCreate = (): boolean => {
-        return selectedTeamId !== undefined && channelName !== '' && !nameError
-    }
+        return selectedTeamId !== undefined && channelName !== '' && !nameError;
+    };
 
     if (props.profilesInChannel.length === 0) {
         return (

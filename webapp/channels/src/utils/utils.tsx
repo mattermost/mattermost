@@ -68,7 +68,7 @@ import {TextboxElement} from '../components/textbox';
 import {Address} from '@mattermost/types/cloud';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
-import crypto from "crypto";
+import crypto from 'crypto';
 
 const CLICKABLE_ELEMENTS = [
     'a',
@@ -1754,5 +1754,5 @@ export function getBlankAddressWithCountry(country?: string): Address {
 }
 
 export function generateSlug(): string {
-    return crypto.randomBytes(16).toString('hex')
+    return crypto.randomBytes(16).toString('hex');
 }
