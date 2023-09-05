@@ -21,7 +21,6 @@ type Context struct {
 	userAgent      string
 	acceptLanguage string
 	logger         mlog.LoggerIFace
-	err            *model.AppError
 
 	context context.Context
 }
@@ -117,14 +116,6 @@ func (c *Context) Logger() mlog.LoggerIFace {
 	return c.logger
 }
 
-func (c *Context) SetAppError(err *model.AppError) {
-	c.err = err
-}
-
-func (c *Context) AppError() *model.AppError {
-	return c.err
-}
-
 type CTX interface {
 	T(string, ...interface{}) string
 	Session() *model.Session
@@ -146,6 +137,4 @@ type CTX interface {
 	GetT() i18n.TranslateFunc
 	SetLogger(mlog.LoggerIFace)
 	Logger() mlog.LoggerIFace
-	SetAppError(*model.AppError)
-	AppError() *model.AppError
 }
