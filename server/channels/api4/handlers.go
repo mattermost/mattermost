@@ -9,6 +9,8 @@ import (
 	"github.com/klauspost/compress/gzhttp"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -198,6 +200,17 @@ func (api *API) APILocal(h handlerFunc) http.Handler {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
+}
+
+func (api *API) RateLimitedHandler(apiHandler http.Handler, settings model.RateLimitSettings) http.Handler {
+	settings.SetDefaults()
+
+	rateLimiter, err := app.NewRateLimiter(&settings, []string{})
+	if err != nil {
+		mlog.Error("getRateLimitedHandler", mlog.Err(err))
+		return nil
+	}
+	return rateLimiter.RateLimitHandler(apiHandler)
 }
 
 func requireLicense(c *Context) *model.AppError {

@@ -27,8 +27,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -1222,6 +1222,26 @@ func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 
 	a.generateMiniPreview(fileInfo)
 	return fileInfo, appErr
+}
+
+func (a *App) SetFileSearchableContent(fileID string, data string) *model.AppError {
+	fileInfo, appErr := a.Srv().getFileInfo(fileID)
+	if appErr != nil {
+		return appErr
+	}
+
+	err := a.Srv().Store().FileInfo().SetContent(fileInfo.Id, data)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return nil
 }
 
 func (a *App) getFileInfoIgnoreCloudLimit(fileID string) (*model.FileInfo, *model.AppError) {

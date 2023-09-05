@@ -23,9 +23,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -1003,6 +1003,16 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 
 	a.sendUpdatedUserEvent(*ruser)
 
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil && !active && user.DeleteAt != 0 {
+		a.Srv().Go(func() {
+			pluginContext := pluginContext(c)
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasBeenDeactivated(pluginContext, user)
+				return true
+			}, plugin.UserHasBeenDeactivatedID)
+		})
+	}
+
 	return ruser, nil
 }
 
@@ -1284,6 +1294,8 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 			}
 		}(user.Id)
 	}
+
+	newUser.Sanitize(map[string]bool{})
 
 	return newUser, nil
 }

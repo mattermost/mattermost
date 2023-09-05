@@ -19,8 +19,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -205,6 +205,7 @@ func TestUpdateUser(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, u)
 		require.Less(t, u.LastPictureUpdate, iLastPictureUpdate)
+		require.Empty(t, u.Password)
 	})
 
 	t.Run("fails if profile picture is updated when user has custom profile picture and username is changed", func(t *testing.T) {
@@ -1731,11 +1732,12 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
-		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
+		u, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
 			Username: model.NewString(model.NewId()),
 		}, true)
 
 		require.Nil(t, err)
+		require.Empty(t, u.Password)
 	})
 }
 
