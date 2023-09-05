@@ -2269,13 +2269,6 @@ export default class Client4 {
         return this.searchFilesWithParams(teamId, {terms, is_or_search: isOrSearch});
     };
 
-    getOpenGraphMetadata = (url: string) => {
-        return this.doFetch<OpenGraphMetadata>(
-            `${this.getBaseRoute()}/opengraph`,
-            {method: 'post', body: JSON.stringify({url})},
-        );
-    };
-
     doPostAction = (postId: string, actionId: string, selectedOption = '') => {
         return this.doPostActionWithCookie(postId, actionId, '', selectedOption);
     };

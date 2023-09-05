@@ -1269,29 +1269,6 @@ export function addPostReminder(userId: string, postId: string, timestamp: numbe
     };
 }
 
-export function getOpenGraphMetadata(url: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let data;
-        try {
-            data = await Client4.getOpenGraphMetadata(url);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        if (data && (data.url || data.type || data.title || data.description)) {
-            dispatch({
-                type: PostTypes.RECEIVED_OPEN_GRAPH_METADATA,
-                data,
-                url,
-            });
-        }
-
-        return {data};
-    };
-}
-
 export function doPostAction(postId: string, actionId: string, selectedOption = '') {
     return doPostActionWithCookie(postId, actionId, '', selectedOption);
 }

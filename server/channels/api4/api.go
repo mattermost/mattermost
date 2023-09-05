@@ -81,8 +81,6 @@ type Routes struct {
 	OAuthApps *mux.Router // 'api/v4/oauth/apps'
 	OAuthApp  *mux.Router // 'api/v4/oauth/apps/{app_id:[A-Za-z0-9]+}'
 
-	OpenGraph *mux.Router // 'api/v4/opengraph'
-
 	SAML       *mux.Router // 'api/v4/saml'
 	Compliance *mux.Router // 'api/v4/compliance'
 	Cluster    *mux.Router // 'api/v4/cluster'
@@ -243,8 +241,6 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.ReactionByNameForPostForUser = api.BaseRoutes.PostForUser.PathPrefix("/reactions/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}").Subrouter()
 
-	api.BaseRoutes.OpenGraph = api.BaseRoutes.APIRoot.PathPrefix("/opengraph").Subrouter()
-
 	api.BaseRoutes.Roles = api.BaseRoutes.APIRoot.PathPrefix("/roles").Subrouter()
 	api.BaseRoutes.Schemes = api.BaseRoutes.APIRoot.PathPrefix("/schemes").Subrouter()
 
@@ -300,7 +296,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitEmoji()
 	api.InitOAuth()
 	api.InitReaction()
-	api.InitOpenGraph()
 	api.InitPlugin()
 	api.InitRole()
 	api.InitScheme()
