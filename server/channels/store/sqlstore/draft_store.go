@@ -267,18 +267,40 @@ func (s *SqlDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(cr
 }
 
 func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
-	sql := `
-		DELETE FROM
-			Drafts d
-		WHERE EXISTS (
-			SELECT 1 FROM Drafts f
-			WHERE d.UserId = f.UserId AND d.ChannelId = f.ChannelId AND d.RootId = f.RootId
-			AND (f.CreateAt > ? OR (f.CreateAt = ? AND f.UserId > ?))
-			ORDER BY CreateAt, UserId ASC
-			LIMIT 100
-		)
-		AND d.Message = ''
-	`
+
+	var sql string
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		sql = `
+			WITH dd AS (
+				SELECT UserId, ChannelId, RootId FROM Drafts 
+				WHERE (CreateAt > ? OR (CreateAt = ? AND UserId > ?)) 
+				ORDER BY CreateAt, UserId ASC LIMIT 100
+			) 
+			DELETE FROM
+				Drafts d 
+			USING dd 
+			WHERE 
+				d.UserId = dd.UserId 
+				AND d.ChannelId = dd.ChannelId 
+				AND d.RootId = dd.RootId
+				AND d.Message = ''
+		`
+	} else if s.DriverName() == model.DatabaseDriverMysql {
+		sql = `
+			DELETE FROM
+				Drafts d
+			WHERE EXISTS (
+				SELECT 1 FROM Drafts f
+				WHERE d.UserId = f.UserId AND d.ChannelId = f.ChannelId AND d.RootId = f.RootId
+				AND (f.CreateAt > ? OR (f.CreateAt = ? AND f.UserId > ?))
+				ORDER BY CreateAt, UserId ASC
+				LIMIT 100
+			)
+			AND d.Message = ''
+		`
+	} else {
+		mlog.Warn("No implementation found to determine the maximum supported draft size")
+	}
 
 	if _, err := s.GetMasterX().Exec(sql, createAt, createAt, userId); err != nil {
 		return errors.Wrapf(err, "failed to delete empty drafts")

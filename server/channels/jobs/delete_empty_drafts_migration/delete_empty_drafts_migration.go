@@ -31,8 +31,6 @@ type DeleteEmptyDraftsMigrationWorker struct {
 }
 
 func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
-	// If the type cast fails, it will be nil
-	// which is checked later.
 	worker := &DeleteEmptyDraftsMigrationWorker{
 		jobServer: jobServer,
 		store:     store,
@@ -116,6 +114,16 @@ func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 		return
 	}
 
+	// Check if there is metadata for that job.
+	// If there isn't, it will be empty by default, which is the right value.
+	userID := job.Data["user_id"]
+	createAt, appErr := worker.getJobMetadata(job, "create_at")
+	if appErr != nil {
+		mlog.Error("DeleteEmptyDraftsMigrationWorker: failed to get create at", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
+		worker.setJobError(job, appErr)
+		return
+	}
+
 	for {
 		select {
 		case <-worker.stop:
@@ -130,16 +138,6 @@ func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 			}
 			return
 		case <-time.After(timeBetweenBatches):
-			// Check if there is metadata for that job.
-			// If there isn't, it will be empty by default, which is the right value.
-			userID := job.Data["user_id"]
-			createAt, appErr := worker.getJobMetadata(job, "create_at")
-			if appErr != nil {
-				mlog.Error("DeleteEmptyDraftsMigrationWorker: failed to get create at", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
-				worker.setJobError(job, appErr)
-				return
-			}
-
 			nextCreateAt, nextUserID, err := worker.store.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 			if err != nil {
 				mlog.Error("DeleteEmptyDraftsMigrationWorker: Failed to get the working page for the migration. Exiting", mlog.Err(err))
@@ -154,7 +152,7 @@ func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 				return
 			}
 
-			if nextCreateAt == 0 {
+			if nextCreateAt == 0 && nextUserID == "" {
 				mlog.Info("DeleteEmptyDraftsMigrationWorker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
 				worker.setJobSuccess(job)
 				worker.markAsComplete()
@@ -167,6 +165,9 @@ func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 			}
 			job.Data["user_id"] = nextUserID
 			job.Data["create_at"] = strconv.FormatInt(nextCreateAt, 10)
+			worker.jobServer.SetJobProgress(job, 0)
+			userID = nextUserID
+			createAt = nextCreateAt
 		}
 	}
 }
