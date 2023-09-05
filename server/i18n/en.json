@@ -340,6 +340,10 @@
     "translation": "Failed to update the channel."
   },
   {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
+  },
+  {
     "id": "api.channel.post_channel_privacy_message.error",
     "translation": "Failed to post channel privacy update message."
   },
@@ -430,6 +434,10 @@
   {
     "id": "api.channel.update_channel.typechange.app_error",
     "translation": "Channel type cannot be updated."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",

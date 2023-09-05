@@ -60,7 +60,7 @@ import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 
 const KeyCodes = Constants.KeyCodes;
 
-type Props = {
+export type Props = {
     currentTeamId: string;
 
     // The channel for which this comment is a part of
@@ -219,10 +219,13 @@ function isDraftEmpty(draft: PostDraft): boolean {
 }
 
 class AdvancedCreateComment extends React.PureComponent<Props, State> {
-    private lastBlurAt = 0;
-    private draftsForPost: {[postID: string]: PostDraft | null} = {};
-    private doInitialScrollToBottom = false;
+    // public because accessed in advanced_create_comment.test.tsx
+    public draftsForPost: {[postID: string]: PostDraft | null} = {};
+    public doInitialScrollToBottom = false;
 
+    private readonly textboxRef: React.RefObject<TextboxClass>;
+
+    private lastBlurAt = 0;
     private saveDraftFrame?: number | null;
 
     private isDraftSubmitting = false;
@@ -230,7 +233,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     private isNonFormattedPaste = false;
     private timeoutId: number | null = null;
 
-    private readonly textboxRef: React.RefObject<TextboxClass>;
     private readonly fileUploadRef: React.RefObject<FileUploadClass>;
 
     static defaultProps = {
