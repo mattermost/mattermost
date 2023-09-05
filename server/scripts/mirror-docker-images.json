@@ -31,10 +31,6 @@
     "node16.14.2-slim-chrome100-ff99-edge": "cypress/browsers:node16.14.2-slim-chrome100-ff99-edge@sha256:f8459ee677ce356eff64698095fbdf48eb9ab018fc5eb0d30c07ba23884edace",
     "node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1": "cypress/browsers:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1@sha256:f798d6cc25d724210be3660e95f63ae75d052ef392e3fc5ae728d02da7e52df8"
   },
-  "golang": {
-    "1.20.7": "golang:1.20.7-bullseye@sha256:c95c52c458a2678251e0769ea13c710b0c52814771c53a495f53b9e87f9c0e99",
-    "1.19.5": "golang:1.19.5@sha256:bb9811fad43a7d6fd2173248d8331b2dcf5ac9af20976b1937ecd214c5b8c383"
-  },
   "node": {
     "16.10.0": "node:16.10.0",
     "16.17.0": "node:16.17.0",
