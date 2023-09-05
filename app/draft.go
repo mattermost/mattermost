@@ -174,9 +174,22 @@ func (a *App) getFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *mode
 		return nil, nil
 	}
 
-	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds)
+	allFileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds)
 	if err != nil {
 		return nil, model.NewAppError("GetFileInfosForDraft", "app.draft.get_for_draft.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	fileInfos := []*model.FileInfo{}
+	for _, fileInfo := range allFileInfos {
+		if fileInfo.PostId == "" && fileInfo.CreatorId == draft.UserId {
+			fileInfos = append(fileInfos, fileInfo)
+		} else {
+			mlog.Debug("Invalid file id in draft", mlog.String("file_id", fileInfo.Id), mlog.String("user_id", draft.UserId))
+		}
+	}
+
+	if len(fileInfos) == 0 {
+		return nil, nil
 	}
 
 	a.generateMiniPreviewForInfos(fileInfos)
