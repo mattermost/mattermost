@@ -34,7 +34,7 @@ type S3PathMigrationWorker struct {
 	jobs    chan model.Job
 }
 
-func MakeWorker(jobServer *jobs.JobServer, store store.Store, fileBackend filestore.FileBackend) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, store store.Store, fileBackend filestore.FileBackend) *S3PathMigrationWorker {
 	// If the type cast fails, it will be nil
 	// which is checked later.
 	s3Backend, _ := fileBackend.(*filestore.S3FileBackend)

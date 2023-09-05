@@ -23,7 +23,7 @@ type AppIface interface {
 	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *jobs.SimpleWorker {
 	const workerName = "ExtractContent"
 
 	isEnabled := func(cfg *model.Config) bool {

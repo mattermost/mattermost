@@ -13,7 +13,7 @@ type AppIface interface {
 	IsPersistentNotificationsEnabled() bool
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	const workerName = "PostPersistentNotifications"
 
 	isEnabled := func(_ *model.Config) bool {

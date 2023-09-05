@@ -37,7 +37,7 @@ type ResendInvitationEmailWorker struct {
 	telemetryService *telemetry.TelemetryService
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, telemetryService *telemetry.TelemetryService) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, telemetryService *telemetry.TelemetryService) *ResendInvitationEmailWorker {
 	const workerName = "ResendInvitationEmail"
 	worker := ResendInvitationEmailWorker{
 		name:             workerName,

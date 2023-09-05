@@ -31,7 +31,7 @@ type Worker struct {
 	closed    int32
 }
 
-func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, store store.Store) *Worker {
 	const workerName = "Migrations"
 	worker := Worker{
 		name:      workerName,

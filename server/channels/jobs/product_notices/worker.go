@@ -13,7 +13,7 @@ type AppIface interface {
 	UpdateProductNotices() *model.AppError
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	const workerName = "ProductNotices"
 
 	isEnabled := func(cfg *model.Config) bool {

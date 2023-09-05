@@ -24,7 +24,7 @@ type AppIface interface {
 	RemoveFile(path string) *model.AppError
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.SimpleWorker {
 	const workerName = "ImportDelete"
 
 	isEnabled := func(cfg *model.Config) bool {

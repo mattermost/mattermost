@@ -22,7 +22,7 @@ type AppIface interface {
 	Log() *mlog.Logger
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	const workerName = "ExportProcess"
 
 	isEnabled := func(cfg *model.Config) bool { return true }

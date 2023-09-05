@@ -22,7 +22,7 @@ type AppIface interface {
 	RemoveExportFile(path string) *model.AppError
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	const workerName = "ExportDelete"
 
 	isEnabled := func(cfg *model.Config) bool {

@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
-func MakeWorker(jobServer *jobs.JobServer, store store.Store, getMetrics func() einterfaces.MetricsInterface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, store store.Store, getMetrics func() einterfaces.MetricsInterface) *jobs.SimpleWorker {
 	const workerName = "ActiveUsers"
 
 	isEnabled := func(cfg *model.Config) bool {

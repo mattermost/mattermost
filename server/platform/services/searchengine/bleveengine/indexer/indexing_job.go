@@ -37,7 +37,7 @@ type BleveIndexerWorker struct {
 	closed    int32
 }
 
-func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) *BleveIndexerWorker {
 	if engine == nil {
 		return nil
 	}

@@ -12,7 +12,7 @@ type AppIface interface {
 	ComputeLastAccessiblePostTime() error
 }
 
-func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) *jobs.SimpleWorker {
 	const workerName = "LastAccessiblePost"
 
 	isEnabled := func(_ *model.Config) bool {

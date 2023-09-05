@@ -21,7 +21,7 @@ type ScreenTimeStore interface {
 	PermanentDeleteByName(name string) (*model.System, error)
 }
 
-func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeStore ScreenTimeStore) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeStore ScreenTimeStore) *jobs.SimpleWorker {
 	const workerName = "HostedPurchaseScreening"
 
 	isEnabled := func(_ *model.Config) bool {

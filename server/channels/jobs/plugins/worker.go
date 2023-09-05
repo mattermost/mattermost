@@ -23,7 +23,7 @@ type Worker struct {
 	app       AppIface
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *Worker {
 	const workerName = "Plugins"
 	worker := Worker{
 		name:      workerName,

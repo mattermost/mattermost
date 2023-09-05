@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
-func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() error) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() error) *jobs.SimpleWorker {
 	const workerName = "ExpiryNotify"
 
 	isEnabled := func(cfg *model.Config) bool {
