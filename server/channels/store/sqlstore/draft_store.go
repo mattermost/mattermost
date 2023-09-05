@@ -288,18 +288,12 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		sql = `
 			DELETE FROM
-				Drafts d
-			WHERE EXISTS (
-				SELECT 1 FROM Drafts f
-				WHERE d.UserId = f.UserId AND d.ChannelId = f.ChannelId AND d.RootId = f.RootId
-				AND (f.CreateAt > ? OR (f.CreateAt = ? AND f.UserId > ?))
-				ORDER BY CreateAt, UserId ASC
-				LIMIT 100
-			)
-			AND d.Message = ''
+				Drafts
+			WHERE 
+				(CreateAt > ? OR (CreateAt = ? AND UserId > ?))AND d.Message = ''
+			ORDER BY CreateAt, UserId ASC
+			LIMIT 100
 		`
-	} else {
-		mlog.Warn("No implementation found to determine the maximum supported draft size")
 	}
 
 	if _, err := s.GetMasterX().Exec(sql, createAt, createAt, userId); err != nil {
