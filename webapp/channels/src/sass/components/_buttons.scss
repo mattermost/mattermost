@@ -35,17 +35,17 @@ button {
 .btn {
     // Important is given to override bootstrap styles on different states
     display: inline-flex;
-    align-items: center;
     height: 40px;
+    align-items: center;
+    justify-content: center;
     padding: 0 20px;
     border: none;
     border-radius: $border-rad * 2;
     font-size: 14px;
     font-weight: 600;
+    gap: 8px;
     outline: none !important;
     transition: all 0.15s ease;
-    justify-content: center;
-    gap: 8px;
 
     &.btn-icon {
         width: 40px;
@@ -83,12 +83,12 @@ button {
     }
 
     i {
-        align-items: center;
         display: flex;
+        width: 18px;
         height: 18px;
+        align-items: center;
         justify-content: center;
         margin-right: 0;
-        width: 18px;
         font-size: 18px;
     }
 
@@ -105,9 +105,9 @@ button {
     }
 
     &.btn-lg {
-        font-size: 16px;
         height: 48px;
         padding: 0 24px;
+        font-size: 16px;
         gap: 10px;
 
         &.btn-icon {
@@ -116,9 +116,9 @@ button {
         }
 
         .i {
-            font-size: 24px;
             width: 20px;
             height: 20px;
+            font-size: 24px;
         }
     }
 
@@ -129,11 +129,11 @@ button {
 
         // These hover and active values are for things outside the app__body, the correct theme styles for the primary button are applied in utils.jsx
         &:hover {
-            background-color: #1A51C8;
+            background-color: #1a51c8;
         }
 
         &:active {
-            background-color: #184AB6;
+            background-color: #184ab6;
         }
 
         &:disabled,
@@ -146,8 +146,8 @@ button {
     }
 
     &.btn-secondary {
-        background: transparent;
         border: 1px solid rgb(var(--button-bg-rgb));
+        background: transparent;
         color: rgb(var(--button-bg-rgb));
 
         &.btn-danger {
@@ -156,16 +156,16 @@ button {
             color: var(--error-text);
 
             &:hover {
-                color: var(--error-text);
                 border-color: currentColor;
                 background-color: rgba(var(--error-text-color-rgb), 0.08);
+                color: var(--error-text);
             }
 
             &:active,
             &:focus {
-                color: var(--error-text);
                 border-color: currentColor;
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
+                color: var(--error-text);
             }
         }
 
@@ -188,6 +188,7 @@ button {
 
         &:active {
             background-color: rgb(var(--button-bg-rgb), 0.16);
+            outline: none;
         }
 
         &:disabled,
@@ -213,8 +214,8 @@ button {
     }
 
     &.btn-danger {
-        color: $white;
         background: var(--error-text);
+        color: $white;
 
         .app__body & {
             color: $white;
@@ -254,13 +255,6 @@ button {
 
         &.margin-left {
             margin-left: 6px;
-        }
-    }
-
-    &.btn-tertiary {
-        &:active,
-        &:focus {
-            outline: none;
         }
     }
 }
