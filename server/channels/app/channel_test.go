@@ -2528,17 +2528,34 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	}, nil)
 	mockChannelStore.On("Update", mock.AnythingOfType("*model.Channel")).Return(&model.Channel{}, nil)
 	mockChannelStore.On("InvalidateChannel", "channelidchannelidchanneli")
-	mockChannelStore.On("InvalidateChannelByName", "team_id", "new_name").Times(1)
+	mockChannelStore.On("InvalidateChannelByName", "team_id_1", "new_name").Times(1)
 	mockChannelStore.On("InvalidateChannelByName", "dm", "")
 	mockChannelStore.On("GetMember", sqlstore.WithMaster(context.Background()), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(1)
 	mockChannelStore.On("GetMember", context.Background(), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(1)
 	mockChannelStore.On("InvalidatePinnedPostCount", "channelidchannelidchanneli")
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "channelidchannelidchanneli", true).Return(map[string]model.StringMap{}, nil)
 	mockChannelStore.On("IncrementMentionCount", "", []string{}, true, false).Return(nil)
+	mockChannelStore.On("GetMembers", "channelidchannelidchanneli", 0, 8).Return(
+		model.ChannelMembers{
+			{UserId: "user_id_1"},
+			{UserId: "user_id_2"},
+			{UserId: "user_id_3"},
+		},
+		nil,
+	)
 
 	mockTeamStore := mocks.TeamStore{}
 	mockStore.On("Team").Return(&mockTeamStore)
-	mockTeamStore.On("GetMember", sqlstore.WithMaster(context.Background()), "team_id", "user_id_1").Return(&model.TeamMember{}, nil)
+	mockTeamStore.On("GetMember", sqlstore.WithMaster(context.Background()), "team_id_1", "user_id_1").Return(&model.TeamMember{}, nil)
+	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", "user_id_1", "user_id_2", "user_id_3").Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
+	mockTeamStore.On("GetMany", []string{"team_id_1", "team_id_2", "team_id_3"}).Return(
+		[]*model.Team{
+			{Id: "team_id_1", DisplayName: "Team 1"},
+			{Id: "team_id_2", DisplayName: "Team 2"},
+			{Id: "team_id_3", DisplayName: "Team 3"},
+		},
+		nil,
+	)
 
 	mockUserStore := mocks.UserStore{}
 	mockStore.On("User").Return(&mockUserStore)
@@ -2557,6 +2574,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelidchannelidchanneli")
 
 	var err error
+
 	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
 		UserStore:    &mockUserStore,
 		ConfigFn:     th.App.ch.srv.platform.Config,
@@ -2564,12 +2582,22 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 		OAuthStore:   &mocks.OAuthStore{},
 		LicenseFn:    th.App.ch.srv.License,
 	})
+	require.NoError(t, err)
 
+	th.App.ch.srv.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    &mockTeamStore,
+		ChannelStore: &mockChannelStore,
+		GroupStore:   &mocks.GroupStore{},
+		Users:        th.App.ch.srv.userService,
+		WebHub:       th.App.ch.srv.platform,
+		ConfigFn:     th.App.ch.srv.platform.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
 	require.NoError(t, err)
 
 	conversionRequest := &model.GroupMessageConversionRequestBody{
 		ChannelID:   "channelidchannelidchanneli",
-		TeamID:      "team_id",
+		TeamID:      "team_id_1",
 		Name:        "new_name",
 		DisplayName: "New Display Name",
 	}
