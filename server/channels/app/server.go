@@ -1569,7 +1569,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeDeleteEmptyDraftsMigration,
-		delete_empty_drafts_migration.MakeWorker(s.Jobs, s.Store()),
+		delete_empty_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil)
 
 	s.Jobs.RegisterJobType(

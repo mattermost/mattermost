@@ -20,20 +20,26 @@ const (
 	timeBetweenBatches = 1 * time.Second
 )
 
+type AppIFace interface {
+	GetClusterStatus() []*model.ClusterInfo
+}
+
 type DeleteEmptyDraftsMigrationWorker struct {
 	name      string
 	jobServer *jobs.JobServer
 	store     store.Store
+	app       AppIFace
 
 	stop    chan bool
 	stopped chan bool
 	jobs    chan model.Job
 }
 
-func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, store store.Store, app AppIFace) model.Worker {
 	worker := &DeleteEmptyDraftsMigrationWorker{
 		jobServer: jobServer,
 		store:     store,
+		app:       app,
 		name:      JobName,
 		stop:      make(chan bool, 1),
 		stopped:   make(chan bool, 1),
@@ -112,6 +118,18 @@ func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 		mlog.Error("DeleteEmptyDraftsMigrationWorker: job execution error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
 		worker.setJobError(job, appErr)
 		return
+	}
+
+	// Wait for all clusters to finish DB migration
+	clusterStatus := worker.app.GetClusterStatus()
+	if len(clusterStatus) > 0 {
+		for i := 1; i < len(clusterStatus); i++ {
+			if clusterStatus[i].SchemaVersion != clusterStatus[0].SchemaVersion {
+				// Just wait for the next loop
+				worker.jobServer.SetJobPending(job)
+				return
+			}
+		}
 	}
 
 	// Check if there is metadata for that job.
