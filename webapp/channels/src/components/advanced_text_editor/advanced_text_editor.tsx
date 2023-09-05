@@ -232,10 +232,6 @@ const AdvanceTextEditor = ({
     };
 
     let emojiPicker = null;
-    const emojiButtonAriaLabel = formatMessage({
-        id: 'emoji_picker.emojiPicker',
-        defaultMessage: 'Emoji Picker',
-    }).toLowerCase();
 
     if (enableEmojiPicker && !readOnlyChannel) {
         const emojiPickerTooltip = (
@@ -269,7 +265,7 @@ const AdvanceTextEditor = ({
                         ref={emojiPickerRef}
                         onClick={toggleEmojiPicker}
                         type='button'
-                        aria-label={emojiButtonAriaLabel}
+                        aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'Select an Emoji'})}
                         disabled={shouldShowPreview}
                         className={classNames({active: showEmojiPicker})}
                     >

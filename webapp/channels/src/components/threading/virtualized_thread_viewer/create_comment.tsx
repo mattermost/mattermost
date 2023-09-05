@@ -88,6 +88,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
 
     return (
         <div
+            id='comment-create'
             className='post-create__container'
             ref={ref}
         >

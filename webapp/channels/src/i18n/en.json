@@ -3384,7 +3384,7 @@
   "emoji_picker.close": "Close",
   "emoji_picker.custom": "Custom",
   "emoji_picker.custom_emoji": "Custom Emoji",
-  "emoji_picker.emojiPicker": "Select an Emoji",
+  "emoji_picker.emojiPicker.button.ariaLabel": "Select an Emoji",
   "emoji_picker.emojiPicker.previewPlaceholder": "Select an Emoji",
   "emoji_picker.flags": "Flags",
   "emoji_picker.food-drink": "Food & Drink",
