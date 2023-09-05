@@ -14,7 +14,7 @@ import UserGroupPopover from 'components/user_group_popover';
 
 import {popOverOverlayPosition, approxGroupPopOverHeight} from 'utils/position_utils';
 import {isKeyPressed} from 'utils/keyboard';
-import {getMentionDetails} from 'utils/post_utils';
+import {getUserOrGroupFromMentionName} from 'utils/post_utils';
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
 import {getViewportSize} from 'utils/utils';
 
@@ -137,7 +137,7 @@ export const AtMention = (props: Props) => {
         return '';
     };
 
-    const [user, group] = getMentionDetails(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight);
+    const [user, group] = getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight);
 
     if (!user && !group) {
         return <>{props.children}</>;

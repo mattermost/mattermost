@@ -705,7 +705,7 @@ export function makeGetUniqueReactionsToPost(): (state: GlobalState, postId: Pos
     );
 }
 
-export function getUserOrGroupFromMentionName(usersByUsername: Record<string, UserProfile | Group>, mentionName: string): UserProfile | Group | '' {
+export function getMentionDetails(usersByUsername: Record<string, UserProfile | Group>, mentionName: string): UserProfile | Group | '' {
     let mentionNameToLowerCase = mentionName.toLowerCase();
 
     while (mentionNameToLowerCase.length > 0) {
@@ -724,12 +724,12 @@ export function getUserOrGroupFromMentionName(usersByUsername: Record<string, Us
     return '';
 }
 
-export function getMentionDetails(
+export function getUserOrGroupFromMentionName(
     mentionName: string,
     users: Record<string, UserProfile>,
     groups: Record<string, Group>,
     groupsDisabled?: boolean,
-    getMention = getUserOrGroupFromMentionName,
+    getMention = getMentionDetails,
 ): [UserProfile | '', Group | ''] {
     const user = getMention(users, mentionName) as UserProfile | '';
 

@@ -1119,7 +1119,7 @@ describe('PostUtils.getPostURL', () => {
     });
 });
 
-describe('PostUtils.getUserOrGroupFromMentionName', () => {
+describe('PostUtils.getMentionDetails', () => {
     const user1 = TestHelper.getUserMock({username: 'user1'});
     const user2 = TestHelper.getUserMock({username: 'user2'});
     const users = {user1, user2};
@@ -1130,7 +1130,7 @@ describe('PostUtils.getUserOrGroupFromMentionName', () => {
         ['user1 data from mention with punctution', 'user1.', user1],
         ['blank string when no matching user', 'user3', ''],
     ])('should return %s', (description, mention, expected) => {
-        expect(PostUtils.getUserOrGroupFromMentionName(users, mention)).toEqual(expected);
+        expect(PostUtils.getMentionDetails(users, mention)).toEqual(expected);
     });
 
     const group1 = TestHelper.getGroupMock({name: 'group1'});
@@ -1143,11 +1143,11 @@ describe('PostUtils.getUserOrGroupFromMentionName', () => {
         ['group1 data from mention with punctuation', 'group2.', group2],
         ['blank string when no matching group', 'group3', ''],
     ])('shoud return %s', (description, mention, expected) => {
-        expect(PostUtils.getUserOrGroupFromMentionName(groups, mention)).toEqual(expected);
+        expect(PostUtils.getMentionDetails(groups, mention)).toEqual(expected);
     });
 });
 
-describe('PostUtils.getMentionDetails', () => {
+describe('PostUtils.getUserOrGroupFromMentionName', () => {
     const userMention = 'user1';
     const groupMention = 'group1';
     const userAndGroupMention = 'user2';
@@ -1167,6 +1167,6 @@ describe('PostUtils.getMentionDetails', () => {
         ['no group when groups highlights are disabled', groupMention, true, ['', '']],
         ['user when there is a matching user and group mention', userAndGroupMention, false, [user2, '']],
     ])('should return %s', (description, mention, disabledGroups, expected) => {
-        expect(PostUtils.getMentionDetails(mention, users, groups, disabledGroups, mockGetMention)).toEqual(expected);
+        expect(PostUtils.getUserOrGroupFromMentionName(mention, users, groups, disabledGroups, mockGetMention)).toEqual(expected);
     });
 });
