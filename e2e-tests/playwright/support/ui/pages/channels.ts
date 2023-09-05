@@ -21,20 +21,30 @@ export default class ChannelsPage {
     readonly postDotMenu;
     readonly postReminderMenu;
     readonly deletePostModal;
+    readonly emojiGifPickerPopup;
 
     constructor(page: Page) {
         this.page = page;
-        this.postCreate = new components.ChannelsPostCreate(page.locator('#post-create'));
-        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
+
+        // These are main sections of the page
+        // TODO: Add this.center
         this.globalHeader = new components.GlobalHeader(page.locator('#global-header'));
-        this.header = new components.ChannelsHeader(page.locator('.channel-header'));
-        this.headerMobile = new components.ChannelsHeaderMobile(page.locator('.navbar'));
-        this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
+        this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
+
+        // These are part of Center Channel
+        // TODO: Move them to a separate center channels page
+        this.postCreate = new components.ChannelsPostCreate(page.locator('#post-create'));
+        this.header = new components.ChannelsHeader(page.locator('.channel-header'));
+        this.headerMobile = new components.ChannelsHeaderMobile(page.locator('.navbar'));
+        
+        // These are modals, popups, menus, etc. that are opened in portals
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
+        this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
+        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
     }
 
     async goto(teamName = '', channelName = '') {
@@ -54,20 +64,6 @@ export default class ChannelsPage {
             await this.globalHeader.toBeVisible(this.channels);
         }
         await this.postCreate.toBeVisible();
-    }
-
-    async postMessage(message: string) {
-        await this.writeMessage(message);
-        await this.sendMessage();
-    }
-
-    async writeMessage(message: string) {
-        await this.postCreate.input.waitFor();
-        await this.postCreate.writeMessage(message);
-    }
-
-    async sendMessage() {
-        await this.postCreate.sendMessage();
     }
 
     async getFirstPost() {

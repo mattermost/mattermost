@@ -8,16 +8,13 @@ import {components} from '@e2e-support/ui/components';
 export default class ChannelsSidebarRight {
     readonly container: Locator;
 
-    readonly input;
-    readonly sendMessageButton;
+    readonly postCreate;
     readonly closeButton;
 
     constructor(container: Locator) {
         this.container = container;
 
-        this.input = container.getByTestId('reply_textbox');
-        this.sendMessageButton = container.getByTestId('SendMessageButton');
-
+        this.postCreate = new components.ChannelsPostCreate(container.locator('#comment-create'), true);
         this.closeButton = container.locator('#rhsCloseButton');
     }
 
@@ -25,24 +22,13 @@ export default class ChannelsSidebarRight {
         await expect(this.container).toBeVisible();
     }
 
-    async postMessage(message: string) {
-        await this.writeMessage(message);
-        await this.sendMessage();
-    }
-
-    async writeMessage(message: string) {
-        await this.input.fill(message);
-    }
-
-    async sendMessage() {
-        await this.sendMessageButton.click();
-    }
-
     /**
-     * Returns the value of the textbox in RHS
+     * Return the last post in the RHS
      */
-    async getInputValue() {
-        return await this.input.inputValue();
+    async getLastPost() {
+        await this.container.getByTestId('rhsPostView').last().waitFor();
+        const post = this.container.getByTestId('rhsPostView').last();
+        return new components.ChannelsPost(post);
     }
 
     /**
