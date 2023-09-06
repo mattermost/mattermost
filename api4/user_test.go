@@ -1726,7 +1726,7 @@ func TestGetUsersByIds(t *testing.T) {
 		})
 
 		t.Run("should only return unique users when multiple IDs are requested", func(t *testing.T) {
-			users, _, err := client.GetUsersByIds(context.Background(), []string{th.BasicUser.Id, th.BasicUser.Id, th.BasicUser.Id})
+			users, _, err := client.GetUsersByIds([]string{th.BasicUser.Id, th.BasicUser.Id, th.BasicUser.Id})
 			require.NoError(t, err)
 
 			require.Len(t, users, 1, "1 user should be returned")
