@@ -7,10 +7,8 @@ import {Provider} from 'react-redux';
 
 import enMessages from 'i18n/en.json';
 import esMessages from 'i18n/es.json';
-
 import {render, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {mockStore} from 'tests/test_store';
-
 import {TestHelper} from 'utils/test_helper';
 
 import LatestPostReader from './latest_post_reader';

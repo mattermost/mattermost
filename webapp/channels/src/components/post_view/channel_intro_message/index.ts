@@ -2,24 +2,23 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
-import {bindActionCreators, Dispatch} from 'redux';
-
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getProfilesInCurrentChannel, getCurrentUserId, getUser, getTotalUsersStats as getTotalUsersStatsSelector} from 'mattermost-redux/selectors/entities/users';
-import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getTotalUsersStats} from 'mattermost-redux/actions/users';
+import {getCurrentChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getProfilesInCurrentChannel, getCurrentUserId, getUser, getTotalUsersStats as getTotalUsersStatsSelector} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+
+import {getCurrentLocale} from 'selectors/i18n';
 
 import {Preferences} from 'utils/constants';
 import {getDisplayNameByUser} from 'utils/utils';
-import {getCurrentLocale} from 'selectors/i18n';
 
-import {GlobalState} from 'types/store';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
+import type {GlobalState} from 'types/store';
 
 import ChannelIntroMessage from './channel_intro_message';
 

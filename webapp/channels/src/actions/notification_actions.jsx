@@ -14,17 +14,18 @@ import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {isThreadOpen} from 'selectors/views/threads';
 import {getChannelURL, getPermalinkURL} from 'selectors/urls';
+import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {stripMarkdown} from 'utils/markdown';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-import {stripMarkdown} from 'utils/markdown';
+
 import {runDesktopNotificationHooks} from './hooks';
 
 const NOTIFY_TEXT_MAX_LENGTH = 50;

@@ -2,17 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {updateMe} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
-
-import UserSettingsNotifications, {Props} from './user_settings_notifications';
 import {isCallsEnabled, isCallsRingingEnabledOnServer} from 'selectors/calls';
+
+import type {GlobalState} from 'types/store';
+
+import UserSettingsNotifications from './user_settings_notifications';
+import type {Props} from './user_settings_notifications';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

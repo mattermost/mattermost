@@ -3,17 +3,20 @@
 
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
+import {readMultipleChannels} from 'mattermost-redux/actions/channels';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {getUnreadChannels} from 'selectors/views/channel_sidebar';
+
+import * as Menu from 'components/menu';
+
+import CreateNewCategoryMenuItem from './sidebar_category/sidebar_category_menu/create_new_category_menu_item';
+import MarkAsReadMenuItem from './sidebar_category/sidebar_category_menu/mark_as_read_menu_item';
+import SidebarCategoryGenericMenu from './sidebar_category/sidebar_category_menu/sidebar_category_generic_menu';
 import {SidebarCategoryHeaderStatic} from './sidebar_category_header';
 import SidebarChannel from './sidebar_channel';
-import SidebarCategoryGenericMenu from './sidebar_category/sidebar_category_menu/sidebar_category_generic_menu';
-import MarkAsReadMenuItem from './sidebar_category/sidebar_category_menu/mark_as_read_menu_item';
-import * as Menu from 'components/menu';
-import CreateNewCategoryMenuItem from './sidebar_category/sidebar_category_menu/create_new_category_menu_item';
-import {trackEvent} from 'actions/telemetry_actions';
-import {useDispatch, useSelector} from 'react-redux';
-import {getUnreadChannels} from 'selectors/views/channel_sidebar';
-import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 
 type Props = {
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;

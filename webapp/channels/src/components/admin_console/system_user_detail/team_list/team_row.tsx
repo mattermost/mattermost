@@ -4,14 +4,16 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
-import * as Utils from 'utils/utils';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
-import './team_row.scss';
+import * as Utils from 'utils/utils';
+
 import TeamListDropdown from './team_list_dropdown';
-import {TeamWithMembership} from './types';
+import type {TeamWithMembership} from './types';
+
+import './team_row.scss';
 
 type Props = {
     team: TeamWithMembership;

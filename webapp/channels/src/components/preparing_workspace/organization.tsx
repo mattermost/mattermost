@@ -1,31 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef, ChangeEvent} from 'react';
-import {CSSTransition} from 'react-transition-group';
+import debounce from 'lodash/debounce';
+import React, {useState, useEffect, useRef} from 'react';
+import type {ChangeEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import {CSSTransition} from 'react-transition-group';
 
-import debounce from 'lodash/debounce';
+import type {Team} from '@mattermost/types/teams';
+
+import {getTeams} from 'mattermost-redux/actions/teams';
+import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import OrganizationSVG from 'components/common/svg_images_components/organization-building_svg';
 import QuickInput from 'components/quick_input';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
-import {getTeams} from 'mattermost-redux/actions/teams';
-import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import {Team} from '@mattermost/types/teams';
-
-import {teamNameToUrl} from 'utils/url';
 import Constants from 'utils/constants';
+import {teamNameToUrl} from 'utils/url';
 
-import OrganizationStatus, {TeamApiError} from './organization_status';
-import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
-import PageLine from './page_line';
-import Title from './title';
 import Description from './description';
+import OrganizationStatus, {TeamApiError} from './organization_status';
 import PageBody from './page_body';
+import PageLine from './page_line';
+import {Animations, mapAnimationReasonToClass} from './steps';
+import type {Form, PreparingWorkspacePageProps} from './steps';
+import Title from './title';
 
 import './organization.scss';
 

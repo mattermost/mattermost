@@ -3,13 +3,12 @@
 
 import {GiphyFetch} from '@giphy/js-fetch-api';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {General} from 'mattermost-redux/constants';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
-
-import {GlobalState} from '@mattermost/types/store';
-import {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
 
 export function getConfig(state: GlobalState): Partial<ClientConfig> {
     return state.entities.general.config;
