@@ -3,8 +3,6 @@
 
 import React, {ReactNode, useEffect, useRef, useState} from 'react';
 
-import {FormattedMessage} from 'react-intl';
-
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
@@ -21,6 +19,7 @@ import {PluginComponent} from 'types/store/plugins';
 import {Emoji} from '@mattermost/types/emojis';
 import {Post} from '@mattermost/types/posts';
 import classnames from 'classnames';
+import ThreadsViewer from 'components/threading/global_threads_link/threadsView';
 
 type Props = {
     post: Post;
@@ -229,31 +228,16 @@ const PostOptions = (props: Props): JSX.Element => {
     } else if (isPostDeleted || (systemMessage && !props.canDelete)) {
         options = null;
     } else if (props.location === Locations.SEARCH) {
-        const hasCRTFooter = props.collapsedThreadsEnabled && !post.root_id && (post.reply_count > 0 || post.is_following);
         options = (
             <div className='col__controls post-menu'>
-                {dotMenu}
-                {flagIcon}
-                {props.canReply && !hasCRTFooter &&
-                    <CommentIcon
-                        location={props.location}
-                        handleCommentClick={props.handleCommentClick}
-                        commentCount={props.replyCount}
-                        postId={post.id}
-                        searchStyle={'search-item__comment'}
-                        extraClass={props.replyCount ? 'icon--visible' : ''}
-                    />
-                }
-                <a
+                <ThreadsViewer
+                    location={props.location}
+                    handleJumpClick={props.handleJumpClick}
+                    postId={post.id}
                     href='#'
-                    onClick={props.handleJumpClick}
-                    className='search-item__jump'
-                >
-                    <FormattedMessage
-                        id='search_item.jump'
-                        defaultMessage='Jump'
-                    />
-                </a>
+                />
+                {flagIcon}
+                {dotMenu}
             </div>
         );
     } else if (!props.isPostBeingEdited) {

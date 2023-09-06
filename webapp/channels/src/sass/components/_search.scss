@@ -335,20 +335,6 @@
     top: -9px;
     right: 0;
     font-size: 13px;
-
-    a {
-        vertical-align: top;
-    }
-
-    .search-item__jump {
-        position: relative;
-        padding: 5px 4px 0;
-        border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.4);
-        font-size: 12px;
-        font-weight: 600;
-        text-decoration: none;
-    }
 }
 
 .search-item-time {
