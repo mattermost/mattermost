@@ -753,15 +753,16 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}, -1)
 		require.NoError(t, err)
 
-		o1, err := ss.Post().Save(&model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestId()})
+		now := model.GetMillis()
+		o1, err := ss.Post().Save(&model.Post{CreateAt: now, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestId()})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		_, err = ss.Post().Save(&model.Post{CreateAt: now + 1, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		m1, err := ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		m1, err := ss.Post().Save(&model.Post{CreateAt: now + 2, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		_, err = ss.Post().Save(&model.Post{CreateAt: now + 3, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		_, err = ss.Post().Save(&model.Post{CreateAt: now + 4, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
 
 		opts := model.GetPostsOptions{
