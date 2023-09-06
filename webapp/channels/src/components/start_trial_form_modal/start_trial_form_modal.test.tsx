@@ -3,17 +3,21 @@
 
 import React from 'react';
 import {Provider} from 'react-redux';
-import mockStore from 'tests/test_store';
-import {ModalIdentifiers} from 'utils/constants';
-import StartTrialFormModal from '.';
 import {BrowserRouter} from 'react-router-dom';
+
+import {trackEvent} from 'actions/telemetry_actions';
+
 import {
     act,
-    RenderResult,
     renderWithIntl,
     screen,
 } from 'tests/react_testing_utils';
-import {trackEvent} from 'actions/telemetry_actions';
+import type {
+    RenderResult} from 'tests/react_testing_utils';
+import mockStore from 'tests/test_store';
+import {ModalIdentifiers} from 'utils/constants';
+
+import StartTrialFormModal from '.';
 
 jest.mock('actions/telemetry_actions.jsx', () => {
     const original = jest.requireActual('actions/telemetry_actions.jsx');

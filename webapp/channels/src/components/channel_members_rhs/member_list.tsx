@@ -3,11 +3,12 @@
 
 import React, {memo, useEffect, useRef, useState} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import {VariableSizeList, ListChildComponentProps} from 'react-window';
+import {VariableSizeList} from 'react-window';
+import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import Member from './member';
 
@@ -28,7 +29,6 @@ interface ListItem {
     type: ListItemType;
     data: ChannelMember | JSX.Element;
 }
-
 export interface Props {
     channel: Channel;
     members: ListItem[];

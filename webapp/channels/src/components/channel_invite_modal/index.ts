@@ -2,33 +2,32 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {GroupSearchParams} from '@mattermost/types/groups';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {getTeamStats, getTeamMembersByIds} from 'mattermost-redux/actions/teams';
 import {getProfilesNotInChannel, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
-import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
-import {getTeammateNameDisplaySetting, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
+import {Permissions} from 'mattermost-redux/constants';
+import {getRecentProfilesFromDMs} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {makeGetAllAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
+import {getTeammateNameDisplaySetting, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam, getMembersInCurrentTeam, getMembersInTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {Permissions} from 'mattermost-redux/constants';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {TeamMembership} from '@mattermost/types/teams';
-import {GroupSearchParams} from '@mattermost/types/groups';
+import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
+import type {Action, ActionResult} from 'mattermost-redux/types/actions';
 
 import {addUsersToChannel} from 'actions/channel_actions';
 import {loadStatusesForProfilesList} from 'actions/status_actions';
-
-import {closeModal} from 'actions/views/modals';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
+import {closeModal} from 'actions/views/modals';
 
-import {GlobalState} from 'types/store';
-
-import {getRecentProfilesFromDMs} from 'mattermost-redux/selectors/entities/channels';
-import {makeGetAllAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
+import type {GlobalState} from 'types/store';
 
 import ChannelInviteModal from './channel_invite_modal';
 

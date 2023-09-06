@@ -4,10 +4,8 @@
 import {batchActions} from 'redux-batched-actions';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-
 import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
-
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getKnownUsers} from './users';
 

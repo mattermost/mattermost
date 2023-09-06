@@ -1,36 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isEqual} from 'lodash';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
-import {isEqual} from 'lodash';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
+import type {Channel} from '@mattermost/types/channels';
+import type {Group, GroupSearchParams} from '@mattermost/types/groups';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {Group, GroupSearchParams} from '@mattermost/types/groups';
-import {TeamMembership} from '@mattermost/types/teams';
-
-import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterGroupsMatchingTerm} from 'mattermost-redux/utils/group_utils';
-import {localizeMessage, sortUsersAndGroups} from 'utils/utils';
-import ProfilePicture from 'components/profile_picture';
-import MultiSelect, {Value} from 'components/multiselect/multiselect';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
+import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import InvitationModal from 'components/invitation_modal';
+import MultiSelect from 'components/multiselect/multiselect';
+import type {Value} from 'components/multiselect/multiselect';
+import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
+import AddIcon from 'components/widgets/icons/fa_add_icon';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+
+import Constants, {ModalIdentifiers} from 'utils/constants';
+import {localizeMessage, sortUsersAndGroups} from 'utils/utils';
 
 import GroupOption from './group_option';
 import TeamWarningBanner from './team_warning_banner';
-
-import Constants, {ModalIdentifiers} from 'utils/constants';
 
 const USERS_PER_PAGE = 50;
 const USERS_FROM_DMS = 10;

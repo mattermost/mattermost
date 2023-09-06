@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getUserOptionsFromFilter, searchUserOptionsFromFilter, isActive, FilterOptions} from './filter_users';
+import {getUserOptionsFromFilter, searchUserOptionsFromFilter, isActive} from './filter_users';
+import type {FilterOptions} from './filter_users';
 
 describe('filter_users', () => {
     describe('getUserOptionsFromFilter', () => {

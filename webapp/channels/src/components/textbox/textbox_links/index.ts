@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 
-import {GlobalState} from 'types/store';
-
 import {getCurrentLocale} from 'selectors/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import TextboxLinks from './textbox_links';
 
