@@ -658,13 +658,13 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	olderPost, err := ss.Post().Save(&model.Post{
 		ChannelId: channel.Id,
 		UserId:    model.NewId(),
-		CreateAt:  1000,
+		CreateAt:  1,
 	})
 	require.NoError(t, err)
 	newerPost, err := ss.Post().Save(&model.Post{
 		ChannelId: channel.Id,
 		UserId:    model.NewId(),
-		CreateAt:  3000,
+		CreateAt:  3,
 	})
 	require.NoError(t, err)
 
@@ -693,7 +693,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 	}
 
-	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 
 	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
