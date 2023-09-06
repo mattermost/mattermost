@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {mount} from 'enzyme';
+import React from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
-import {TestHelper} from 'utils/test_helper';
-
-import {mockStore} from 'tests/test_store';
 
 import FollowButton from 'components/threading/common/follow_button';
 
+import {mockStore} from 'tests/test_store';
 import {WindowSizes} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import RhsHeaderPost from './index';
 

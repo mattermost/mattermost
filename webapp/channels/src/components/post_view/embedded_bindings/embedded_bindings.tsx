@@ -3,11 +3,10 @@
 
 import React from 'react';
 
-import {Post} from '@mattermost/types/posts';
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
 
-import {AppBinding} from '@mattermost/types/apps';
-
-import {TextFormattingOptions} from 'utils/text_formatting';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import EmbeddedBinding from './embedded_binding';
 

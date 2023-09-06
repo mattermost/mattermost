@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 import {Link} from 'react-router-dom';
 
 import * as GlobalActions from 'actions/global_actions';
-import {isMobile} from 'utils/user_agent';
-import {Locations} from 'utils/constants';
+
 import OverlayTrigger from 'components/overlay_trigger';
+import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tooltip from 'components/tooltip';
 
-import Timestamp, {RelativeRanges} from 'components/timestamp';
+import {Locations} from 'utils/constants';
+import {isMobile} from 'utils/user_agent';
 
 const POST_TOOLTIP_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

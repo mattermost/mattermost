@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -13,6 +14,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
 func TestCreatePluginsFile(t *testing.T) {
@@ -48,16 +51,42 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	license.Features.Users = model.NewInt(licenseUsers)
 	th.App.Srv().SetLicense(license)
 
-	// Happy path where we have a support packet yaml file without any warnings
-	fileData, err := th.App.generateSupportPacketYaml(ctx)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "support_packet.yaml", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.NoError(t, err)
-	var packet model.SupportPacket
-	require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
-	assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic.
-	assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
+	t.Run("Happy path", func(t *testing.T) {
+		// Happy path where we have a support packet yaml file without any warnings
+
+		fileData, err := th.App.generateSupportPacketYaml(ctx)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "support_packet.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+		assert.NoError(t, err)
+		var packet model.SupportPacket
+		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+
+		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic.
+		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
+		assert.Empty(t, packet.ClusterID)
+		assert.Equal(t, "local", packet.FileDriver)
+		assert.Equal(t, "OK", packet.FileStatus)
+	})
+
+	t.Run("filestore fails", func(t *testing.T) {
+		fb := &fmocks.FileBackend{}
+		platform.SetFileStore(fb)(th.Server.Platform())
+		fb.On("DriverName").Return("mock")
+		fb.On("TestConnection").Return(errors.New("all broken"))
+
+		fileData, err := th.App.generateSupportPacketYaml(ctx)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "support_packet.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+		assert.NoError(t, err)
+		var packet model.SupportPacket
+		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+
+		assert.Equal(t, "mock", packet.FileDriver)
+		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
+	})
+
 }
 
 func TestGenerateSupportPacket(t *testing.T) {

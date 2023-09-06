@@ -5424,22 +5424,6 @@ func (s *TimerLayerPostStore) Delete(postID string, timestamp int64, deleteByID 
 	return err
 }
 
-func (s *TimerLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
-	start := time.Now()
-
-	result, err := s.PostStore.DeleteOrphanedRows(limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.DeleteOrphanedRows", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
@@ -6623,10 +6607,10 @@ func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error
 	return err
 }
 
-func (s *TimerLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
+func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
 	start := time.Now()
 
-	result, err := s.ReactionStore.DeleteOrphanedRows(limit)
+	err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6634,9 +6618,9 @@ func (s *TimerLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.DeleteOrphanedRows", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.DeleteOrphanedRowsByIds", success, elapsed)
 	}
-	return result, err
+	return err
 }
 
 func (s *TimerLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
@@ -6685,6 +6669,22 @@ func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.PermanentDeleteBatch", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerReactionStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.ReactionStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
@@ -6987,6 +6987,22 @@ func (s *TimerLayerRetentionPolicyStore) GetCount() (int64, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetCount", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
+	start := time.Now()
+
+	result, err := s.RetentionPolicyStore.GetIdsForDeletionByTableName(tableName, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetIdsForDeletionByTableName", success, elapsed)
 	}
 	return result, err
 }

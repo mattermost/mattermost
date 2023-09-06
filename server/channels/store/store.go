@@ -111,6 +111,7 @@ type RetentionPolicyStore interface {
 	GetTeamPoliciesCountForUser(userID string) (int64, error)
 	GetChannelPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForChannel, error)
 	GetChannelPoliciesCountForUser(userID string) (int64, error)
+	GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error)
 }
 
 type TeamStore interface {
@@ -378,7 +379,6 @@ type PostStore interface {
 	GetEditHistoryForPost(postId string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
-	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
@@ -721,8 +721,9 @@ type ReactionStore interface {
 	GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error)
 	DeleteAllWithEmojiName(emojiName string) error
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
-	DeleteOrphanedRows(limit int) (int64, error)
+	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	PermanentDeleteByUser(userID string) error
 }
 
 type JobStore interface {

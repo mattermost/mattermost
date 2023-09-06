@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {ServerError} from '@mattermost/types/errors';
 
 import {sendPasswordResetEmail} from 'mattermost-redux/actions/users';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {ServerError} from '@mattermost/types/errors';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import PasswordResetSendLink from './password_reset_send_link';
 

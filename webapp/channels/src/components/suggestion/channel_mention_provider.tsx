@@ -3,19 +3,20 @@
 
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
-import {ActionResult} from 'mattermost-redux/types/actions.js';
+import type {Channel} from '@mattermost/types/channels';
 
 import {getMyChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
-
+import type {ActionResult} from 'mattermost-redux/types/actions.js';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
 import store from 'stores/redux_store.jsx';
 
 import {Constants} from 'utils/constants';
 
-import Provider, {ResultsCallback} from './provider';
-import {SuggestionContainer, SuggestionProps} from './suggestion';
+import Provider from './provider';
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
 
 export const MIN_CHANNEL_LINK_LENGTH = 2;
 
