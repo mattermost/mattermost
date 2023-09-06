@@ -5,6 +5,7 @@ import {isEqual} from 'lodash';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Group, GroupSearchParams} from '@mattermost/types/groups';
@@ -88,6 +89,15 @@ type State = {
     loadingUsers: boolean;
     inviteError?: string;
 }
+
+const UsernameSpan = styled.span`
+    fontSize: 12px;
+`;
+
+const UserMappingSpan = styled.span`
+    position: 'absolute';
+    right: 20;
+`;
 
 export default class ChannelInviteModal extends React.PureComponent<Props, State> {
     private searchTimeoutId = 0;
@@ -399,19 +409,17 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                                 {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
                                 {displayName === option.username ?
                                     null :
-                                    <span
+                                    <UsernameSpan
                                         className='ml-2 light'
-                                        style={{fontSize: '12px'}}
                                     >
                                         {'@'}{option.username}
-                                    </span>
+                                    </UsernameSpan>
                                 }
-                                <span
-                                    style={{position: 'absolute', right: 20}}
+                                <UserMappingSpan
                                     className='light'
                                 >
                                     {userMapping[option.id]}
-                                </span>
+                                </UserMappingSpan>
                             </span>
                         </div>
                     </div>

@@ -71,7 +71,7 @@ const GroupOption = (props: Props) => {
             // Unbind the event listener on clean up
             document.removeEventListener('keydown', onKeyDown, true);
         };
-    }, [isSelected, onKeyDown]);
+    }, [onKeyDown]);
 
     return (
         <div
