@@ -43,6 +43,7 @@ export default class MessageExportSettings extends AdminSettings {
             enableComplianceExport: config.MessageExportSettings.EnableExport,
             exportFormat: config.MessageExportSettings.ExportFormat,
             exportJobStartTime: config.MessageExportSettings.DailyRunTime,
+            canRunJob: config.MessageExportSettings.EnableExport,
         };
         if (config.MessageExportSettings.GlobalRelaySettings) {
             state.globalRelayCustomerType = config.MessageExportSettings.GlobalRelaySettings.CustomerType;
@@ -317,7 +318,7 @@ export default class MessageExportSettings extends AdminSettings {
                         />
                     }
                     getExtraInfoText={this.getJobDetails}
-                    disabled={this.props.isDisabled || !this.state.enableComplianceExport}
+                    disabled={this.props.isDisabled || !this.state.canRunJob}
                 />
             </SettingsGroup>
         );
