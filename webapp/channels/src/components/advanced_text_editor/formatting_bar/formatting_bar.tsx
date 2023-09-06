@@ -129,6 +129,8 @@ interface FormattingBarProps {
     additionalControls?: React.ReactNodeArray;
 }
 
+const DEFAULT_MIN_MODE_X_COORD = 55;
+
 const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     const {
         applyMarkdown,
@@ -224,10 +226,12 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         }
     }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, toggleHiddenControls, disableControls]);
 
+    const leftPosition = wideMode === 'min' ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
+
     const hiddenControlsContainerStyles: React.CSSProperties = {
         position: strategy,
         top: y ?? 0,
-        left: x ?? 0,
+        left: leftPosition,
     };
 
     const showSeparators = wideMode === 'wide';
