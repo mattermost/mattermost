@@ -786,7 +786,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.sensitiveCustomWords'
-                                defaultMessage='Other non case-sensitive words, press TAB to seperate keywords:'
+                                defaultMessage='Other non case-sensitive words, press Tab or use commas to separate keywords:'
                             />
                         </label>
                     </div>
@@ -817,7 +817,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             const extraInfo = (
                 <FormattedMessage
                     id='user.settings.notifications.keywordsWithNotification.extraInfo'
-                    defaultMessage='Notifications get triggered when someone sends a message that includes your username ("@{username}") or any of the options selected above.'
+                    defaultMessage='Notifications are triggered when someone sends a message that includes your username ("@{username}") or any of the options selected above.'
                     values={{
                         username: user.username,
                     }}
