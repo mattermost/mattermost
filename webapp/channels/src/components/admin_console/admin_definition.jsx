@@ -2278,6 +2278,15 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'TeamSettings.EnableJoinLeaveMessageByDefault',
+                        label: t('admin.team.enableJoinLeaveMessageTitle'),
+                        label_default: 'Enable join/leave messages by default:',
+                        help_text: t('admin.team.enableJoinLeaveMessageDescription'),
+                        help_text_default: 'Choose the default configuration of system messages displayed when users join or leave channels. Users can override this default by configuring Join/Leave messages in Account Settings > Advanced.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_DROPDOWN,
                         key: 'TeamSettings.RestrictDirectMessage',
                         label: t('admin.team.restrictDirectMessage'),
@@ -3045,6 +3054,15 @@ const AdminDefinition = {
                         type: Constants.SettingsTypes.TYPE_CUSTOM,
                         component: CustomURLSchemesSetting,
                         key: 'DisplaySettings.CustomURLSchemes',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'DisplaySettings.MaxMarkdownNodes',
+                        label: t('admin.customization.maxMarkdownNodesTitle'),
+                        label_default: 'Max Markdown Nodes:',
+                        help_text: t('admin.customization.maxMarkdownNodesDesc'),
+                        help_text_default: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {

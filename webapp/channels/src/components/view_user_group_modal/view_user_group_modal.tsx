@@ -174,7 +174,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
         if (group) {
             return (
                 <div className='group-mention-name'>
-                    <span className='group-name'>{`@ ${group.name}`}</span>
+                    <span className='group-name'>{`@${group.name}`}</span>
                     {
                         group.source.toLowerCase() === GroupSource.Ldap &&
                         <span className='group-source'>
