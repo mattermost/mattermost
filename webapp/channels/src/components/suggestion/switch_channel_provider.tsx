@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {connect} from 'react-redux';
-import classNames from 'classnames';
 
-import {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
+import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
+import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
+import {Preferences} from 'mattermost-redux/constants';
 import {
     getDirectAndGroupChannels,
     getGroupChannels,
@@ -27,15 +27,15 @@ import {
     getSortedAllTeamsUnreadChannels,
     getAllTeamsUnreadChannelIds,
 } from 'mattermost-redux/selectors/entities/channels';
-
-import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getActiveTeamsList,
     getCurrentTeamId,
     getMyTeams,
     getTeam,
 } from 'mattermost-redux/selectors/entities/teams';
+import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 import {
     getCurrentUserId,
     getUserIdsInChannels,
@@ -43,25 +43,29 @@ import {
     makeSearchProfilesMatchingWithTerm,
     getStatusForUserId,
 } from 'mattermost-redux/selectors/entities/users';
-import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
-import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
-import {logError} from 'mattermost-redux/actions/errors';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortChannelsByTypeAndDisplayName, isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import ProfilePicture from 'components/profile_picture';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
+
 import {getPostDraft} from 'selectors/rhs';
 import store from 'stores/redux_store.jsx';
+
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import ProfilePicture from 'components/profile_picture';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+
 import {Constants, StoragePrefixes} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-import {Preferences} from 'mattermost-redux/constants';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import Provider, {ResultsCallback} from './provider';
-import {SuggestionContainer, SuggestionProps} from './suggestion';
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
+
+import Provider from './provider';
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
 
 const getState = store.getState;
 const searchProfilesMatchingWithTerm = makeSearchProfilesMatchingWithTerm();

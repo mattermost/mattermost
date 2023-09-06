@@ -4,15 +4,18 @@
 import {useEffect, useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {setItem} from 'actions/storage';
-import {getCloudProducts} from 'mattermost-redux/actions/cloud';
-import {Subscription} from '@mattermost/types/cloud';
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
-import {ModalData} from 'types/actions';
+import type {Subscription} from '@mattermost/types/cloud';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
+import {getCloudProducts} from 'mattermost-redux/actions/cloud';
+import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+
+import {setItem} from 'actions/storage';
 import {makeGetItem} from 'selectors/storage';
+
+import {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 import DelinquencyModal from './delinquency_modal';
 

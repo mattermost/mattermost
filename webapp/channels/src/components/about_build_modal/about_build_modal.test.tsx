@@ -3,12 +3,11 @@
 
 import React from 'react';
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 
 import AboutBuildModal from 'components/about_build_modal/about_build_modal';
 
 import {renderWithFullContext, screen, userEvent} from 'tests/react_testing_utils';
-
 import {AboutLinks} from 'utils/constants';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';

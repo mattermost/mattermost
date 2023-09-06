@@ -2,20 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {getUser} from 'mattermost-redux/selectors/entities/users';
+import type {ServerError} from '@mattermost/types/errors';
+import type {GlobalState} from '@mattermost/types/store';
+import type {TeamMembership} from '@mattermost/types/teams';
+
+import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {addUserToTeam} from 'mattermost-redux/actions/teams';
-
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from '@mattermost/types/store';
-
-import {ServerError} from '@mattermost/types/errors';
-
-import {TeamMembership} from '@mattermost/types/teams';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 

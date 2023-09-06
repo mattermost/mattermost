@@ -6,6 +6,7 @@ import {ClientError} from '@mattermost/client';
 import {UserTypes} from 'mattermost-redux/action_types';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
+
 import configureStore, {mockDispatch} from '../../test/test_store';
 
 describe('Actions.Helpers', () => {

@@ -14,7 +14,6 @@ import {
     InvoiceInfo,
     freeTrial,
 } from './billing_summary';
-
 import {tryEnterpriseCard, UpgradeToProfessionalCard} from './upsell_card';
 
 import './billing_summary.scss';
