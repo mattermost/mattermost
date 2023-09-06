@@ -57,8 +57,8 @@ func (_m *FileBackend) CopyFile(oldPath string, newPath string) error {
 	return r0
 }
 
-// Driver provides a mock function with given fields:
-func (_m *FileBackend) Driver() string {
+// DriverName provides a mock function with given fields:
+func (_m *FileBackend) DriverName() string {
 	ret := _m.Called()
 
 	var r0 string

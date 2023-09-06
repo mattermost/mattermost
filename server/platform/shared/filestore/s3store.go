@@ -184,7 +184,7 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 	return s3Clnt, nil
 }
 
-func (b *S3FileBackend) Driver() string {
+func (b *S3FileBackend) DriverName() string {
 	return driverS3
 }
 

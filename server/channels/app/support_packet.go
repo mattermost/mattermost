@@ -72,7 +72,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		clusterID = a.Cluster().GetClusterId()
 	}
 
-	fileDriver := a.Srv().Platform().FileBackend().Driver()
+	fileDriver := a.Srv().Platform().FileBackend().DriverName()
 
 	fileStatus := model.StatusOk
 	err := a.Srv().Platform().FileBackend().TestConnection()

@@ -68,7 +68,7 @@ func copyFile(src, dst string) (err error) {
 	return
 }
 
-func (b *LocalFileBackend) Driver() string {
+func (b *LocalFileBackend) DriverName() string {
 	return driverLocal
 }
 
