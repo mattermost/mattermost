@@ -31,7 +31,7 @@ import {GenericModal} from '@mattermost/components';
 import {PostPreviewMetadata} from '@mattermost/types/posts';
 import {getSiteURL} from '../../utils/url';
 
-import ForwardPostChannelSelect, {ChannelOption, makeSelectedChannelOption} from './forward_post_channel_select';
+import ForwardPostChannelSelect, {ChannelOption, makeSelectedChannelOption} from './channel_selector';
 import ForwardPostCommentInput from './forward_post_comment_input';
 
 import {ActionProps, OwnProps, PropsFromRedux} from './index';

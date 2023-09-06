@@ -3113,10 +3113,10 @@ const AdminDefinition = {
                     {
                         type: Constants.SettingsTypes.TYPE_ROLES,
                         multiple: true,
-                        key: 'WranglerSettings.PermittedWranglerUsers',
-                        label: t('admin.experimental.permittedWranglerUsers.title'),
+                        key: 'WranglerSettings.PermittedWranglerRoles',
+                        label: t('admin.experimental.PermittedWranglerRoles.title'),
                         label_default: 'Permitted Roles',
-                        help_text: t('admin.experimental.permittedWranglerUsers.desc'),
+                        help_text: t('admin.experimental.PermittedWranglerRoles.desc'),
                         help_text_default: 'Choose who is allowed to move threads to other channels based on roles. (Other permissions below still apply).',
                         help_text_markdown: false,
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),

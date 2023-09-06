@@ -73,7 +73,7 @@ export function makeCanWrangler() {
                 return false;
             }
             const {
-                WranglerPermittedWranglerUsers,
+                WranglerPermittedWranglerRoles,
                 WranglerAllowedEmailDomain,
                 WranglerMoveThreadMaxCount,
                 WranglerMoveThreadFromPrivateChannelEnable,
@@ -82,8 +82,8 @@ export function makeCanWrangler() {
             } = config;
 
             let permittedUsers: string[] = [];
-            if (WranglerPermittedWranglerUsers && WranglerPermittedWranglerUsers !== '') {
-                permittedUsers = WranglerPermittedWranglerUsers?.split(',');
+            if (WranglerPermittedWranglerRoles && WranglerPermittedWranglerRoles !== '') {
+                permittedUsers = WranglerPermittedWranglerRoles?.split(',');
             }
 
             let allowedEmailDomains: string[] = [];
@@ -91,7 +91,7 @@ export function makeCanWrangler() {
                 allowedEmailDomains = WranglerAllowedEmailDomain?.split(',') || [];
             }
 
-            if (permittedUsers?.length > 0) {
+            if (permittedUsers.length > 0) {
                 const roles = user.roles.split(' ');
                 const hasRole = roles.some((role) => permittedUsers.includes(role));
                 if (!hasRole) {

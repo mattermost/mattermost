@@ -585,8 +585,8 @@ export default class SchemaAdminSettings extends React.PureComponent {
         const values = Object.keys(roles).map((r) => {
             const text = roles[r].display_name ? (
                 <FormattedMessage
-                    id={roles[r].display_name}
-                    defaultMessage={roles[r].name}
+                    id={roles[r].name}
+                    defaultMessage={roles[r].display_name}
                 />
             ) : roles[r].name;
 

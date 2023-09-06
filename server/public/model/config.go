@@ -3080,7 +3080,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 }
 
 type WranglerSettings struct {
-	PermittedWranglerUsers                   []string
+	PermittedWranglerRoles                   []string
 	AllowedEmailDomain                       []string
 	MoveThreadMaxCount                       *int64
 	MoveThreadToAnotherTeamEnable            *bool
@@ -3090,8 +3090,8 @@ type WranglerSettings struct {
 }
 
 func (w *WranglerSettings) SetDefaults() {
-	if w.PermittedWranglerUsers == nil {
-		w.PermittedWranglerUsers = make([]string, 0)
+	if w.PermittedWranglerRoles == nil {
+		w.PermittedWranglerRoles = make([]string, 0)
 	}
 	if w.AllowedEmailDomain == nil {
 		w.AllowedEmailDomain = make([]string, 0)
@@ -3100,10 +3100,10 @@ func (w *WranglerSettings) SetDefaults() {
 		w.MoveThreadMaxCount = NewInt64(100)
 	}
 	if w.MoveThreadToAnotherTeamEnable == nil {
-		w.MoveThreadToAnotherTeamEnable = NewBool(true)
+		w.MoveThreadToAnotherTeamEnable = NewBool(false)
 	}
 	if w.MoveThreadFromPrivateChannelEnable == nil {
-		w.MoveThreadFromPrivateChannelEnable = NewBool(true)
+		w.MoveThreadFromPrivateChannelEnable = NewBool(false)
 	}
 	if w.MoveThreadFromDirectMessageChannelEnable == nil {
 		w.MoveThreadFromDirectMessageChannelEnable = NewBool(false)

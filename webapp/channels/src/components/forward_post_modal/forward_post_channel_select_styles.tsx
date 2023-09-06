@@ -5,7 +5,7 @@ import {CSSProperties} from 'react';
 import {ControlProps} from 'react-select';
 import * as CSS from 'csstype';
 
-import {ChannelOption} from './forward_post_channel_select';
+import {ChannelOption} from './channel_selector';
 
 type Pseudos = CSS.Pseudos | '::-webkit-scrollbar' | '::-webkit-scrollbar-track' | '::-webkit-scrollbar-thumb';
 

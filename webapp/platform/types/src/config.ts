@@ -203,7 +203,7 @@ export type ClientConfig = {
     PersistentNotificationIntervalMinutes: string;
     AllowPersistentNotificationsForGuests: string;
     DelayChannelAutocomplete: 'true' | 'false';
-    WranglerPermittedWranglerUsers: string;
+    WranglerPermittedWranglerRoles: string;
     WranglerAllowedEmailDomain: string;
     WranglerMoveThreadMaxCount: string;
     WranglerMoveThreadFromPrivateChannelEnable: string;
@@ -490,7 +490,7 @@ export type PasswordSettings = {
 };
 
 export type WranglerSettings = {
-    PermittedWranglerUsers: string[];
+    PermittedWranglerRoles: string[];
     AllowedEmailDomain: string[];
     MoveThreadMaxCount: number;
     MoveThreadToAnotherTeamEnable: boolean;

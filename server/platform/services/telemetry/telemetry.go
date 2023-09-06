@@ -886,7 +886,7 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigWrangler, map[string]any{
-		"permitted_wrangler_users":                       cfg.WranglerSettings.PermittedWranglerUsers,
+		"permitted_wrangler_users":                       cfg.WranglerSettings.PermittedWranglerRoles,
 		"allowed_email_domain":                           cfg.WranglerSettings.AllowedEmailDomain,
 		"move_thread_max_count":                          cfg.WranglerSettings.MoveThreadMaxCount,
 		"move_thread_to_another_team_enable":             cfg.WranglerSettings.MoveThreadToAnotherTeamEnable,

@@ -144,7 +144,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
 	props["DelayChannelAutocomplete"] = strconv.FormatBool(*c.ExperimentalSettings.DelayChannelAutocomplete)
 
-	props["WranglerPermittedWranglerUsers"] = strings.Join(c.WranglerSettings.PermittedWranglerUsers, ",")
+	props["WranglerPermittedWranglerRoles"] = strings.Join(c.WranglerSettings.PermittedWranglerRoles, ",")
 	props["WranglerAllowedEmailDomain"] = strings.Join(c.WranglerSettings.AllowedEmailDomain, ",")
 	props["WranglerMoveThreadMaxCount"] = strconv.FormatInt(*c.WranglerSettings.MoveThreadMaxCount, 10)
 	props["WranglerMoveThreadToAnotherTeamEnable"] = strconv.FormatBool(*c.WranglerSettings.MoveThreadToAnotherTeamEnable)

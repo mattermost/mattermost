@@ -1127,15 +1127,20 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("moveThread", audit.Fail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	audit.AddEventParameter(auditRec, "original_post_id", c.Params.PostId)
+	audit.AddEventParameter(auditRec, "to_channel_id", moveThreadParams.ChannelId)
+
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	// If there are no configured PermittedWranglerUsers, skip the check
-	userHasRole := len(c.App.Config().WranglerSettings.PermittedWranglerUsers) == 0
-	for _, role := range c.App.Config().WranglerSettings.PermittedWranglerUsers {
+	// If there are no configured PermittedWranglerRoles, skip the check
+	userHasRole := len(c.App.Config().WranglerSettings.PermittedWranglerRoles) == 0
+	for _, role := range c.App.Config().WranglerSettings.PermittedWranglerRoles {
 		if user.IsInRole(role) {
 			userHasRole = true
 			break
@@ -1176,6 +1181,8 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 
 	ReturnStatusOK(w)
 }

@@ -689,7 +689,7 @@ const defaultServerConfig: AdminConfig = {
         RetentionDays: 30,
     },
     WranglerSettings: {
-        PermittedWranglerUsers: [],
+        PermittedWranglerRoles: [],
         AllowedEmailDomain: [],
         MoveThreadMaxCount: 30,
         MoveThreadToAnotherTeamEnable: true,
