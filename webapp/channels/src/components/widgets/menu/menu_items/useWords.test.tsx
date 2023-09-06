@@ -4,11 +4,10 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
+import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
+
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-
-import {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-
 import {FileSizes} from 'utils/file_utils';
 import {LimitTypes} from 'utils/limits';
 

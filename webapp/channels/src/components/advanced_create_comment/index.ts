@@ -2,36 +2,26 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {GlobalState} from 'types/store/index.js';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
-import {ModalData} from 'types/actions.js';
-
-import {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
-
-import {PostDraft} from 'types/store/draft';
-
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getAllChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
-import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/posts';
-import {resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
 import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
-import {Permissions, Preferences, Posts} from 'mattermost-redux/constants';
-import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {PreferenceType} from '@mattermost/types/preferences';
+import {resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Permissions, Preferences, Posts} from 'mattermost-redux/constants';
+import {getAllChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
+import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/posts';
+import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
 
-import {connectionErrorCount} from 'selectors/views/system';
-
-import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
-import {getCurrentLocale} from 'selectors/i18n';
-
+import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {
     clearCommentDraftUploads,
     updateCommentDraft,
@@ -39,14 +29,20 @@ import {
     makeOnSubmit,
     makeOnEditLatestPost,
 } from 'actions/views/create_comment';
-import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
-import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selectors/rhs';
-import {showPreviewOnCreateComment} from 'selectors/views/textbox';
-import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
-import {openModal} from 'actions/views/modals';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
+import {openModal} from 'actions/views/modals';
+import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
+import {getCurrentLocale} from 'selectors/i18n';
+import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selectors/rhs';
+import {connectionErrorCount} from 'selectors/views/system';
+import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 
+import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
+
+import type {ModalData} from 'types/actions.js';
+import type {PostDraft} from 'types/store/draft';
+import type {GlobalState} from 'types/store/index.js';
 
 import AdvancedCreateComment from './advanced_create_comment';
 
@@ -87,6 +83,7 @@ function makeMapStateToProps() {
         const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
         const isFormattingBarHidden = getBool(state, Constants.Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.COMMENT);
         const currentTeamId = getCurrentTeamId(state);
+        const postEditorActions = state.plugins.components.PostEditorAction;
 
         return {
             currentTeamId,
@@ -116,6 +113,7 @@ function makeMapStateToProps() {
             channelMemberCountsByGroup,
             useCustomGroupMentions,
             canUploadFiles: canUploadFiles(config),
+            postEditorActions,
         };
     };
 }

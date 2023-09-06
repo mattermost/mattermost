@@ -4,9 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 
-import {TestHelper} from '../../../utils/test_helper';
+import {TestHelper} from 'utils/test_helper';
 
 import FilePreviewModalHeader from './file_preview_modal_header';
 

@@ -88,8 +88,17 @@ func (s *S3FileBackendNoBucketError) Error() string {
 	return "no such bucket"
 }
 
-// NewS3FileBackend returns an instance of an S3FileBackend.
+// NewS3FileBackend returns an instance of an S3FileBackend and determine if we are in Mattermost cloud or not.
 func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
+	return newS3FileBackend(settings, os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != "")
+}
+
+// NewS3FileBackendWithoutBifrost returns an instance of an S3FileBackend that will not use bifrost.
+func NewS3FileBackendWithoutBifrost(settings FileBackendSettings) (*S3FileBackend, error) {
+	return newS3FileBackend(settings, false)
+}
+
+func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBackend, error) {
 	timeout := time.Duration(settings.AmazonS3RequestTimeoutMilliseconds) * time.Millisecond
 	backend := &S3FileBackend{
 		endpoint:       settings.AmazonS3Endpoint,
@@ -106,7 +115,6 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 		timeout:        timeout,
 		presignExpires: time.Duration(settings.AmazonS3PresignExpiresSeconds) * time.Second,
 	}
-	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
 	cli, err := backend.s3New(isCloud)
 	if err != nil {
 		return nil, err
@@ -174,6 +182,10 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 	}
 
 	return s3Clnt, nil
+}
+
+func (b *S3FileBackend) DriverName() string {
+	return driverS3
 }
 
 func (b *S3FileBackend) TestConnection() error {

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import ColorHash from 'color-hash';
 import ColorContrastChecker from 'color-contrast-checker';
+import ColorHash from 'color-hash';
 
 const cachedColors = new Map<string, string>();
 

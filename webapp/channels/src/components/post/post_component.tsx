@@ -1,57 +1,57 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent, useCallback, useEffect, useRef, useState, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
+import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
+import type {MouseEvent} from 'react';
+import {FormattedMessage} from 'react-intl';
+
+import type {Emoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants/index';
 import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
-import Constants, {A11yCustomEventTypes, A11yFocusEventDetail, AppEvents, Locations} from 'utils/constants';
-
-import * as PostUtils from 'utils/post_utils';
-
-import {PostPluginComponent} from 'types/store/plugins';
-
-import FileAttachmentListContainer from 'components/file_attachment_list';
-import DateSeparator from 'components/post_view/date_separator';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import PostProfilePicture from 'components/post_profile_picture';
-import FailedPostOptions from 'components/post_view/failed_post_options';
-import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
-import PostTime from 'components/post_view/post_time';
-import ReactionList from 'components/post_view/reaction_list';
-import MessageWithAdditionalContent from 'components/message_with_additional_content';
-import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import PostPreHeader from 'components/post_view/post_pre_header';
-import EditPost from 'components/edit_post';
-import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
-import {Props as TimestampProps} from 'components/timestamp/timestamp';
-import ThreadFooter from 'components/threading/channel_threads/thread_footer';
-import PostAcknowledgements from 'components/post_view/acknowledgements';
-import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
-import PostMessageContainer from 'components/post_view/post_message_view';
-import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
-import {getHistory} from 'utils/browser_history';
-import {isKeyPressed} from 'utils/keyboard';
-
 import {trackEvent} from 'actions/telemetry_actions';
 
-import CommentedOn from 'components/post_view/commented_on/commented_on';
+import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
+import EditPost from 'components/edit_post';
+import FileAttachmentListContainer from 'components/file_attachment_list';
+import MessageWithAdditionalContent from 'components/message_with_additional_content';
+import OverlayTrigger from 'components/overlay_trigger';
 import PriorityLabel from 'components/post_priority/post_priority_label';
+import PostProfilePicture from 'components/post_profile_picture';
+import PostAcknowledgements from 'components/post_view/acknowledgements';
+import CommentedOn from 'components/post_view/commented_on/commented_on';
+import DateSeparator from 'components/post_view/date_separator';
+import FailedPostOptions from 'components/post_view/failed_post_options';
+import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
+import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
+import PostMessageContainer from 'components/post_view/post_message_view';
+import PostPreHeader from 'components/post_view/post_pre_header';
+import PostTime from 'components/post_view/post_time';
+import ReactionList from 'components/post_view/reaction_list';
+import ThreadFooter from 'components/threading/channel_threads/thread_footer';
+import type {Props as TimestampProps} from 'components/timestamp/timestamp';
+import Tooltip from 'components/tooltip';
+import ArchiveIcon from 'components/widgets/icons/archive_icon';
+import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Post} from '@mattermost/types/posts';
-import {Emoji} from '@mattermost/types/emojis';
+import {getHistory} from 'utils/browser_history';
+import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+import * as PostUtils from 'utils/post_utils';
+import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
 
-import PostUserProfile from './user_profile';
+import type {PostPluginComponent, PluginComponent} from 'types/store/plugins';
+
 import PostOptions from './post_options';
-import {Team} from '@mattermost/types/teams';
+import PostUserProfile from './user_profile';
 
 export type Props = {
     post: Post;
@@ -118,6 +118,7 @@ export type Props = {
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
+    pluginActions: PluginComponent[];
 };
 
 const PostComponent = (props: Props): JSX.Element => {

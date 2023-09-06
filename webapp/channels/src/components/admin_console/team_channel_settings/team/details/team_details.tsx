@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {cloneDeep} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {cloneDeep} from 'lodash';
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Group, SyncablePatch, SyncableType} from '@mattermost/types/groups';
+import {SyncableType} from '@mattermost/types/groups';
+import type {Group, SyncablePatch} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {getHistory} from 'utils/browser_history';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -20,14 +19,16 @@ import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import RemoveConfirmModal from '../../remove_confirm_modal';
-import {NeedDomainsError, NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
-import SaveChangesPanel from '../../save_changes_panel';
+import {getHistory} from 'utils/browser_history';
 
-import {TeamProfile} from './team_profile';
-import {TeamModes} from './team_modes';
 import {TeamGroups} from './team_groups';
 import TeamMembers from './team_members/index';
+import {TeamModes} from './team_modes';
+import {TeamProfile} from './team_profile';
+
+import {NeedDomainsError, NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
+import RemoveConfirmModal from '../../remove_confirm_modal';
+import SaveChangesPanel from '../../save_changes_panel';
 
 export type Props = {
     teamID: string;

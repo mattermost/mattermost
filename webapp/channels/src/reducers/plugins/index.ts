@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import remove from 'lodash/remove';
 import {combineReducers} from 'redux';
 
-import remove from 'lodash/remove';
+import type {ClientPluginManifest} from '@mattermost/types/plugins';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-import {ClientPluginManifest} from '@mattermost/types/plugins';
-
-import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
 
 import {ActionTypes} from 'utils/constants';
+
+import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
 
 function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
     if (!menu.subMenu) {
@@ -181,6 +181,10 @@ const initialComponents: PluginsState['components'] = {
     ChannelHeaderButton: [],
     MobileChannelHeaderButton: [],
     PostDropdownMenu: [],
+    PostAction: [],
+    PostEditorAction: [],
+    CodeBlockAction: [],
+    NewMessagesSeparatorAction: [],
     Product: [],
     RightHandSidebarComponent: [],
     UserGuideDropdownItem: [],

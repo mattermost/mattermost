@@ -5,9 +5,10 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 
 import {openModal, closeModal} from 'actions/views/modals';
-import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 
 import mockStore from 'tests/test_store';
+import {ActionTypes, ModalIdentifiers} from 'utils/constants';
+
 class TestModal extends React.PureComponent {
     render() {
         return (

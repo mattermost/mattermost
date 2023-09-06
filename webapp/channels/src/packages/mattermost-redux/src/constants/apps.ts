@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppCallResponseType, AppExpandLevel, AppFieldType} from '@mattermost/types/apps';
+import type {AppCallResponseType, AppExpandLevel, AppFieldType} from '@mattermost/types/apps';
 
 export const AppBindingLocations = {
     POST_MENU_ITEM: '/post_menu',

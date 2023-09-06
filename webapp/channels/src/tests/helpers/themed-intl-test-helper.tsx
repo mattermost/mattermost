@@ -3,8 +3,9 @@
 
 import React from 'react';
 
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {mountWithIntl} from './intl-test-helper';
 

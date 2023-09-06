@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties, MouseEvent, PureComponent} from 'react';
+import React, {PureComponent} from 'react';
+import type {CSSProperties, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
-import * as Utils from 'utils/utils';
-import statusGreen from 'images/status_green.png';
-import statusYellow from 'images/status_yellow.png';
+
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
+
+import statusGreen from 'images/status_green.png';
+import statusYellow from 'images/status_yellow.png';
+import * as Utils from 'utils/utils';
 
 type Props = {
     clusterInfos: Array<{
@@ -15,6 +18,7 @@ type Props = {
         config_hash: string;
         hostname: string;
         ipaddress: string;
+        schema_version: string;
     }>;
     reload: (e: MouseEvent<HTMLButtonElement>) => void;
 }
@@ -130,6 +134,7 @@ export default class ClusterTable extends PureComponent<Props> {
                     <td style={style.clusterCell}>{versionMismatch} {clusterInfo.version}</td>
                     <td style={style.clusterCell}><div className='config-hash'>{configMismatch} {clusterInfo.config_hash}</div></td>
                     <td style={style.clusterCell}>{clusterInfo.ipaddress}</td>
+                    <td style={style.clusterCell}>{clusterInfo.schema_version}</td>
                 </tr>
             );
         });
@@ -183,6 +188,12 @@ export default class ClusterTable extends PureComponent<Props> {
                                 <FormattedMessage
                                     id='admin.cluster.status_table.url'
                                     defaultMessage='Gossip Address'
+                                />
+                            </th>
+                            <th>
+                                <FormattedMessage
+                                    id='admin.cluster.status_table.schema_version'
+                                    defaultMessage='DB Schema Version'
                                 />
                             </th>
                         </tr>

@@ -3,13 +3,15 @@
 
 import React from 'react';
 
-import {Team} from '@mattermost/types/teams';
-import {PostImage, PostType} from '@mattermost/types/posts';
+import type {PostImage, PostType} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
 
+import PostEditedIndicator from 'components/post_view/post_edited_indicator';
+
+import type EmojiMap from 'utils/emoji_map';
 import messageHtmlToComponent from 'utils/message_html_to_component';
-import EmojiMap from 'utils/emoji_map';
-import {ChannelNamesMap, TextFormattingOptions, formatText, MentionKey} from 'utils/text_formatting';
-import PostEditedIndicator from '../post_view/post_edited_indicator';
+import {formatText} from 'utils/text_formatting';
+import type {ChannelNamesMap, TextFormattingOptions, MentionKey} from 'utils/text_formatting';
 
 type Props = {
 
@@ -28,11 +30,6 @@ type Props = {
      * Whether or not to do Markdown rendering
      */
     enableFormatting?: boolean;
-
-    /*
-     * Whether or not this text is part of the RHS
-     */
-    isRHS?: boolean;
 
     /*
      * An array of paths on the server that are managed by another server
@@ -126,7 +123,6 @@ type Props = {
 export default class Markdown extends React.PureComponent<Props> {
     static defaultProps: Partial<Props> = {
         options: {},
-        isRHS: false,
         proxyImages: true,
         imagesMetadata: {},
         postId: '', // Needed to avoid proptypes console errors for cases like channel header, which doesn't have a proper value
@@ -163,7 +159,7 @@ export default class Markdown extends React.PureComponent<Props> {
 
         const htmlFormattedText = formatText(message, options, this.props.emojiMap);
 
-        return messageHtmlToComponent(htmlFormattedText, this.props.isRHS, {
+        return messageHtmlToComponent(htmlFormattedText, {
             imageProps: this.props.imageProps,
             imagesMetadata: this.props.imagesMetadata,
             hasPluginTooltips: this.props.hasPluginTooltips,
