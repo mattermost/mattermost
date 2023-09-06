@@ -290,7 +290,8 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 			DELETE FROM
 				Drafts
 			WHERE 
-				(CreateAt > ? OR (CreateAt = ? AND UserId > ?))AND d.Message = ''
+				(CreateAt > ? OR (CreateAt = ? AND UserId > ?))
+				AND d.Message = ''
 			ORDER BY CreateAt, UserId ASC
 			LIMIT 100
 		`
