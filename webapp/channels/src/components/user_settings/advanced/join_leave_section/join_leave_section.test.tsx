@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-import {GlobalState} from 'types/store';
+import React from 'react';
 
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {AdvancedSections} from 'utils/constants';
-
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-
 import JoinLeaveSection from 'components/user_settings/advanced/join_leave_section/join_leave_section';
+
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {AdvancedSections} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 describe('components/user_settings/advanced/JoinLeaveSection', () => {
     const defaultProps = {

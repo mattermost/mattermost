@@ -5,8 +5,10 @@ import {combineReducers} from 'redux';
 
 import {TeamTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
-import {ActionTypes} from 'utils/constants';
+
 import {SidebarSize} from 'components/resizable_sidebar/constants';
+
+import {ActionTypes} from 'utils/constants';
 
 function isOpen(state = false, action: GenericAction) {
     switch (action.type) {

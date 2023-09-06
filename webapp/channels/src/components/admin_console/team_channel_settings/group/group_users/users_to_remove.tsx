@@ -4,19 +4,21 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
-import {TeamMembership} from '@mattermost/types/teams';
-import {ChannelMembership} from '@mattermost/types/channels';
-import {RelationOneToOne} from '@mattermost/types/utilities';
+import type {ChannelMembership} from '@mattermost/types/channels';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
 import GeneralConstants from 'mattermost-redux/constants/general';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 import UserGridName from 'components/admin_console/user_grid/user_grid_name';
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
-import {FilterOptions} from 'components/admin_console/filter/filter';
 
-import GroupUsersRole from './users_to_remove_role';
 import UsersToRemoveGroups from './users_to_remove_groups';
+import GroupUsersRole from './users_to_remove_role';
 
 import './users_to_remove.scss';
 

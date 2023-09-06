@@ -1,26 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {
+    StripeCardElementChangeEvent,
+} from '@stripe/stripe-js';
 import React, {useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {
-    StripeCardElementChangeEvent,
-} from '@stripe/stripe-js';
+import type {CloudCustomer, PaymentMethod} from '@mattermost/types/cloud';
 
-import {CloudCustomer, PaymentMethod} from '@mattermost/types/cloud';
-
-import {BillingDetails} from 'types/cloud/sku';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
+
 import {COUNTRIES} from 'utils/countries';
 
-import StateSelector from './state_selector';
-import CardInput, {CardInputType} from './card_input';
+import type {BillingDetails} from 'types/cloud/sku';
+
 import CardImage from './card_image';
+import CardInput from './card_input';
+import type {CardInputType} from './card_input';
 import {GatherIntent, GatherIntentModal} from './gather_intent';
+import StateSelector from './state_selector';
 
 import './payment_form.scss';
 

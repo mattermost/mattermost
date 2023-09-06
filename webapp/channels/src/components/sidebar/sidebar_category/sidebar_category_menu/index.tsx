@@ -3,6 +3,7 @@
 
 import React, {memo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {
     BellOutlineIcon,
@@ -13,30 +14,29 @@ import {
     ClockOutlineIcon,
     ChevronRightIcon,
 } from '@mattermost/compass-icons/components';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import {CategorySorting} from '@mattermost/types/channel_categories';
 
-import {ChannelCategory, CategorySorting} from '@mattermost/types/channel_categories';
-
+import {setCategoryMuted, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
+import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/preferences';
 
 import {trackEvent} from 'actions/telemetry_actions';
-
-import {ModalIdentifiers} from 'utils/constants';
+import {openModal} from 'actions/views/modals';
+import {makeGetUnreadIdsForCategory} from 'selectors/views/channel_sidebar';
 
 import DeleteCategoryModal from 'components/delete_category_modal';
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
 
-import SidebarCategoryGenericMenu from './sidebar_category_generic_menu';
-import MarkAsReadMenuItem from './mark_as_read_menu_item';
-import CreateNewCategoryMenuItem from './create_new_category_menu_item';
-import {useDispatch, useSelector} from 'react-redux';
-import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {setCategoryMuted, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
+import {ModalIdentifiers} from 'utils/constants';
 
-import {openModal} from 'actions/views/modals';
-import {makeGetUnreadIdsForCategory} from 'selectors/views/channel_sidebar';
-import {GlobalState} from 'types/store';
-import {readMultipleChannels} from 'mattermost-redux/actions/channels';
+import type {GlobalState} from 'types/store';
+
+import CreateNewCategoryMenuItem from './create_new_category_menu_item';
+import MarkAsReadMenuItem from './mark_as_read_menu_item';
+import SidebarCategoryGenericMenu from './sidebar_category_generic_menu';
 
 type Props = {
     category: ChannelCategory;

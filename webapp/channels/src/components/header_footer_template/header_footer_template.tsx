@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import ExternalLink from 'components/external_link';
 
 type Props = {

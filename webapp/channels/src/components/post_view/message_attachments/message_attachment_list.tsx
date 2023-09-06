@@ -3,10 +3,10 @@
 
 import React from 'react';
 
-import {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
-import {PostImage} from '@mattermost/types/posts';
+import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
+import type {PostImage} from '@mattermost/types/posts';
 
-import {TextFormattingOptions} from 'utils/text_formatting';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import MessageAttachment from './message_attachment';
 

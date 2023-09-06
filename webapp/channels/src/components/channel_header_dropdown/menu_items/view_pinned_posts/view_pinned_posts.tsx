@@ -3,11 +3,11 @@
 
 import React from 'react';
 
-import {GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions';
-
-import {localizeMessage} from 'utils/utils';
+import type {GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 
 import Menu from 'components/widgets/menu/menu';
+
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     show?: boolean;
