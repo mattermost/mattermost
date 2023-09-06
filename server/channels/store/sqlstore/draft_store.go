@@ -269,13 +269,26 @@ func (s *SqlDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(cr
 func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
 
 	var sql string
+	var args []interface{}
 	if s.DriverName() == model.DatabaseDriverPostgres {
+		selectSql, selectArgs, err := s.getQueryBuilder().
+			Select("UserId", "ChannelId", "RootId").
+			From("Drafts").
+			Where(sq.Or{
+				sq.Gt{"CreateAt": createAt},
+				sq.And{
+					sq.Eq{"CreateAt": createAt},
+					sq.Gt{"UserId": userId},
+				},
+			}).
+			OrderBy("CreateAt", "UserId").
+			Limit(100).
+			ToSql()
+		if err != nil {
+			return err
+		}
 		sql = `
-			WITH dd AS (
-				SELECT UserId, ChannelId, RootId FROM Drafts 
-				WHERE (CreateAt > ? OR (CreateAt = ? AND UserId > ?)) 
-				ORDER BY CreateAt, UserId ASC LIMIT 100
-			) 
+			WITH dd AS (` + selectSql + `) 
 			DELETE FROM
 				Drafts d 
 			USING dd 
@@ -285,19 +298,31 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 				AND d.RootId = dd.RootId
 				AND d.Message = ''
 		`
+		args = selectArgs
 	} else if s.DriverName() == model.DatabaseDriverMysql {
-		sql = `
-			DELETE FROM
-				Drafts
-			WHERE 
-				(CreateAt > ? OR (CreateAt = ? AND UserId > ?))
-				AND d.Message = ''
-			ORDER BY CreateAt, UserId ASC
-			LIMIT 100
-		`
+		deleteSql, deleteArgs, err := s.getQueryBuilder().
+			Delete("Drafts").
+			Where(sq.And{
+				sq.Or{
+					sq.Gt{"CreateAt": createAt},
+					sq.And{
+						sq.Eq{"CreateAt": createAt},
+						sq.Gt{"UserId": userId},
+					},
+				},
+				sq.Eq{"Message": ""},
+			}).
+			OrderBy("CreateAt", "UserId").
+			Limit(100).
+			ToSql()
+		if err != nil {
+			return err
+		}
+		sql = deleteSql
+		args = deleteArgs
 	}
 
-	if _, err := s.GetMasterX().Exec(sql, createAt, createAt, userId); err != nil {
+	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to delete empty drafts")
 	}
 
