@@ -12,6 +12,8 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
+import {t} from 'utils/i18n';
+
 import './channel_profile.scss';
 interface ChannelProfileProps {
     channel: Partial<Channel>;
