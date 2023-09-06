@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {getIsMobileView} from 'selectors/views/browser';
-
 import store from 'stores/redux_store';
 
 /**

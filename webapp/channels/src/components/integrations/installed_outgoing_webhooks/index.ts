@@ -2,22 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import * as Actions from 'mattermost-redux/actions/integrations';
-import {getOutgoingHooks} from 'mattermost-redux/selectors/entities/integrations';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-import {getUsers} from 'mattermost-redux/selectors/entities/users';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';
+import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getOutgoingHooks} from 'mattermost-redux/selectors/entities/integrations';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getUsers} from 'mattermost-redux/selectors/entities/users';
 
 import {loadOutgoingHooksAndProfilesForTeam} from 'actions/integration_actions';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
-import InstalledOutgoingWebhook, {Props} from './installed_outgoing_webhooks';
+import InstalledOutgoingWebhook from './installed_outgoing_webhooks';
+import type {Props} from './installed_outgoing_webhooks';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

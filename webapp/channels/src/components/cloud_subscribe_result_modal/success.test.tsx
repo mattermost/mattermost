@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import * as redux from 'react-redux';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';

@@ -5,13 +5,14 @@ import {useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {GlobalState} from 'types/store';
+import type {LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
+
+import {getLicenseSelfServeStatus} from 'mattermost-redux/actions/cloud';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getExpandSeatsLink} from 'selectors/cloud';
-import {getLicenseSelfServeStatus} from 'mattermost-redux/actions/cloud';
 
-import {LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
+import type {GlobalState} from 'types/store';
 
 type UseExpandOverageUsersCheckArgs = {
     isWarningState: boolean;

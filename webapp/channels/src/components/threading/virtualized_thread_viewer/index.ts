@@ -3,20 +3,19 @@
 
 import {connect} from 'react-redux';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-
-import {FakePost} from 'types/store/rhs';
 
 import {getIsMobileView} from 'selectors/views/browser';
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import type {GlobalState} from 'types/store';
+import type {FakePost} from 'types/store/rhs';
 
 import ThreadViewerVirtualized from './virtualized_thread_viewer';
 

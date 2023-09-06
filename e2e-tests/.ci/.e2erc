@@ -7,6 +7,7 @@ export MME2E_UID=$(id -u)
 # Default the optional variables that are used in the docker-compose file
 export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --short=7 HEAD)"
 export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
+export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
 
 # Function definitions
 mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%Z)]" "$@"; }

@@ -1,27 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import styled from 'styled-components';
 import classNames from 'classnames';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import styled from 'styled-components';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
 
-import Accordion, {AccordionItemType} from 'components/common/accordion/accordion';
+import Accordion from 'components/common/accordion/accordion';
+import type {AccordionItemType} from 'components/common/accordion/accordion';
+import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import LoadingScreen from '../../loading_screen';
+import ChipsList from './chips_list';
+import type {ChipsInfoType} from './chips_list';
+import CtaButtons from './cta_buttons';
+import useMetricsData from './dashboard.data';
+import {ItemStatus} from './dashboard.type';
+import OverallScore from './overall-score';
+
 import type {Props} from '../admin_console';
 
-import ChipsList, {ChipsInfoType} from './chips_list';
-import CtaButtons from './cta_buttons';
-
-import useMetricsData from './dashboard.data';
-
 import './dashboard.scss';
-import OverallScore from './overall-score';
-import {ItemStatus} from './dashboard.type';
 
 const AccordionItem = styled.div`
     padding: 12px;

@@ -3,20 +3,22 @@
 
 import React from 'react';
 import {Redirect} from 'react-router-dom';
-
 import semver from 'semver';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import * as WebSocketActions from 'actions/websocket_actions.jsx';
-import * as UserAgent from 'utils/user_agent';
-import LoadingScreen from 'components/loading_screen';
-import {getBrowserTimezone} from 'utils/timezone';
-import WebSocketClient from 'client/web_websocket_client.jsx';
 import BrowserStore from 'stores/browser_store';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-import {isKeyPressed} from 'utils/keyboard';
+
+import LoadingScreen from 'components/loading_screen';
+
+import WebSocketClient from 'client/web_websocket_client.jsx';
 import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+import {getBrowserTimezone} from 'utils/timezone';
+import * as UserAgent from 'utils/user_agent';
 
 declare global {
     interface Window {

@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {SyntheticEvent, useCallback, useMemo} from 'react';
-import {IGif} from '@giphy/js-types';
+import type {IGif} from '@giphy/js-types';
+import type {SyntheticEvent} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
-import GifPickerSearch from './components/gif_picker_search';
 import GifPickerItems from './components/gif_picker_items';
+import GifPickerSearch from './components/gif_picker_search';
 
 const GIF_DEFAULT_WIDTH = 350;
 const GIF_MARGIN_ENDS = 12;
