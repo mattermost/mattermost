@@ -80,7 +80,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             onChange={[Function]}
             placeholder="e.g. some setting"
             setByEnv={false}
-            type="input"
+            type="text"
             value="fsdsdg"
           />
           <BooleanSetting
