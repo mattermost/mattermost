@@ -265,7 +265,7 @@ const AdvanceTextEditor = ({
                         ref={emojiPickerRef}
                         onClick={toggleEmojiPicker}
                         type='button'
-                        aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'Select an Emoji'})}
+                        aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                         disabled={shouldShowPreview}
                         className={classNames({active: showEmojiPicker})}
                     >

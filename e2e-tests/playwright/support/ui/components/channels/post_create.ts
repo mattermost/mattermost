@@ -16,7 +16,7 @@ export default class ChannelsPostCreate {
 
         this.input = inRHS ? container.getByTestId('reply_textbox') : container.getByTestId('post_textbox');
         this.attachmentButton = container.getByLabel('attachment');
-        this.emojiButton = container.getByLabel('Select an Emoji');
+        this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
     }
 

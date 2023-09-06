@@ -458,7 +458,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                     rightOffset={RIGHT_OFFSET}
                 />
                 <button
-                    aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'Select an Emoji'})}
+                    aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                     id='editPostEmoji'
                     ref={emojiButtonRef}
                     className='style--none post-action'
