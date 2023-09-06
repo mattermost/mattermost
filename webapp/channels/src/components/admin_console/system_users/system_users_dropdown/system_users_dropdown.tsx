@@ -4,27 +4,29 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import * as UserUtils from 'mattermost-redux/utils/user_utils';
+import type {Bot} from '@mattermost/types/bots';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {Permissions} from 'mattermost-redux/constants';
-import {AdminConfig} from '@mattermost/types/config';
-import {UserProfile} from '@mattermost/types/users';
-import {ServerError} from '@mattermost/types/errors';
-import {Bot} from '@mattermost/types/bots';
-import {DeepPartial} from '@mattermost/types/utilities';
+import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {adminResetMfa} from 'actions/admin_actions.jsx';
+import {emitUserLoggedOutEvent} from 'actions/global_actions';
+
+import ConfirmModal from 'components/confirm_modal';
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
 import {Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
-import ConfirmModal from 'components/confirm_modal';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import ExternalLink from 'components/external_link';
+import * as Utils from 'utils/utils';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 3;
 const TOTAL_USERS_TO_OPEN_UP = 5;

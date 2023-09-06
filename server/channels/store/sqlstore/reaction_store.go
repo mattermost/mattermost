@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"time"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -205,24 +207,91 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	return nil
 }
 
-// DeleteOrphanedRows removes entries from Reactions when a corresponding post no longer exists.
-func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
-	const query = `
-	DELETE FROM Reactions WHERE PostId IN (
-		SELECT * FROM (
-			SELECT PostId FROM Reactions
-			LEFT JOIN Posts ON Reactions.PostId = Posts.Id
-			WHERE Posts.Id IS NULL
-			LIMIT ?
-		) AS A
-	)`
-	result, err := s.GetMasterX().Exec(query, limit)
+func (s *SqlReactionStore) permanentDeleteReactions(userId string, postIds *[]string) error {
+	txn, err := s.GetMasterX().Beginx()
 	if err != nil {
-		return
+		return err
 	}
-	deleted, err = result.RowsAffected()
-	return
+	defer finalizeTransactionX(txn, &err)
+
+	err = txn.Select(postIds, "SELECT PostId FROM Reactions WHERE UserId = ?", userId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get Reactions with userId=%s", userId)
+	}
+
+	query := s.getQueryBuilder().
+		Delete("Reactions").
+		Where(sq.And{
+			sq.Eq{"PostId": postIds},
+			sq.Eq{"UserId": userId},
+		})
+
+	_, err = txn.ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete reactions with userId=%s", userId)
+	}
+	if err = txn.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
+	now := model.GetMillis()
+	postIds := []string{}
+
+	err := s.permanentDeleteReactions(userId, &postIds)
+	if err != nil {
+		return err
+	}
+
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return err
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	for _, postId := range postIds {
+		_, err = transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
+		if err != nil {
+			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
+				mlog.String("post_id", postId),
+				mlog.Err(err))
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if err = transaction.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
+	txn, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return err
+	}
+	defer finalizeTransactionX(txn, &err)
+
+	query := s.getQueryBuilder().
+		Delete("Reactions").
+		Where(
+			sq.Eq{"PostId": r.Ids},
+		)
+
+	_, err = txn.ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete orphaned reactions with RetentionIdsForDeletion Id=%s", r.Id)
+	}
+	err = deleteFromRetentionIdsTx(txn, r.Id)
+	if err != nil {
+		return err
+	}
+	if err = txn.Commit(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {

@@ -3,40 +3,39 @@
 
 import React from 'react';
 import {isValidElementType} from 'react-is';
-import {Reducer} from 'redux';
+import type {Reducer} from 'redux';
 
-import {ProductScope} from '@mattermost/types/products';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {FileInfo} from '@mattermost/types/files';
+import type {ProductScope} from '@mattermost/types/products';
 
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
-
-import {
-    registerPluginWebSocketEvent,
-    unregisterPluginWebSocketEvent,
-    registerPluginReconnectHandler,
-    unregisterPluginReconnectHandler,
-} from 'actions/websocket_actions.jsx';
-
-import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
-
-import {
-    registerPluginTranslationsSource,
-    TranslationPluginFunction,
-} from 'actions/views/root';
 
 import {
     registerAdminConsolePlugin,
     unregisterAdminConsolePlugin,
     registerAdminConsoleCustomSetting,
 } from 'actions/admin_actions';
-
+import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
+import {
+    registerPluginTranslationsSource,
+} from 'actions/views/root';
+import type {
+    TranslationPluginFunction} from 'actions/views/root';
+import {
+    registerPluginWebSocketEvent,
+    unregisterPluginWebSocketEvent,
+    registerPluginReconnectHandler,
+    unregisterPluginReconnectHandler,
+} from 'actions/websocket_actions.jsx';
 import store from 'stores/redux_store.jsx';
+
 import {ActionTypes} from 'utils/constants';
-import {generateId} from 'utils/utils';
-import {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
-import {GlobalState} from 'types/store';
-import {FileInfo} from '@mattermost/types/files';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {reArg} from 'utils/func';
+import {generateId} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+import type {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 

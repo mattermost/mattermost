@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
+import type {ReactComponentLike} from 'prop-types';
+import React from 'react';
+import type {ReactNode} from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import {ReactComponentLike} from 'prop-types';
-
+import AutosizeTextarea from 'components/autosize_textarea';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import AutosizeTextarea from 'components/autosize_textarea';
+
 import Constants from 'utils/constants';
 
 export type Props = {
