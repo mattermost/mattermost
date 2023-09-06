@@ -3171,7 +3171,7 @@ const AdminDefinition = {
                         label: t('admin.image.publicLinkTitle'),
                         label_default: 'Public Link Salt:',
                         help_text: t('admin.image.publicLinkDescription'),
-                        help_text_default: '32-character salt added to signing of public image links. Randomly generated on install. Click "Regenerate" to create new salt.',
+                        help_text_default: '32-character salt added to signing of public links. Randomly generated on install. Select "Regenerate" to create new salt.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.PUBLIC_LINKS)),
                     },
                 ],

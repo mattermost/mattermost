@@ -1168,7 +1168,7 @@
   "admin.image.proxyTypeDescription": "Configure an image proxy to load all Markdown images through a proxy. The image proxy prevents users from making insecure image requests, provides caching for increased performance, and automates image adjustments such as resizing. See <link>documentation</link> to learn more.",
   "admin.image.proxyURL": "Remote Image Proxy URL:",
   "admin.image.proxyURLDescription": "URL of your remote image proxy server.",
-  "admin.image.publicLinkDescription": "32-character salt added to signing of public image links. Randomly generated on install. Click \"Regenerate\" to create new salt.",
+  "admin.image.publicLinkDescription": "32-character salt added to signing of public links. Randomly generated on install. Select \"Regenerate\" to create new salt.",
   "admin.image.publicLinkTitle": "Public Link Salt:",
   "admin.image.shareDescription": "Allow users to share public links to files and images.",
   "admin.image.shareTitle": "Enable Public File Links: ",
