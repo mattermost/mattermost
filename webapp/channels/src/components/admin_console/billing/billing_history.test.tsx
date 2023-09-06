@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {Provider} from 'react-redux';
 
 import {renderWithIntl, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
+
 import BillingHistory, {NoBillingHistorySection} from './billing_history';
 
 const NO_INVOICES_LEGEND = 'All of your invoices will be shown here';

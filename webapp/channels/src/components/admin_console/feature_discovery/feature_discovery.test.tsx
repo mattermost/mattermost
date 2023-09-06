@@ -4,9 +4,9 @@
 import React from 'react';
 import {Provider as ReduxProvider} from 'react-redux';
 
-import FeatureDiscovery from 'components/admin_console/feature_discovery/feature_discovery';
-
 import store from 'stores/redux_store';
+
+import FeatureDiscovery from 'components/admin_console/feature_discovery/feature_discovery';
 
 import {
     renderWithIntl,
@@ -14,7 +14,6 @@ import {
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
-
 import {AboutLinks, LicenseSkus} from 'utils/constants';
 
 import SamlSVG from './features/images/saml_svg';

@@ -5,10 +5,11 @@ import {connect} from 'react-redux';
 
 import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 
-import {getCurrentDateForTimezone} from 'utils/timezone';
 import {getCurrentLocale} from 'selectors/i18n';
 
-import {GlobalState} from 'types/store';
+import {getCurrentDateForTimezone} from 'utils/timezone';
+
+import type {GlobalState} from 'types/store';
 
 import SearchDateSuggestion from './search_date_suggestion';
 

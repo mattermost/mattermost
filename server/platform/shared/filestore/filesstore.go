@@ -23,6 +23,7 @@ type ReadCloseSeeker interface {
 }
 
 type FileBackend interface {
+	DriverName() string
 	TestConnection() error
 
 	Reader(path string) (ReadCloseSeeker, error)
