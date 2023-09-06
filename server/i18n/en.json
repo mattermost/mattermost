@@ -6408,6 +6408,10 @@
     "translation": "Unable to get reactions for post."
   },
   {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete reactions for user."
+  },
+  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
   },
