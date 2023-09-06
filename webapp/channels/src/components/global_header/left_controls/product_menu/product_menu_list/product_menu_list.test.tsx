@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {TestHelper} from 'utils/test_helper';
 
-import ProductMenuList, {Props as ProductMenuListProps} from './product_menu_list';
+import ProductMenuList from './product_menu_list';
+import type {Props as ProductMenuListProps} from './product_menu_list';
 
 describe('components/global/product_switcher_menu', () => {
     // Neccessary for components enhanced by HOCs due to issue with enzyme.

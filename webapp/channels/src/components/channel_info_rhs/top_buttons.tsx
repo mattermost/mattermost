@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 import {useIntl, FormattedMessage} from 'react-intl';
+import styled from 'styled-components';
+
+import useCopyText from 'components/common/hooks/useCopyText';
 
 import Constants from 'utils/constants';
-import useCopyText from 'components/common/hooks/useCopyText';
 
 const ChannelInfoRhsTopButtons = styled.div`
     display: flex;

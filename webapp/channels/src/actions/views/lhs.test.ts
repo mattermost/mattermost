@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MockStoreEnhanced} from 'redux-mock-store';
+import type {MockStoreEnhanced} from 'redux-mock-store';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {close, open, toggle} from 'actions/views/lhs';
-import {ActionTypes} from 'utils/constants';
-import mockStore from 'tests/test_store';
 import configureStore from 'store';
-import {GlobalState} from 'types/store';
+
+import mockStore from 'tests/test_store';
+import {ActionTypes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import * as Actions from './lhs';
 

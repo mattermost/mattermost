@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import {Modal} from 'react-bootstrap';
+import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
-import * as Utils from 'utils/utils';
-const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
-
 import TeamSettings from 'components/team_settings';
+
+import * as Utils from 'utils/utils';
+
+const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 
 type Props = {
     onExited: () => void;

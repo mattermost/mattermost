@@ -2,24 +2,27 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-
 import {FormattedMessage} from 'react-intl';
-import {VariableSizeList, ListChildComponentProps} from 'react-window';
+import type {ListChildComponentProps} from 'react-window';
+import {VariableSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
+import type {Group, GroupPermissions} from '@mattermost/types/groups';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
-import LoadingScreen from 'components/loading_screen';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-
-import * as Utils from 'utils/utils';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {ModalData} from 'types/actions';
-import {ModalIdentifiers} from 'utils/constants';
 import ViewUserGroupModal from 'components/view_user_group_modal';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import {Group, GroupPermissions} from '@mattermost/types/groups';
+import {ModalIdentifiers} from 'utils/constants';
+import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+
 import ADLDAPUpsellBanner from '../ad_ldap_upsell_banner';
 
 export type Props = {

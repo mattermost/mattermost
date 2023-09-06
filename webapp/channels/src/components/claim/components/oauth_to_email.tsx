@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import classNames from 'classnames';
-
-import {AuthChangeResponse} from '@mattermost/types/users';
+import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import {oauthToEmail} from 'actions/admin_actions.jsx';
 
+import LocalizedInput from 'components/localized_input/localized_input';
+
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
-import {getPasswordConfig, isValidPassword, localizeMessage, toTitleCase} from 'utils/utils';
-
-import LocalizedInput from 'components/localized_input/localized_input';
+import {isValidPassword, localizeMessage, toTitleCase} from 'utils/utils';
+import type {getPasswordConfig} from 'utils/utils';
 
 import ErrorLabel from './error_label';
 

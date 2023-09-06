@@ -2,45 +2,45 @@
 // See LICENSE.txt for license information.
 
 import React, {useRef, useCallback, useEffect, useState} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled, {css} from 'styled-components';
 
-import {FormattedMessage} from 'react-intl';
+import {CloseIcon, PlayIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 
-import {getShowTaskListBool} from 'selectors/onboarding';
-
+import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     getBool,
     getMyPreferences as getMyPreferencesSelector,
     getTheme,
 } from 'mattermost-redux/selectors/entities/preferences';
-import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
+import {getShowTaskListBool} from 'selectors/onboarding';
+
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {
     useTasksListWithStatus,
     OnboardingTaskCategory,
     OnboardingTaskList,
 } from 'components/onboarding_tasks';
-import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {useHandleOnBoardingTaskTrigger} from 'components/onboarding_tasks/onboarding_tasks_manager';
 import OnBoardingVideoModal from 'components/onboarding_tasks/onboarding_video_modal/onboarding_video_modal';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
-import {openModal} from 'actions/views/modals';
-import {GlobalState} from 'types/store';
-import {trackEvent} from 'actions/telemetry_actions';
 import checklistImg from 'images/onboarding-checklist.svg';
-
 import {Preferences, RecommendedNextStepsLegacy} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
+import {CompletedAnimation} from './onboarding_tasklist_animations';
+import Completed from './onboarding_tasklist_completed';
 import {TaskListPopover} from './onboarding_tasklist_popover';
 import {Task} from './onboarding_tasklist_task';
-import Completed from './onboarding_tasklist_completed';
-import {CompletedAnimation} from './onboarding_tasklist_animations';
-import {CloseIcon, PlayIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 
 const TaskItems = styled.div`
     border-radius: 4px;
@@ -306,62 +306,63 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                 onClick={toggleTaskList}
             >
                 <TaskItems className={open ? 'open' : ''}>
-                    {completedCount === tasksList.length ?
+                    {completedCount === tasksList.length ? (
                         <Completed
                             dismissAction={dismissChecklist}
                             isFirstAdmin={isFirstAdmin}
                             isCurrentUserSystemAdmin={isCurrentUserSystemAdmin}
-                        /> : (
-                            <>
-                                <h1>
-                                    <FormattedMessage
-                                        id='next_steps_view.welcomeToMattermost'
-                                        defaultMessage='Welcome to Mattermost'
-                                    />
-                                </h1>
-                                <p>
-                                    <FormattedMessage
-                                        id='onboardingTask.checklist.main_subtitle'
-                                        defaultMessage="Let's get up and running."
-                                    />
-                                </p>
-                                <Skeleton>
-                                    <img
-                                        src={checklistImg}
-                                        alt={'On Boarding video'}
-                                        style={{display: 'block', margin: '1rem auto', borderRadius: '4px'}}
-                                    />
-                                    <PlayButton
-                                        onClick={openVideoModal}
-                                    >
-                                        <PlayIcon size={18}/>
-                                        <FormattedMessage
-                                            id='onboardingTask.checklist.video_title'
-                                            defaultMessage='Watch overview'
-                                        />
-                                    </PlayButton>
-                                </Skeleton>
-                                {tasksList.map((task) => (
-                                    <Task
-                                        key={OnboardingTaskCategory + task.name}
-                                        label={task.label()}
-                                        onClick={() => {
-                                            startTask(task.name);
-                                        }}
-                                        completedStatus={task.status}
-                                    />
-                                ))}
-                                <span
-                                    className='link'
-                                    onClick={dismissChecklist}
+                        />
+                    ) : (
+                        <>
+                            <h1>
+                                <FormattedMessage
+                                    id='next_steps_view.welcomeToMattermost'
+                                    defaultMessage='Welcome to Mattermost'
+                                />
+                            </h1>
+                            <p>
+                                <FormattedMessage
+                                    id='onboardingTask.checklist.main_subtitle'
+                                    defaultMessage="Let's get up and running."
+                                />
+                            </p>
+                            <Skeleton>
+                                <img
+                                    src={checklistImg}
+                                    alt={'On Boarding video'}
+                                    style={{display: 'block', margin: '1rem auto', borderRadius: '4px'}}
+                                />
+                                <PlayButton
+                                    onClick={openVideoModal}
                                 >
+                                    <PlayIcon size={18}/>
                                     <FormattedMessage
-                                        id='onboardingTask.checklist.dismiss_link'
-                                        defaultMessage='No thanks, I’ll figure it out myself'
+                                        id='onboardingTask.checklist.video_title'
+                                        defaultMessage='Watch overview'
                                     />
-                                </span>
-                            </>
-                        )}
+                                </PlayButton>
+                            </Skeleton>
+                            {tasksList.map((task) => (
+                                <Task
+                                    key={OnboardingTaskCategory + task.name}
+                                    label={task.label()}
+                                    onClick={() => {
+                                        startTask(task.name);
+                                    }}
+                                    completedStatus={task.status}
+                                />
+                            ))}
+                            <span
+                                className='link'
+                                onClick={dismissChecklist}
+                            >
+                                <FormattedMessage
+                                    id='onboardingTask.checklist.dismiss_link'
+                                    defaultMessage='No thanks, I’ll figure it out myself'
+                                />
+                            </span>
+                        </>
+                    )}
                 </TaskItems>
             </TaskListPopover>
         </CompassThemeProvider>
