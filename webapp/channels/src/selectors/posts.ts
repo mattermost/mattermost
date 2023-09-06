@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {getGlobalItem} from 'selectors/storage';
 import {arePreviewsCollapsed} from 'selectors/preferences';
+import {getGlobalItem} from 'selectors/storage';
+
 import {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';

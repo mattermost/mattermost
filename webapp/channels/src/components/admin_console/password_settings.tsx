@@ -4,19 +4,20 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AdminConfig} from '@mattermost/types/config';
-import {DeepPartial} from '@mattermost/types/utilities';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
-import AdminSettings, {BaseProps, BaseState} from './admin_settings';
+import AdminSettings from './admin_settings';
+import type {BaseProps, BaseState} from './admin_settings';
+import BlockableLink from './blockable_link';
 import BooleanSetting from './boolean_setting';
 import Setting from './setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
-import BlockableLink from './blockable_link';
 
 type Props = BaseProps & {
     config: AdminConfig;

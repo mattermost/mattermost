@@ -5,15 +5,17 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
-import LocalizedIcon from 'components/localized_icon';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import LocalizedIcon from 'components/localized_icon';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+
 import Constants, {RHSStates} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {RhsState} from 'types/store/rhs';
+
+import type {RhsState} from 'types/store/rhs';
 
 const BackButton = styled.button`
     border: 0px;

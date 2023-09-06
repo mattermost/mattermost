@@ -2,23 +2,23 @@
 // See LICENSE.txt for license information.
 
 import {useCallback} from 'react';
-
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getCurrentUserId, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {close as closeLhs, open as openLhs} from 'actions/views/lhs';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
+
 import {setAddChannelDropdown} from 'actions/views/add_channel_dropdown';
+import {close as closeLhs, open as openLhs} from 'actions/views/lhs';
 import {switchToChannels} from 'actions/views/onboarding_tasks';
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 
-import {getHistory} from 'utils/browser_history';
-import {GlobalState} from 'types/store';
-import {useGetPluginsActivationState} from 'plugins/useGetPluginsActivationState';
+import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from 'components/onboarding_tasks';
 
-import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from '../onboarding_tasks';
+import {useGetPluginsActivationState} from 'plugins/useGetPluginsActivationState';
+import {getHistory} from 'utils/browser_history';
+
+import type {GlobalState} from 'types/store';
 
 import {
     CrtTutorialSteps,

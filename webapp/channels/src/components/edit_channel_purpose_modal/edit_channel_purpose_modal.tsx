@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent} from 'react';
+import React from 'react';
+import type {ChangeEvent} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {Channel} from '@mattermost/types/channels';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';

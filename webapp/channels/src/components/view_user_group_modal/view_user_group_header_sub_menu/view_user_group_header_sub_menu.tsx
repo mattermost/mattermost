@@ -3,16 +3,20 @@
 
 import React, {useCallback} from 'react';
 
-import {ModalData} from 'types/actions';
+import type {Group} from '@mattermost/types/groups';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import LocalizedIcon from 'components/localized_icon';
-import {t} from 'utils/i18n';
-import {Group} from '@mattermost/types/groups';
-import {ModalIdentifiers} from 'utils/constants';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import * as Utils from 'utils/utils';
-import {ActionResult} from 'mattermost-redux/types/actions';
 import UpdateUserGroupModal from 'components/update_user_group_modal';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
+import {ModalIdentifiers} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 export type Props = {
     group: Group;

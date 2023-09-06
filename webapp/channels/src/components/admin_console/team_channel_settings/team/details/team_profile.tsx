@@ -1,28 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import {noop} from 'lodash';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 import {useDispatch, useSelector} from 'react-redux';
-import {noop} from 'lodash';
+
+import type {Team} from '@mattermost/types/teams';
+
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
+import {openModal} from 'actions/views/modals';
+
+import useGetUsage from 'components/common/hooks/useGetUsage';
+import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import OverlayTrigger from 'components/overlay_trigger';
+import PricingModal from 'components/pricing_modal';
+import Tooltip from 'components/tooltip';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {imageURLForTeam, localizeMessage} from 'utils/utils';
-
-import {Team} from '@mattermost/types/teams';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {openModal} from 'actions/views/modals';
-
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import PricingModal from 'components/pricing_modal';
-import Tooltip from 'components/tooltip';
-import OverlayTrigger from 'components/overlay_trigger';
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import './team_profile.scss';
 

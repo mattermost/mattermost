@@ -4,16 +4,17 @@
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import BrowserStore from 'stores/browser_store';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
+
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import BrowserStore from 'stores/browser_store';
 import {LandingPreferenceTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
-
 import * as UserAgent from 'utils/user_agent';
+import * as Utils from 'utils/utils';
 
 type Props = {
     defaultTheme: any;

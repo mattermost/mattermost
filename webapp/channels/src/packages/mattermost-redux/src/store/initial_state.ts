@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {zeroStateLimitedViews} from '../reducers/entities/posts';
 

@@ -3,9 +3,10 @@
 
 import React from 'react';
 
-import {mountWithIntl} from '../../../tests/helpers/intl-test-helper';
+import {InvoiceLineItemType} from '@mattermost/types/cloud';
+import type {Invoice} from '@mattermost/types/cloud';
 
-import {Invoice, InvoiceLineItemType} from '@mattermost/types/cloud';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import InvoiceUserCount from './invoice_user_count';
 

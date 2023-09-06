@@ -6,10 +6,12 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+
 import {t} from 'utils/i18n';
 
 import {InviteType} from './invite_as';
-import ResultTable, {InviteResult} from './result_table';
+import ResultTable from './result_table';
+import type {InviteResult} from './result_table';
 
 import './result_view.scss';
 

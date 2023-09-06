@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Team, TeamMembership} from '@mattermost/types/teams';
 
 import {
     getTeamsForUser,
@@ -10,13 +13,11 @@ import {
     removeUserFromTeam,
     updateTeamMemberSchemeRoles,
 } from 'mattermost-redux/actions/teams';
-
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import {Team, TeamMembership} from '@mattermost/types/teams';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import TeamList from './team_list';
 
