@@ -69,7 +69,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	t.Run("filestore fails", func(t *testing.T) {
 		fb := &fmocks.FileBackend{}
 		platform.SetFileStore(fb)(th.Server.Platform())
-		fb.On("Driver").Return("mock")
+		fb.On("DriverName").Return("mock")
 		fb.On("TestConnection").Return(errors.New("all broken"))
 
 		fileData, err := th.App.generateSupportPacketYaml()
