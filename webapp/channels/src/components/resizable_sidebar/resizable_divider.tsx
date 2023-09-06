@@ -9,6 +9,7 @@ import styled, {createGlobalStyle, css} from 'styled-components';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {getIsMobileView} from 'selectors/views/browser';
 import {useGlobalState} from 'stores/hooks';
 
 import type {CssVarKeyForResizable} from './constants';
@@ -99,6 +100,7 @@ function ResizableDivider({
     const cssVarKey = `--${props.globalCssVar}`;
 
     const currentUserID = useSelector(getCurrentUserId);
+    const isMobileView = useSelector(getIsMobileView);
 
     const [isActive, setIsActive] = useState(false);
     const [width, setWidth] = useGlobalState<number | null>(null, `resizable_${name}:`, currentUserID);
@@ -238,7 +240,7 @@ function ResizableDivider({
         setWidth(null);
     };
 
-    if (disabled) {
+    if (disabled || isMobileView) {
         return null;
     }
 
