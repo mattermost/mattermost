@@ -30,6 +30,7 @@ import type {PropsFromRedux} from './index';
 import './user_settings_notifications.scss';
 
 const WHITE_SPACE_REGEX = /\s+/g;
+const COMMA_REGEX = /,/g;
 
 type MultiInputValue = {
     label: string;
@@ -61,6 +62,7 @@ type State = {
     usernameKey: boolean;
     isCustomKeysWithNotificationInputChecked: boolean;
     customKeysWithNotification: MultiInputValue[];
+    customKeysWithNotificationInputValue: string;
     firstNameKey: boolean;
     channelKey: boolean;
     autoResponderActive: boolean;
@@ -70,7 +72,7 @@ type State = {
     serverError: string;
 };
 
-function getNotificationsStateFromProps(props: Props): State {
+function getDefaultStateFromProps(props: Props): State {
     let desktop: UserNotifyProps['desktop'] = NotificationLevels.MENTION;
     let desktopThreads: UserNotifyProps['desktop_threads'] = NotificationLevels.ALL;
     let pushThreads: UserNotifyProps['push_threads'] = NotificationLevels.ALL;
@@ -181,6 +183,7 @@ function getNotificationsStateFromProps(props: Props): State {
         usernameKey,
         customKeysWithNotification,
         isCustomKeysWithNotificationInputChecked,
+        customKeysWithNotificationInputValue: '',
         firstNameKey,
         channelKey,
         autoResponderActive,
@@ -194,7 +197,6 @@ function getNotificationsStateFromProps(props: Props): State {
 class NotificationsTab extends React.PureComponent<Props, State> {
     drawerRef: RefObject<HTMLHeadingElement>;
     wrapperRef: RefObject<HTMLDivElement>;
-    customKeysWithNotificationInputValueRef: string;
 
     static defaultProps = {
         activeSection: '',
@@ -203,10 +205,9 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        this.state = getNotificationsStateFromProps(props);
+        this.state = getDefaultStateFromProps(props);
         this.drawerRef = React.createRef();
         this.wrapperRef = React.createRef();
-        this.customKeysWithNotificationInputValueRef = '';
     }
 
     handleSubmit = async () => {
@@ -252,14 +253,16 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         const {data: updatedUser, error} = await this.props.updateMe({notify_props: data}) as ActionResult<Partial<UserProfile>, ServerError>; // Fix in MM-46907
         if (updatedUser) {
             this.handleUpdateSection('');
-            this.setState(getNotificationsStateFromProps(this.props));
+            this.setState(getDefaultStateFromProps(this.props));
         } else if (error) {
             this.setState({serverError: error.message, isSaving: false});
+        } else {
+            this.setState({serverError: '', isSaving: false});
         }
     };
 
     handleCancel = (): void => {
-        this.setState(getNotificationsStateFromProps(this.props));
+        this.setState(getDefaultStateFromProps(this.props));
         stopTryNotificationRing();
     };
 
@@ -346,29 +349,48 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
-    /**
-     * This function temporarily stores the value of the input field in a variable
-     * so we can save it when the user clicks outside the input field
-     */
+    updateCustomKeysWithNotificationWithInputValue = (newValue: string) => {
+        const customKeysWithNotification = [
+            ...this.state.customKeysWithNotification,
+            {
+                value: newValue,
+                label: newValue,
+            },
+        ];
+
+        this.setState({
+            customKeysWithNotification,
+            customKeysWithNotificationInputValue: '', // Clear the input field
+        });
+
+        if (!this.state.isCustomKeysWithNotificationInputChecked) {
+            this.setState({isCustomKeysWithNotificationInputChecked: true});
+        }
+    };
+
+    handleOnKeydownForCustomKeysWithNotificationInput = (event: React.KeyboardEvent) => {
+        if (event.key === Constants.KeyCodes.COMMA[0] || event.key === Constants.KeyCodes.TAB[0]) {
+            const unsavedCustomKeyWithNotification = this.state.customKeysWithNotificationInputValue?.trim()?.replace(WHITE_SPACE_REGEX, '')?.replace(COMMA_REGEX, '') ?? '';
+            if (unsavedCustomKeyWithNotification.length > 0) {
+                this.updateCustomKeysWithNotificationWithInputValue(unsavedCustomKeyWithNotification);
+            }
+        }
+    };
+
     handleChangeForCustomKeysWithNotificationInputValue = (value: string) => {
-        this.customKeysWithNotificationInputValueRef = value || '';
+        // Check if input contains comma, if so, add the value to the list of custom keys
+        if (!value.includes(Constants.KeyCodes.COMMA[0])) {
+            const formattedValue = value.trim().replace(WHITE_SPACE_REGEX, '');
+            if (formattedValue.length > 0) {
+                this.setState({customKeysWithNotificationInputValue: formattedValue});
+            }
+        }
     };
 
     handleBlurForCustomKeysWithNotificationInput = () => {
-        const unsavedCustomKeyWithNotification = this.customKeysWithNotificationInputValueRef?.trim()?.replace(WHITE_SPACE_REGEX, '') ?? '';
+        const unsavedCustomKeyWithNotification = this.state.customKeysWithNotificationInputValue?.trim()?.replace(WHITE_SPACE_REGEX, '')?.replace(COMMA_REGEX, '') ?? '';
         if (unsavedCustomKeyWithNotification.length > 0) {
-            const customKeysWithNotification = [
-                ...this.state.customKeysWithNotification,
-                {
-                    value: unsavedCustomKeyWithNotification,
-                    label: unsavedCustomKeyWithNotification,
-                },
-            ];
-            this.setState({customKeysWithNotification});
-
-            if (!this.state.isCustomKeysWithNotificationInputChecked) {
-                this.setState({isCustomKeysWithNotificationInputChecked: true});
-            }
+            this.updateCustomKeysWithNotificationWithInputValue(unsavedCustomKeyWithNotification);
         }
     };
 
@@ -782,8 +804,10 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         aria-labelledby='notificationTriggerCustom'
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
+                        inputValue={this.state.customKeysWithNotificationInputValue}
                         onInputChange={this.handleChangeForCustomKeysWithNotificationInputValue}
                         onBlur={this.handleBlurForCustomKeysWithNotificationInput}
+                        onKeyDown={this.handleOnKeydownForCustomKeysWithNotificationInput}
                     />
                 </div>,
             );
