@@ -78,14 +78,14 @@ type ServerBusyState struct {
 }
 
 type SupportPacket struct {
-	// Build information
+	/* Build information */
 
 	ServerOS           string `yaml:"server_os"`
 	ServerArchitecture string `yaml:"server_architecture"`
 	ServerVersion      string `yaml:"server_version"`
 	BuildHash          string `yaml:"build_hash,omitempty"`
 
-	// DB
+	/* DB */
 
 	DatabaseType          string `yaml:"database_type"`
 	DatabaseVersion       string `yaml:"database_version"`
@@ -94,32 +94,31 @@ type SupportPacket struct {
 	MasterDbConnections   int    `yaml:"master_db_connections"`
 	ReplicaDbConnections  int    `yaml:"read_db_connections"`
 
-	// Cluster
+	/* Cluster */
 
 	ClusterID string `yaml:"cluster_id"`
 
-	// File store
+	/* File store */
 
 	FileDriver string `yaml:"file_driver"`
 	FileStatus string `yaml:"file_status"`
 
-	// LDAP
+	/* LDAP */
 
 	LdapVendorName    string `yaml:"ldap_vendor_name,omitempty"`
 	LdapVendorVersion string `yaml:"ldap_vendor_version,omitempty"`
 
-	// Elastic Search
+	/* Elastic Search */
 
 	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
 	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
 
-	// License information
+	/* License */
 
-	LicenseTo string `yaml:"license_to"`
+	LicenseTo             string `yaml:"license_to"`
+	LicenseSupportedUsers int    `yaml:"license_supported_users,omitempty"`
 
-	LicenseSupportedUsers int `yaml:"license_supported_users,omitempty"`
-
-	// Server stats
+	/* Server stats */
 
 	ActiveUsers        int `yaml:"active_users"`
 	DailyActiveUsers   int `yaml:"daily_active_users"`
@@ -129,7 +128,7 @@ type SupportPacket struct {
 	TotalChannels      int `yaml:"total_channels"`
 	TotalTeams         int `yaml:"total_teams"`
 
-	// Jobs
+	/* Jobs */
 
 	DataRetentionJobs          []*Job `yaml:"data_retention_jobs"`
 	MessageExportJobs          []*Job `yaml:"message_export_jobs"`
