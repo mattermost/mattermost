@@ -237,10 +237,6 @@ func (_m *RetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, l
 	ret := _m.Called(tableName, limit)
 
 	var r0 []*model.RetentionIdsForDeletion
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int) ([]*model.RetentionIdsForDeletion, error)); ok {
-		return rf(tableName, limit)
-	}
 	if rf, ok := ret.Get(0).(func(string, int) []*model.RetentionIdsForDeletion); ok {
 		r0 = rf(tableName, limit)
 	} else {
@@ -249,6 +245,7 @@ func (_m *RetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, l
 		}
 	}
 
+	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int) error); ok {
 		r1 = rf(tableName, limit)
 	} else {
