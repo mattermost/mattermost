@@ -34,19 +34,15 @@ const Divider = styled.div<{isActive: boolean}>`
     position: absolute;
     z-index: 50;
     top: 0;
-    width: 16px;
+    width: 12px;
     height: 100%;
     cursor: col-resize;
     &.left {
-        right: -8px;
+        right: -12px;
     }
 
-    &.right {
-        left: -8px;
-    }
     &::after {
         position: absolute;
-        left: 6px;
         width: 4px;
         height: 100%;
         background-color: ${({isActive}) => (isActive ? 'var(--sidebar-text-active-border)' : 'transparent')};
