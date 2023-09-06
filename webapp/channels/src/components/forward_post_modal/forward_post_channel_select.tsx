@@ -222,8 +222,6 @@ const DropdownIndicator = (props: IndicatorProps<ChannelOption>) => {
     );
 };
 
-const validChannelTypes = ['O', 'P', 'D', 'G'];
-
 type Props<O> = {
     onSelect: (channel: ValueType<O>) => void;
     currentBodyHeight: number;
