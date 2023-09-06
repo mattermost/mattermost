@@ -109,8 +109,7 @@ const (
 	ServiceSettingsDefaultMaxLoginAttempts = 10
 	ServiceSettingsDefaultAllowCorsFrom    = ""
 	ServiceSettingsDefaultListenAndAddress = ":8065"
-	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
-	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
+	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags   = ""
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
@@ -133,7 +132,7 @@ const (
 
 	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermomst"
+	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermost"
 	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
 	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/pl/report-a-bug"
 	SupportSettingsDefaultSupportEmail       = ""
@@ -346,8 +345,7 @@ type ServiceSettings struct {
 	WebsocketPort                                     *int    `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	WebserverMode                                     *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableGifPicker                                   *bool   `access:"integrations_gif"`
-	GfycatAPIKey                                      *string `access:"integrations_gif"`
-	GfycatAPISecret                                   *string `access:"integrations_gif"`
+	GiphySdkKey                                       *string `access:"integrations_gif"`
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
@@ -396,6 +394,8 @@ type ServiceSettings struct {
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
+
+var MattermostGiphySdkKey string
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
@@ -732,12 +732,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableGifPicker = NewBool(true)
 	}
 
-	if s.GfycatAPIKey == nil || *s.GfycatAPIKey == "" {
-		s.GfycatAPIKey = NewString(ServiceSettingsDefaultGfycatAPIKey)
-	}
-
-	if s.GfycatAPISecret == nil || *s.GfycatAPISecret == "" {
-		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
+	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
+		s.GiphySdkKey = NewString("")
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {
@@ -2117,18 +2113,19 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                  *string `access:"site_customization"`
-	MaxUsersPerTeam           *int    `access:"site_users_and_teams"`
-	EnableUserCreation        *bool   `access:"authentication_signup"`
-	EnableOpenServer          *bool   `access:"authentication_signup"`
-	EnableUserDeactivation    *bool   `access:"experimental_features"`
-	RestrictCreationToDomains *string `access:"authentication_signup"` // telemetry: none
-	EnableCustomUserStatuses  *bool   `access:"site_users_and_teams"`
-	EnableCustomBrand         *bool   `access:"site_customization"`
-	CustomBrandText           *string `access:"site_customization"`
-	CustomDescriptionText     *string `access:"site_customization"`
-	RestrictDirectMessage     *string `access:"site_users_and_teams"`
-	EnableLastActiveTime      *bool   `access:"site_users_and_teams"`
+	SiteName                        *string `access:"site_customization"`
+	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
+	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
+	EnableUserCreation              *bool   `access:"authentication_signup"`
+	EnableOpenServer                *bool   `access:"authentication_signup"`
+	EnableUserDeactivation          *bool   `access:"experimental_features"`
+	RestrictCreationToDomains       *string `access:"authentication_signup"` // telemetry: none
+	EnableCustomUserStatuses        *bool   `access:"site_users_and_teams"`
+	EnableCustomBrand               *bool   `access:"site_customization"`
+	CustomBrandText                 *string `access:"site_customization"`
+	CustomDescriptionText           *string `access:"site_customization"`
+	RestrictDirectMessage           *string `access:"site_users_and_teams"`
+	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
@@ -2150,6 +2147,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.MaxUsersPerTeam == nil {
 		s.MaxUsersPerTeam = NewInt(TeamSettingsDefaultMaxUsersPerTeam)
+	}
+
+	if s.EnableJoinLeaveMessageByDefault == nil {
+		s.EnableJoinLeaveMessageByDefault = NewBool(true)
 	}
 
 	if s.EnableUserCreation == nil {
@@ -3136,7 +3137,8 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes     []string `access:"site_customization"`
+	CustomURLSchemes     []string `access:"site_posts"`
+	MaxMarkdownNodes     *int     `access:"site_posts"`
 	ExperimentalTimezone *bool    `access:"experimental_features"`
 }
 
@@ -3144,6 +3146,10 @@ func (s *DisplaySettings) SetDefaults() {
 	if s.CustomURLSchemes == nil {
 		customURLSchemes := []string{}
 		s.CustomURLSchemes = customURLSchemes
+	}
+
+	if s.MaxMarkdownNodes == nil {
+		s.MaxMarkdownNodes = NewInt(0)
 	}
 
 	if s.ExperimentalTimezone == nil {
@@ -3489,6 +3495,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.ExperimentalSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.SqlSettings.isValid(); appErr != nil {
 		return appErr
 	}
@@ -3564,6 +3574,10 @@ func (s *TeamSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.UserStatusAwayTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.user_status_away_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.MaxNotificationsPerChannel <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_notify_per_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -3578,6 +3592,14 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if len(*s.SiteName) > SitenameMaxLength {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]any{"MaxLength": SitenameMaxLength}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (s *ExperimentalSettings) isValid() *AppError {
+	if *s.LinkMetadataTimeoutMilliseconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.link_metadata_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4166,10 +4188,6 @@ func (o *Config) Sanitize() {
 		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
-	}
-
-	if o.ServiceSettings.GfycatAPISecret != nil && *o.ServiceSettings.GfycatAPISecret != "" {
-		*o.ServiceSettings.GfycatAPISecret = FakeSetting
 	}
 
 	if o.ServiceSettings.SplitKey != nil {

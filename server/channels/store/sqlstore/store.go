@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	dbsql "database/sql"
 	"fmt"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,10 +21,12 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/mattermost/morph/models"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/db"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -105,6 +108,7 @@ type SqlStoreStores struct {
 	postAcknowledgement        store.PostAcknowledgementStore
 	postPersistentNotification store.PostPersistentNotificationStore
 	trueUpReview               store.TrueUpReviewStore
+	desktopTokens              store.DesktopTokensStore
 }
 
 type SqlStore struct {
@@ -226,6 +230,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*Sql
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
+	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1077,6 +1082,10 @@ func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
 	return ss.stores.trueUpReview
 }
 
+func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
+	return ss.stores.desktopTokens
+}
+
 func (ss *SqlStore) DropAllTables() {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		ss.masterX.Exec(`DO
@@ -1287,6 +1296,34 @@ func (ss *SqlStore) toReserveCase(str string) string {
 	}
 
 	return fmt.Sprintf("`%s`", strings.Title(str))
+}
+
+func (ss *SqlStore) GetLocalSchemaVersion() (int, error) {
+	assets := db.Assets()
+
+	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
+	if err != nil {
+		return 0, err
+	}
+
+	maxVersion := 0
+	for _, entry := range assetsList {
+		// parse the version name from the file name
+		m := models.Regex.FindStringSubmatch(entry.Name())
+		if len(m) < 2 {
+			return 0, fmt.Errorf("migration file name incorrectly formed: %s", entry.Name())
+		}
+
+		version, err := strconv.Atoi(m[1])
+		if err != nil {
+			return 0, err
+		}
+		// store the highest version
+		if maxVersion < version {
+			maxVersion = version
+		}
+	}
+	return maxVersion, nil
 }
 
 func (ss *SqlStore) GetDBSchemaVersion() (int, error) {

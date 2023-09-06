@@ -8,7 +8,7 @@ import (
 
 	"github.com/avct/uasurfer"
 
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 

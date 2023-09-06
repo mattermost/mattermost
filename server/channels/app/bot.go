@@ -12,7 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -153,11 +154,7 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 	} else if ownerUser != nil {
 		// Send a message to the bot's creator to inform them that the bot needs to be added
 		// to a team and channel after it's created
-		botOwner, err := a.GetUser(bot.OwnerId)
-		if err != nil {
-			return nil, err
-		}
-		channel, err := a.getOrCreateDirectChannelWithUser(c, user, botOwner)
+		channel, err := a.getOrCreateDirectChannelWithUser(c, user, ownerUser)
 		if err != nil {
 			return nil, err
 		}

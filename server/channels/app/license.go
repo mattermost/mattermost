@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -124,15 +124,11 @@ func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, term
 type JWTClaims struct {
 	LicenseID   string `json:"license_id"`
 	ActiveUsers int64  `json:"active_users"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func (s *Server) License() *model.License {
 	return s.platform.License()
-}
-
-func (s *Server) LoadLicense() {
-	s.platform.LoadLicense()
 }
 
 func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {

@@ -4,15 +4,19 @@
 package app
 
 import (
+	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"sort"
 	"testing"
 	"time"
 
@@ -23,7 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -805,202 +809,566 @@ func TestPluginStatusActivateError(t *testing.T) {
 	})
 }
 
+type byId []*plugin.PrepackagedPlugin
+
+func (a byId) Len() int           { return len(a) }
+func (a byId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byId) Less(i, j int) bool { return a[i].Manifest.Id < a[j].Manifest.Id }
+
+type pluginStatusById model.PluginStatuses
+
+func (a pluginStatusById) Len() int           { return len(a) }
+func (a pluginStatusById) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a pluginStatusById) Less(i, j int) bool { return a[i].PluginId < a[j].PluginId }
+
 func TestProcessPrepackagedPlugins(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
+	// Find the tests folder before we change directories to the temporary workspace.
 	testsPath, _ := fileutils.FindDir("tests")
-	prepackagedPluginsPath := filepath.Join(testsPath, prepackagedPluginsDir)
-	fileErr := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
-	require.NoError(t, fileErr)
-	defer os.RemoveAll(prepackagedPluginsPath)
 
-	prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
-	require.True(t, found, "failed to find prepackaged plugins directory")
+	setup := func(t *testing.T) *TestHelper {
+		t.Helper()
 
-	testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
-	fileErr = testlib.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
-	require.NoError(t, fileErr)
+		th := Setup(t)
+		t.Cleanup(th.TearDown)
 
-	t.Run("automatic, enabled plugin, no signature", func(t *testing.T) {
-		// Install the plugin and enable
-		pluginBytes, err := os.ReadFile(testPluginPath)
+		wd, err := os.Getwd()
 		require.NoError(t, err)
-		require.NotNil(t, pluginBytes)
+		t.Cleanup(func() {
+			err = os.Chdir(wd)
+			require.NoError(t, err)
+		})
 
-		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
-		require.Nil(t, appErr)
-		require.Equal(t, "testplugin", manifest.Id)
-
-		env := th.App.GetPluginsEnvironment()
-
-		activatedManifest, activated, err := env.Activate(manifest.Id)
+		err = os.Chdir(th.tempWorkspace)
 		require.NoError(t, err)
-		require.True(t, activated)
-		require.Equal(t, manifest, activatedManifest)
+
+		// Make a prepackaged_plugins directory for use with the tests.
+		err = os.Mkdir(prepackagedPluginsDir, os.ModePerm)
+		require.NoError(t, err)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
-			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 1)
-		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
-		require.Empty(t, plugins[0].Signature, 0)
+		return th
+	}
+
+	initPlugins := func(t *testing.T, th *TestHelper) ([]*plugin.PrepackagedPlugin, []*plugin.PrepackagedPlugin) {
+		t.Helper()
+
+		appErr := th.App.ch.syncPlugins()
+		require.Nil(t, appErr)
+
+		err := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.NoError(t, err)
+
+		env := th.App.GetPluginsEnvironment()
+		plugins, transitionalPlugins := env.PrepackagedPlugins(), env.TransitionallyPrepackagedPlugins()
+		th.App.ch.persistTransitionallyPrepackagedPlugins()
+
+		return plugins, transitionalPlugins
+	}
+
+	copyAsPrepackagedPlugin := func(t *testing.T, filename string) {
+		t.Helper()
+
+		err := testlib.CopyFile(filepath.Join(testsPath, filename), filepath.Join(prepackagedPluginsDir, filename))
+		require.NoError(t, err)
+
+		err = testlib.CopyFile(filepath.Join(testsPath, fmt.Sprintf("%s.sig", filename)), filepath.Join(prepackagedPluginsDir, fmt.Sprintf("%s.sig", filename)))
+		require.NoError(t, err)
+	}
+
+	copyAsFilestorePlugin := func(t *testing.T, bundleFilename, pluginID string) {
+		t.Helper()
+
+		err := testlib.CopyFile(filepath.Join(testsPath, bundleFilename), filepath.Join(fmt.Sprintf("data/plugins/%s.tar.gz", pluginID)))
+		require.NoError(t, err)
+		err = testlib.CopyFile(filepath.Join(testsPath, fmt.Sprintf("%s.sig", bundleFilename)), filepath.Join(fmt.Sprintf("data/plugins/%s.tar.gz.sig", pluginID)))
+		require.NoError(t, err)
+	}
+
+	expectPrepackagedPlugin := func(t *testing.T, pluginID, version string, actual *plugin.PrepackagedPlugin) {
+		t.Helper()
+
+		require.Equal(t, pluginID, actual.Manifest.Id)
+		require.NotEmpty(t, actual.Signature, "testplugin has no signature")
+		require.Equal(t, version, actual.Manifest.Version)
+	}
+
+	expectPluginInFilestore := func(t *testing.T, pluginID, version string) {
+		t.Helper()
+
+		bundlePath := fmt.Sprintf("data/plugins/%s.tar.gz", pluginID)
+
+		require.FileExists(t, bundlePath)
+		require.FileExists(t, fmt.Sprintf("data/plugins/%s.tar.gz.sig", pluginID))
+
+		// Verify the version recorded in the Manifest
+		f, err := os.Open(bundlePath)
+		require.NoError(t, err)
+
+		uncompressedStream, err := gzip.NewReader(f)
+		require.NoError(t, err)
+
+		tarReader := tar.NewReader(uncompressedStream)
+
+		var manifest model.Manifest
+		for {
+			header, err := tarReader.Next()
+			if err == io.EOF {
+				break
+			}
+			require.NoError(t, err)
+
+			t.Log(header.Name)
+			if header.Typeflag == tar.TypeReg && filepath.Base(header.Name) == "plugin.json" {
+				manifestReader := json.NewDecoder(tarReader)
+				err = manifestReader.Decode(&manifest)
+				require.NoError(t, err)
+				break
+			}
+		}
+
+		require.Equal(t, pluginID, manifest.Id, "failed to find manifest")
+		require.Equal(t, version, manifest.Version)
+	}
+
+	expectPluginNotInFilestore := func(t *testing.T, pluginID string) {
+		t.Helper()
+
+		require.NoFileExists(t, fmt.Sprintf("data/plugins/%s.tar.gz", pluginID))
+		require.NoFileExists(t, fmt.Sprintf("data/plugins/%s.tar.gz.sig", pluginID))
+	}
+
+	expectPluginStatus := func(t *testing.T, pluginID, version string, actual *model.PluginStatus) {
+		t.Helper()
+
+		require.Equal(t, pluginID, actual.PluginId)
+		require.Equal(t, version, actual.Version)
+	}
+
+	t.Run("single plugin automatically installed since enabled", func(t *testing.T) {
+		th := setup(t)
+		env := th.App.GetPluginsEnvironment()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Len(t, plugins, 1, "expected one prepackaged plugin")
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
 		require.Len(t, pluginStatus, 1)
-		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+		expectPluginStatus(t, "testplugin", "0.0.1", pluginStatus[0])
 
-		appErr = th.App.ch.RemovePlugin("testplugin")
-		checkNoError(t, appErr)
-
-		pluginStatus, err = env.Statuses()
-		require.NoError(t, err)
-		require.Len(t, pluginStatus, 0)
+		expectPluginNotInFilestore(t, "testplugin")
 	})
 
-	t.Run("automatic, not enabled plugin", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = true
-			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
-			*cfg.PluginSettings.EnableRemoteMarketplace = false
-		})
-
+	t.Run("single plugin, not automatically installed since not enabled", func(t *testing.T) {
+		th := setup(t)
 		env := th.App.GetPluginsEnvironment()
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 1)
-		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
-		require.Empty(t, plugins[0].Signature, 0)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+		})
+
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Len(t, plugins, 1, "expected one prepackaged plugin")
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
 		require.Empty(t, pluginStatus, 0)
+
+		expectPluginNotInFilestore(t, "testplugin")
 	})
 
-	t.Run("automatic, multiple plugins with signatures, not enabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = true
-			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
-			*cfg.PluginSettings.EnableRemoteMarketplace = false
-		})
-
+	t.Run("single plugin, not automatically installed despite enabled since automatic prepackaged plugins disabled", func(t *testing.T) {
+		th := setup(t)
 		env := th.App.GetPluginsEnvironment()
 
-		// Add signature
-		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
-		err := testlib.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
-		require.NoError(t, err)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+		})
 
-		// Add second plugin
-		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
-		err = testlib.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
-		require.NoError(t, err)
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
 
-		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
-		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
-		require.NoError(t, err)
-
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 2)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
-		require.NotEmpty(t, plugins[0].Signature)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
-		require.NotEmpty(t, plugins[1].Signature)
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Len(t, plugins, 1, "expected one prepackaged plugin")
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
-		require.Len(t, pluginStatus, 0)
+		require.Empty(t, pluginStatus, 0)
+
+		expectPluginNotInFilestore(t, "testplugin")
 	})
 
-	t.Run("automatic, multiple plugins with signatures, one enabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = true
-			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
-			*cfg.PluginSettings.EnableRemoteMarketplace = false
-		})
-
+	t.Run("multiple plugins, some automatically installed since enabled", func(t *testing.T) {
+		th := setup(t)
 		env := th.App.GetPluginsEnvironment()
 
-		// Add signature
-		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
-		err := testlib.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
-		require.NoError(t, err)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			cfg.PluginSettings.PluginStates["testplugin2"] = &model.PluginState{Enable: true}
+		})
 
-		// Install first plugin and enable
-		pluginBytes, err := os.ReadFile(testPluginPath)
-		require.NoError(t, err)
-		require.NotNil(t, pluginBytes)
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+		copyAsPrepackagedPlugin(t, "testplugin2.tar.gz")
 
-		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
-		require.Nil(t, appErr)
-		require.Equal(t, "testplugin", manifest.Id)
-
-		activatedManifest, activated, err := env.Activate(manifest.Id)
-		require.NoError(t, err)
-		require.True(t, activated)
-		require.Equal(t, manifest, activatedManifest)
-
-		// Add second plugin
-		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
-		err = testlib.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
-		require.NoError(t, err)
-
-		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
-		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
-		require.NoError(t, err)
-
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 2)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
-		require.NotEmpty(t, plugins[0].Signature)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
-		require.NotEmpty(t, plugins[1].Signature)
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Len(t, plugins, 2, "expected two prepackaged plugins")
+		sort.Sort(byId(plugins))
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
+		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
 		require.Len(t, pluginStatus, 1)
-		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+		expectPluginStatus(t, "testplugin2", "1.2.3", pluginStatus[0])
 
-		appErr = th.App.ch.RemovePlugin("testplugin")
-		checkNoError(t, appErr)
-
-		pluginStatus, err = env.Statuses()
-		require.NoError(t, err)
-		require.Len(t, pluginStatus, 0)
+		expectPluginNotInFilestore(t, "testplugin")
+		expectPluginNotInFilestore(t, "testplugin2")
 	})
 
-	t.Run("non-automatic, multiple plugins", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = true
-			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
-			*cfg.PluginSettings.EnableRemoteMarketplace = false
-		})
-
+	t.Run("multiple plugins, one previously installed, all now installed", func(t *testing.T) {
+		th := setup(t)
 		env := th.App.GetPluginsEnvironment()
 
-		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
-		err := testlib.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+		})
+
+		copyAsFilestorePlugin(t, "testplugin.tar.gz", "testplugin")
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+			cfg.PluginSettings.PluginStates["testplugin2"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+		copyAsPrepackagedPlugin(t, "testplugin2.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Len(t, plugins, 2, "expected two prepackaged plugins")
+		sort.Sort(byId(plugins))
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
+		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
+		require.Empty(t, transitionalPlugins)
+
+		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
 
-		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
-		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
+		sort.Sort(pluginStatusById(pluginStatus))
+
+		require.Len(t, pluginStatus, 2)
+		expectPluginStatus(t, "testplugin", "0.0.1", pluginStatus[0])
+		expectPluginStatus(t, "testplugin2", "1.2.3", pluginStatus[1])
+
+		expectPluginInFilestore(t, "testplugin", "0.0.1")
+		expectPluginNotInFilestore(t, "testplugin2")
+	})
+
+	t.Run("multiple plugins, one previously installed and now upgraded, all now installed", func(t *testing.T) {
+		th := setup(t)
+		env := th.App.GetPluginsEnvironment()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+		})
+
+		copyAsFilestorePlugin(t, "testplugin.tar.gz", "testplugin")
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+			cfg.PluginSettings.PluginStates["testplugin2"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsPrepackagedPlugin(t, "testplugin-v0.0.2.tar.gz")
+		copyAsPrepackagedPlugin(t, "testplugin2.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		err := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 2)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
-		require.NotEmpty(t, plugins[0].Signature)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
-		require.NotEmpty(t, plugins[1].Signature)
+		require.Len(t, plugins, 2, "expected two prepackaged plugins")
+		sort.Sort(byId(plugins))
+		expectPrepackagedPlugin(t, "testplugin", "0.0.2", plugins[0])
+		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
+		require.Empty(t, transitionalPlugins)
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+
+		sort.Sort(pluginStatusById(pluginStatus))
+
+		require.Len(t, pluginStatus, 2)
+		expectPluginStatus(t, "testplugin", "0.0.2", pluginStatus[0])
+		expectPluginStatus(t, "testplugin2", "1.2.3", pluginStatus[1])
+
+		expectPluginInFilestore(t, "testplugin", "0.0.1")
+		expectPluginNotInFilestore(t, "testplugin2")
+	})
+
+	t.Run("multiple plugins, one previously installed but prepackaged is older, all now installed", func(t *testing.T) {
+		th := setup(t)
+		env := th.App.GetPluginsEnvironment()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+		})
+
+		copyAsFilestorePlugin(t, "testplugin-v0.0.2.tar.gz", "testplugin")
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+			cfg.PluginSettings.PluginStates["testplugin2"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+		copyAsPrepackagedPlugin(t, "testplugin2.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Len(t, plugins, 2, "expected two prepackaged plugins")
+		sort.Sort(byId(plugins))
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
+		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
+		require.Empty(t, transitionalPlugins)
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+
+		sort.Sort(pluginStatusById(pluginStatus))
+
+		require.Len(t, pluginStatus, 2)
+		expectPluginStatus(t, "testplugin", "0.0.2", pluginStatus[0])
+		expectPluginStatus(t, "testplugin2", "1.2.3", pluginStatus[1])
+
+		expectPluginInFilestore(t, "testplugin", "0.0.2")
+		expectPluginNotInFilestore(t, "testplugin2")
+	})
+
+	t.Run("multiple plugins, not automatically installed despite enabled since automatic prepackaged plugins disabled", func(t *testing.T) {
+		th := setup(t)
+		env := th.App.GetPluginsEnvironment()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+			cfg.PluginSettings.PluginStates["testplugin2"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+		copyAsPrepackagedPlugin(t, "testplugin2.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Len(t, plugins, 2, "expected two prepackaged plugins")
+		sort.Sort(byId(plugins))
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
+		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
 		require.Len(t, pluginStatus, 0)
+
+		expectPluginNotInFilestore(t, "testplugin")
+		expectPluginNotInFilestore(t, "testplugin2")
+	})
+
+	t.Run("removing a prepackaged plugin leaves it disabled", func(t *testing.T) {
+		th := setup(t)
+		env := th.App.GetPluginsEnvironment()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+			cfg.PluginSettings.PluginStates["testplugin2"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+		copyAsPrepackagedPlugin(t, "testplugin2.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Len(t, plugins, 2, "expected two prepackaged plugins")
+		sort.Sort(byId(plugins))
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
+		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
+		require.Empty(t, transitionalPlugins)
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+
+		sort.Sort(pluginStatusById(pluginStatus))
+
+		require.Len(t, pluginStatus, 2)
+		require.Equal(t, "testplugin", pluginStatus[0].PluginId)
+		require.Equal(t, "testplugin2", pluginStatus[1].PluginId)
+
+		appErr := th.App.ch.RemovePlugin("testplugin")
+		checkNoError(t, appErr)
+
+		pluginStatus, err = env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		require.Equal(t, "testplugin2", pluginStatus[0].PluginId)
+
+		plugins, transitionalPlugins = initPlugins(t, th)
+		require.Len(t, plugins, 2, "expected two prepackaged plugins")
+		sort.Sort(byId(plugins))
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
+		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
+		require.Empty(t, transitionalPlugins)
+
+		pluginStatus, err = env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		expectPluginStatus(t, "testplugin2", "1.2.3", pluginStatus[0])
+
+		expectPluginNotInFilestore(t, "testplugin")
+		expectPluginNotInFilestore(t, "testplugin2")
+	})
+
+	t.Run("single transitional plugin automatically installed and persisted since enabled", func(t *testing.T) {
+		th := setup(t)
+		env := th.App.GetPluginsEnvironment()
+
+		oldTransitionallyPrepackagedPlugins := append([]string{}, transitionallyPrepackagedPlugins...)
+		transitionallyPrepackagedPlugins = append(transitionallyPrepackagedPlugins, "testplugin")
+		defer func() {
+			transitionallyPrepackagedPlugins = oldTransitionallyPrepackagedPlugins
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Empty(t, plugins)
+		require.Len(t, transitionalPlugins, 1)
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", transitionalPlugins[0])
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		expectPluginStatus(t, "testplugin", "0.0.1", pluginStatus[0])
+
+		expectPluginInFilestore(t, "testplugin", "0.0.1")
+		expectPluginNotInFilestore(t, "testplugin2")
+	})
+
+	t.Run("single transitional plugin not persisted since already in filestore", func(t *testing.T) {
+		th := setup(t)
+		env := th.App.GetPluginsEnvironment()
+
+		oldTransitionallyPrepackagedPlugins := append([]string{}, transitionallyPrepackagedPlugins...)
+		transitionallyPrepackagedPlugins = append(transitionallyPrepackagedPlugins, "testplugin")
+		defer func() {
+			transitionallyPrepackagedPlugins = oldTransitionallyPrepackagedPlugins
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsFilestorePlugin(t, "testplugin.tar.gz", "testplugin")
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Empty(t, plugins)
+		require.Empty(t, transitionalPlugins)
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		expectPluginStatus(t, "testplugin", "0.0.1", pluginStatus[0])
+
+		expectPluginInFilestore(t, "testplugin", "0.0.1")
+		expectPluginNotInFilestore(t, "testplugin2")
+	})
+
+	t.Run("single transitional plugin persisted since newer than filestore", func(t *testing.T) {
+		th := setup(t)
+		env := th.App.GetPluginsEnvironment()
+
+		oldTransitionallyPrepackagedPlugins := append([]string{}, transitionallyPrepackagedPlugins...)
+		transitionallyPrepackagedPlugins = append(transitionallyPrepackagedPlugins, "testplugin")
+		defer func() {
+			transitionallyPrepackagedPlugins = oldTransitionallyPrepackagedPlugins
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsFilestorePlugin(t, "testplugin.tar.gz", "testplugin")
+		copyAsPrepackagedPlugin(t, "testplugin-v0.0.2.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Empty(t, plugins)
+		require.Len(t, transitionalPlugins, 1)
+		expectPrepackagedPlugin(t, "testplugin", "0.0.2", transitionalPlugins[0])
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		expectPluginStatus(t, "testplugin", "0.0.2", pluginStatus[0])
+
+		expectPluginInFilestore(t, "testplugin", "0.0.2")
+		expectPluginNotInFilestore(t, "testplugin2")
+	})
+
+	t.Run("transitional plugins persisted only once", func(t *testing.T) {
+		th := setup(t)
+		env := th.App.GetPluginsEnvironment()
+
+		oldTransitionallyPrepackagedPlugins := append([]string{}, transitionallyPrepackagedPlugins...)
+		transitionallyPrepackagedPlugins = append(transitionallyPrepackagedPlugins, "testplugin")
+		defer func() {
+			transitionallyPrepackagedPlugins = oldTransitionallyPrepackagedPlugins
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+		})
+
+		copyAsPrepackagedPlugin(t, "testplugin.tar.gz")
+
+		plugins, transitionalPlugins := initPlugins(t, th)
+		require.Empty(t, plugins)
+		require.Len(t, transitionalPlugins, 1)
+		expectPrepackagedPlugin(t, "testplugin", "0.0.1", transitionalPlugins[0])
+
+		th.App.ch.RemovePlugin("testplugin")
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Empty(t, pluginStatus, 0)
+
+		th.App.ch.persistTransitionallyPrepackagedPlugins()
+
+		expectPluginNotInFilestore(t, "testplugin")
+		expectPluginNotInFilestore(t, "testplugin2")
 	})
 }
 

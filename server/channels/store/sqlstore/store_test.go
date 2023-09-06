@@ -889,6 +889,32 @@ func TestGetDBSchemaVersion(t *testing.T) {
 	}
 }
 
+func TestGetLocalSchemaVersion(t *testing.T) {
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+
+	for _, d := range testDrivers {
+		driver := d
+		t.Run(driver, func(t *testing.T) {
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
+			store, err := New(*settings, nil)
+			require.NoError(t, err)
+
+			ver, err := store.GetLocalSchemaVersion()
+			require.NoError(t, err)
+
+			dbVer, err := store.GetDBSchemaVersion()
+			require.NoError(t, err)
+			require.Equal(t, ver, dbVer)
+		})
+	}
+}
+
 func TestGetAppliedMigrations(t *testing.T) {
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,

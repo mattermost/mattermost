@@ -1,0 +1,18 @@
+package main
+
+import (
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+)
+
+type MyPlugin struct {
+    plugin.MattermostPlugin
+}
+
+func (p *MyPlugin) NotificationWillBePushed(notification *model.PushNotification, userID string) (*model.PushNotification, string) {
+    %s
+}
+
+func main() {
+    plugin.ClientMain(&MyPlugin{})
+}

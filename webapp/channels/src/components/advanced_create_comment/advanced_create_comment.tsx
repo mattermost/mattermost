@@ -19,6 +19,7 @@ import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 import * as GlobalActions from 'actions/global_actions';
 
 import {PostDraft} from 'types/store/draft';
+import {PluginComponent} from 'types/store/plugins';
 import {ModalData} from 'types/actions';
 
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
@@ -59,7 +60,7 @@ import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 
 const KeyCodes = Constants.KeyCodes;
 
-type Props = {
+export type Props = {
     currentTeamId: string;
 
     // The channel for which this comment is a part of
@@ -193,6 +194,7 @@ type Props = {
     useCustomGroupMentions: boolean;
     isFormattingBarHidden: boolean;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+    postEditorActions: PluginComponent[];
 }
 
 type State = {
@@ -217,16 +219,20 @@ function isDraftEmpty(draft: PostDraft): boolean {
 }
 
 class AdvancedCreateComment extends React.PureComponent<Props, State> {
-    private lastBlurAt = 0;
-    private draftsForPost: {[postID: string]: PostDraft | null} = {};
-    private doInitialScrollToBottom = false;
+    // public because accessed in advanced_create_comment.test.tsx
+    public draftsForPost: {[postID: string]: PostDraft | null} = {};
+    public doInitialScrollToBottom = false;
 
+    private readonly textboxRef: React.RefObject<TextboxClass>;
+
+    private lastBlurAt = 0;
     private saveDraftFrame?: number | null;
 
     private isDraftSubmitting = false;
     private isDraftEdited = false;
+    private isNonFormattedPaste = false;
+    private timeoutId: number | null = null;
 
-    private readonly textboxRef: React.RefObject<TextboxClass>;
     private readonly fileUploadRef: React.RefObject<FileUploadClass>;
 
     static defaultProps = {
@@ -304,6 +310,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         document.removeEventListener('keydown', this.focusTextboxIfNecessary);
         window.removeEventListener('beforeunload', this.saveDraftWithShow);
         this.saveDraftOnUnmount();
+        if (this.timeoutId !== null) {
+            clearTimeout(this.timeoutId);
+        }
     }
 
     componentDidUpdate(prevProps: Props, prevState: State) {
@@ -436,7 +445,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
         const hasTextUrl = isTextUrl(clipboardData);
-        const hasHTMLLinks = hasHtmlLink(clipboardData);
+        const hasHTMLLinks = !this.isNonFormattedPaste && hasHtmlLink(clipboardData);
         const htmlTable = getHtmlTable(clipboardData);
         const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
         const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
@@ -836,6 +845,16 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
         const shiftAltCombo = !Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && e.altKey;
 
+        // fix for FF not capturing the paste without formatting event when using ctrl|cmd + shift + v
+        if (e.key === KeyCodes.V[0] && ctrlOrMetaKeyPressed) {
+            if (e.shiftKey) {
+                this.isNonFormattedPaste = true;
+                this.timeoutId = window.setTimeout(() => {
+                    this.isNonFormattedPaste = false;
+                }, 250);
+            }
+        }
+
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             this.setState({
@@ -1198,6 +1217,41 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     render() {
         const draft = this.state.draft!;
+
+        const pluginItems = this.props.postEditorActions?.
+            map((item) => {
+                if (!item.component) {
+                    return null;
+                }
+
+                const Component = item.component as any;
+                return (
+                    <Component
+                        key={item.id}
+                        draft={draft}
+                        getSelectedText={() => {
+                            const input = this.textboxRef.current?.getInputBox();
+
+                            return {
+                                start: input.selectionStart,
+                                end: input.selectionEnd,
+                            };
+                        }}
+                        updateText={(message: string) => {
+                            const draft = this.state.draft!;
+                            const modifiedDraft = {
+                                ...draft,
+                                message,
+                            };
+                            this.handleDraftChange(modifiedDraft);
+                            this.setState({
+                                draft: modifiedDraft,
+                            });
+                        }}
+                    />
+                );
+            });
+
         return (
             <form onSubmit={this.handleSubmit}>
                 {
@@ -1251,6 +1305,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     getFileUploadTarget={this.getFileUploadTarget}
                     fileUploadRef={this.fileUploadRef}
                     isThreadView={this.props.isThreadView}
+                    additionalControls={pluginItems.filter(Boolean)}
                 />
             </form>
         );

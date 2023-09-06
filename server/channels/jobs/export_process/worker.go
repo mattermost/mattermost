@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 )
@@ -36,6 +36,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		includeAttachments, ok := job.Data["include_attachments"]
 		if ok && includeAttachments == "true" {
 			opts.IncludeAttachments = true
+		}
+
+		includeArchivedChannels, ok := job.Data["include_archived_channels"]
+		if ok && includeArchivedChannels == "true" {
+			opts.IncludeArchivedChannels = true
 		}
 
 		outPath := *app.Config().ExportSettings.Directory
