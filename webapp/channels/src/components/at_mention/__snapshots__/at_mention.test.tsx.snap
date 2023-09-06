@@ -3,25 +3,53 @@
 exports[`components/AtMention should match snapshot when mentioning a group followed by punctuation 1`] = `
 <Fragment>
   <span>
-    <Memo(AtMentionGroup)
-      group={
-        Object {
-          "allow_reference": true,
-          "create_at": 1,
-          "delete_at": 0,
-          "description": "",
-          "display_name": "group_display_name",
-          "has_syncables": false,
-          "id": "qwerty1",
-          "member_count": 0,
-          "name": "developers",
-          "remote_id": "",
-          "scheme_admin": false,
-          "source": "",
-          "update_at": 1,
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
+    >
+      <Connect(Component)
+        group={
+          Object {
+            "allow_reference": true,
+            "create_at": 1,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "group_display_name",
+            "has_syncables": false,
+            "id": "qwerty1",
+            "member_count": 0,
+            "name": "developers",
+            "remote_id": "",
+            "scheme_admin": false,
+            "source": "",
+            "update_at": 1,
+          }
         }
-      }
+        hide={[Function]}
+        returnFocus={[Function]}
+        showUserOverlay={[Function]}
+      />
+    </Overlay>
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
     />
+    <a
+      aria-haspopup="dialog"
+      className="group-mention-link"
+      onClick={[Function]}
+      onKeyDown={[Function]}
+      role="button"
+      tabIndex={0}
+    >
+      @developers
+    </a>
   </span>
   .
 </Fragment>
@@ -30,25 +58,53 @@ exports[`components/AtMention should match snapshot when mentioning a group foll
 exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference 1`] = `
 <Fragment>
   <span>
-    <Memo(AtMentionGroup)
-      group={
-        Object {
-          "allow_reference": true,
-          "create_at": 1,
-          "delete_at": 0,
-          "description": "",
-          "display_name": "group_display_name",
-          "has_syncables": false,
-          "id": "qwerty1",
-          "member_count": 0,
-          "name": "developers",
-          "remote_id": "",
-          "scheme_admin": false,
-          "source": "",
-          "update_at": 1,
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
+    >
+      <Connect(Component)
+        group={
+          Object {
+            "allow_reference": true,
+            "create_at": 1,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "group_display_name",
+            "has_syncables": false,
+            "id": "qwerty1",
+            "member_count": 0,
+            "name": "developers",
+            "remote_id": "",
+            "scheme_admin": false,
+            "source": "",
+            "update_at": 1,
+          }
         }
-      }
+        hide={[Function]}
+        returnFocus={[Function]}
+        showUserOverlay={[Function]}
+      />
+    </Overlay>
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
     />
+    <a
+      aria-haspopup="dialog"
+      className="group-mention-link"
+      onClick={[Function]}
+      onKeyDown={[Function]}
+      role="button"
+      tabIndex={0}
+    >
+      @developers
+    </a>
   </span>
 </Fragment>
 `;
@@ -91,12 +147,18 @@ exports[`components/AtMention should match snapshot when mentioning current user
     >
       <Connect(injectIntl(ProfilePopover))
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         src="/api/v4/users/abc1/image"
         userId="abc1"
       />
     </Overlay>
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
+    />
     <a
       aria-haspopup="dialog"
       className="mention-link"
@@ -123,12 +185,18 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
     >
       <Connect(injectIntl(ProfilePopover))
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
     </Overlay>
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
+    />
     <a
       aria-haspopup="dialog"
       className="mention-link"
@@ -155,12 +223,18 @@ exports[`components/AtMention should match snapshot when mentioning user contain
     >
       <Connect(injectIntl(ProfilePopover))
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         src="/api/v4/users/abc3/image"
         userId="abc3"
       />
     </Overlay>
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
+    />
     <a
       aria-haspopup="dialog"
       className="mention-link"
@@ -188,12 +262,18 @@ exports[`components/AtMention should match snapshot when mentioning user contain
     >
       <Connect(injectIntl(ProfilePopover))
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         src="/api/v4/users/abc3/image"
         userId="abc3"
       />
     </Overlay>
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
+    />
     <a
       aria-haspopup="dialog"
       className="mention-link"
@@ -220,12 +300,18 @@ exports[`components/AtMention should match snapshot when mentioning user followe
     >
       <Connect(injectIntl(ProfilePopover))
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
     </Overlay>
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
+    />
     <a
       aria-haspopup="dialog"
       className="mention-link"
@@ -253,12 +339,18 @@ exports[`components/AtMention should match snapshot when mentioning user with di
     >
       <Connect(injectIntl(ProfilePopover))
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
     </Overlay>
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
+    />
     <a
       aria-haspopup="dialog"
       className="mention-link"
@@ -285,12 +377,18 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
     >
       <Connect(injectIntl(ProfilePopover))
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
     </Overlay>
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={true}
+      show={false}
+    />
     <a
       aria-haspopup="dialog"
       className="mention-link"

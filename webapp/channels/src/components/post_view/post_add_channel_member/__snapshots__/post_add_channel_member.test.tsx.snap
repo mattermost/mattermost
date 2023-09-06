@@ -8,7 +8,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
 <Fragment>
   <p>
     <span>
-      <Connect(AtMention)
+      <Connect(Component)
         channelId="channel_id"
         key="username_1"
         mentionName="username_1"
@@ -37,7 +37,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
         id="post_body.check_for_out_of_channel_mentions.link.and"
         key="1"
       />
-      <Connect(AtMention)
+      <Connect(Component)
         channelId="channel_id"
         key="username_4"
         mentionName="username_4"
@@ -69,7 +69,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
 <Fragment>
   <p>
     <span>
-      <Connect(AtMention)
+      <Connect(Component)
         channelId="channel_id"
         key="username_1"
         mentionName="username_1"
@@ -79,7 +79,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
       >
         , 
       </span>
-      <Connect(AtMention)
+      <Connect(Component)
         channelId="channel_id"
         key="username_2"
         mentionName="username_2"
@@ -89,7 +89,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
       >
         , 
       </span>
-      <Connect(AtMention)
+      <Connect(Component)
         channelId="channel_id"
         key="username_3"
         mentionName="username_3"
@@ -99,7 +99,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
         id="post_body.check_for_out_of_channel_mentions.link.and"
         key="3"
       />
-      <Connect(AtMention)
+      <Connect(Component)
         channelId="channel_id"
         key="username_4"
         mentionName="username_4"
@@ -130,7 +130,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
 exports[`components/post_view/PostAddChannelMember should match snapshot, private channel 1`] = `
 <Fragment>
   <p>
-    <Connect(AtMention)
+    <Connect(Component)
       channelId="channel_id"
       mentionName="username_1"
     />
@@ -159,7 +159,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, privat
 exports[`components/post_view/PostAddChannelMember should match snapshot, public channel 1`] = `
 <Fragment>
   <p>
-    <Connect(AtMention)
+    <Connect(Component)
       channelId="channel_id"
       mentionName="username_1"
     />
@@ -188,7 +188,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, public
 exports[`components/post_view/PostAddChannelMember should match snapshot, with no-groups usernames 1`] = `
 <Fragment>
   <p>
-    <Connect(AtMention)
+    <Connect(Component)
       channelId="channel_id"
       mentionName="username_1"
     />
@@ -212,7 +212,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, with n
     />
   </p>
   <p>
-    <Connect(AtMention)
+    <Connect(Component)
       channelId="channel_id"
       mentionName="user_id_2"
     />
