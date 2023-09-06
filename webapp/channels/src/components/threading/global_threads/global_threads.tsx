@@ -67,7 +67,7 @@ const GlobalThreads = () => {
         dispatch(suppressRHS);
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Threads));
         dispatch(clearLastUnreadChannel);
-        loadProfilesForSidebar();
+        dispatch(loadProfilesForSidebar());
 
         const penultimateType = LocalStorageStore.getPreviousViewedType(currentUserId, currentTeamId);
 

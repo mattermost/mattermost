@@ -104,7 +104,7 @@ export function loadChannelsForCurrentUser(): ActionFunc {
             }
         }
 
-        loadProfilesForSidebar();
+        dispatch(loadProfilesForSidebar());
         return {data: true};
     };
 }
