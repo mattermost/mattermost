@@ -8,8 +8,8 @@ import LocalizedIcon from 'components/localized_icon';
 
 import {t} from 'utils/i18n';
 
-import ShowUnreadsCategory from './show_unreads_category';
 import LimitVisibleGMsDMs from './limit_visible_gms_dms';
+import ShowUnreadsCategory from './show_unreads_category';
 
 export interface Props {
     updateSection: (section: string) => void;

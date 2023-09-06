@@ -4,10 +4,10 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {ChannelType} from '@mattermost/types/channels';
+import type {ChannelType} from '@mattermost/types/channels';
 
-import LeaveChannelModal from 'components/leave_channel_modal/leave_channel_modal';
 import ConfirmModal from 'components/confirm_modal';
+import LeaveChannelModal from 'components/leave_channel_modal/leave_channel_modal';
 
 describe('components/LeaveChannelModal', () => {
     const channels = {

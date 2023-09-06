@@ -2,16 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
-import crtInProductImg from 'images/crt-in-product.gif';
+import {GenericModal} from '@mattermost/components';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
 import {closeModal} from 'actions/views/modals';
-import {GenericModal} from '@mattermost/components';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
+
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import NextIcon from 'components/widgets/icons/fa_next_icon';
+
+import crtInProductImg from 'images/crt-in-product.gif';
 import {Constants, ModalIdentifiers, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 

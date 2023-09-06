@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import SaveButton from 'components/save_button';
-import {localizeMessage} from 'utils/utils';
 import BlockableLink from 'components/admin_console/blockable_link';
+import SaveButton from 'components/save_button';
+
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     saving: boolean;

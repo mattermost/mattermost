@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {Audit} from '@mattermost/types/audits';
+import type {Audit} from '@mattermost/types/audits';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import FormatAudit from './format_audit';
 
