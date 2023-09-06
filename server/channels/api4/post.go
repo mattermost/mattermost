@@ -1134,7 +1134,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If there are no configured PermittedWranglerUsers, skip the check
-	userHasRole := false || (len(c.App.Config().WranglerSettings.PermittedWranglerUsers) == 0)
+	userHasRole := len(c.App.Config().WranglerSettings.PermittedWranglerUsers) == 0
 	for _, role := range c.App.Config().WranglerSettings.PermittedWranglerUsers {
 		if user.IsInRole(role) {
 			userHasRole = true
@@ -1148,7 +1148,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userHasEmailDomain := false || (len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0)
+	userHasEmailDomain := len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0
 	for _, domain := range c.App.Config().WranglerSettings.AllowedEmailDomain {
 		if user.EmailDomain() == domain {
 			userHasEmailDomain = true

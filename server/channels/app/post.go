@@ -2281,12 +2281,17 @@ func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList
 	}
 
 	if *config.MoveThreadMaxCount != int64(0) && *config.MoveThreadMaxCount < int64(wpl.NumPosts()) {
-		return fmt.Errorf("Error: the thread is %d posts long, but this command is configured to only move threads of up to %d posts", wpl.NumPosts(), *config.MoveThreadMaxCount)
+		return fmt.Errorf("the thread is %d posts long, but this command is configured to only move threads of up to %d posts", wpl.NumPosts(), *config.MoveThreadMaxCount)
 	}
 
 	_, appErr := a.GetChannelMember(c, targetChannel.Id, user.Id)
 	if appErr != nil {
-		return fmt.Errorf("Error: channel with ID %s doesn't exist or you are not a member", targetChannel.Id)
+		return fmt.Errorf("channel with ID %s doesn't exist or you are not a member", targetChannel.Id)
+	}
+
+	_, appErr = a.GetChannelMember(c, originalChannel.Id, user.Id)
+	if appErr != nil {
+		return fmt.Errorf("channel with ID %s doesn't exist or you are not a member", originalChannel.Id)
 	}
 
 	return nil
@@ -2336,8 +2341,7 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 		// Store reactions to be reapplied later.
 		reactions, appErr = a.GetReactionsForPost(post.Id)
 		if appErr != nil {
-			// Reaction-based errors are logged, but do not cause the plugin to
-			// abort the move thread process.
+			// Reaction-based errors are logged, but do not abort
 			c.Logger().Error("Failed to get reactions on original post")
 		}
 
@@ -2363,8 +2367,7 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 			reaction.PostId = newPost.Id
 			_, appErr = a.SaveReactionForPost(c, reaction)
 			if appErr != nil {
-				// Reaction-based errors are logged, but do not cause the plugin to
-				// abort the move thread process.
+				// Reaction-based errors are logged, but do not abort
 				c.Logger().Error("Failed to reapply reactions to post")
 			}
 		}
@@ -2382,10 +2385,6 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	wpl := postListResponse.BuildWranglerPostList()
 
 	originalChannel, appErr := a.GetChannel(c, sourceChannelID)
-	if appErr != nil {
-		return appErr
-	}
-	_, appErr = a.GetChannelMember(c, channelID, user.Id)
 	if appErr != nil {
 		return appErr
 	}
@@ -2424,7 +2423,6 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	}
 
 	_, appErr = a.CreatePost(c, &model.Post{
-		// TODO: Make this the System user, not the calling user.
 		UserId:    user.Id,
 		Type:      model.PostTypeWrangler,
 		RootId:    newRootPost.Id,

@@ -38,6 +38,8 @@ import Setting from './setting';
 
 import './schema_admin_settings.scss';
 
+const emptyList = [];
+
 export default class SchemaAdminSettings extends React.PureComponent {
     static propTypes = {
         config: PropTypes.object,
@@ -441,7 +443,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
     };
 
     buildTextSetting = (setting) => {
-        let inputType = 'input';
+        let inputType = 'text';
         if (setting.type === Constants.SettingsTypes.TYPE_NUMBER) {
             inputType = 'number';
         } else if (setting.type === Constants.SettingsTypes.TYPE_LONG_TEXT) {
@@ -452,7 +454,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         if (setting.dynamic_value) {
             value = setting.dynamic_value(value, this.props.config, this.state, this.props.license);
         } else if (setting.multiple) {
-            value = this.state[setting.key]?.join(',') || '';
+            value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
         } else {
             value = this.state[setting.key] || '';
         }
@@ -608,10 +610,10 @@ export default class SchemaAdminSettings extends React.PureComponent {
                     label={this.renderLabel(setting)}
                     values={values}
                     helpText={this.renderHelpText(setting)}
-                    selected={(this.state[setting.key] || [])}
+                    selected={(this.state[setting.key] || emptyList)}
                     disabled={this.isDisabled(setting)}
                     setByEnv={this.isSetByEnv(setting.key)}
-                    onChange={(changedId, value) => this.handleChange(changedId, value)}
+                    onChange={this.handleChange}
                     noResultText={noResultText}
                 />
             );

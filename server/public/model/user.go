@@ -1044,5 +1044,7 @@ type UsersWithGroupsAndCount struct {
 }
 
 func (u *User) EmailDomain() string {
-	return strings.Split(u.Email, "@")[1]
+	at := strings.LastIndex(u.Email, "@")
+	// at >= 0 holds true and this is not checked here. It holds true, because during signup we run `mail.ParseAddress(email)`
+	return u.Email[at+1:]
 }
