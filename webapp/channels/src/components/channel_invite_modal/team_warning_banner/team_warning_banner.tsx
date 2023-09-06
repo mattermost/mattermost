@@ -2,21 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Value} from 'components/multiselect/multiselect';
-import AlertBanner from 'components/alert_banner';
-import Markdown from 'components/markdown';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
-
-import {MentionKey} from 'utils/text_formatting';
-import {GlobalState} from '@mattermost/types/store';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import AlertBanner from 'components/alert_banner';
+import Markdown from 'components/markdown';
+import type {Value} from 'components/multiselect/multiselect';
+import SimpleTooltip from 'components/widgets/simple_tooltip';
+
 import {t} from 'utils/i18n';
+import type {MentionKey} from 'utils/text_formatting';
 
 type UserProfileValue = Value & UserProfile;
 

@@ -15,6 +15,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Address} from '@mattermost/types/cloud';
 import type {ClientConfig} from '@mattermost/types/config';
 import type {FileInfo} from '@mattermost/types/files';
+import type {Group} from '@mattermost/types/groups';
 import type {GlobalState} from '@mattermost/types/store';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -62,7 +63,6 @@ import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
-import {Group} from '@mattermost/types/groups';
 
 const CLICKABLE_ELEMENTS = [
     'a',

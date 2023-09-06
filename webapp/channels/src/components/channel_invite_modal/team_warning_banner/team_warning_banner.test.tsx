@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-
-import {Value} from 'components/multiselect/multiselect';
-import TeamWarningBanner from 'components/channel_invite_modal/team_warning_banner/team_warning_banner';
-import {UserProfile} from '@mattermost/types/users';
-import mockStore from 'tests/test_store';
 import {Provider} from 'react-redux';
+
+import type {UserProfile} from '@mattermost/types/users';
+
+import TeamWarningBanner from 'components/channel_invite_modal/team_warning_banner/team_warning_banner';
+import type {Value} from 'components/multiselect/multiselect';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import mockStore from 'tests/test_store';
 
 type UserProfileValue = Value & UserProfile;
 
