@@ -9,7 +9,6 @@ import * as emojis from './emojis';
 import * as errors from './errors';
 import * as files from './files';
 import * as general from './general';
-import * as gifs from './gifs';
 import * as groups from './groups';
 import * as helpers from './helpers';
 import * as integrations from './integrations';
@@ -34,7 +33,6 @@ export {
     files,
     general,
     groups,
-    gifs,
     integrations,
     helpers,
     jobs,

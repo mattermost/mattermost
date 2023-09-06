@@ -12,7 +12,6 @@ import cloud from './cloud';
 import emojis from './emojis';
 import files from './files';
 import general from './general';
-import gifs from './gifs';
 import groups from './groups';
 import hostedCustomer from './hosted_customer';
 import integrations from './integrations';
@@ -39,7 +38,6 @@ export default combineReducers({
     typing,
     integrations,
     emojis,
-    gifs,
     admin,
     jobs,
     search,

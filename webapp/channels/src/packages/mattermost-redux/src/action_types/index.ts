@@ -12,7 +12,6 @@ import EmojiTypes from './emojis';
 import ErrorTypes from './errors';
 import FileTypes from './files';
 import GeneralTypes from './general';
-import GifTypes from './gifs';
 import GroupTypes from './groups';
 import HostedCustomerTypes from './hosted_customer';
 import IntegrationTypes from './integrations';
@@ -39,7 +38,6 @@ export {
     PreferenceTypes,
     IntegrationTypes,
     EmojiTypes,
-    GifTypes,
     AdminTypes,
     JobTypes,
     SearchTypes,
