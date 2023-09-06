@@ -206,6 +206,8 @@ db/migrations/mysql/000105_remove_tokens.down.sql
 db/migrations/mysql/000105_remove_tokens.up.sql
 db/migrations/mysql/000107_threadmemberships_cleanup.down.sql
 db/migrations/mysql/000107_threadmemberships_cleanup.up.sql
+db/migrations/mysql/000113_create_retentionidsfordeletion_table.down.sql
+db/migrations/mysql/000113_create_retentionidsfordeletion_table.up.sql
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql
@@ -412,3 +414,5 @@ db/migrations/postgres/000105_remove_tokens.down.sql
 db/migrations/postgres/000105_remove_tokens.up.sql
 db/migrations/postgres/000107_threadmemberships_cleanup.down.sql
 db/migrations/postgres/000107_threadmemberships_cleanup.up.sql
+db/migrations/postgres/000113_create_retentionidsfordeletion_table.down.sql
+db/migrations/postgres/000113_create_retentionidsfordeletion_table.up.sql
