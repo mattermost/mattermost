@@ -59,7 +59,36 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 	var rErr error
 
-	// Here we are getting information regarding Elastic Search
+	/* DB */
+
+	databaseType, databaseSchemaVersion := a.Srv().DatabaseTypeAndSchemaVersion()
+	databaseVersion, _ := a.Srv().Store().GetDbVersion(false)
+
+	/* Cluster */
+
+	var clusterID string
+	if a.Cluster() != nil {
+		clusterID = a.Cluster().GetClusterId()
+	}
+
+	/* File store */
+
+	fileDriver := a.Srv().Platform().FileBackend().DriverName()
+	fileStatus := model.StatusOk
+	err := a.Srv().Platform().FileBackend().TestConnection()
+	if err != nil {
+		fileStatus = model.StatusFail + ": " + err.Error()
+	}
+
+	/* LDAP */
+
+	var vendorName, vendorVersion string
+	if ldapInterface := a.ch.Ldap; a.ch.Ldap != nil {
+		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
+	}
+
+	/* Elastic Search */
+
 	var elasticServerVersion string
 	var elasticServerPlugins []string
 	if a.Srv().Platform().SearchEngine.ElasticsearchEngine != nil {
@@ -67,16 +96,16 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		elasticServerPlugins = a.Srv().Platform().SearchEngine.ElasticsearchEngine.GetPlugins()
 	}
 
-	// Here we are getting information regarding LDAP
-	ldapInterface := a.ch.Ldap
-	var vendorName, vendorVersion string
-	if ldapInterface != nil {
-		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
+	/* License */
+
+	licenseTo := ""
+	supportedUsers := 0
+	if license := a.Srv().License(); license != nil {
+		supportedUsers = *license.Features.Users
+		licenseTo = license.Customer.Company
 	}
 
-	// Here we are getting information regarding the database (mysql/postgres + current schema version)
-	databaseType, databaseSchemaVersion := a.Srv().DatabaseTypeAndSchemaVersion()
-	databaseVersion, _ := a.Srv().Store().GetDbVersion(false)
+	/* Jobs  */
 
 	uniqueUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
@@ -112,31 +141,42 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
 	}
 
-	licenseTo := ""
-	supportedUsers := 0
-	if license := a.Srv().License(); license != nil {
-		supportedUsers = *license.Features.Users
-		licenseTo = license.Customer.Company
-	}
-
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
-		LicenseTo:             licenseTo,
-		ServerOS:              runtime.GOOS,
-		ServerArchitecture:    runtime.GOARCH,
-		ServerVersion:         model.CurrentVersion,
-		BuildHash:             model.BuildHash,
+		/* Build information */
+		ServerOS:           runtime.GOOS,
+		ServerArchitecture: runtime.GOARCH,
+		ServerVersion:      model.CurrentVersion,
+		BuildHash:          model.BuildHash,
+
+		/* DB */
 		DatabaseType:          databaseType,
 		DatabaseVersion:       databaseVersion,
 		DatabaseSchemaVersion: databaseSchemaVersion,
-		LdapVendorName:        vendorName,
-		LdapVendorVersion:     vendorVersion,
-		ElasticServerVersion:  elasticServerVersion,
-		ElasticServerPlugins:  elasticServerPlugins,
-		ActiveUsers:           int(uniqueUserCount),
+
+		/* Cluster */
+		ClusterID: clusterID,
+
+		/* File store */
+		FileDriver: fileDriver,
+		FileStatus: fileStatus,
+
+		/* LDAP */
+		LdapVendorName:    vendorName,
+		LdapVendorVersion: vendorVersion,
+
+		/* Elastic Search */
+		ElasticServerVersion: elasticServerVersion,
+		ElasticServerPlugins: elasticServerPlugins,
+
+		/* License */
+		LicenseTo:             licenseTo,
 		LicenseSupportedUsers: supportedUsers,
 
-		// Jobs
+		/* Server stats */
+		ActiveUsers: int(uniqueUserCount),
+
+		/* Jobs */
 		DataRetentionJobs:          dataRetentionJobs,
 		MessageExportJobs:          messageExportJobs,
 		ElasticPostIndexingJobs:    elasticPostIndexingJobs,
@@ -145,6 +185,8 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		LdapSyncJobs:               ldapSyncJobs,
 		MigrationJobs:              migrationJobs,
 	}
+
+	/* Server stats */
 
 	analytics, appErr := a.GetAnalytics("standard", "")
 	if appErr != nil {

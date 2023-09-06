@@ -1,24 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+
+import type {UserProfile} from '@mattermost/types/users';
+
+import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import SharedUserIndicator from 'components/shared_user_indicator';
+import StatusIcon from 'components/status_icon';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+import Tag from 'components/widgets/tag/tag';
+import Avatar from 'components/widgets/users/avatar';
 
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import SharedUserIndicator from 'components/shared_user_indicator';
-import Avatar from 'components/widgets/users/avatar';
-import Tag from 'components/widgets/tag/tag';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import StatusIcon from 'components/status_icon';
-
-import {SuggestionContainer, SuggestionProps} from '../suggestion';
-
-import {UserProfile} from '@mattermost/types/users';
+import {SuggestionContainer} from '../suggestion';
+import type {SuggestionProps} from '../suggestion';
 
 export interface Item extends UserProfile {
     display_name: string;

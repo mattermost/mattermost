@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+
+import type {PluginSettings} from '@mattermost/types/config';
+import type {PluginRedux} from '@mattermost/types/plugins';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings/custom_plugin_settings';
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
-
-import {PluginSettings} from '@mattermost/types/config';
-import {PluginRedux} from '@mattermost/types/plugins';
 
 describe('components/admin_console/CustomPluginSettings', () => {
     let plugin: PluginRedux = {} as PluginRedux;

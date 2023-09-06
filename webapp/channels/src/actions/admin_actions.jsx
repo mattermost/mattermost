@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import * as AdminActions from 'mattermost-redux/actions/admin';
-import * as UserActions from 'mattermost-redux/actions/users';
-import * as TeamActions from 'mattermost-redux/actions/teams';
-import {Client4} from 'mattermost-redux/client';
 import {bindClientFunc} from 'mattermost-redux/actions/helpers';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import * as TeamActions from 'mattermost-redux/actions/teams';
+import * as UserActions from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getOnNavigationConfirmed} from 'selectors/views/admin';
 import store from 'stores/redux_store.jsx';
+
 import {ActionTypes} from 'utils/constants';
 
 const dispatch = store.dispatch;

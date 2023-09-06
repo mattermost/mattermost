@@ -673,6 +673,33 @@ func TestRedirectLocation(t *testing.T) {
 	_, resp, err = client.GetRedirectLocation(context.Background(), "", "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// Check that too-long redirect locations are ignored
+	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
+	urlPrefix := "https://example.co"
+	almostTooLongUrl := urlPrefix + strings.Repeat("a", 2100-len(urlPrefix))
+	testServer2 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Location", almostTooLongUrl)
+		res.WriteHeader(http.StatusFound)
+		res.Write([]byte("body"))
+	}))
+	defer func() { testServer2.Close() }()
+
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer2.URL, "")
+	require.NoError(t, err)
+	assert.Equal(t, almostTooLongUrl, actual)
+
+	tooLongUrl := urlPrefix + strings.Repeat("a", 2101-len(urlPrefix))
+	testServer3 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Location", tooLongUrl)
+		res.WriteHeader(http.StatusFound)
+		res.Write([]byte("body"))
+	}))
+	defer func() { testServer3.Close() }()
+
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer3.URL, "")
+	require.NoError(t, err)
+	assert.Equal(t, "", actual)
 }
 
 func TestSetServerBusy(t *testing.T) {

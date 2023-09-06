@@ -2,16 +2,18 @@
 // See LICENSE.txt for license information.
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
-import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 import type {Channel} from '@mattermost/types/channels';
+import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
+
+import {autocompleteChannels} from 'mattermost-redux/actions/channels';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 import {autocompleteUsersInChannel} from 'actions/views/channel';
-import {autocompleteChannels} from 'mattermost-redux/actions/channels';
 
 import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 export const COMMAND_SUGGESTION_CHANNEL = Constants.Integrations.COMMAND_SUGGESTION_CHANNEL;
 export const COMMAND_SUGGESTION_USER = Constants.Integrations.COMMAND_SUGGESTION_USER;

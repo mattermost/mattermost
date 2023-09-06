@@ -6,7 +6,6 @@ import React from 'react';
 import {Posts} from 'mattermost-redux/constants';
 
 import {renderWithIntlAndStore, screen, userEvent} from 'tests/react_testing_utils';
-
 import {TestHelper} from 'utils/test_helper';
 
 import LastUsers from './last_users';

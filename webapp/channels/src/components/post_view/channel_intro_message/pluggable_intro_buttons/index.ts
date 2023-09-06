@@ -3,13 +3,13 @@
 
 import {connect} from 'react-redux';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
 import {getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 
 import {getChannelIntroPluginButtons} from 'selectors/plugins';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import PluggableIntroButtons from './pluggable_intro_buttons';
 

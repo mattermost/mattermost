@@ -3,12 +3,13 @@
 
 import {combineReducers} from 'redux';
 
+import type {Team, TeamMembership, TeamUnread} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
+
 import {AdminTypes, ChannelTypes, TeamTypes, UserTypes, SchemeTypes, GroupTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 import {teamListToMap} from 'mattermost-redux/utils/team_utils';
-import {Team, TeamMembership, TeamUnread} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 function currentTeamId(state = '', action: GenericAction) {
     switch (action.type) {
