@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, CSSProperties, FormEvent, useEffect, useRef} from 'react';
 import classNames from 'classnames';
+import React, {useEffect, useRef} from 'react';
+import type {ChangeEvent, CSSProperties, FormEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+
+import type Provider from 'components/suggestion/provider';
+import SearchSuggestionList from 'components/suggestion/search_suggestion_list';
+import SuggestionBox from 'components/suggestion/suggestion_box';
+import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import SuggestionDate from 'components/suggestion/suggestion_date';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-
-import SuggestionDate from 'components/suggestion/suggestion_date';
-import SearchSuggestionList from 'components/suggestion/search_suggestion_list';
-import SuggestionBox from 'components/suggestion/suggestion_box';
-import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import Provider from 'components/suggestion/provider';
 
 const {KeyCodes} = Constants;
 

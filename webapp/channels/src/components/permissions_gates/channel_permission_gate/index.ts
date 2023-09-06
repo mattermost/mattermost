@@ -3,8 +3,9 @@
 
 import {connect} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {GlobalState} from '@mattermost/types/store';
 
 import ChannelPermissionGate from './channel_permission_gate';
 

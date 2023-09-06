@@ -4,8 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
-import {Group} from '@mattermost/types/groups';
+import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
 
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ToggleModalButton from 'components/toggle_modal_button';

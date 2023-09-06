@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-import {MovementMode, DropResult} from 'react-beautiful-dnd';
+import React from 'react';
+import type {MovementMode, DropResult} from 'react-beautiful-dnd';
+
+import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {ChannelType} from '@mattermost/types/channels';
+import type {TeamType} from '@mattermost/types/teams';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {CategorySorting} from '@mattermost/types/channel_categories';
-import {ChannelType} from '@mattermost/types/channels';
-import {TeamType} from '@mattermost/types/teams';
-
-import {TestHelper} from 'utils/test_helper';
 
 import {DraggingStates, DraggingStateTypes} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import SidebarList from './sidebar_list';
 

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {DraftInfo} from 'types/store/draft';
+import type {GlobalState} from '@mattermost/types/store';
+
+import type {DraftInfo} from 'types/store/draft';
 
 import {StoragePrefixes} from './constants';
 

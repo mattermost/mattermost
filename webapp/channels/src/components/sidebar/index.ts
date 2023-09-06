@@ -2,25 +2,29 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {GenericAction} from 'mattermost-redux/types/actions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+
 import {clearChannelSelection} from 'actions/views/channel_sidebar';
-import {isUnreadFilterEnabled} from 'selectors/views/channel_sidebar';
 import {closeModal, openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
 import {getIsLhsOpen} from 'selectors/lhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
+import {isUnreadFilterEnabled} from 'selectors/views/channel_sidebar';
 import {isModalOpen} from 'selectors/views/modals';
+
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 import Sidebar from './sidebar';
 

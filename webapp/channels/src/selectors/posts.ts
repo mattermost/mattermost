@@ -1,25 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
+import type {Channel} from '@mattermost/types/channels';
+import type {ClientConfig} from '@mattermost/types/config';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {getGlobalItem} from 'selectors/storage';
-import {arePreviewsCollapsed} from 'selectors/preferences';
-import {StoragePrefixes} from 'utils/constants';
-
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {moveThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {ClientConfig} from '@mattermost/types/config';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import {arePreviewsCollapsed} from 'selectors/preferences';
+import {getGlobalItem} from 'selectors/storage';
+
+import {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-import {moveThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 export function getIsPostBeingEdited(state: GlobalState, postId: string) {
     return state.views.posts.editingPost.postId === postId && state.views.posts.editingPost.show;

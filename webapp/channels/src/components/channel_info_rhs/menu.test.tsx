@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {Channel, ChannelStats} from '@mattermost/types/channels';
+
 import {
     act,
     fireEvent,
@@ -10,8 +12,6 @@ import {
     screen,
 } from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
-
-import {Channel, ChannelStats} from '@mattermost/types/channels';
 
 import Menu from './menu';
 

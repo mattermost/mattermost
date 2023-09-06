@@ -22,10 +22,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -37,6 +37,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/opentracing/opentracing-go/ext"
+
 	spanlog "github.com/opentracing/opentracing-go/log"
 )
 

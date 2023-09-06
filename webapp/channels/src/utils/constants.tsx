@@ -3,10 +3,15 @@
 
 /* eslint-disable max-lines */
 
+import solarizedDarkCSS from 'highlight.js/styles/base16/solarized-dark.css';
+import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
+import githubCSS from 'highlight.js/styles/github.css';
+import monokaiCSS from 'highlight.js/styles/monokai.css';
 import keyMirror from 'key-mirror';
 
-import Permissions from 'mattermost-redux/constants/permissions';
+import {CustomStatusDuration} from '@mattermost/types/users';
 
+import Permissions from 'mattermost-redux/constants/permissions';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
 import audioIcon from 'images/icons/audio.svg';
@@ -23,15 +28,7 @@ import monokaiIcon from 'images/themes/code_themes/monokai.png';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
 import solarizedLightIcon from 'images/themes/code_themes/solarized-light.png';
 import logoWebhook from 'images/webhook_icon.jpg';
-
 import {t} from 'utils/i18n';
-
-import {CustomStatusDuration} from '@mattermost/types/users';
-
-import githubCSS from 'highlight.js/styles/github.css';
-import monokaiCSS from 'highlight.js/styles/monokai.css';
-import solarizedDarkCSS from 'highlight.js/styles/base16/solarized-dark.css';
-import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
 
 export const SettingsTypes = {
     TYPE_TEXT: 'text',
@@ -1585,6 +1582,7 @@ export const Constants = {
     DEFAULT_EMOJI_PICKER_LEFT_OFFSET: 87,
     DEFAULT_EMOJI_PICKER_RIGHT_OFFSET: 15,
     EMOJI_PICKER_WIDTH_OFFSET: 295,
+    SIDEBAR_MINIMUM_WIDTH: 400,
     THEME_ELEMENTS: [
         {
             group: 'sidebarElements',

@@ -1,37 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-
-import {FormattedMessage, useIntl} from 'react-intl';
-
-import {useSelector} from 'react-redux';
-
-import {ValueType} from 'react-select';
-
 import classNames from 'classnames';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+import type {ValueType} from 'react-select';
+
+import type {ClientError} from '@mattermost/client';
+import {GenericModal} from '@mattermost/components';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post, PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import type {ChannelOption} from 'components/forward_post_modal/forward_post_channel_select';
+import ChannelSelector from 'components/forward_post_modal/forward_post_channel_select';
 import NotificationBox from 'components/notification_box';
-
-import {GlobalState} from 'types/store';
+import PostMessagePreview from 'components/post_view/post_message_preview';
 
 import Constants from 'utils/constants';
 
-import PostMessagePreview from 'components/post_view/post_message_preview';
-import {GenericModal} from '@mattermost/components';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {Post, PostPreviewMetadata} from '@mattermost/types/posts';
-import {Channel} from '@mattermost/types/channels';
-
-import ChannelSelector, {ChannelOption} from 'components/forward_post_modal/channel_selector';
+import type {GlobalState} from 'types/store';
 
 import './move_thread_modal.scss';
-import {ClientError} from '@mattermost/client';
 
 export type ActionProps = {
 
@@ -92,13 +86,13 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
     }, [onExited]);
 
     const handleChannelSelect = useCallback((channel: ValueType<ChannelOption>) => {
-            if (Array.isArray(channel)) {
-                setSelectedChannel(channel[0]);
-                return
-            }
-            setSelectedChannel(channel as ChannelOption);
-        },
-        [],
+        if (Array.isArray(channel)) {
+            setSelectedChannel(channel[0]);
+            return;
+        }
+        setSelectedChannel(channel as ChannelOption);
+    },
+    [],
     );
 
     const messagePreviewTitle = formatMessage({
@@ -107,7 +101,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
     });
 
     const previewMetaData: PostPreviewMetadata = useMemo(() => ({
-        post: post,
+        post,
         post_id: post.id,
         team_name: currentTeam.name,
         channel_display_name: originalChannel.display_name,
@@ -115,10 +109,9 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
         channel_id: originalChannel.id,
     }), [post, currentTeam.name, originalChannel.display_name, originalChannel.type, originalChannel.id]);
 
-
     const notificationText = formatMessage({
-        id:'move_thread_modal.notification.dm_or_gm',
-        defaultMessage:'Moving this thread changes who has access',
+        id: 'move_thread_modal.notification.dm_or_gm',
+        defaultMessage: 'Moving this thread changes who has access',
     });
 
     const notification = (
@@ -134,42 +127,42 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
         setHasError(true);
         setTimeout(() => setHasError(false), Constants.ANIMATION_TIMEOUT);
     }, [setIsButtonClicked, setPostError, setHasError]);
-    
+
     const handleSubmit = useCallback(async () => {
         setIsButtonClicked(true);
         if (!selectedChannel) {
             setIsButtonClicked(false);
             return;
         }
-    
+
         const channel = selectedChannel.details;
-    
+
         let result = await actions.moveThread(post.root_id || post.id, channel.id);
-    
+
         if (result.error) {
             handlePostError(result.error);
             return;
         }
-    
+
         if (
             channel.type === Constants.MENTION_MORE_CHANNELS &&
             channel.type === Constants.OPEN_CHANNEL
         ) {
             result = await actions.joinChannelById(channel.id);
-    
+
             if (result.error) {
                 handlePostError(result.error);
                 return;
             }
         }
-    
+
         result = await actions.switchToChannel(channel);
-    
+
         if (result.error) {
             handlePostError(result.error);
             return;
         }
-    
+
         onHide();
     }, [setIsButtonClicked, selectedChannel, post, actions, handlePostError, onHide]);
 
