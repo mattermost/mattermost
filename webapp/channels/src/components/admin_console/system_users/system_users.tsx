@@ -1,29 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent} from 'react';
+import React from 'react';
+import type {ChangeEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
+import type {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Permissions} from 'mattermost-redux/constants';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {ServerError} from '@mattermost/types/errors';
-import {Team} from '@mattermost/types/teams';
-import {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
-import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
-
-import LocalizedInput from 'components/localized_input/localized_input';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import ConfirmModal from 'components/confirm_modal';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import LocalizedInput from 'components/localized_input/localized_input';
+import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
+import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
 import SystemUsersList from './list';
 

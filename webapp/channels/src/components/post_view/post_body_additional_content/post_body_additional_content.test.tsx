@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-
 import React from 'react';
 
-import {
+import type {
     Post,
     PostEmbed,
     PostImage,
@@ -19,7 +18,8 @@ import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengr
 import PostImageComponent from 'components/post_view/post_image';
 import YoutubeVideo from 'components/youtube_video';
 
-import PostBodyAdditionalContent, {Props} from './post_body_additional_content';
+import PostBodyAdditionalContent from './post_body_additional_content';
+import type {Props} from './post_body_additional_content';
 
 jest.mock('mattermost-redux/utils/post_utils', () => {
     const actual = jest.requireActual('mattermost-redux/utils/post_utils');

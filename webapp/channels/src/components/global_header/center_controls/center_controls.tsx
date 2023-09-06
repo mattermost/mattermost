@@ -4,10 +4,9 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import {ProductIdentifier} from '@mattermost/types/products';
+import type {ProductIdentifier} from '@mattermost/types/products';
 
 import Pluggable from 'plugins/pluggable';
-
 import {isChannels} from 'utils/products';
 
 import GlobalSearchNav from './global_search_nav/global_search_nav';

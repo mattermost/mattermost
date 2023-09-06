@@ -1,18 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {
+    MessageHistory,
+    OpenGraphMetadata,
+    Post,
+    PostAcknowledgement,
+    PostOrderBlock,
+} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
+    IDMappedObjects,
+    RelationOneToOne,
+    RelationOneToMany,
+} from '@mattermost/types/utilities';
+
 import {General, Posts, Preferences} from 'mattermost-redux/constants';
-
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
-import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
+import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
-
+import {shouldShowJoinLeaveMessages} from 'mattermost-redux/utils/post_list';
 import {
     isPostEphemeral,
     isSystemMessage,
@@ -21,29 +37,8 @@ import {
     isPostPendingOrFailed,
     isPostCommentMention,
 } from 'mattermost-redux/utils/post_utils';
-
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-
-import {shouldShowJoinLeaveMessages} from 'mattermost-redux/utils/post_list';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
-
-import {Channel} from '@mattermost/types/channels';
-import {
-    MessageHistory,
-    OpenGraphMetadata,
-    Post,
-    PostAcknowledgement,
-    PostOrderBlock,
-} from '@mattermost/types/posts';
-import {Reaction} from '@mattermost/types/reactions';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
-import type {Team} from '@mattermost/types/teams';
-import {
-    IDMappedObjects,
-    RelationOneToOne,
-    RelationOneToMany,
-} from '@mattermost/types/utilities';
 
 export function getAllPosts(state: GlobalState) {
     return state.entities.posts.posts;

@@ -2,28 +2,26 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {bindActionCreators, Dispatch} from 'redux';
+import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
-import {GlobalState} from 'types/store';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {PostPreviewMetadata} from '@mattermost/types/posts';
-
+import {General} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getPost, isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
-import {getPost, isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
-
-import {isEmbedVisible} from 'selectors/posts';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
+import {isEmbedVisible} from 'selectors/posts';
 
 import {Preferences} from 'utils/constants';
 
-import {General} from 'mattermost-redux/constants';
+import type {GlobalState} from 'types/store';
 
 import PostMessagePreview from './post_message_preview';
 

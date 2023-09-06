@@ -2,12 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {Action, GenericAction} from 'mattermost-redux/types/actions';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Action, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
-import MarkdownImage, {Props} from './markdown_image';
+import MarkdownImage from './markdown_image';
+import type {Props} from './markdown_image';
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {

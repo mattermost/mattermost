@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
-import EmojiMap from 'utils/emoji_map';
+import type EmojiMap from 'utils/emoji_map';
 
-import TermsOfService, {TermsOfServiceProps} from './terms_of_service';
+import TermsOfService from './terms_of_service';
+import type {TermsOfServiceProps} from './terms_of_service';
 
 jest.mock('actions/global_actions', () => ({
     emitUserLoggedOutEvent: jest.fn(),

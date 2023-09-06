@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import * as redux from 'react-redux';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
-import SidebarCategoryMenu from '.';
-import * as redux from 'react-redux';
 import CreateNewCategoryMenuItem from './create_new_category_menu_item';
+
+import SidebarCategoryMenu from '.';
 
 const initialState = {
     entities: {

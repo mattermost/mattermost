@@ -2,23 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
-import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
-
-import {GlobalState} from 'types/store';
-
-import {getUsage} from 'mattermost-redux/selectors/entities/usage';
 import {getCloudLimits, getCloudLimitsLoaded} from 'mattermost-redux/selectors/entities/cloud';
-import {getLimitedViews, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getLimitedViews, getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getUsage} from 'mattermost-redux/selectors/entities/usage';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+
+import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
 
 import {PostListRowListIds} from 'utils/constants';
 
-import PostListRow, {PostListRowProps} from './post_list_row';
+import type {GlobalState} from 'types/store';
+
+import PostListRow from './post_list_row';
+import type {PostListRowProps} from './post_list_row';
 
 type OwnProps = Pick<PostListRowProps, 'listId'>
 
