@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {KeyboardEvent, memo} from 'react';
+import React, {memo} from 'react';
+import type {KeyboardEvent} from 'react';
 
-import {EmojiCategory} from '@mattermost/types/emojis';
+import type {EmojiCategory} from '@mattermost/types/emojis';
 
+import EmojiPickerCategory from 'components/emoji_picker/components/emoji_picker_category';
 import {
-    Categories,
-    CategoryOrEmojiRow,
     NavigationDirection,
 } from 'components/emoji_picker/types';
+import type {
+    Categories,
+    CategoryOrEmojiRow} from 'components/emoji_picker/types';
 import {calculateCategoryRowIndex} from 'components/emoji_picker/utils';
-import EmojiPickerCategory from 'components/emoji_picker/components/emoji_picker_category';
 
 interface Props {
     isFiltering: boolean;

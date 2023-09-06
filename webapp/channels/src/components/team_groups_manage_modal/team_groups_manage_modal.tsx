@@ -2,27 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import ConfirmModal from 'components/confirm_modal';
+import {SyncableType} from '@mattermost/types/groups';
+import type {Group, SyncablePatch} from '@mattermost/types/groups';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
-
-import {ModalIdentifiers} from 'utils/constants';
-
+import ConfirmModal from 'components/confirm_modal';
 import ListModal, {DEFAULT_NUM_PER_PAGE} from 'components/list_modal';
-
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import groupsAvatar from 'images/groups-avatar.png';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-
-import {ModalData} from 'types/actions';
-
+import {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {Group, SyncablePatch, SyncableType} from '@mattermost/types/groups';
+
+import type {ModalData} from 'types/actions';
 
 type Props = {
     intl: IntlShape;

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostType} from '@mattermost/types/posts';
+import type {PostType} from '@mattermost/types/posts';
 
 export const PostTypes = {
     CHANNEL_DELETED: 'system_channel_deleted' as PostType,

@@ -3,24 +3,26 @@
 
 /* eslint-disable max-lines */
 
-import React, {ChangeEvent, RefObject} from 'react';
-import {FormattedMessage, injectIntl, WrappedComponentProps} from 'react-intl';
+import React from 'react';
+import type {ChangeEvent, RefObject} from 'react';
+import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
-import {Styles as ReactSelectStyles, ValueType} from 'react-select';
 
-import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-import {ServerError} from '@mattermost/types/errors';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import LocalizedIcon from 'components/localized_icon';
+import SettingItem from 'components/setting_item';
+import SettingItemMax from 'components/setting_item_max';
 
 import Constants, {NotificationLevels} from 'utils/constants';
+import {t} from 'utils/i18n';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
-import {t} from 'utils/i18n';
-
-import SettingItem from 'components/setting_item';
-import LocalizedIcon from 'components/localized_icon';
-import SettingItemMax from 'components/setting_item_max';
 
 import DesktopNotificationSettings from './desktop_notification_setting/desktop_notification_settings';
 import EmailNotificationSetting from './email_notification_setting';

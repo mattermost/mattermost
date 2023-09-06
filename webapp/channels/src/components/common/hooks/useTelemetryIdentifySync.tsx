@@ -5,7 +5,6 @@ import {useEffect} from 'react';
 import {useSelector} from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
-
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 /**

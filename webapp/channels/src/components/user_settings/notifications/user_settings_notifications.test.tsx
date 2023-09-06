@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {IntlShape} from 'react-intl';
+import {type IntlShape} from 'react-intl';
 
 import {renderWithFullContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';

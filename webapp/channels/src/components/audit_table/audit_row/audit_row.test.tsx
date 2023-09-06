@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {Provider} from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import type {Audit} from '@mattermost/types/audits';
 
-import {Audit} from '@mattermost/types/audits';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
-import AuditRow, {Props} from './audit_row';
+import AuditRow from './audit_row';
+import type {Props} from './audit_row';
 
 describe('components/audit_table/audit_row/AuditRow', () => {
     const audit: Audit = {

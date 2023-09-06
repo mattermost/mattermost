@@ -2,16 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {IntlShape, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {PreferenceType} from '@mattermost/types/preferences';
-
 import {trackEvent} from 'actions/telemetry_actions';
+
 import ProfilePicture from 'components/profile_picture';
+
 import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 

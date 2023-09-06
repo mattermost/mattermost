@@ -2,15 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, ActionCreatorsMapObject, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
+import type {UserProfile} from '@mattermost/types/users';
+
+import {searchGroupChannels} from 'mattermost-redux/actions/channels';
 import {
     getProfiles,
     getProfilesInTeam,
     getTotalUsersStats,
     searchProfiles,
 } from 'mattermost-redux/actions/users';
-import {searchGroupChannels} from 'mattermost-redux/actions/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
     getProfiles as selectProfiles,
@@ -20,18 +25,14 @@ import {
     searchProfilesInCurrentTeam,
     getTotalUsersStats as getTotalUsersStatsSelector,
 } from 'mattermost-redux/selectors/entities/users';
-
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openDirectChannelToUserId, openGroupChannelToUserIds} from 'actions/channel_actions';
 import {loadStatusesForProfilesList, loadProfilesMissingStatus} from 'actions/status_actions';
 import {loadProfilesForGroupChannels} from 'actions/user_actions';
 import {setModalSearchTerm} from 'actions/views/search';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import MoreDirectChannels from './more_direct_channels';
 

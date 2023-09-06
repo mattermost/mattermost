@@ -5,12 +5,14 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {getChannelsNameMapInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
-import {GlobalState} from 'types/store';
-import Constants from 'utils/constants';
-import ChannelsImg from 'images/channels_and_direct_tour_tip.svg';
-
 import {useMeasurePunchouts} from '@mattermost/components';
+
+import {getChannelsNameMapInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
+
+import ChannelsImg from 'images/channels_and_direct_tour_tip.svg';
+import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import OnboardingTourTip from './onboarding_tour_tip';
 

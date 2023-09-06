@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {useMemo, useCallback} from 'react';
-import {useParams, useHistory} from 'react-router-dom';
 import {useSelector, shallowEqual} from 'react-redux';
+import {useParams, useHistory} from 'react-router-dom';
 
-import {UserThread} from '@mattermost/types/threads';
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
+import type {UserThread} from '@mattermost/types/threads';
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 /**
  * GlobalThreads-specific hook for nav/routing, selection, and common data needed for actions.
