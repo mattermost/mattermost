@@ -3909,7 +3909,8 @@ func TestLoginWithLag(t *testing.T) {
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
 
-		th.App.Srv().InvalidateAllCaches()
+		appErr = th.App.Srv().InvalidateAllCaches()
+		require.Nil(t, appErr)
 
 		session, appErr := th.App.GetSession(th.Client.AuthToken)
 		require.Nil(t, appErr)
