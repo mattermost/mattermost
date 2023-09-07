@@ -783,6 +783,12 @@ type API interface {
 	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
+	// SetFileSearchableContent update the File Info searchable text for full text search
+	//
+	// @tag File
+	// Minimum server version: 9.1
+	SetFileSearchableContent(fileID string, content string) *model.AppError
+
 	// GetFileInfos gets File Infos with options
 	//
 	// @tag File

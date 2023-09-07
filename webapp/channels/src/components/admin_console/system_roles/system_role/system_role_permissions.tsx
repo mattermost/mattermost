@@ -3,17 +3,18 @@
 
 import React from 'react';
 
-import {memoizeResult} from 'mattermost-redux/utils/helpers';
-import {Role} from '@mattermost/types/roles';
+import type {Role} from '@mattermost/types/roles';
 
+import {memoizeResult} from 'mattermost-redux/utils/helpers';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+
+import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import Constants from 'utils/constants';
-import FormattedMarkdownMessage from '../../../formatted_markdown_message';
-
 import SystemRolePermission from './system_role_permission';
-import {PermissionsToUpdate, PermissionToUpdate, SystemSection} from './types';
+import type {PermissionsToUpdate, PermissionToUpdate, SystemSection} from './types';
 
 import './system_role_permissions.scss';
 

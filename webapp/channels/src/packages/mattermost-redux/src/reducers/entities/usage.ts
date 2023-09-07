@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {CloudUsage} from '@mattermost/types/cloud';
+import type {CloudUsage} from '@mattermost/types/cloud';
+
 import {CloudTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 const emptyUsage = {
     files: {

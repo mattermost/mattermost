@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 

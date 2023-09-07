@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import VersionBar from 'components/announcement_bar/version_bar/version_bar';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
+import VersionBar from 'components/announcement_bar/version_bar/version_bar';
 
 describe('components/VersionBar', () => {
     test('should match snapshot - bar rendered after build hash change', () => {

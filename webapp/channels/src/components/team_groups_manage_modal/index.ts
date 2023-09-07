@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Group, SyncablePatch, SyncableType} from '@mattermost/types/groups';
+import type {GlobalState} from '@mattermost/types/store';
+import type {TeamMembership} from '@mattermost/types/teams';
 
 import {getGroupsAssociatedToTeam, unlinkGroupSyncable, patchGroupSyncable} from 'mattermost-redux/actions/groups';
 import {getMyTeamMembers} from 'mattermost-redux/actions/teams';
+import type {Action} from 'mattermost-redux/types/actions';
 
 import {closeModal, openModal} from 'actions/views/modals';
 
-import {GlobalState} from '@mattermost/types/store';
-import {Action} from 'mattermost-redux/types/actions';
-import {Group, SyncablePatch, SyncableType} from '@mattermost/types/groups';
-import {TeamMembership} from '@mattermost/types/teams';
-
-import {ModalData} from 'types/actions';
+import type {ModalData} from 'types/actions';
 
 import TeamGroupsManageModal from './team_groups_manage_modal';
 

@@ -3,8 +3,8 @@
 
 import React from 'react';
 
-import {AppBinding, AppCallResponse} from '@mattermost/types/apps';
-import {Post} from '@mattermost/types/posts';
+import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
 
 import {
     renderWithIntlAndStore,
