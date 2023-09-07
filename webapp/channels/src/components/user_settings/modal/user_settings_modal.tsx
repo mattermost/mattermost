@@ -3,24 +3,26 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {Provider} from 'react-redux';
 import ReactDOM from 'react-dom';
 import {
     defineMessages,
     injectIntl,
-    IntlShape,
 } from 'react-intl';
+import type {
+    IntlShape} from 'react-intl';
+import {Provider} from 'react-redux';
 
-import {UserProfile} from '@mattermost/types/users';
-import {StatusOK} from '@mattermost/types/client4';
+import type {StatusOK} from '@mattermost/types/client4';
+import type {UserProfile} from '@mattermost/types/users';
 
 import store from 'stores/redux_store.jsx';
-import Constants from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import * as Utils from 'utils/utils';
 
 import ConfirmModal from 'components/confirm_modal';
+
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as NotificationSounds from 'utils/notification_sounds';
+import * as Utils from 'utils/utils';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
 const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));

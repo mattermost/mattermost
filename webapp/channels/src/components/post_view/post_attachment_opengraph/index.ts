@@ -2,21 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getOpenGraphMetadataForUrl} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {arePreviewsCollapsed} from 'selectors/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {editPost} from 'actions/views/posts';
-import {GlobalState} from 'types/store';
+import {arePreviewsCollapsed} from 'selectors/preferences';
+
 import {Preferences} from 'utils/constants';
 
-import PostAttachmentOpenGraph, {Props} from './post_attachment_opengraph';
+import type {GlobalState} from 'types/store';
+
+import PostAttachmentOpenGraph from './post_attachment_opengraph';
+import type {Props} from './post_attachment_opengraph';
 
 type OwnProps = Pick<Props, 'postId' | 'link'>;
 

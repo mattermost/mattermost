@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 	"github.com/opentracing/opentracing-go/ext"
@@ -4926,7 +4927,7 @@ func (s *OpenTracingLayerJobStore) Delete(id string) (string, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) Get(id string) (*model.Job, error) {
+func (s *OpenTracingLayerJobStore) Get(c *request.Context, id string) (*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -4935,7 +4936,7 @@ func (s *OpenTracingLayerJobStore) Get(id string) (*model.Job, error) {
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.Get(id)
+	result, err := s.JobStore.Get(c, id)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4944,7 +4945,7 @@ func (s *OpenTracingLayerJobStore) Get(id string) (*model.Job, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByStatus(c *request.Context, status string) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByStatus")
 	s.Root.Store.SetContext(newCtx)
@@ -4953,7 +4954,7 @@ func (s *OpenTracingLayerJobStore) GetAllByStatus(status string) ([]*model.Job, 
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByStatus(status)
+	result, err := s.JobStore.GetAllByStatus(c, status)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4962,7 +4963,7 @@ func (s *OpenTracingLayerJobStore) GetAllByStatus(status string) ([]*model.Job, 
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByType(c *request.Context, jobType string) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByType")
 	s.Root.Store.SetContext(newCtx)
@@ -4971,7 +4972,7 @@ func (s *OpenTracingLayerJobStore) GetAllByType(jobType string) ([]*model.Job, e
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByType(jobType)
+	result, err := s.JobStore.GetAllByType(c, jobType)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4980,7 +4981,7 @@ func (s *OpenTracingLayerJobStore) GetAllByType(jobType string) ([]*model.Job, e
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByTypeAndStatus")
 	s.Root.Store.SetContext(newCtx)
@@ -4989,7 +4990,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypeAndStatus(jobType string, status 
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByTypeAndStatus(jobType, status)
+	result, err := s.JobStore.GetAllByTypeAndStatus(c, jobType, status)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4998,7 +4999,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypeAndStatus(jobType string, status 
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByTypePage")
 	s.Root.Store.SetContext(newCtx)
@@ -5007,7 +5008,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypePage(jobType string, offset int, 
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByTypePage(jobType, offset, limit)
+	result, err := s.JobStore.GetAllByTypePage(c, jobType, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5016,7 +5017,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypePage(jobType string, offset int, 
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByTypesPage")
 	s.Root.Store.SetContext(newCtx)
@@ -5025,25 +5026,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypesPage(jobTypes []string, offset i
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByTypesPage(jobTypes, offset, limit)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
-func (s *OpenTracingLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllPage")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.JobStore.GetAllPage(offset, limit)
+	result, err := s.JobStore.GetAllByTypesPage(c, jobTypes, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5999,24 +5982,6 @@ func (s *OpenTracingLayerPostStore) Delete(postID string, timestamp int64, delet
 	}
 
 	return err
-}
-
-func (s *OpenTracingLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.DeleteOrphanedRows")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.PostStore.DeleteOrphanedRows(limit)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
 }
 
 func (s *OpenTracingLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
@@ -7344,22 +7309,22 @@ func (s *OpenTracingLayerReactionStore) DeleteAllWithEmojiName(emojiName string)
 	return err
 }
 
-func (s *OpenTracingLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
+func (s *OpenTracingLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.DeleteOrphanedRows")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.DeleteOrphanedRowsByIds")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.ReactionStore.DeleteOrphanedRows(limit)
+	err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return err
 }
 
 func (s *OpenTracingLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
@@ -7414,6 +7379,24 @@ func (s *OpenTracingLayerReactionStore) PermanentDeleteBatch(endTime int64, limi
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerReactionStore) PermanentDeleteByUser(userID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.PermanentDeleteByUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ReactionStore.PermanentDeleteByUser(userID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
@@ -7750,6 +7733,24 @@ func (s *OpenTracingLayerRetentionPolicyStore) GetCount() (int64, error) {
 
 	defer span.Finish()
 	result, err := s.RetentionPolicyStore.GetCount()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.GetIdsForDeletionByTableName")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.RetentionPolicyStore.GetIdsForDeletionByTableName(tableName, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

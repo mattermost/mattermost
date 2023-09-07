@@ -5,6 +5,7 @@ import React from 'react';
 import {useDispatch} from 'react-redux';
 
 import {openModal} from 'actions/views/modals';
+
 import {ModalIdentifiers} from 'utils/constants';
 
 import NotificationFromMembersModal from './notification_from_members_modal';

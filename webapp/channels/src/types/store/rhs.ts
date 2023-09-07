@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post, PostType} from '@mattermost/types/posts';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post, PostType} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {RHSStates} from 'utils/constants';
-import {SidebarSize} from 'components/resizable_sidebar/constants';
+import type {SidebarSize} from 'components/resizable_sidebar/constants';
+
+import type {RHSStates} from 'utils/constants';
 
 export type SearchType = '' | 'files' | 'messages';
 

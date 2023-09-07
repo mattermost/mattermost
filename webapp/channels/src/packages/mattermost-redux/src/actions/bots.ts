@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
-import {BotTypes} from 'mattermost-redux/action_types';
+import type {Bot, BotPatch} from '@mattermost/types/bots';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {Bot, BotPatch} from '@mattermost/types/bots';
+import {BotTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 

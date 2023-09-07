@@ -4,9 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import CustomImg from 'images/Customize-Your-Experience.gif';
-
 import {useMeasurePunchouts} from '@mattermost/components';
+
+import CustomImg from 'images/Customize-Your-Experience.gif';
 
 import OnboardingTourTip from './onboarding_tour_tip';
 
