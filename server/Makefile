@@ -377,7 +377,7 @@ plugin-mocks: ## Creates mock files for plugins.
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
-	$(GOBIN)/mockery --dir channels/einterfaces --all --output channels/einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
+	$(GOBIN)/mockery --dir einterfaces --all --output einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
 
 searchengine-mocks: ## Creates mock files for searchengines.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
@@ -397,7 +397,7 @@ email-mocks: ## Creates mocks for misc interfaces.
 	$(GOBIN)/mockery --dir channels/app/email --name ServiceInterface --output channels/app/email/mocks --note 'Regenerate this file using `make email-mocks`.'
 
 platform-mocks: ## Creates mocks for platform interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.14.0
+	$(GO) install github.com/vektra/mockery/v2/...@v2.32.2
 	$(GOBIN)/mockery --dir channels/app/platform --name SuiteIFace --output channels/app/platform/mocks --note 'Regenerate this file using `make platform-mocks`.'
 
 mmctl-mocks: ## Creates mocks for mmctl
@@ -488,7 +488,7 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS)-timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)

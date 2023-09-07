@@ -4248,6 +4248,7 @@
   "payment_form.billing_address": "Billing address",
   "payment_form.change_payment_method": "Change Payment Method",
   "payment_form.city": "City",
+  "payment_form.company_name": "Company Name",
   "payment_form.country": "Country",
   "payment_form.credit_card": "Credit Card",
   "payment_form.gather_wire_transfer_intent": "Looking for other payment options?",
