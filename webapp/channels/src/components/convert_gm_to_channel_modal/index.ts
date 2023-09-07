@@ -18,22 +18,26 @@ import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/chann
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
-function mapStateToProps(state: GlobalState, ownProps: Props) {
-    const allProfilesInChannel = makeGetProfilesInChannel()(state, ownProps.channel.id);
-    const currentUserId = getCurrentUserId(state);
-    const validProfilesInChannel = allProfilesInChannel.filter(
-        (user) => user.id !== currentUserId && user.delete_at === 0,
-    );
+function makeMapStateToProps() {
+    const getProfilesInChannel  = makeGetProfilesInChannel();
 
-    const currentTeamId = getCurrentTeamId(state);
-    const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
-    const channelsCategory = getCategoryInTeamByType(state, currentTeamId, CategoryTypes.CHANNELS);
+    return (state: GlobalState, ownProps: Props) => {
+        const allProfilesInChannel = getProfilesInChannel(state, ownProps.channel.id);
+        const currentUserId = getCurrentUserId(state);
+        const validProfilesInChannel = allProfilesInChannel.filter(
+            (user) => user.id !== currentUserId && user.delete_at === 0,
+        );
 
-    return {
-        profilesInChannel: validProfilesInChannel,
-        teammateNameDisplaySetting,
-        channelsCategoryId: channelsCategory?.id,
-    };
+        const currentTeamId = getCurrentTeamId(state);
+        const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
+        const channelsCategory = getCategoryInTeamByType(state, currentTeamId, CategoryTypes.CHANNELS);
+
+        return {
+            profilesInChannel: validProfilesInChannel,
+            teammateNameDisplaySetting,
+            channelsCategoryId: channelsCategory?.id,
+        };
+    }
 }
 
 export type Actions = {
@@ -52,4 +56,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ConvertGmToChannelModal);
+export default connect(makeMapStateToProps, mapDispatchToProps)(ConvertGmToChannelModal);

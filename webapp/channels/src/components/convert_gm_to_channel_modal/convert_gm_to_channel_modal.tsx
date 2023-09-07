@@ -11,17 +11,19 @@ import WarningTextSection from 'components/convert_gm_to_channel_modal/warning_t
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import {Channel} from '@mattermost/types/channels';
 import {Actions} from 'components/convert_gm_to_channel_modal/index';
-import {ModalIdentifiers} from 'utils/constants';
 import {UserProfile} from '@mattermost/types/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import {Team} from '@mattermost/types/teams';
-import {Client4} from 'mattermost-redux/client';
 import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/team_selector';
 import {trackEvent} from 'actions/telemetry_actions';
 import loadingIcon from 'images/spinner-48x48-blue.apng';
 import classNames from 'classnames';
 import NoCommonTeamsError from 'components/convert_gm_to_channel_modal/no_common_teams/no_common_teams';
 import AllMembersDeactivatedError from 'components/convert_gm_to_channel_modal/all_members_deactivated/all_members_deactivated';
+import {useDispatch} from 'react-redux';
+import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
+import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import {ServerError} from '@mattermost/types/errors';
 
 export type Props = {
     onExited: () => void;
@@ -35,10 +37,6 @@ export type Props = {
 const ConvertGmToChannelModal = (props: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
-
-    const handleCancel = useCallback(() => {
-        props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
-    }, [props.actions.closeModal]);
 
     const [channelName, setChannelName] = useState<string>('');
     const handleChannelNameChange = useCallback((newName: string) => {
@@ -63,9 +61,16 @@ const ConvertGmToChannelModal = (props: Props) => {
         setSelectedTeamId(teamId);
     }, []);
 
+    const dispatch = useDispatch();
+
     useEffect(() => {
         const work = async () => {
-            const teams = (await Client4.getGroupMessageMembersCommonTeams(props.channel.id)).data;
+            const response = await dispatch(getGroupMessageMembersCommonTeams(props.channel.id)) as ActionResult<Team[], ServerError>;
+            if (response.error || !response.data) {
+                return;
+            }
+            const teams = response.data;
+
             const teamsById: {[id: string]: Team} = {};
             teams.forEach((team) => {
                 teamsById[team.id] = team;
@@ -80,8 +85,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         };
 
         work();
-        // setTimeout(() => setLoadingAnimationTimeout(true), 1200);
-        setLoadingAnimationTimeout(true);
+        setTimeout(() => setLoadingAnimationTimeout(true), 1200);
     }, []);
 
     const handleConfirm = async () => {
@@ -101,7 +105,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             props.actions.moveChannelsInSidebar(props.channelsCategoryId, 0, props.channel.id, false);
         }
         trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
-        props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
+        props.onExited();
     };
 
     const showLoader = !commonTeamsFetched || !loadingAnimationTimeout;
@@ -110,29 +114,29 @@ const ConvertGmToChannelModal = (props: Props) => {
         return selectedTeamId !== undefined && channelName !== '' && !nameError;
     };
 
-    let modalProps: Partial<ComponentProps<typeof GenericModal>> = {};
+    const modalProps: Partial<ComponentProps<typeof GenericModal>> = {};
     let modalBody;
 
     if (props.profilesInChannel.length === 0) {
         modalProps.confirmButtonText = formatMessage({id: 'generic.okay', defaultMessage: 'Okay'});
-        modalProps.handleConfirm = handleCancel;
+        modalProps.handleConfirm = props.onExited;
 
         modalBody = (
             <div className='convert-gm-to-channel-modal-body error'>
                 <AllMembersDeactivatedError/>
             </div>
-        )
+        );
     } else if (!showLoader && Object.keys(commonTeamsById).length === 0) {
         modalProps.confirmButtonText = formatMessage({id: 'generic.okay', defaultMessage: 'Okay'});
-        modalProps.handleConfirm = handleCancel;
+        modalProps.handleConfirm = props.onExited;
 
         modalBody = (
             <div className='convert-gm-to-channel-modal-body error'>
                 <NoCommonTeamsError/>
             </div>
-        )
+        );
     } else {
-        modalProps.handleCancel = showLoader ? undefined : handleCancel;
+        modalProps.handleCancel = showLoader ? undefined : props.onExited;
         modalProps.isDeleteModal = true;
         modalProps.cancelButtonText = formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'});
         modalProps.confirmButtonText = formatMessage({id: 'sidebar_left.sidebar_channel_modal.confirmation_text', defaultMessage: 'Convert to private channel'});
@@ -146,7 +150,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                         src={loadingIcon}
                     />
                 </div>
-            )
+            );
         } else {
             subBody = (
                 <React.Fragment>
@@ -179,7 +183,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                     }
 
                 </React.Fragment>
-            )
+            );
         }
 
         modalBody = (
@@ -193,7 +197,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             >
                 {subBody}
             </div>
-        )
+        );
     }
 
     return (
@@ -203,7 +207,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             modalHeaderText={formatMessage({id: 'sidebar_left.sidebar_channel_modal.header', defaultMessage: 'Convert to Private Channel'})}
             compassDesign={true}
             handleConfirm={showLoader ? undefined : handleConfirm}
-            onExited={handleCancel}
+            onExited={props.onExited}
             autoCloseOnConfirmButton={false}
             {...modalProps}
         >

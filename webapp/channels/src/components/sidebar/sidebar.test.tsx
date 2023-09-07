@@ -222,7 +222,7 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithFullContext(
+            const {container} = renderWithFullContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );

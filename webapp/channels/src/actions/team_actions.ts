@@ -17,7 +17,12 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 
 import {getHistory} from 'utils/browser_history';
 import {Preferences} from 'utils/constants';
-import {Client4} from "mattermost-redux/client";
+import {Client4} from 'mattermost-redux/client';
+import {GlobalState} from 'types/store';
+import {setGlobalItem} from 'actions/storage';
+import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getConnectionId} from 'selectors/general';
+import {logError} from 'mattermost-redux/actions/errors';
 
 export function removeUserFromTeamAndGetStats(teamId: Team['id'], userId: UserProfile['id']): ActionFunc {
     return async (dispatch, getState) => {
@@ -113,5 +118,21 @@ export function updateTeamsOrderForUser(teamIds: Array<Team['id']>) {
             value: teamIds.join(','),
         }];
         dispatch(savePreferences(currentUserId, teamOrderPreferences));
+    };
+}
+
+export function getGroupMessageMembersCommonTeams(channelId: string): ActionFunc<Team[], ServerError> {
+    return async (dispatch) => {
+        let teams: Team[];
+
+        try {
+            const response = await Client4.getGroupMessageMembersCommonTeams(channelId);
+            teams = response.data;
+        } catch (error) {
+            dispatch(logError(error as ServerError));
+            return {error: error as ServerError};
+        }
+
+        return {data: teams};
     };
 }
