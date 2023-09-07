@@ -16,9 +16,9 @@ import Markdown from 'components/markdown';
 import CombinedSystemMessage from 'components/post_view/combined_system_message';
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
+import {t} from 'utils/i18n';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
-import { t } from 'utils/i18n';
 
 function renderUsername(value: string): ReactNode {
     const username = (value[0] === '@') ? value : `@${value}`;
@@ -484,22 +484,20 @@ export function renderReminderSystemBotMessage(post: Post, currentTeam: Team): R
     );
 }
 
-
-
-t("app.post.move_thread_command.direct_or_group.multiple_messages")
-t("app.post.move_thread_command.direct_or_group.one_message")
-t("app.post.move_thread_command.channel.multiple_messages")
-t("app.post.move_thread_command.channel.one_message")
-t("app.post.move_thread.from_another_channel")
+t('app.post.move_thread_command.direct_or_group.multiple_messages');
+t('app.post.move_thread_command.direct_or_group.one_message');
+t('app.post.move_thread_command.channel.multiple_messages');
+t('app.post.move_thread_command.channel.one_message');
+t('app.post.move_thread.from_another_channel');
 export function renderWranglerSystemMessage(post: Post): ReactNode {
     let values = {} as any;
-    const id = post.props.TranslationID
+    const id = post.props.TranslationID;
     if (post.props && post.props.MovedThreadPermalink) {
         values = {
             Link: post.props.MovedThreadPermalink,
-        }
+        };
         if (post.props.NumMessages > 1) {
-            values.NumMessages = post.props.NumMessages
+            values.NumMessages = post.props.NumMessages;
         }
     }
     return (
@@ -508,7 +506,6 @@ export function renderWranglerSystemMessage(post: Post): ReactNode {
             defaultMessage={post.message}
             values={values}
         />
-    )
+    );
 }
-
 

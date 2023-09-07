@@ -2424,7 +2424,10 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 		return appErr
 	}
 
-	T := i18n.GetUserTranslations(user.Locale)
+	T, err := i18n.GetTranslationsBySystemLocale()
+	if err != nil {
+		return model.NewAppError("MoveThread", "app.post.move_thread_command.error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	ephemeralPostProps := model.StringInterface{
 		"TranslationID": "app.post.move_thread.from_another_channel",
@@ -2449,7 +2452,7 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 
 	c.Logger().Info("Wrangler thread move complete", mlog.String("user_id", user.Id), mlog.String("new_post_id", newRootPost.Id), mlog.String("channel_id", channelID))
 
-	// Translate to the initiating user's locale, webapp will attempt to render in each user's specific locale (based on the TranslationID prop) before falling back on the initiating user's locale
+	// Translate to the system locale, webapp will attempt to render in each user's specific locale (based on the TranslationID prop) before falling back on the initiating user's locale
 	ephemeralPostProps = model.StringInterface{}
 
 	msg := T("app.post.move_thread_command.direct_or_group.multiple_messages", model.StringInterface{"NumMessages": wpl.NumPosts()})
