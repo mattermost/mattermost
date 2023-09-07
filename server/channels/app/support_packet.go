@@ -17,10 +17,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
-func (a *App) GenerateSupportPacket() []model.FileData {
+func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
 	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
 	var warnings []string
 
@@ -28,7 +29,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	fileDatas := []model.FileData{}
 
 	// A array of the functions that we can iterate through since they all have the same return value
-	functions := map[string]func() (*model.FileData, error){
+	functions := map[string]func(c *request.Context) (*model.FileData, error){
 		"support package":  a.generateSupportPacketYaml,
 		"plugins":          a.createPluginsFile,
 		"config":           a.createSanitizedConfigFile,
@@ -38,7 +39,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	}
 
 	for name, fn := range functions {
-		fileData, err := fn()
+		fileData, err := fn(c)
 		if err != nil {
 			mlog.Error("Failed to generate file for support package", mlog.Err(err), mlog.String("file", name))
 			warnings = append(warnings, err.Error())
@@ -59,7 +60,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	return fileDatas
 }
 
-func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
+func (a *App) generateSupportPacketYaml(c *request.Context) (*model.FileData, error) {
 	var rErr error
 
 	/* DB */
@@ -115,31 +116,31 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting user count"))
 	}
 
-	dataRetentionJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeDataRetention, 0, 2)
+	dataRetentionJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeDataRetention, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
 	}
-	messageExportJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeMessageExport, 0, 2)
+	messageExportJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMessageExport, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
 	}
-	elasticPostIndexingJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeElasticsearchPostIndexing, 0, 2)
+	elasticPostIndexingJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostIndexing, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
 	}
-	elasticPostAggregationJobs, _ := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeElasticsearchPostAggregation, 0, 2)
+	elasticPostAggregationJobs, _ := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostAggregation, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
-	blevePostIndexingJobs, _ := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeBlevePostIndexing, 0, 2)
+	blevePostIndexingJobs, _ := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeBlevePostIndexing, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
 	}
-	ldapSyncJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeLdapSync, 0, 2)
+	ldapSyncJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeLdapSync, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
 	}
-	migrationJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeMigrations, 0, 2)
+	migrationJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMigrations, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
 	}
@@ -222,7 +223,8 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 	return fileData, rErr
 }
 
-func (a *App) createPluginsFile() (*model.FileData, error) {
+func (a *App) createPluginsFile(_ *request.Context) (*model.FileData, error) {
+
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
 	pluginsResponse, appErr := a.GetPlugins()
 	if appErr != nil {
@@ -242,7 +244,7 @@ func (a *App) createPluginsFile() (*model.FileData, error) {
 
 }
 
-func (a *App) getNotificationsLog() (*model.FileData, error) {
+func (a *App) getNotificationsLog(_ *request.Context) (*model.FileData, error) {
 	if !*a.Config().NotificationLogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve notifications.log because LogSettings: EnableFile is set to false")
 	}
@@ -260,7 +262,7 @@ func (a *App) getNotificationsLog() (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) getMattermostLog() (*model.FileData, error) {
+func (a *App) getMattermostLog(_ *request.Context) (*model.FileData, error) {
 	if !*a.Config().LogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
 	}
@@ -278,7 +280,7 @@ func (a *App) getMattermostLog() (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) createSanitizedConfigFile() (*model.FileData, error) {
+func (a *App) createSanitizedConfigFile(_ *request.Context) (*model.FileData, error) {
 	// Getting sanitized config, prettifying it, and then adding it to our file data array
 	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
 	if err != nil {
@@ -292,7 +294,7 @@ func (a *App) createSanitizedConfigFile() (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) createGoroutineProfile() (*model.FileData, error) {
+func (a *App) createGoroutineProfile(_ *request.Context) (*model.FileData, error) {
 	var b bytes.Buffer
 
 	err := pprof.Lookup("goroutine").WriteTo(&b, 2)
