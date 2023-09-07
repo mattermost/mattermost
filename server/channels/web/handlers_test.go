@@ -558,7 +558,7 @@ func TestGenerateDevCSP(t *testing.T) {
 			*cfg.ServiceSettings.DeveloperFlags = ""
 		})
 
-		logger := mlog.CreateConsoleTestLogger(false, mlog.LvlWarn)
+		logger := mlog.CreateConsoleTestLogger(t)
 		buf := &mlog.Buffer{}
 		require.NoError(t, mlog.AddWriterTarget(logger, buf, false, mlog.LvlWarn))
 
@@ -569,8 +569,6 @@ func TestGenerateDevCSP(t *testing.T) {
 		}
 
 		generateDevCSP(*c)
-
-		require.NoError(t, logger.Shutdown())
 
 		assert.Equal(t, "", buf.String())
 	})
