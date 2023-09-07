@@ -24,18 +24,15 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: Props) => {
         const allProfilesInChannel = getProfilesInChannel(state, ownProps.channel.id);
         const currentUserId = getCurrentUserId(state);
-        const validProfilesInChannel = allProfilesInChannel.filter(
-            (user) => user.id !== currentUserId && user.delete_at === 0,
-        );
-
         const currentTeamId = getCurrentTeamId(state);
         const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
         const channelsCategory = getCategoryInTeamByType(state, currentTeamId, CategoryTypes.CHANNELS);
 
         return {
-            profilesInChannel: validProfilesInChannel,
+            profilesInChannel: allProfilesInChannel,
             teammateNameDisplaySetting,
             channelsCategoryId: channelsCategory?.id,
+            currentUserId,
         };
     }
 }

@@ -32,6 +32,7 @@ export type Props = {
     profilesInChannel: UserProfile[];
     teammateNameDisplaySetting: string;
     channelsCategoryId: string | undefined;
+    currentUserId: string;
 }
 
 const ConvertGmToChannelModal = (props: Props) => {
@@ -48,7 +49,17 @@ const ConvertGmToChannelModal = (props: Props) => {
         setChannelChannelURL(newURL);
     }, []);
 
-    const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting));
+    // const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting));
+
+    const [channelMemberNames, setChannelMemberNames] = useState<string[]>([]);
+
+    useEffect(() => {
+        const validProfilesInChannel = props.profilesInChannel
+            .filter((user) => user.id !== props.currentUserId && user.delete_at === 0)
+            .map((user) => displayUsername(user, props.teammateNameDisplaySetting));
+
+        setChannelMemberNames(validProfilesInChannel);
+    }, [props.profilesInChannel]);
 
     const [commonTeamsById, setCommonTeamsById] = useState<{[id: string]: Team}>({});
     const [commonTeamsFetched, setCommonTeamsFetched] = useState<boolean>(false);
