@@ -4,7 +4,6 @@
 package jobs
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -21,8 +21,8 @@ const (
 	CancelWatcherPollingInterval = 5000
 )
 
-func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
-	job, appErr := srv._createJob(jobType, jobData)
+func (srv *JobServer) CreateJob(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+	job, appErr := srv._createJob(c, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -34,8 +34,8 @@ func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*mod
 	return job, nil
 }
 
-func (srv *JobServer) CreateJobOnce(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
-	job, appErr := srv._createJob(jobType, jobData)
+func (srv *JobServer) CreateJobOnce(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+	job, appErr := srv._createJob(c, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -47,7 +47,7 @@ func (srv *JobServer) CreateJobOnce(jobType string, jobData map[string]string) (
 	return job, nil
 }
 
-func (srv *JobServer) _createJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+func (srv *JobServer) _createJob(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job := model.Job{
 		Id:       model.NewId(),
 		Type:     jobType,
@@ -55,6 +55,8 @@ func (srv *JobServer) _createJob(jobType string, jobData map[string]string) (*mo
 		Status:   model.JobStatusPending,
 		Data:     jobData,
 	}
+
+	job.InitLogger(c.Logger())
 
 	if err := job.IsValid(); err != nil {
 		return nil, err
@@ -67,8 +69,8 @@ func (srv *JobServer) _createJob(jobType string, jobData map[string]string) (*mo
 	return &job, nil
 }
 
-func (srv *JobServer) GetJob(id string) (*model.Job, *model.AppError) {
-	job, err := srv.Store.Job().Get(id)
+func (srv *JobServer) GetJob(c *request.Context, id string) (*model.Job, *model.AppError) {
+	job, err := srv.Store.Job().Get(c, id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -212,9 +214,15 @@ func (srv *JobServer) HandleJobPanic(job *model.Job) {
 		return
 	}
 
+	var logger mlog.LoggerIFace = job.Logger
+	if job.Logger == nil {
+		// Fall back to JobServer logger
+		logger = srv.logger
+	}
+
 	sb := &strings.Builder{}
 	pprof.Lookup("goroutine").WriteTo(sb, 2)
-	mlog.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
+	logger.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
 
 	rerr, ok := r.(error)
 	if !ok {
@@ -223,20 +231,20 @@ func (srv *JobServer) HandleJobPanic(job *model.Job) {
 
 	appErr := srv.SetJobError(job, model.NewAppError("HandleJobPanic", "app.job.update.app_error", nil, "", http.StatusInternalServerError)).Wrap(rerr)
 	if appErr != nil {
-		mlog.Error("Failed to set the job status to 'failed'", mlog.Err(appErr), mlog.Any("job", job))
+		logger.Error("Failed to set the job status to 'failed'", mlog.Err(appErr), mlog.Any("job", job))
 	}
 
 	panic(r)
 }
 
-func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
+func (srv *JobServer) RequestCancellation(c *request.Context, jobId string) *model.AppError {
 	updated, err := srv.Store.Job().UpdateStatusOptimistically(jobId, model.JobStatusPending, model.JobStatusCanceled)
 	if err != nil {
 		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if updated {
 		if srv.metrics != nil {
-			job, err := srv.GetJob(jobId)
+			job, err := srv.GetJob(c, jobId)
 			if err != nil {
 				return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -259,17 +267,17 @@ func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 	return model.NewAppError("RequestCancellation", "jobs.request_cancellation.status.error", nil, "id="+jobId, http.StatusInternalServerError)
 }
 
-func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, cancelChan chan struct{}) {
+func (srv *JobServer) CancellationWatcher(c *request.Context, jobId string, cancelChan chan struct{}) {
 	for {
 		select {
-		case <-ctx.Done():
-			mlog.Debug("CancellationWatcher for Job Aborting as job has finished.", mlog.String("job_id", jobId))
+		case <-c.Context().Done():
+			c.Logger().Debug("CancellationWatcher for Job Aborting as job has finished.", mlog.String("job_id", jobId))
 			return
 		case <-time.After(CancelWatcherPollingInterval * time.Millisecond):
-			mlog.Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
-			jobStatus, err := srv.Store.Job().Get(jobId)
+			c.Logger().Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
+			jobStatus, err := srv.Store.Job().Get(c, jobId)
 			if err != nil {
-				mlog.Warn("Error getting job", mlog.String("job_id", jobId), mlog.Err(err))
+				c.Logger().Warn("Error getting job", mlog.String("job_id", jobId), mlog.Err(err))
 				continue
 			}
 			if jobStatus.Status == model.JobStatusCancelRequested {
@@ -298,8 +306,8 @@ func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.Ap
 	return count > 0, nil
 }
 
-func (srv *JobServer) GetJobsByTypeAndStatus(jobType string, status string) ([]*model.Job, *model.AppError) {
-	jobs, err := srv.Store.Job().GetAllByTypeAndStatus(jobType, status)
+func (srv *JobServer) GetJobsByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, *model.AppError) {
+	jobs, err := srv.Store.Job().GetAllByTypeAndStatus(c, jobType, status)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByTypeAndStatus", "app.job.get_all_jobs_by_type_and_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
