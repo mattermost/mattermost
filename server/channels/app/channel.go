@@ -502,8 +502,8 @@ func (a *App) createDirectChannel(c request.CTX, userID string, otherUserID stri
 	return a.createDirectChannelWithUser(c, user, otherUser, channelOptions...)
 }
 
-func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	channel, nErr := a.Srv().Store().Channel().CreateDirectChannel(user, otherUser, channelOptions...)
+func (a *App) createDirectChannelWithUser(c *request.Context, user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	channel, nErr := a.Srv().Store().Channel().CreateDirectChannel(c, user, otherUser, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict

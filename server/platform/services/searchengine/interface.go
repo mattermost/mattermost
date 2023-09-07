@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type SearchEngineInterface interface {
@@ -31,10 +32,10 @@ type SearchEngineInterface interface {
 	DeleteUserPosts(userID string) *model.AppError
 	// IndexChannel indexes a given channel. The userIDs are only populated
 	// for private channels.
-	IndexChannel(channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError
+	IndexChannel(c *request.Context, channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError
 	SearchChannels(teamId, userID, term string, isGuest bool) ([]string, *model.AppError)
 	DeleteChannel(channel *model.Channel) *model.AppError
-	IndexUser(user *model.User, teamsIds, channelsIds []string) *model.AppError
+	IndexUser(c *request.Context, user *model.User, teamsIds, channelsIds []string) *model.AppError
 	SearchUsersInChannel(teamId, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError)
 	SearchUsersInTeam(teamId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, *model.AppError)
 	DeleteUser(user *model.User) *model.AppError
@@ -45,7 +46,7 @@ type SearchEngineInterface interface {
 	DeleteUserFiles(userID string) *model.AppError
 	DeleteFilesBatch(endTime, limit int64) *model.AppError
 	TestConfig(cfg *model.Config) *model.AppError
-	PurgeIndexes() *model.AppError
-	RefreshIndexes() *model.AppError
+	PurgeIndexes(c *request.Context) *model.AppError
+	RefreshIndexes(c *request.Context) *model.AppError
 	DataRetentionDeleteIndexes(cutoff time.Time) *model.AppError
 }

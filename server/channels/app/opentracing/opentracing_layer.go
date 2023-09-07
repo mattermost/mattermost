@@ -13461,7 +13461,7 @@ func (a *OpenTracingAppLayer) PublishUserTyping(userID string, channelID string,
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PurgeBleveIndexes() *model.AppError {
+func (a *OpenTracingAppLayer) PurgeBleveIndexes(c *request.Context) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeBleveIndexes")
 
@@ -13473,7 +13473,7 @@ func (a *OpenTracingAppLayer) PurgeBleveIndexes() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PurgeBleveIndexes()
+	resultVar0 := a.app.PurgeBleveIndexes(c)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -13483,7 +13483,7 @@ func (a *OpenTracingAppLayer) PurgeBleveIndexes() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
+func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c *request.Context) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeElasticsearchIndexes")
 
@@ -13495,7 +13495,7 @@ func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PurgeElasticsearchIndexes()
+	resultVar0 := a.app.PurgeElasticsearchIndexes(c)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const (
@@ -231,7 +232,7 @@ func (b *BleveEngine) IsIndexingSync() bool {
 	return b.indexSync
 }
 
-func (b *BleveEngine) RefreshIndexes() *model.AppError {
+func (b *BleveEngine) RefreshIndexes(_ *request.Context) *model.AppError {
 	return nil
 }
 

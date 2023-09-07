@@ -4,11 +4,11 @@
 package searchlayer
 
 import (
-	"context"
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -67,21 +67,21 @@ func (s *SearchStore) User() store.UserStore {
 	return s.user
 }
 
-func (s *SearchStore) indexUserFromID(userId string) {
-	user, err := s.User().Get(context.Background(), userId)
+func (s *SearchStore) indexUserFromID(c *request.Context, userId string) {
+	user, err := s.User().Get(c.Context(), userId)
 	if err != nil {
 		return
 	}
-	s.indexUser(user)
+	s.indexUser(c, user)
 }
 
-func (s *SearchStore) indexUser(user *model.User) {
+func (s *SearchStore) indexUser(c *request.Context, user *model.User) {
 	for _, engine := range s.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				userTeams, nErr := s.Team().GetTeamsByUserId(user.Id)
 				if nErr != nil {
-					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(nErr))
+					c.Logger().Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(nErr))
 					return
 				}
 
@@ -92,7 +92,7 @@ func (s *SearchStore) indexUser(user *model.User) {
 
 				userChannelMembers, err := s.Channel().GetAllChannelMembersForUser(user.Id, false, true)
 				if err != nil {
-					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					c.Logger().Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
 
@@ -101,21 +101,21 @@ func (s *SearchStore) indexUser(user *model.User) {
 					userChannelsIds = append(userChannelsIds, channelId)
 				}
 
-				if err := engineCopy.IndexUser(user, userTeamsIds, userChannelsIds); err != nil {
-					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+				if err := engineCopy.IndexUser(c, user, userTeamsIds, userChannelsIds); err != nil {
+					c.Logger().Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Indexed user in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
+				c.Logger().Debug("Indexed user in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
 			})
 		}
 	}
 }
 
 // Runs an indexing function synchronously or asynchronously depending on the engine
-func runIndexFn(engine searchengine.SearchEngineInterface, indexFn func(searchengine.SearchEngineInterface)) {
+func runIndexFn(c *request.Context, engine searchengine.SearchEngineInterface, indexFn func(searchengine.SearchEngineInterface)) {
 	if engine.IsIndexingSync() {
 		indexFn(engine)
-		if err := engine.RefreshIndexes(); err != nil {
+		if err := engine.RefreshIndexes(c); err != nil {
 			mlog.Error("Encountered error refresh the indexes", mlog.Err(err))
 		}
 	} else {

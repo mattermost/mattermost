@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 
 	time "time"
@@ -234,13 +235,13 @@ func (_m *SearchEngineInterface) GetVersion() int {
 	return r0
 }
 
-// IndexChannel provides a mock function with given fields: channel, userIDs, teamMemberIDs
-func (_m *SearchEngineInterface) IndexChannel(channel *model.Channel, userIDs []string, teamMemberIDs []string) *model.AppError {
-	ret := _m.Called(channel, userIDs, teamMemberIDs)
+// IndexChannel provides a mock function with given fields: c, channel, userIDs, teamMemberIDs
+func (_m *SearchEngineInterface) IndexChannel(c *request.Context, channel *model.Channel, userIDs []string, teamMemberIDs []string) *model.AppError {
+	ret := _m.Called(c, channel, userIDs, teamMemberIDs)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Channel, []string, []string) *model.AppError); ok {
-		r0 = rf(channel, userIDs, teamMemberIDs)
+	if rf, ok := ret.Get(0).(func(*request.Context, *model.Channel, []string, []string) *model.AppError); ok {
+		r0 = rf(c, channel, userIDs, teamMemberIDs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -282,13 +283,13 @@ func (_m *SearchEngineInterface) IndexPost(post *model.Post, teamId string) *mod
 	return r0
 }
 
-// IndexUser provides a mock function with given fields: user, teamsIds, channelsIds
-func (_m *SearchEngineInterface) IndexUser(user *model.User, teamsIds []string, channelsIds []string) *model.AppError {
-	ret := _m.Called(user, teamsIds, channelsIds)
+// IndexUser provides a mock function with given fields: c, user, teamsIds, channelsIds
+func (_m *SearchEngineInterface) IndexUser(c *request.Context, user *model.User, teamsIds []string, channelsIds []string) *model.AppError {
+	ret := _m.Called(c, user, teamsIds, channelsIds)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.User, []string, []string) *model.AppError); ok {
-		r0 = rf(user, teamsIds, channelsIds)
+	if rf, ok := ret.Get(0).(func(*request.Context, *model.User, []string, []string) *model.AppError); ok {
+		r0 = rf(c, user, teamsIds, channelsIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -382,13 +383,13 @@ func (_m *SearchEngineInterface) IsSearchEnabled() bool {
 	return r0
 }
 
-// PurgeIndexes provides a mock function with given fields:
-func (_m *SearchEngineInterface) PurgeIndexes() *model.AppError {
-	ret := _m.Called()
+// PurgeIndexes provides a mock function with given fields: c
+func (_m *SearchEngineInterface) PurgeIndexes(c *request.Context) *model.AppError {
+	ret := _m.Called(c)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(*request.Context) *model.AppError); ok {
+		r0 = rf(c)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -398,13 +399,13 @@ func (_m *SearchEngineInterface) PurgeIndexes() *model.AppError {
 	return r0
 }
 
-// RefreshIndexes provides a mock function with given fields:
-func (_m *SearchEngineInterface) RefreshIndexes() *model.AppError {
-	ret := _m.Called()
+// RefreshIndexes provides a mock function with given fields: c
+func (_m *SearchEngineInterface) RefreshIndexes(c *request.Context) *model.AppError {
+	ret := _m.Called(c)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(*request.Context) *model.AppError); ok {
+		r0 = rf(c)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
