@@ -383,9 +383,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         // Check if input contains comma, if so, add the value to the list of custom keys
         if (!value.includes(Constants.KeyCodes.COMMA[0])) {
             const formattedValue = value.trim().replace(WHITE_SPACE_REGEX, '');
-            if (formattedValue.length > 0) {
-                this.setState({customKeysWithNotificationInputValue: formattedValue});
-            }
+            this.setState({customKeysWithNotificationInputValue: formattedValue});
         }
     };
 
