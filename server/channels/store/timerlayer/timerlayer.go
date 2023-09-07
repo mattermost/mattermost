@@ -9261,6 +9261,22 @@ func (s *TimerLayerThreadStore) Get(id string) (*model.Thread, error) {
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) GetFollowedPostIdsForUser(userId string, teamId string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetFollowedPostIdsForUser(userId, teamId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetFollowedPostIdsForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) GetMembershipForUser(userId string, postID string) (*model.ThreadMembership, error) {
 	start := time.Now()
 

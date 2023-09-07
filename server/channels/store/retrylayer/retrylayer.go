@@ -11752,6 +11752,27 @@ func (s *RetryLayerThreadStore) Get(id string) (*model.Thread, error) {
 
 }
 
+func (s *RetryLayerThreadStore) GetFollowedPostIdsForUser(userId string, teamId string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetFollowedPostIdsForUser(userId, teamId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerThreadStore) GetMembershipForUser(userId string, postID string) (*model.ThreadMembership, error) {
 
 	tries := 0

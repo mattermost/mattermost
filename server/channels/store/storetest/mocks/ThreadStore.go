@@ -93,6 +93,32 @@ func (_m *ThreadStore) Get(id string) (*model.Thread, error) {
 	return r0, r1
 }
 
+// GetFollowedPostIdsForUser provides a mock function with given fields: userId, teamId
+func (_m *ThreadStore) GetFollowedPostIdsForUser(userId string, teamId string) ([]string, error) {
+	ret := _m.Called(userId, teamId)
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]string, error)); ok {
+		return rf(userId, teamId)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []string); ok {
+		r0 = rf(userId, teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userId, teamId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMembershipForUser provides a mock function with given fields: userId, postID
 func (_m *ThreadStore) GetMembershipForUser(userId string, postID string) (*model.ThreadMembership, error) {
 	ret := _m.Called(userId, postID)

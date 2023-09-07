@@ -6468,6 +6468,28 @@ func (a *OpenTracingAppLayer) GetFlaggedPostsForTeam(userID string, teamID strin
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetFollowedPostIdsForUser(userID string, teamID string) ([]string, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFollowedPostIdsForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetFollowedPostIdsForUser(userID, teamID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetGlobalRetentionPolicy() (*model.GlobalRetentionPolicy, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGlobalRetentionPolicy")

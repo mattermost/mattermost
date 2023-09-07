@@ -335,6 +335,7 @@ type ThreadStore interface {
 	UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
 	GetMembershipsForUser(userId, teamID string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postID string) (*model.ThreadMembership, error)
+	GetFollowedPostIdsForUser(userId, teamId string) ([]string, error)
 	DeleteMembershipForUser(userId, postID string) error
 	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)

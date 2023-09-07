@@ -655,6 +655,7 @@ type AppIface interface {
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFollowedPostIdsForUser(userID, teamID string) ([]string, error)
 	GetGlobalRetentionPolicy() (*model.GlobalRetentionPolicy, *model.AppError)
 	GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *model.ViewUsersRestrictions) (*model.Group, *model.AppError)
 	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)

@@ -111,6 +111,23 @@ export function getThreadCounts(userId: string, teamId: string) {
     };
 }
 
+export function getFollowedThreads(userId: string, teamId: string) {
+    return async (dispatch: DispatchFunc) => {
+        let ids: string[];
+
+        try {
+            ids = await Client4.getFollowedPostIdsForUser(userId, teamId);
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+
+        ids.forEach((id) => handleFollowChanged(dispatch, id, teamId, true));
+
+        return {data: ids};
+    };
+}
+
 export function getCountsAndThreadsSince(userId: string, teamId: string, since?: number) {
     return async (dispatch: DispatchFunc) => {
         const response = await dispatch(fetchThreads(userId, teamId, {since, totalsOnly: false, threadsOnly: false, extended: true}));

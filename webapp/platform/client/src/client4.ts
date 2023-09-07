@@ -2074,6 +2074,13 @@ export default class Client4 {
         );
     };
 
+    getFollowedPostIdsForUser = (userId: UserProfile['id'] = 'me', teamId: Team['id']) => {
+        return this.doFetch<string[]>(
+            `${this.getUserThreadsRoute(userId, teamId)}/following`,
+            {method: 'get'}
+        );
+    };
+
     updateThreadReadForUser = (userId: string, teamId: string, threadId: string, timestamp: number) => {
         const url = `${this.getUserThreadRoute(userId, teamId, threadId)}/read/${timestamp}`;
         return this.doFetch<UserThread>(

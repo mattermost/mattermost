@@ -730,6 +730,28 @@ func (s *SqlThreadStore) updateMembership(ex sqlxExecutor, membership *model.Thr
 	return membership, nil
 }
 
+func (s *SqlThreadStore) GetFollowedPostIdsForUser(userId, teamId string) ([]string, error) {
+	var ids []string
+	query := s.getQueryBuilder().
+		Select("ThreadMemberships.PostId").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		From("ThreadMemberships").
+		Where(sq.And{
+			sq.Or{
+				sq.Eq{"Threads.ThreadTeamId": teamId},
+				sq.Eq{"Threads.ThreadTeamId": ""},
+			},
+			sq.Eq{"ThreadMemberships.UserId": userId},
+			sq.Eq{"ThreadMemberships.Following": true},
+		})
+
+	err := s.GetReplicaX().SelectBuilder(&ids, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get thread membership with userid=%s", userId)
+	}
+	return ids, nil
+}
+
 func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error) {
 	memberships := []*model.ThreadMembership{}
 

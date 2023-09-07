@@ -9,7 +9,7 @@ import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
 
 import {PulsatingDot} from '@mattermost/components';
 
-import {getThreadCounts} from 'mattermost-redux/actions/threads';
+import {getFollowedThreads, getThreadCounts} from 'mattermost-redux/actions/threads';
 import {getInt, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getThreadCountsInCurrentTeam, getThreadsInCurrentTeam,
@@ -80,6 +80,7 @@ const GlobalThreadsLink = () => {
         // load counts if necessary
         if (isFeatureEnabled) {
             dispatch(getThreadCounts(currentUserId, currentTeamId));
+            dispatch(getFollowedThreads(currentUserId, currentTeamId));
         }
     }, [currentUserId, currentTeamId, isFeatureEnabled]);
 

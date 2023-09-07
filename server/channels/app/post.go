@@ -1984,6 +1984,10 @@ func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.Threa
 	return a.Srv().Store().Thread().GetMembershipsForUser(userID, teamID)
 }
 
+func (a *App) GetFollowedPostIdsForUser(userID, teamID string) ([]string, error) {
+	return a.Srv().Store().Thread().GetFollowedPostIdsForUser(userID, teamID)
+}
+
 func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(postID, includeDeleted)
 	if err != nil {

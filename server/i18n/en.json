@@ -1966,6 +1966,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.getFollowedPostIdsForUser.error",
+    "translation": "Unable to get followed post ids"
+  },
+  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
   },

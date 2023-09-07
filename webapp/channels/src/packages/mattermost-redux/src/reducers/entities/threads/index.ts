@@ -66,11 +66,6 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: Gene
     }
     case ThreadTypes.FOLLOW_CHANGED_THREAD: {
         const {id, following} = action.data;
-
-        if (!state[id]) {
-            return state;
-        }
-
         return {
             ...state,
             [id]: {

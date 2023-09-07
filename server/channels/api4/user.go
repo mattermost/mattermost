@@ -98,6 +98,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods("GET")
 
 	api.BaseRoutes.UserThreads.Handle("", api.APISessionRequired(getThreadsForUser)).Methods("GET")
+	api.BaseRoutes.UserThreads.Handle("/following", api.APISessionRequired(getFollowedPostIdsForUser)).Methods("GET")
 	api.BaseRoutes.UserThreads.Handle("/read", api.APISessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
 
 	api.BaseRoutes.UserThread.Handle("", api.APISessionRequired(getThreadForUser)).Methods("GET")
@@ -3248,6 +3249,32 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getFollowedPostIdsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	followedPostIds, err := c.App.GetFollowedPostIdsForUser(c.Params.UserId, c.Params.TeamId)
+	if err != nil {
+		c.Err = model.NewAppError("api.getFollowedPostIdsForUser", "api.getFollowedPostIdsForUser.error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(followedPostIds); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
