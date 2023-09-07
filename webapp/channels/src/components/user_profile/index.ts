@@ -3,10 +3,12 @@
 
 import {connect} from 'react-redux';
 
-import {getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from '@mattermost/types/store';
+import {getIsMobileView} from 'selectors/views/browser';
+
+import type {GlobalState} from 'types/store';
 
 import UserProfile from './user_profile';
 
@@ -25,6 +27,7 @@ function makeMapStateToProps() {
             displayName: getDisplayName(state, ownProps.userId, true),
             user,
             theme,
+            isMobileView: getIsMobileView(state),
             isShared: Boolean(user && user.remote_id),
         };
     };

@@ -1,27 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
-import classNames from 'classnames';
+
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
-import {AdminConfig} from '@mattermost/types/config';
-import {DeepPartial} from '@mattermost/types/utilities';
 
-import * as Utils from 'utils/utils';
-import LoadingScreen from 'components/loading_screen';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import ConfirmModal from 'components/confirm_modal';
+import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import LoadingScreen from 'components/loading_screen';
 
-import AdminSettings, {BaseProps, BaseState} from '../admin_settings';
+import {appsPluginID} from 'utils/apps';
+import {DeveloperLinks} from 'utils/constants';
+import * as Utils from 'utils/utils';
+
+import AdminSettings from '../admin_settings';
+import type {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
-import {appsPluginID} from 'utils/apps';
-import ExternalLink from 'components/external_link';
-import {DeveloperLinks} from 'utils/constants';
 
 const PluginItemState = ({state}: {state: number}) => {
     switch (state) {
@@ -205,16 +208,17 @@ const PluginItem = ({
                 className={deactivating || isDisabled ? 'disabled' : ''}
                 onClick={handleDisable}
             >
-                {deactivating ?
+                {deactivating ? (
                     <FormattedMessage
                         id='admin.plugin.disabling'
                         defaultMessage='Disabling...'
-                    /> :
+                    />
+                ) : (
                     <FormattedMessage
                         id='admin.plugin.disable'
                         defaultMessage='Disable'
                     />
-                }
+                )}
             </a>
         );
     } else {
@@ -224,16 +228,17 @@ const PluginItem = ({
                 className={activating || isDisabled ? 'disabled' : ''}
                 onClick={handleEnable}
             >
-                {activating ?
+                {activating ? (
                     <FormattedMessage
                         id='admin.plugin.enabling'
                         defaultMessage='Enabling...'
-                    /> :
+                    />
+                ) : (
                     <FormattedMessage
                         id='admin.plugin.enable'
                         defaultMessage='Enable'
                     />
-                }
+                )}
             </a>
         );
     }
@@ -415,6 +420,7 @@ type Props = BaseProps & {
     pluginStatuses: Record<string, PluginStatus>;
     plugins: any;
     appsFeatureFlagEnabled: boolean;
+    streamlinedMarketplaceFlagEnabled: boolean;
     actions: {
         uploadPlugin: (fileData: File, force: boolean) => any;
         removePlugin: (pluginId: string) => any;
@@ -1214,39 +1220,43 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                     onChange={this.handleChange}
                                     setByEnv={this.isSetByEnv('PluginSettings.EnableMarketplace')}
                                 />
-                                <BooleanSetting
-                                    id='enableRemoteMarketplace'
-                                    label={
-                                        <FormattedMessage
-                                            id='admin.plugins.settings.enableRemoteMarketplace'
-                                            defaultMessage='Enable Remote Marketplace:'
+                                {!this.props.streamlinedMarketplaceFlagEnabled && (
+                                    <>
+                                        <BooleanSetting
+                                            id='enableRemoteMarketplace'
+                                            label={
+                                                <FormattedMessage
+                                                    id='admin.plugins.settings.enableRemoteMarketplace'
+                                                    defaultMessage='Enable Remote Marketplace:'
+                                                />
+                                            }
+                                            helpText={
+                                                <FormattedMarkdownMessage
+                                                    id='admin.plugins.settings.enableRemoteMarketplaceDesc'
+                                                    defaultMessage='When true, marketplace fetches latest plugins from the configured Marketplace URL.'
+                                                />
+                                            }
+                                            value={this.state.enableRemoteMarketplace}
+                                            disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace}
+                                            onChange={this.handleChange}
+                                            setByEnv={this.isSetByEnv('PluginSettings.EnableRemoteMarketplace')}
                                         />
-                                    }
-                                    helpText={
-                                        <FormattedMarkdownMessage
-                                            id='admin.plugins.settings.enableRemoteMarketplaceDesc'
-                                            defaultMessage='When true, marketplace fetches latest plugins from the configured Marketplace URL.'
+                                        <TextSetting
+                                            id={'marketplaceUrl'}
+                                            label={
+                                                <FormattedMessage
+                                                    id='admin.plugins.settings.marketplaceUrl'
+                                                    defaultMessage='Marketplace URL:'
+                                                />
+                                            }
+                                            helpText={this.getMarketplaceURLHelpText(this.state.marketplaceUrl, this.state.enableUploads)}
+                                            value={this.state.marketplaceUrl}
+                                            disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace || !this.state.enableRemoteMarketplace}
+                                            onChange={this.handleChange}
+                                            setByEnv={this.isSetByEnv('PluginSettings.MarketplaceURL')}
                                         />
-                                    }
-                                    value={this.state.enableRemoteMarketplace}
-                                    disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace}
-                                    onChange={this.handleChange}
-                                    setByEnv={this.isSetByEnv('PluginSettings.EnableRemoteMarketplace')}
-                                />
-                                <TextSetting
-                                    id={'marketplaceUrl'}
-                                    label={
-                                        <FormattedMessage
-                                            id='admin.plugins.settings.marketplaceUrl'
-                                            defaultMessage='Marketplace URL:'
-                                        />
-                                    }
-                                    helpText={this.getMarketplaceURLHelpText(this.state.marketplaceUrl, this.state.enableUploads)}
-                                    value={this.state.marketplaceUrl}
-                                    disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace || !this.state.enableRemoteMarketplace}
-                                    onChange={this.handleChange}
-                                    setByEnv={this.isSetByEnv('PluginSettings.MarketplaceURL')}
-                                />
+                                    </>
+                                )}
                             </>
                         )}
                         {pluginsContainer}

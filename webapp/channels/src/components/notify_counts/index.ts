@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import {getUnreadStatusInCurrentTeam, basicUnreadMeta} from 'mattermost-redux/selectors/entities/channels';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import NotifyCounts from './notify_counts';
 

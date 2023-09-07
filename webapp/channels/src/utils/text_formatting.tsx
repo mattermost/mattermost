@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import emojiRegex from 'emoji-regex';
-import {Renderer} from 'marked';
+import type {Renderer} from 'marked';
 
-import {SystemEmoji} from '@mattermost/types/emojis';
+import type {SystemEmoji} from '@mattermost/types/emojis';
 
 import {formatWithRenderer} from 'utils/markdown';
 
+import Constants from './constants';
+import type EmojiMap from './emoji_map.js';
 import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
-import Constants from './constants';
-import EmojiMap from './emoji_map.js';
 
 const punctuationRegex = /[^\p{L}\d]/u;
 const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;

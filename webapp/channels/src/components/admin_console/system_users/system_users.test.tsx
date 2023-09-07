@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import SystemUsers from 'components/admin_console/system_users/system_users';
+
 import {Constants, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 
 jest.mock('actions/admin_actions');

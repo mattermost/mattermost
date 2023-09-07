@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-
 import * as controlModalHooks from 'components/common/hooks/useControlModal';
+
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 
 import ScreeningInProgressModal from './';
 

@@ -4,14 +4,14 @@
 import React, {useState} from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {t} from 'utils/i18n';
+import type {OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
 
-import {Team} from '@mattermost/types/teams';
-import {OutgoingWebhook} from '@mattermost/types/integrations';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
+import {t} from 'utils/i18n';
 
 const HEADER = {id: t('integrations.add'), defaultMessage: 'Add'};
 const FOOTER = {id: t('add_outgoing_webhook.save'), defaultMessage: 'Save'};

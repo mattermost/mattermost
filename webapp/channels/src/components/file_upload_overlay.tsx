@@ -6,7 +6,6 @@ import {FormattedMessage} from 'react-intl';
 
 import fileOverlayImage from 'images/filesOverlay.png';
 import overlayLogoImage from 'images/logoWhite.png';
-
 import {t} from 'utils/i18n';
 
 import LocalizedIcon from './localized_icon';

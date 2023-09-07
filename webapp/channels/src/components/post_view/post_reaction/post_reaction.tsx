@@ -1,24 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {Dispatch} from 'redux';
 
-import {Dispatch} from 'redux';
+import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {Emoji} from '@mattermost/types/emojis';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import OverlayTrigger from 'components/overlay_trigger';
+import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import Tooltip from 'components/tooltip';
+import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
 import {Locations} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
-
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import EmojiIcon from 'components/widgets/icons/emoji_icon';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 
 const TOP_OFFSET = -7;
 
