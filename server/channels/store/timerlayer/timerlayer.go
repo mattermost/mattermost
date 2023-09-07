@@ -8605,10 +8605,10 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userID str
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs ...string) ([]string, error) {
+func (s *TimerLayerTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.TeamStore.GetCommonTeamIDsForMultipleUsers(userIDs...)
+	result, err := s.TeamStore.GetCommonTeamIDsForMultipleUsers(userIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

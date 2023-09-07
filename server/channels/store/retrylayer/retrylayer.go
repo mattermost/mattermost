@@ -10904,11 +10904,11 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userID str
 
 }
 
-func (s *RetryLayerTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs ...string) ([]string, error) {
+func (s *RetryLayerTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetCommonTeamIDsForMultipleUsers(userIDs...)
+		result, err := s.TeamStore.GetCommonTeamIDsForMultipleUsers(userIDs)
 		if err == nil {
 			return result, nil
 		}

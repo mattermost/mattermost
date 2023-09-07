@@ -3501,7 +3501,7 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 		userIDs[i] = members[i].UserId
 	}
 
-	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs...)
+	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_gm_common_teams.store_error", map[string]any{"channelID": channelID}, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3582,15 +3582,6 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 
 	if channelMember == nil {
 		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.group_message_conversion.channel_member_missing", nil, "", http.StatusNotFound)
-	}
-
-	teamMember, appErr := a.GetTeamMember(gmConversionRequest.TeamID, convertedByUserId)
-	if appErr != nil {
-		return appErr
-	}
-
-	if teamMember == nil {
-		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.group_message_conversion.team_member_missing", nil, "", http.StatusNotFound)
 	}
 
 	// apply dummy changes to check validity

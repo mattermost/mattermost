@@ -173,7 +173,7 @@ type TeamStore interface {
 	// users belong.
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 
-	GetCommonTeamIDsForMultipleUsers(userIDs ...string) ([]string, error)
+	GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error)
 }
 
 type ChannelStore interface {

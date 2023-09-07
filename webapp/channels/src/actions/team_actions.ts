@@ -6,7 +6,7 @@ import {ServerError} from '@mattermost/types/errors';
 import {UserProfile} from '@mattermost/types/users';
 
 import {TeamTypes} from 'mattermost-redux/action_types';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {getUser} from 'mattermost-redux/actions/users';
@@ -17,6 +17,7 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 
 import {getHistory} from 'utils/browser_history';
 import {Preferences} from 'utils/constants';
+import {Client4} from "mattermost-redux/client";
 
 export function removeUserFromTeamAndGetStats(teamId: Team['id'], userId: UserProfile['id']): ActionFunc {
     return async (dispatch, getState) => {

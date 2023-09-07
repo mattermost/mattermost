@@ -3681,7 +3681,7 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Find common teams between user 1 and user 2
-		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id})
 		require.NoError(t, err2)
 		require.Equal(t, 2, len(commonTeamIDs))
 		require.Contains(t, commonTeamIDs, t1.Id)
@@ -3709,7 +3709,7 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Find common teams between user 1 and user 2
-		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id})
 		require.NoError(t, err2)
 		require.Equal(t, 1, len(commonTeamIDs))
 		require.Contains(t, commonTeamIDs, t1.Id)
@@ -3735,7 +3735,7 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Find common teams between user 1 and user 2
-		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id})
 		require.NoError(t, err2)
 		require.Equal(t, 0, len(commonTeamIDs))
 
@@ -3759,7 +3759,7 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Find common teams between user 1 and user 2
-		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id})
 		require.NoError(t, err2)
 		require.Equal(t, 0, len(commonTeamIDs))
 
@@ -3805,7 +3805,7 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Find common teams between user 1 and user 2
-		commonTeamIDs, err := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id, u3.Id, u4.Id)
+		commonTeamIDs, err := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id, u3.Id, u4.Id})
 		require.NoError(t, err)
 		require.Equal(t, 2, len(commonTeamIDs))
 		require.Contains(t, commonTeamIDs, t1.Id)

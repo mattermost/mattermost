@@ -4876,10 +4876,6 @@
     "translation": "Failed to create group message to channel conversion post"
   },
   {
-    "id": "app.channel.group_message_conversion.team_member_missing",
-    "translation": "Cannot find user's team membership"
-  },
-  {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Failed to select the batch of channel members."
   },

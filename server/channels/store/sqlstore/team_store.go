@@ -1513,7 +1513,7 @@ func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([
 	return teamIDs, nil
 }
 
-func (s SqlTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs ...string) ([]string, error) {
+func (s SqlTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error) {
 	subQuery := s.getSubQueryBuilder().
 		Select("TeamId, UserId").
 		From("TeamMembers").
