@@ -152,17 +152,17 @@ func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 				return
 			}
 
-			err = worker.store.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
-			if err != nil {
-				mlog.Error("DeleteEmptyDraftsMigrationWorker: Failed to delete the empty drafts for the page. Exiting", mlog.Err(err))
-				worker.setJobError(job, model.NewAppError("DoJob", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
-				return
-			}
-
 			if nextCreateAt == 0 && nextUserID == "" {
 				mlog.Info("DeleteEmptyDraftsMigrationWorker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
 				worker.setJobSuccess(job)
 				worker.markAsComplete()
+				return
+			}
+
+			err = worker.store.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
+			if err != nil {
+				mlog.Error("DeleteEmptyDraftsMigrationWorker: Failed to delete the empty drafts for the page. Exiting", mlog.Err(err))
+				worker.setJobError(job, model.NewAppError("DoJob", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 				return
 			}
 
