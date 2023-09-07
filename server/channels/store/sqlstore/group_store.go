@@ -215,7 +215,12 @@ func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []str
 
 func (s *SqlGroupStore) Get(groupId string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ?", groupId); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{"Id": groupId})
+
+	if err := s.GetReplicaX().GetBuilder(&group, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupId)
 		}
@@ -261,7 +266,15 @@ func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 
 func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE RemoteId = ? AND Source = ?", remoteID, groupSource); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{
+			"RemoteId": remoteID,
+			"Source":   groupSource,
+		})
+
+	if err := s.GetReplicaX().GetBuilder(&group, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", fmt.Sprintf("remoteId=%s", remoteID))
 		}
@@ -273,8 +286,15 @@ func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSo
 
 func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error) {
 	groups := []*model.Group{}
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{
+			"DeleteAt": 0,
+			"Source":   groupSource,
+		})
 
-	if err := s.GetReplicaX().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Source = ?", groupSource); err != nil {
+	if err := s.GetReplicaX().SelectBuilder(&groups, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups by groupSource=%v", groupSource)
 	}
 
@@ -303,7 +323,12 @@ func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 
 func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 	var retrievedGroup model.Group
-	if err := s.GetReplicaX().Get(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = ?", group.Id); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{"Id": group.Id})
+
+	if err := s.GetReplicaX().GetBuilder(&retrievedGroup, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", group.Id)
 		}
@@ -343,7 +368,15 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 
 func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt = 0", groupID); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{
+			"Id":       groupID,
+			"DeleteAt": 0,
+		})
+
+	if err := s.GetReplicaX().GetBuilder(&group, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
 		}
@@ -351,9 +384,11 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	}
 
 	time := model.GetMillis()
+	group.DeleteAt = time
+	group.UpdateAt = time
 	if _, err := s.GetMasterX().Exec(`UPDATE UserGroups
 		SET DeleteAt=?, UpdateAt=?
-		WHERE Id=? AND DeleteAt=0`, time, time, groupID); err != nil {
+		WHERE Id=? AND DeleteAt=0`, group.DeleteAt, group.UpdateAt, groupID); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Group with id=%s", groupID)
 	}
 
@@ -362,17 +397,26 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 
 func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt != 0", groupID); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.And{
+			sq.Eq{"Id": groupID},
+			sq.NotEq{"DeleteAt": 0},
+		})
+
+	if err := s.GetReplicaX().GetBuilder(&group, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
 		}
 		return nil, errors.Wrapf(err, "failed to get Group with id=%s", groupID)
 	}
 
-	time := model.GetMillis()
+	group.UpdateAt = model.GetMillis()
+	group.DeleteAt = 0
 	if _, err := s.GetMasterX().Exec(`UPDATE UserGroups
 		SET DeleteAt=0, UpdateAt=?
-		WHERE Id=? AND DeleteAt!=0`, time, groupID); err != nil {
+		WHERE Id=? AND DeleteAt!=0`, group.UpdateAt, groupID); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Group with id=%s", groupID)
 	}
 
@@ -1529,15 +1573,25 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 	}
 
 	groupsQuery = groupsQuery.
-		From("UserGroups g").
-		OrderBy("g.DisplayName")
+		From("UserGroups g")
 
 	if opts.Since > 0 {
 		groupsQuery = groupsQuery.Where(sq.Gt{
 			"g.UpdateAt": opts.Since,
 		})
-	} else {
+	}
+
+	if opts.FilterArchived {
+		groupsQuery = groupsQuery.Where("g.DeleteAt > 0")
+	} else if !opts.IncludeArchived && opts.Since <= 0 {
+		// Mobile needs to return archived groups when the since parameter is set, will need to keep this for backwards compatibility
 		groupsQuery = groupsQuery.Where("g.DeleteAt = 0")
+	}
+
+	if opts.IncludeArchived {
+		groupsQuery = groupsQuery.OrderBy("CASE WHEN g.DeleteAt = 0 THEN g.DisplayName end, CASE WHEN g.DeleteAt != 0 THEN g.DisplayName END")
+	} else {
+		groupsQuery = groupsQuery.OrderBy("g.DisplayName")
 	}
 
 	if perPage != 0 {

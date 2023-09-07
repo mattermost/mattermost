@@ -14,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -44,11 +44,12 @@ type Channels struct {
 
 	postActionCookieSecret []byte
 
-	pluginCommandsLock     sync.RWMutex
-	pluginCommands         []*PluginCommand
-	pluginsLock            sync.RWMutex
-	pluginsEnvironment     *plugin.Environment
-	pluginConfigListenerID string
+	pluginCommandsLock            sync.RWMutex
+	pluginCommands                []*PluginCommand
+	pluginsLock                   sync.RWMutex
+	pluginsEnvironment            *plugin.Environment
+	pluginConfigListenerID        string
+	pluginClusterLeaderListenerID string
 
 	productCommandsLock sync.RWMutex
 	productCommands     []*ProductCommand

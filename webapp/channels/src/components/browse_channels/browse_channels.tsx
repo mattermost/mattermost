@@ -1,40 +1,49 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {GenericModal} from '@mattermost/components';
+import type {Channel, ChannelMembership, ChannelSearchOpts} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
 import Permissions from 'mattermost-redux/constants/permissions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import LoadingScreen from 'components/loading_screen';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
-import SearchableChannelList from 'components/searchable_channel_list';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
-
-import {ModalData} from 'types/actions';
-import {RhsState} from 'types/store/rhs';
+import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
-import {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
+import Constants, {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
-import {GenericModal} from '@mattermost/components';
-import classNames from 'classnames';
 import {localizeMessage} from 'utils/utils';
-import LoadingScreen from 'components/loading_screen';
+
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 import './browse_channels.scss';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
 const SEARCH_TIMEOUT_MILLISECONDS = 100;
+export enum Filter {
+    All = 'All',
+    Public = 'Public',
+    Private = 'Private',
+    Archived = 'Archived',
+}
+
+export type FilterType = keyof typeof Filter;
 
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[], Error>>;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[], Error>>;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
-    searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean, shouldHideJoinedChannels: boolean) => Promise<ActionResult>;
+    searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<Channel[], Error>>;
     openModal: <P>(modalData: ModalData<P>) => void;
     closeModal: (modalId: string) => void;
 
@@ -49,12 +58,12 @@ type Actions = {
 export type Props = {
     channels: Channel[];
     archivedChannels: Channel[];
+    privateChannels: Channel[];
     currentUserId: string;
     teamId: string;
     teamName: string;
     channelsRequestStarted?: boolean;
     canShowArchivedChannels?: boolean;
-    morePublicChannelsModalType?: string;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     shouldHideJoinedChannels: boolean;
     rhsState?: RhsState;
@@ -65,7 +74,7 @@ export type Props = {
 
 type State = {
     loading: boolean;
-    shouldShowArchivedChannels: boolean;
+    filter: FilterType;
     search: boolean;
     searchedChannels: Channel[];
     serverError: React.ReactNode | string;
@@ -84,7 +93,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         this.state = {
             loading: true,
-            shouldShowArchivedChannels: this.props.morePublicChannelsModalType === 'private',
+            filter: Filter.All,
             search: false,
             searchedChannels: [],
             serverError: null,
@@ -191,13 +200,17 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const searchTimeoutId = window.setTimeout(
             async () => {
                 try {
-                    const {data} = await this.props.actions.searchMoreChannels(term, this.state.shouldShowArchivedChannels, this.props.shouldHideJoinedChannels);
+                    const {data} = await this.props.actions.searchAllChannels(term, {team_ids: [this.props.teamId], nonAdminSearch: true, include_deleted: true});
                     if (searchTimeoutId !== this.searchTimeoutId) {
                         return;
                     }
 
                     if (data) {
-                        this.setSearchResults(data);
+                        const channelIDsForMemberCount = data.map((channel: Channel) => channel.id);
+                        if (channelIDsForMemberCount.length > 0) {
+                            this.props.actions.getChannelsMemberCount(channelIDsForMemberCount);
+                        }
+                        this.setSearchResults(data.filter((channel) => channel.team_id === this.props.teamId));
                     } else {
                         this.setState({searchedChannels: [], searching: false});
                     }
@@ -212,13 +225,27 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     };
 
     setSearchResults = (channels: Channel[]) => {
-        this.setState({searchedChannels: this.state.shouldShowArchivedChannels ? channels.filter((c) => c.delete_at !== 0) : channels.filter((c) => c.delete_at === 0), searching: false});
+        // filter out private channels that the user is not a member of
+        let searchedChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.isMemberOfChannel(c.id));
+        if (this.state.filter === Filter.Private) {
+            searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.isMemberOfChannel(c.id));
+        }
+        if (this.state.filter === Filter.Public) {
+            searchedChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL && c.delete_at === 0);
+        }
+        if (this.state.filter === Filter.Archived) {
+            searchedChannels = channels.filter((c) => c.delete_at !== 0);
+        }
+        if (this.props.shouldHideJoinedChannels) {
+            searchedChannels = this.getChannelsWithoutJoined(searchedChannels);
+        }
+        this.setState({searchedChannels, searching: false});
     };
 
-    toggleArchivedChannels = (shouldShowArchivedChannels: boolean) => {
+    changeFilter = (filter: FilterType) => {
         // search again when switching channels to update search results
         this.search(this.state.searchTerm);
-        this.setState({shouldShowArchivedChannels});
+        this.setState({filter});
     };
 
     isMemberOfChannel(channelId: string) {
@@ -231,35 +258,36 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         this.props.actions.setGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, shouldHideJoinedChannels.toString());
     };
 
-    render() {
-        const {
-            channels,
-            archivedChannels,
-            teamId,
-            channelsRequestStarted,
-            shouldHideJoinedChannels,
-        } = this.props;
+    getChannelsWithoutJoined = (channelList: Channel[]) => channelList.filter((channel) => !this.isMemberOfChannel(channel.id));
 
-        const {
-            search,
-            searchedChannels,
-            serverError: serverErrorState,
-            searching,
-            shouldShowArchivedChannels,
-        } = this.state;
+    getActiveChannels = () => {
+        const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels} = this.props;
+        const {search, searchedChannels, filter} = this.state;
 
-        const otherChannelsWithoutJoined = channels.filter((channel) => !this.isMemberOfChannel(channel.id));
-        const archivedChannelsWithoutJoined = archivedChannels.filter((channel) => !this.isMemberOfChannel(channel.id));
+        const allChannels = channels.concat(privateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
+        const allChannelsWithoutJoined = this.getChannelsWithoutJoined(allChannels);
+        const publicChannelsWithoutJoined = this.getChannelsWithoutJoined(channels);
+        const archivedChannelsWithoutJoined = this.getChannelsWithoutJoined(archivedChannels);
+        const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(privateChannels);
 
-        if (shouldShowArchivedChannels && shouldHideJoinedChannels) {
-            this.activeChannels = search ? searchedChannels : archivedChannelsWithoutJoined;
-        } else if (shouldShowArchivedChannels && !shouldHideJoinedChannels) {
-            this.activeChannels = search ? searchedChannels : archivedChannels;
-        } else if (!shouldShowArchivedChannels && shouldHideJoinedChannels) {
-            this.activeChannels = search ? searchedChannels : otherChannelsWithoutJoined;
-        } else {
-            this.activeChannels = search ? searchedChannels : channels;
+        const filterOptions = {
+            [Filter.All]: shouldHideJoinedChannels ? allChannelsWithoutJoined : allChannels,
+            [Filter.Archived]: shouldHideJoinedChannels ? archivedChannelsWithoutJoined : archivedChannels,
+            [Filter.Private]: shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels,
+            [Filter.Public]: shouldHideJoinedChannels ? publicChannelsWithoutJoined : channels,
+        };
+
+        if (search) {
+            return searchedChannels;
         }
+
+        return filterOptions[filter] || filterOptions[Filter.All];
+    };
+
+    render() {
+        const {teamId, channelsRequestStarted, shouldHideJoinedChannels} = this.props;
+        const {search, serverError: serverErrorState, searching} = this.state;
+        this.activeChannels = this.getActiveChannels();
 
         let serverError;
         if (serverErrorState) {
@@ -314,8 +342,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     handleJoin={this.handleJoin}
                     noResultsText={noResultsText}
                     loading={search ? searching : channelsRequestStarted}
-                    toggleArchivedChannels={this.toggleArchivedChannels}
-                    shouldShowArchivedChannels={this.state.shouldShowArchivedChannels}
+                    changeFilter={this.changeFilter}
+                    filter={this.state.filter}
                     canShowArchivedChannels={this.props.canShowArchivedChannels}
                     myChannelMemberships={this.props.myChannelMemberships}
                     closeModal={this.props.actions.closeModal}

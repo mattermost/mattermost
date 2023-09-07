@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (a *App) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
@@ -404,5 +404,5 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 }
 
 func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
-	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
+	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
 }

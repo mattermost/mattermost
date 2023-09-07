@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import GetPublicLinkModal from 'components/get_public_link_modal/get_public_link_modal';
 import GetLinkModal from 'components/get_link_modal';
+import GetPublicLinkModal from 'components/get_public_link_modal/get_public_link_modal';
 
 describe('components/GetPublicLinkModal', () => {
     const baseProps = {

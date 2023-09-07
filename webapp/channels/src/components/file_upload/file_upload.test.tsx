@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent, DragEvent, ChangeEvent} from 'react';
+import React from 'react';
+import type {MouseEvent, DragEvent, ChangeEvent} from 'react';
 
-import {FileInfo} from '@mattermost/types/files';
+import type {FileInfo} from '@mattermost/types/files';
 
 import {General} from 'mattermost-redux/constants';
 
-import FileUpload, {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import FileUpload from 'components/file_upload/file_upload';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 
-import {clearFileInput} from 'utils/utils';
-import {FilesWillUploadHook} from 'types/store/plugins';
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {clearFileInput} from 'utils/utils';
+
+import type {FilesWillUploadHook} from 'types/store/plugins';
 
 const generatedIdRegex = /[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/;
 
@@ -206,7 +209,7 @@ describe('components/FileUpload', () => {
         event.preventDefault = jest.fn();
         const getAsFile = jest.fn().mockReturnValue(new File(['test'], 'test.png'));
         const file = {getAsFile, kind: 'file', name: 'test.png'};
-        (event as any).clipboardData = {items: [file], types: ['image/png']};
+        (event as any).clipboardData = {items: [file], types: ['image/png'], getData: () => {}};
 
         const wrapper = shallowWithIntl(
             <FileUpload
@@ -229,7 +232,7 @@ describe('components/FileUpload', () => {
         const event = new Event('paste');
         event.preventDefault = jest.fn();
         const getAsString = jest.fn();
-        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}], types: ['text/plain']};
+        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}], types: ['text/plain'], getData: () => {}};
 
         const wrapper = shallowWithIntl(
             <FileUpload

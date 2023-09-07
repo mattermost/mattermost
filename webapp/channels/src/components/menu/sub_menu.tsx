@@ -1,35 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MuiMenuList from '@mui/material/MenuList';
+import type {PopoverOrigin} from '@mui/material/Popover';
 import React, {
-    ReactNode,
     useState,
-    MouseEvent,
-    KeyboardEvent,
     useEffect,
     useMemo,
     useCallback,
 } from 'react';
+import type {
+    ReactNode,
+    MouseEvent,
+    KeyboardEvent} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import MuiMenuList from '@mui/material/MenuList';
-import {PopoverOrigin} from '@mui/material/Popover';
+
+import {GenericModal} from '@mattermost/components';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
+import {openModal, closeModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isAnyModalOpen} from 'selectors/views/modals';
 
-import {openModal, closeModal} from 'actions/views/modals';
+import CompassDesignProvider from 'components/compass_design_provider';
 
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
-import CompassDesignProvider from 'components/compass_design_provider';
-import {GenericModal} from '@mattermost/components';
-
+import {SubMenuContext, useMenuContextValue} from './menu_context';
+import {MenuItem} from './menu_item';
+import type {Props as MenuItemProps} from './menu_item';
 import {MuiMenuStyled} from './menu_styled';
-import {MenuItem, Props as MenuItemProps} from './menu_item';
-import {SubMenuContext} from './menu_context';
 
 import './sub_menu.scss';
 
@@ -85,12 +87,7 @@ export function SubMenu(props: Props) {
         setAnchorElement(null);
     }, []);
 
-    const providerValue = useMemo(() => {
-        return {
-            close: closeSubMenu,
-            isOpen: Boolean(anchorElement),
-        };
-    }, [anchorElement, closeSubMenu]);
+    const providerValue = useMenuContextValue(closeSubMenu, Boolean(anchorElement));
 
     const hasSubmenuItems = Boolean(children);
     if (!hasSubmenuItems) {

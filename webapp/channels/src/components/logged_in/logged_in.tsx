@@ -3,20 +3,22 @@
 
 import React from 'react';
 import {Redirect} from 'react-router-dom';
-
 import semver from 'semver';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import * as WebSocketActions from 'actions/websocket_actions.jsx';
-import * as UserAgent from 'utils/user_agent';
-import LoadingScreen from 'components/loading_screen';
-import {getBrowserTimezone} from 'utils/timezone';
-import WebSocketClient from 'client/web_websocket_client.jsx';
 import BrowserStore from 'stores/browser_store';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-import {isKeyPressed} from 'utils/keyboard';
+
+import LoadingScreen from 'components/loading_screen';
+
+import WebSocketClient from 'client/web_websocket_client.jsx';
 import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+import {getBrowserTimezone} from 'utils/timezone';
+import * as UserAgent from 'utils/user_agent';
 
 declare global {
     interface Window {
@@ -29,13 +31,15 @@ declare global {
 export type Props = {
     currentUser?: UserProfile;
     currentChannelId?: string;
+    isCurrentChannelManuallyUnread: boolean;
     children?: React.ReactNode;
     mfaRequired: boolean;
     enableTimezone: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channel: Channel, teamId: string, url: string) => void;
-        viewChannel: (channelId: string, prevChannelId?: string) => void;
+        markChannelAsViewedOnServer: (channelId: string) => void;
+        updateApproximateViewTime: (channelId: string) => void;
     };
     showTermsOfService: boolean;
     location: {
@@ -226,8 +230,9 @@ export default class LoggedIn extends React.PureComponent<Props> {
     private handleBeforeUnload = (): void => {
         // remove the event listener to prevent getting stuck in a loop
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
-        if (document.cookie.indexOf('MMUSERID=') > -1) {
-            this.props.actions.viewChannel('', this.props.currentChannelId || '');
+        if (document.cookie.indexOf('MMUSERID=') > -1 && this.props.currentChannelId && !this.props.isCurrentChannelManuallyUnread) {
+            this.props.actions.updateApproximateViewTime(this.props.currentChannelId);
+            this.props.actions.markChannelAsViewedOnServer(this.props.currentChannelId);
         }
         WebSocketActions.close();
     };

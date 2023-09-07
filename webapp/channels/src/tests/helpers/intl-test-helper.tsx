@@ -1,23 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {
+import type {
+    ShallowRendererProps,
+    MountRendererProps} from 'enzyme';
+import {
+    shallow,
+    mount,
+} from 'enzyme';
+import React from 'react';
+import type {
     ExoticComponent,
     ForwardRefExoticComponent,
     ReactElement,
 } from 'react';
 import {
     createIntl,
-    injectIntl,
-    IntlShape,
     IntlProvider,
 } from 'react-intl';
-import {
-    shallow,
-    mount,
-    ShallowRendererProps,
-    MountRendererProps,
-} from 'enzyme';
+import type {
+    injectIntl,
+    IntlShape} from 'react-intl';
 
 import defaultMessages from 'i18n/en.json';
 

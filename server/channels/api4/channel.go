@@ -24,6 +24,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("/group/search", api.APISessionRequiredDisableWhenBusy(searchGroupChannels)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.APISessionRequired(viewChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/mark_read", api.APISessionRequired(readMultipleChannels)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme)).Methods("PUT")
 	api.BaseRoutes.Channels.Handle("/stats/member_count", api.APISessionRequired(getChannelsMemberCount)).Methods("POST")
 
@@ -167,6 +168,10 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
 			c.Err = model.NewAppError("updateChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+		if (channel.Name != "" && channel.Name != oldChannel.Name) || (channel.DisplayName != "" && channel.DisplayName != oldChannel.DisplayName) || (channel.Purpose != oldChannel.Purpose) {
+			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 
@@ -339,6 +344,10 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
 		if _, appErr = c.App.GetChannelMember(c.AppContext, c.Params.ChannelId, c.AppContext.Session().UserId); appErr != nil {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+		if (patch.Name != nil && *patch.Name != oldChannel.Name) || (patch.DisplayName != nil && *patch.DisplayName != oldChannel.DisplayName) || (patch.Purpose != nil && *patch.Purpose != oldChannel.Purpose) {
+			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 
@@ -711,8 +720,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -1527,6 +1536,32 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.ExtendSessionExpiryIfNeeded(w, r)
 
 	// Returning {"status": "OK", ...} for backwards compatibility
+	resp := &model.ChannelViewResponse{
+		Status:            "OK",
+		LastViewedAtTimes: times,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+
+	var channelIDs []string
+	err := json.NewDecoder(r.Body).Decode(&channelIDs)
+	if err != nil || len(channelIDs) == 0 {
+		c.SetInvalidParamWithErr("channel_ids", err)
+		return
+	}
+
+	times, appErr := c.App.MarkChannelsAsViewed(c.AppContext, channelIDs, c.Params.UserId, c.AppContext.Session().Id, true, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	resp := &model.ChannelViewResponse{
 		Status:            "OK",
 		LastViewedAtTimes: times,

@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {localizeMessage} from 'utils/utils';
-
 import Menu from 'components/widgets/menu/menu';
+
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     isArchived: boolean;

@@ -21,21 +21,32 @@ import {
     CloudTypes,
     HostedCustomerTypes,
 } from 'mattermost-redux/action_types';
-import {General, Permissions} from 'mattermost-redux/constants';
+import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
+import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
     getMyChannelMember,
     getChannelStats,
-    viewChannel,
-    markChannelAsRead,
+    markMultipleChannelsAsRead,
     getChannelMemberCountsByGroup,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
+import {clearErrors, logError} from 'mattermost-redux/actions/errors';
+import {setServerVersion, getClientConfig} from 'mattermost-redux/actions/general';
+import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
+import {
+    getCustomEmojiForReaction,
+    getPosts,
+    getPostThread,
+    getMentionsAndStatusesForPosts,
+    getThreadsForPosts,
+    postDeleted,
+    receivedNewPost,
+    receivedPost,
+} from 'mattermost-redux/actions/posts';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
-
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
+import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
     getThread as fetchThread,
     getCountsAndThreadsSince,
@@ -47,33 +58,14 @@ import {
     updateThreadRead,
     decrementThreadCounts,
 } from 'mattermost-redux/actions/threads';
-
-import {setServerVersion, getClientConfig} from 'mattermost-redux/actions/general';
-import {
-    getCustomEmojiForReaction,
-    getPosts,
-    getPostThread,
-    getProfilesAndStatusesForPosts,
-    getThreadsForPosts,
-    postDeleted,
-    receivedNewPost,
-    receivedPost,
-} from 'mattermost-redux/actions/posts';
-import {clearErrors, logError} from 'mattermost-redux/actions/errors';
-
-import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
     checkForModifiedUsers,
     getUser as loadUser,
 } from 'mattermost-redux/actions/users';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
-import {setGlobalItem} from 'actions/storage';
-import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
-
 import {Client4} from 'mattermost-redux/client';
-import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamUrl, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {General, Permissions} from 'mattermost-redux/constants';
+import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
     getChannelMembersInChannels,
@@ -82,41 +74,45 @@ import {
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
-
-import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-
-import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
-import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
-
-import {openModal} from 'actions/views/modals';
-import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
-import {closeRightHandSide} from 'actions/views/rhs';
-import {syncPostsInChannel} from 'actions/views/channel';
-import {updateThreadLastOpened} from 'actions/views/threads';
-
-import {getHistory} from 'utils/browser_history';
-import {loadChannelsForCurrentUser} from 'actions/channel_actions';
-import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
-import {redirectUserToDefaultTeam} from 'actions/global_actions';
-import {handleNewPost} from 'actions/post_actions';
-import * as StatusActions from 'actions/status_actions';
-import {loadProfilesForSidebar} from 'actions/user_actions';
-import {sendDesktopNotification} from 'actions/notification_actions.jsx';
-import store from 'stores/redux_store.jsx';
-import WebSocketClient from 'client/web_websocket_client.jsx';
-import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
-import {getSiteURL} from 'utils/url';
+import {getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamUrl, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
+import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
-import RemovedFromChannelModal from 'components/removed_from_channel_modal';
-import InteractiveDialog from 'components/interactive_dialog';
+
+import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
 } from 'actions/cloud';
+import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
+import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import {handleNewPost} from 'actions/post_actions';
+import * as StatusActions from 'actions/status_actions';
+import {setGlobalItem} from 'actions/storage';
+import {loadProfilesForSidebar} from 'actions/user_actions';
+import {syncPostsInChannel} from 'actions/views/channel';
+import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
+import {openModal} from 'actions/views/modals';
+import {closeRightHandSide} from 'actions/views/rhs';
+import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
+import {updateThreadLastOpened} from 'actions/views/threads';
+import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
+import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
+import store from 'stores/redux_store.jsx';
+
+import InteractiveDialog from 'components/interactive_dialog';
+import RemovedFromChannelModal from 'components/removed_from_channel_modal';
+
+import WebSocketClient from 'client/web_websocket_client.jsx';
+import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
+import {getHistory} from 'utils/browser_history';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
+import {getSiteURL} from 'utils/url';
 
 const dispatch = store.dispatch;
 const getState = store.getState;
@@ -456,8 +452,8 @@ export function handleEvent(msg) {
         handleAddEmoji(msg);
         break;
 
-    case SocketEvents.CHANNEL_VIEWED:
-        handleChannelViewedEvent(msg);
+    case SocketEvents.MULTIPLE_CHANNELS_VIEWED:
+        handleMultipleChannelsViewedEvent(msg);
         break;
 
     case SocketEvents.PLUGIN_ENABLED:
@@ -685,7 +681,7 @@ export function handleNewPostEvent(msg) {
 
         myDispatch(handleNewPost(post, msg));
 
-        getProfilesAndStatusesForPosts([post], myDispatch, myGetState);
+        getMentionsAndStatusesForPosts([post], myDispatch, myGetState);
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -724,7 +720,7 @@ export function handleNewPostEvents(queue) {
         myDispatch(getThreadsForPosts(posts));
 
         // And any other data needed for them
-        getProfilesAndStatusesForPosts(posts, myDispatch, myGetState);
+        getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
     };
 }
 
@@ -740,16 +736,7 @@ export function handlePostEditEvent(msg) {
     const crtEnabled = isCollapsedThreadsEnabled(getState());
     dispatch(receivedPost(post, crtEnabled));
 
-    getProfilesAndStatusesForPosts([post], dispatch, getState);
-    const currentChannelId = getCurrentChannelId(getState());
-
-    // Update channel state
-    if (currentChannelId === msg.broadcast.channel_id) {
-        dispatch(getChannelStats(currentChannelId));
-        if (window.isActive) {
-            dispatch(viewChannel(currentChannelId));
-        }
-    }
+    getMentionsAndStatusesForPosts([post], dispatch, getState);
 }
 
 async function handlePostDeleteEvent(msg) {
@@ -1291,11 +1278,9 @@ function handleReactionRemovedEvent(msg) {
     });
 }
 
-function handleChannelViewedEvent(msg) {
-    // Useful for when multiple devices have the app open to different channels
-    if ((!window.isActive || getCurrentChannelId(getState()) !== msg.data.channel_id) &&
-        getCurrentUserId(getState()) === msg.broadcast.user_id) {
-        dispatch(markChannelAsRead(msg.data.channel_id, '', false));
+function handleMultipleChannelsViewedEvent(msg) {
+    if (getCurrentUserId(getState()) === msg.broadcast.user_id) {
+        dispatch(markMultipleChannelsAsRead(msg.data.channel_times));
     }
 }
 
@@ -1367,20 +1352,32 @@ function handleGroupUpdatedEvent(msg) {
     );
 }
 
-function handleGroupAddedMemberEvent(msg) {
-    return (doDispatch, doGetState) => {
+export function handleGroupAddedMemberEvent(msg) {
+    return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
-        const data = JSON.parse(msg.data.group_member);
+        const groupInfo = JSON.parse(msg.data.group_member);
 
-        if (currentUserId === data.user_id) {
-            dispatch(
-                {
-                    type: GroupTypes.ADD_MY_GROUP,
-                    data,
-                    id: data.group_id,
-                },
-            );
+        if (currentUserId === groupInfo.user_id) {
+            const group = getGroup(state, groupInfo.group_id);
+            if (group) {
+                dispatch(
+                    {
+                        type: GroupTypes.ADD_MY_GROUP,
+                        id: groupInfo.group_id,
+                    },
+                );
+            } else {
+                const {error} = await doDispatch(fetchGroup(groupInfo.group_id, true));
+                if (!error) {
+                    dispatch(
+                        {
+                            type: GroupTypes.ADD_MY_GROUP,
+                            id: groupInfo.group_id,
+                        },
+                    );
+                }
+            }
         }
     };
 }

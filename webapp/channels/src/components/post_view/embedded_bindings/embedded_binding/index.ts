@@ -3,8 +3,9 @@
 
 import {connect} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {GlobalState} from '@mattermost/types/store';
 
 import EmbeddedBinding from './embedded_binding';
 

@@ -3,8 +3,9 @@
 
 import React from 'react';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import ConfigurationBar from 'components/announcement_bar/configuration_bar/configuration_bar';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/ConfigurationBar', () => {
     const millisPerDay = 24 * 60 * 60 * 1000;

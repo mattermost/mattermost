@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {General} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
-import {General} from 'mattermost-redux/constants';
 
 import * as I18n from 'i18n/i18n';
 
-import {GlobalState} from 'types/store';
-import {Translations} from 'types/store/i18n';
+import type {GlobalState} from 'types/store';
+import type {Translations} from 'types/store/i18n';
 
 // This is a placeholder for if we ever implement browser-locale detection
 export function getCurrentLocale(state: GlobalState): string {
