@@ -46,7 +46,7 @@ func (ps *PlatformService) License() *model.License {
 	return ps.licenseValue.Load()
 }
 
-func (ps *PlatformService) loadLicense() {
+func (ps *PlatformService) LoadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
@@ -325,6 +325,9 @@ func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseR
 	if _, err := ps.SaveLicense([]byte(licenseResponse["license"])); err != nil {
 		return err
 	}
+
+	ps.ReloadConfig()
+	ps.InvalidateAllCaches()
 
 	return nil
 }
