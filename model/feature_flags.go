@@ -78,8 +78,6 @@ type FeatureFlags struct {
 	GlobalDrafts bool
 
 	OnboardingTourTips bool
-
-	DataRetentionConcurrencyEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -110,7 +108,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GlobalDrafts = true
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
-	f.DataRetentionConcurrencyEnabled = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
