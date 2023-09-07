@@ -134,6 +134,10 @@ func (j *Job) InitLogger(logger mlog.LoggerIFace) {
 	)
 }
 
+func (j *Job) LogClone() interface{} {
+	return j.Auditable()
+}
+
 type Worker interface {
 	Run()
 	Stop()
