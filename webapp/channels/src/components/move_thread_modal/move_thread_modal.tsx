@@ -66,6 +66,8 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
     const originalChannel = useSelector((state: GlobalState) => getChannel(state, {id: post.channel_id}));
     const currentTeam = useSelector(getCurrentTeam);
 
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     const [bodyHeight, setBodyHeight] = useState<number>(0);
     const [hasError, setHasError] = useState<boolean>(false);
     const [postError, setPostError] = useState<React.ReactNode>(null);
@@ -121,11 +123,20 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
             id={'move_thread'}
         />
     );
+
     const handlePostError = useCallback((error: ClientError) => {
         setIsButtonClicked(false);
         setPostError(error.message);
         setHasError(true);
-        setTimeout(() => setHasError(false), Constants.ANIMATION_TIMEOUT);
+
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = setTimeout(() => {
+            setHasError(false);
+            timeoutRef.current = null;
+        }, Constants.ANIMATION_TIMEOUT);
     }, [setIsButtonClicked, setPostError, setHasError]);
 
     const handleSubmit = useCallback(async () => {
