@@ -3216,7 +3216,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, targetChannel, th.BasicUser)
 		require.Error(t, e)
-		require.Equal(t, fmt.Sprintf("Error: channel with ID %s doesn't exist or you are not a member", targetChannel.Id), e.Error())
+		require.Equal(t, fmt.Sprintf("channel with ID %s doesn't exist or you are not a member", targetChannel.Id), e.Error())
 	})
 
 	t.Run("moving thread longer than MoveThreadMaxCount", func(t *testing.T) {
@@ -3226,6 +3226,6 @@ func TestValidateMoveOrCopy(t *testing.T) {
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}, {ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, th.BasicChannel, th.BasicUser)
 		require.Error(t, e)
-		require.Equal(t, "Error: the thread is 2 posts long, but this command is configured to only move threads of up to 1 posts", e.Error())
+		require.Equal(t, "the thread is 2 posts long, but this command is configured to only move threads of up to 1 posts", e.Error())
 	})
 }
