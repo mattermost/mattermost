@@ -85,19 +85,6 @@ func (worker *DeleteEmptyDraftsMigrationWorker) IsEnabled(_ *model.Config) bool 
 	return true
 }
 
-func (worker *DeleteEmptyDraftsMigrationWorker) getJobMetadata(job *model.Job, key string) (int64, *model.AppError) {
-	countStr := job.Data[key]
-	count := int64(0)
-	var err error
-	if countStr != "" {
-		count, err = strconv.ParseInt(countStr, 10, 64)
-		if err != nil {
-			return 0, model.NewAppError("getJobMetadata", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-	return count, nil
-}
-
 func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 	defer worker.jobServer.HandleJobPanic(job)
 
@@ -133,11 +120,15 @@ func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 	// Check if there is metadata for that job.
 	// If there isn't, it will be empty by default, which is the right value.
 	userID := job.Data["user_id"]
-	createAt, appErr := worker.getJobMetadata(job, "create_at")
-	if appErr != nil {
-		mlog.Error("DeleteEmptyDraftsMigrationWorker: failed to get create at", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
-		worker.setJobError(job, appErr)
-		return
+	createAt := int64(0)
+	if job.Data["create_at"] != "" {
+		parsedCreateAt, parseErr := strconv.ParseInt(job.Data["create_at"], 10, 64)
+		if parseErr != nil {
+			mlog.Error("DeleteEmptyDraftsMigrationWorker: failed to get create at", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
+			worker.setJobError(job, appErr)
+			return
+		}
+		createAt = parsedCreateAt
 	}
 
 	for {
@@ -196,8 +187,8 @@ func (worker *DeleteEmptyDraftsMigrationWorker) markAsComplete() {
 
 	// Note that if this fails, then the job would have still succeeded.
 	// So it will try to run the same job again next time, but then
-	// it will just fall through everything because all files would have
-	// converted. The actual job is idempotent, so there won't be a problem.
+	// it will just fall through everything because there would be no empty drafts.
+	// The actual job is idempotent, so there won't be a problem.
 	if err := worker.jobServer.Store.System().Save(&system); err != nil {
 		mlog.Error("Worker: Failed to mark empty draft deletion as completed in the systems table.", mlog.String("workername", worker.name), mlog.Err(err))
 	}
