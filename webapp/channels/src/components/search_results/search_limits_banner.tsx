@@ -2,17 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+import styled from 'styled-components';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {DataSearchTypes} from 'utils/constants';
-import useGetUsage from 'components/common/hooks/useGetUsage';
+
 import useGetLimits from 'components/common/hooks/useGetLimits';
+import useGetUsage from 'components/common/hooks/useGetUsage';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+
+import {DataSearchTypes} from 'utils/constants';
 import {asGBString} from 'utils/limits';
 
 const StyledDiv = styled.div`

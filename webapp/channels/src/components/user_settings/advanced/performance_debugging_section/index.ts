@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-
 import {Preferences} from 'mattermost-redux/constants';
-
 import {isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import PerformanceDebuggingSection from './performance_debugging_section';
 

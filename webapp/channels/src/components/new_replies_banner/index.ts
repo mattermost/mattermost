@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {updateThreadToastStatus} from 'actions/views/threads';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import NewRepliesBanner from './new_replies_banner';
 

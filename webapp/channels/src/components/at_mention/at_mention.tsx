@@ -4,10 +4,11 @@
 import React, {useRef, useState} from 'react';
 import {Overlay} from 'react-bootstrap';
 
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
 
 import ProfilePopover from 'components/profile_popover';
 import UserGroupPopover from 'components/user_group_popover';
@@ -19,6 +20,8 @@ import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/const
 import {getViewportSize} from 'utils/utils';
 
 import {MAX_LIST_HEIGHT, getListHeight, VIEWPORT_SCALE_FACTOR} from 'components/user_group_popover/group_member_list/group_member_list';
+
+import ProfilePopover from 'components/profile_popover';
 
 const HEADER_HEIGHT_ESTIMATE = 130;
 

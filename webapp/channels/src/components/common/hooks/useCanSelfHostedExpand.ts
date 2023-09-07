@@ -5,13 +5,12 @@ import {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+
 import {BillingSchemes, SelfHostedProducts} from 'utils/constants';
-
-import {isCloudLicense} from 'utils/license_utils';
-
 import {findSelfHostedProductBySku} from 'utils/hosted_customer';
+import {isCloudLicense} from 'utils/license_utils';
 
 import useGetSelfHostedProducts from './useGetSelfHostedProducts';
 

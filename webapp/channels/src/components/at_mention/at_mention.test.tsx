@@ -4,9 +4,9 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import AtMention from 'components/at_mention/at_mention';
-
 import {General} from 'mattermost-redux/constants';
+
+import AtMention from 'components/at_mention/at_mention';
 
 import {TestHelper} from 'utils/test_helper';
 

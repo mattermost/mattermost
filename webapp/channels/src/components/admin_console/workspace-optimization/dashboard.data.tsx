@@ -13,22 +13,25 @@ import {
     LockOutlineIcon,
     AccountMultipleOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getLicense, getServerVersion} from 'mattermost-redux/selectors/entities/general';
 
-import {GlobalState} from '@mattermost/types/store';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import {ConsolePages} from 'utils/constants';
-import {daysToLicenseExpire, isEnterpriseOrE20License, getIsStarterLicense} from '../../../utils/license_utils';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import {AdminConfig} from '@mattermost/types/config';
-import {runConfigChecks} from './dashboard_checks/config';
-import {DataModel, ItemStatus, Options} from './dashboard.type';
+
+import {ItemStatus} from './dashboard.type';
+import type {DataModel, Options} from './dashboard.type';
 import {runAccessChecks} from './dashboard_checks/access';
+import {runConfigChecks} from './dashboard_checks/config';
 import {runDataPrivacyChecks} from './dashboard_checks/data_privacy';
-import {runPerformanceChecks} from './dashboard_checks/performance';
 import {runEaseOfUseChecks} from './dashboard_checks/easy_management';
+import {runPerformanceChecks} from './dashboard_checks/performance';
 import {runUpdateChecks} from './dashboard_checks/updates';
+
+import {daysToLicenseExpire, isEnterpriseOrE20License, getIsStarterLicense} from '../../../utils/license_utils';
 
 export const impactModifiers: Record<ItemStatus, number> = {
     [ItemStatus.NONE]: 1,
