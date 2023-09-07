@@ -6328,6 +6328,10 @@
     "translation": "Failed to marshal post."
   },
   {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "This thread was moved from another channel"
+  },
+  {
     "id": "app.post.move_thread_command.channel.multiple_messages",
     "translation": "A thread with {{.NumMessages}} messages has been moved: {{.Link}}\n"
   },

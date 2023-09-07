@@ -14,7 +14,8 @@ import Markdown from 'components/markdown';
 
 import type {MentionKey, TextFormattingOptions} from 'utils/text_formatting';
 
-import {renderReminderSystemBotMessage, renderSystemMessage} from './system_message_helpers';
+import {renderReminderSystemBotMessage, renderSystemMessage, renderWranglerSystemMessage} from './system_message_helpers';
+import post_list from 'components/post_view/post_list';
 
 type Props = {
 
@@ -101,6 +102,13 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         if (post && post.type === Posts.POST_TYPES.REMINDER) {
             const renderedSystemBotMessage = renderReminderSystemBotMessage(post, this.props.currentTeam);
             return <div>{renderedSystemBotMessage}</div>;
+        }
+
+        if (post && post.type === Posts.POST_TYPES.WRANGLER) {
+            console.log(post.type);
+            console.log(post.message);
+            const renderedWranglerMessage = renderWranglerSystemMessage(post)
+            return <div>{renderedWranglerMessage}</div>
         }
 
         // Proxy images if we have an image proxy and the server hasn't already rewritten the post's image URLs.

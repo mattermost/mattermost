@@ -2424,12 +2424,18 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 		return appErr
 	}
 
+	T := i18n.GetUserTranslations(user.Locale)
+
+	ephemeralPostProps := model.StringInterface{
+		"TranslationID": "app.post.move_thread.from_another_channel",
+	}
 	_, appErr = a.CreatePost(c, &model.Post{
 		UserId:    user.Id,
 		Type:      model.PostTypeWrangler,
 		RootId:    newRootPost.Id,
 		ChannelId: channelID,
-		Message:   "This thread was moved from another channel",
+		Message:   T("app.post.move_thread.from_another_channel"),
+		Props:     ephemeralPostProps,
 	}, targetChannel, false, false)
 	if appErr != nil {
 		return appErr
@@ -2443,11 +2449,14 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 
 	c.Logger().Info("Wrangler thread move complete", mlog.String("user_id", user.Id), mlog.String("new_post_id", newRootPost.Id), mlog.String("channel_id", channelID))
 
-	T := i18n.GetUserTranslations(user.Locale)
+	// Translate to the initiating user's locale, webapp will attempt to render in each user's specific locale (based on the TranslationID prop) before falling back on the initiating user's locale
+	ephemeralPostProps = model.StringInterface{}
 
 	msg := T("app.post.move_thread_command.direct_or_group.multiple_messages", model.StringInterface{"NumMessages": wpl.NumPosts()})
+	ephemeralPostProps["TranslationID"] = "app.post.move_thread_command.direct_or_group.multiple_messages"
 	if wpl.NumPosts() == 1 {
 		msg = T("app.post.move_thread_command.direct_or_group.one_message")
+		ephemeralPostProps["TranslationID"] = "app.post.move_thread_command.direct_or_group.one_message"
 	}
 
 	if targetChannel.TeamId != "" {
@@ -2458,16 +2467,22 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 		targetName := targetTeam.Name
 		newPostLink := makePostLink(*a.Config().ServiceSettings.SiteURL, targetName, newRootPost.Id)
 		msg = T("app.post.move_thread_command.channel.multiple_messages", model.StringInterface{"NumMessages": wpl.NumPosts(), "Link": newPostLink})
+		ephemeralPostProps["TranslationID"] = "app.post.move_thread_command.channel.multiple_messages"
 		if wpl.NumPosts() == 1 {
 			msg = T("app.post.move_thread_command.channel.one_message", model.StringInterface{"Link": newPostLink})
+			ephemeralPostProps["TranslationID"] = "app.post.move_thread_command.channel.one_message"
 		}
+		ephemeralPostProps["MovedThreadPermalink"] = newPostLink
 	}
+
+	ephemeralPostProps["NumMessages"] = wpl.NumPosts()
 
 	_, appErr = a.CreatePost(c, &model.Post{
 		UserId:    user.Id,
 		Type:      model.PostTypeWrangler,
 		ChannelId: originalChannel.Id,
 		Message:   msg,
+		Props:     ephemeralPostProps,
 	}, originalChannel, false, false)
 	if appErr != nil {
 		return appErr
