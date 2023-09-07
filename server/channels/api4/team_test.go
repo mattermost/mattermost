@@ -3196,15 +3196,14 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// define user session and context
-	context := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+	ctx := request.EmptyContext(th.TestLogger)
 
 	t.Run("User WITH permissions on private channel CAN invite members to it", func(t *testing.T) {
 		channelIds := []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id}
 
 		require.Len(t, channelIds, 2)
 
-		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
+		channelIds = th.App.ValidateUserPermissionsOnChannels(ctx, th.BasicUser.Id, channelIds)
 
 		// basicUser has permission onBasicChannel and BasicPrivateChannel so he can invite to both channels
 		require.Len(t, channelIds, 2)
@@ -3216,7 +3215,7 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 
 		require.Len(t, channelIds, 2)
 
-		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
+		channelIds = th.App.ValidateUserPermissionsOnChannels(ctx, th.BasicUser.Id, channelIds)
 
 		// basicUser DOES NOT have permission on BasicPrivateChannel2 so he can only invite to BasicChannel
 		require.Len(t, channelIds, 1)
