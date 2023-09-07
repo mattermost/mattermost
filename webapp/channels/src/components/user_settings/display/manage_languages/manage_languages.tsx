@@ -2,19 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-import ReactSelect, {ValueType} from 'react-select';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import ReactSelect from 'react-select';
+import type {ValueType} from 'react-select';
 
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
 import * as I18n from 'i18n/i18n.jsx';
-import {isKeyPressed} from 'utils/keyboard';
 import Constants from 'utils/constants';
-
-import {UserProfile} from '@mattermost/types/users';
-import ExternalLink from 'components/external_link';
+import {isKeyPressed} from 'utils/keyboard';
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;

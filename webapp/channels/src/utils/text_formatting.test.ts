@@ -3,19 +3,20 @@
 
 import emojiRegex from 'emoji-regex';
 
-import EmojiMap from 'utils/emoji_map';
 import {getEmojiMap} from 'selectors/emojis';
 import store from 'stores/redux_store.jsx';
 
+import EmojiMap from 'utils/emoji_map';
+import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
 import {
     formatText,
     autolinkAtMentions,
     highlightSearchTerms,
     handleUnicodeEmoji,
     highlightCurrentMentions,
-    parseSearchTerms, autolinkChannelMentions, ChannelNamesMap,
+    parseSearchTerms, autolinkChannelMentions,
 } from 'utils/text_formatting';
-import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
+import type {ChannelNamesMap} from 'utils/text_formatting';
 
 const emptyEmojiMap = new EmojiMap(new Map());
 

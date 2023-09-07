@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -70,17 +71,19 @@ func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 
 func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
+	ctx := request.EmptyContext(s.th.App.Log())
 
-	job, appErr := s.th.App.CreateJob(&model.Job{
+	job, appErr := s.th.App.CreateJob(ctx, &model.Job{
 		Type: model.JobTypeExtractContent,
 		Data: map[string]string{},
 	})
 	s.Require().Nil(appErr)
+	job.Logger = nil
 
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExtractContent,
 			Data: map[string]string{},
 		})
@@ -116,6 +119,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 
 func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 	s.SetupTestHelper().InitBasic()
+	ctx := request.EmptyContext(s.th.App.Log())
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -156,7 +160,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 
-		_, appErr := s.th.App.CreateJob(&model.Job{
+		_, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExtractContent,
 			Data: map[string]string{},
 		})
@@ -164,19 +168,23 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExtractContent,
 			Data: map[string]string{},
 		})
 		s.Require().Nil(appErr)
+		job2.Logger = nil
 
 		time.Sleep(time.Millisecond)
 
-		job3, appErr := s.th.App.CreateJob(&model.Job{
+		job3, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExtractContent,
 			Data: map[string]string{},
 		})
 		s.Require().Nil(appErr)
+		job3.Logger = nil
+
+		time.Sleep(time.Millisecond)
 
 		err := extractJobListCmdF(c, cmd, nil)
 		s.Require().Nil(err)

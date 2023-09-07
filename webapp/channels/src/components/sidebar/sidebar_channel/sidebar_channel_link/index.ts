@@ -2,22 +2,25 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {getCurrentUserId, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+import type {Channel} from '@mattermost/types/channels';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {clearChannelSelection, multiSelectChannelAdd, multiSelectChannelTo} from 'actions/views/channel_sidebar';
-import {getFirstChannelName} from 'selectors/onboarding';
+import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
+
 import {markMostRecentPostInChannelAsUnread, unsetEditingPost} from 'actions/post_actions';
+import {clearChannelSelection, multiSelectChannelAdd, multiSelectChannelTo} from 'actions/views/channel_sidebar';
 import {closeRightHandSide} from 'actions/views/rhs';
-import {isChannelSelected} from 'selectors/views/channel_sidebar';
+import {getFirstChannelName} from 'selectors/onboarding';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
-import {GlobalState} from 'types/store';
+import {isChannelSelected} from 'selectors/views/channel_sidebar';
+
 import {
     GenericTaskSteps,
     OnboardingTaskCategory,
@@ -25,7 +28,7 @@ import {
 } from 'components/onboarding_tasks';
 import {FINISHED, OnboardingTourSteps, TutorialTourName} from 'components/tours';
 
-import {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from 'types/store';
 
 import SidebarChannelLink from './sidebar_channel_link';
 

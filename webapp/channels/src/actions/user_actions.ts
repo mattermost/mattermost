@@ -3,10 +3,8 @@
 
 import PQueue from 'p-queue';
 
-import {UserProfile, UserStatus} from '@mattermost/types/users';
-
-import {Channel} from '@mattermost/types/channels';
-import {GlobalState} from 'types/store';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getChannelAndMyMember, getChannelMembersByIds} from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -24,19 +22,18 @@ import {
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
+import type {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
-
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
-
 import store from 'stores/redux_store.jsx';
 
-import * as Utils from 'utils/utils';
 import {Constants, Preferences, UserStatuses} from 'utils/constants';
+import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 export const queue = new PQueue({concurrency: 4});
 const dispatch = store.dispatch;

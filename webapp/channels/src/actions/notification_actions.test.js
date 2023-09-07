@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import testConfigureStore from 'tests/test_store';
-
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';

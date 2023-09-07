@@ -3,15 +3,14 @@
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import TestHelper from 'packages/mattermost-redux/test/test_helper';
+import {getShowTaskListBool} from 'selectors/onboarding';
 
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
+import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
 
-import {getShowTaskListBool} from 'selectors/onboarding';
-
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 describe('selectors/onboarding', () => {
     describe('getShowTaskListBool', () => {

@@ -3,10 +3,12 @@
 
 import React from 'react';
 
-import {Subscription} from '@mattermost/types/cloud';
-import {PreferenceType} from '@mattermost/types/preferences';
+import type {Subscription} from '@mattermost/types/cloud';
+import type {PreferenceType} from '@mattermost/types/preferences';
+
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
-import {ModalData} from 'types/actions';
+
+import type {ModalData} from 'types/actions';
 
 import {useDelinquencyModalController} from './useDelinquencyModalController';
 

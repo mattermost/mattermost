@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
+import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import {ReactWrapper, shallow} from 'enzyme';
 import {FormattedMessage} from 'react-intl';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import DisplayName from 'components/create_team/components/display_name';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
 

@@ -2,23 +2,24 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import MenuActionProvider from 'components/suggestion/menu_action_provider';
-import GenericUserProvider from 'components/suggestion/generic_user_provider';
-import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
 
-import TextSetting, {InputTypes} from 'components/widgets/settings/text_setting';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import AutocompleteSelector from 'components/autocomplete_selector';
+import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
+import GenericUserProvider from 'components/suggestion/generic_user_provider';
+import MenuActionProvider from 'components/suggestion/menu_action_provider';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
+import type Provider from 'components/suggestion/provider';
 import BoolSetting from 'components/widgets/settings/bool_setting';
 import RadioSetting from 'components/widgets/settings/radio_setting';
-import {Channel} from '@mattermost/types/channels';
-import Provider from 'components/suggestion/provider';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
-import {ServerError} from '@mattermost/types/errors';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import TextSetting from 'components/widgets/settings/text_setting';
+import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
