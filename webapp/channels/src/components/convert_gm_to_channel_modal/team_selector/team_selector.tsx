@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
-import DropdownInput, {ValueType} from 'components/dropdown_input';
+import React, {useCallback, useState} from 'react';
+import DropdownInput from 'components/dropdown_input';
 import {Team} from '@mattermost/types/teams';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -27,9 +27,9 @@ const TeamSelector = (props: Props): JSX.Element => {
 
     const currentLocale = useSelector(getCurrentLocale);
 
-    const teamValues = Object.values(props.teamsById)
-        .map((team) => ({value: team.id, label: team.display_name}))
-        .sort((teamA, teamB) => teamA.label.localeCompare(teamB.label, currentLocale));
+    const teamValues = Object.values(props.teamsById).
+        map((team) => ({value: team.id, label: team.display_name})).
+        sort((teamA, teamB) => teamA.label.localeCompare(teamB.label, currentLocale));
 
     return (
         <DropdownInput

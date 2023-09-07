@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, CSSProperties, ReactNode} from 'react';
+import React, {useState, CSSProperties} from 'react';
 import ReactSelect, {Props as SelectProps, ActionMeta, components} from 'react-select';
 import classNames from 'classnames';
 
@@ -9,6 +9,7 @@ import './dropdown_input.scss';
 import {useIntl} from 'react-intl';
 import {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import {ItemStatus} from 'utils/constants';
+import InputError from 'components/input_error';
 
 // TODO: This component needs work, should not be used outside of AddressInfo until this comment is removed.
 
@@ -71,19 +72,6 @@ const Option = (props: any) => {
             })}
         >
             <components.Option {...props}/>
-        </div>
-    );
-};
-
-const renderError = (error?: string) => {
-    if (!error) {
-        return null;
-    }
-
-    return (
-        <div className='Input___error'>
-            <i className='icon icon-alert-outline'/>
-            <span>{error}</span>
         </div>
     );
 };
@@ -174,21 +162,10 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
                 </div>
                 {addon}
             </fieldset>
-            {error && renderError(error)}
-            {
-                !error && customInputLabel &&
-                <div className={`Input___customMessage Input___${customInputLabel.type}`}>
-                    <i
-                        className={classNames(`icon ${customInputLabel.type}`, {
-                            'icon-alert-outline': customInputLabel.type === ItemStatus.WARNING,
-                            'icon-alert-circle-outline': customInputLabel.type === ItemStatus.ERROR,
-                            'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
-                            'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
-                        })}
-                    />
-                    <span>{customInputLabel.value}</span>
-                </div>
-            }
+            <InputError
+                message={error}
+                custom={customInputLabel}
+            />
         </div>
     );
 };

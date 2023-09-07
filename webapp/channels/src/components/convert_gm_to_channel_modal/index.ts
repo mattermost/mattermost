@@ -19,7 +19,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 function makeMapStateToProps() {
-    const getProfilesInChannel  = makeGetProfilesInChannel();
+    const getProfilesInChannel = makeGetProfilesInChannel();
 
     return (state: GlobalState, ownProps: Props) => {
         const allProfilesInChannel = getProfilesInChannel(state, ownProps.channel.id);
@@ -34,7 +34,7 @@ function makeMapStateToProps() {
             channelsCategoryId: channelsCategory?.id,
             currentUserId,
         };
-    }
+    };
 }
 
 export type Actions = {

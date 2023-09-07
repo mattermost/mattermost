@@ -146,7 +146,7 @@ export const getCurrentRelativeTeamUrl: (state: GlobalState) => string = createS
 );
 
 export function getRelativeTeamUrl(state: GlobalState, teamId: string): string {
-    const team = getTeam(state, teamId)
+    const team = getTeam(state, teamId);
     return `/${team.name}`;
 }
 

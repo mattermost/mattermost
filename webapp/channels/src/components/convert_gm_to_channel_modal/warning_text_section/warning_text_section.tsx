@@ -35,7 +35,7 @@ const WarningTextSection = (props: Props): JSX.Element => {
                         id='sidebar_left.sidebar_channel_modal.warning_body'
                         defaultMessage='You are about to convert the Group Message with {memberNames} to a Channel. This cannot be undone.'
                         values={{
-                            memberNames: memberNames,
+                            memberNames,
                         }}
                     />
                 </div>

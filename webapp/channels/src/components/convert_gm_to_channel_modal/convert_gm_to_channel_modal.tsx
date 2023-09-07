@@ -21,7 +21,7 @@ import classNames from 'classnames';
 import NoCommonTeamsError from 'components/convert_gm_to_channel_modal/no_common_teams/no_common_teams';
 import {useDispatch} from 'react-redux';
 import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
-import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import {ActionResult} from 'mattermost-redux/types/actions';
 import {ServerError} from '@mattermost/types/errors';
 
 export type Props = {
@@ -53,11 +53,9 @@ const ConvertGmToChannelModal = (props: Props) => {
     const [channelMemberNames, setChannelMemberNames] = useState<string[]>([]);
 
     useEffect(() => {
-        const validProfilesInChannel = props.profilesInChannel
-            .filter((user) => user.id !== props.currentUserId && user.delete_at === 0)
-            .map((user) => displayUsername(user, props.teammateNameDisplaySetting));
-
-        console.log(validProfilesInChannel);
+        const validProfilesInChannel = props.profilesInChannel.
+            filter((user) => user.id !== props.currentUserId && user.delete_at === 0).
+            map((user) => displayUsername(user, props.teammateNameDisplaySetting));
 
         setChannelMemberNames(validProfilesInChannel);
     }, [props.profilesInChannel]);
