@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"testing"
 
 	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/logr/v2/formatters"
@@ -33,26 +34,66 @@ func AddWriterTarget(logger *Logger, w io.Writer, useJSON bool, levels ...Level)
 }
 
 // CreateConsoleTestLogger creates a logger for unit tests. Log records are output to `os.Stdout`.
-// Logs can also be mirrored to the optional `io.Writer`.
-func CreateConsoleTestLogger(useJSON bool, level Level) *Logger {
-	logger, _ := NewLogger()
+// All log messages with level trace or lower are logged.
+// The returned logger get Shutdown() when the tests completes. The caller should not shut it down.
+func CreateConsoleTestLogger(tb testing.TB) *Logger {
+	tb.Helper()
+
+	logger, err := NewLogger()
+	if err != nil {
+		tb.Fatalf("failed create logger %v", err)
+	}
 
 	filter := logr.StdFilter{
-		Lvl:        level,
+		Lvl:        LvlTrace,
 		Stacktrace: LvlPanic,
 	}
-
-	var formatter logr.Formatter
-	if useJSON {
-		formatter = &formatters.JSON{EnableCaller: true}
-	} else {
-		formatter = &formatters.Plain{EnableCaller: true}
-	}
+	formatter := &formatters.Plain{EnableCaller: true}
 
 	target := targets.NewWriterTarget(os.Stdout)
 	if err := logger.log.Logr().AddTarget(target, "_testcon", filter, formatter, 1000); err != nil {
-		panic(err)
+		tb.Fatalf("failed to add target %v", err)
 	}
+
+	tb.Cleanup(func() {
+		err := logger.Shutdown()
+		if err != nil {
+			tb.Fatalf("failed to shut down test logger %v", err)
+		}
+	})
+
+	return logger
+}
+
+// CreateTestLogger creates a logger for unit tests. Log records are output via `t.Log`.
+// All log messages with level trace or lower are logged.
+// The returned logger get Shutdown() when the tests completes. The caller should not shut it down.
+func CreateTestLogger(t *testing.T) *Logger {
+	t.Helper()
+
+	logger, err := NewLogger()
+	if err != nil {
+		t.Fatalf("failed create logger %v", err)
+	}
+
+	filter := logr.StdFilter{
+		Lvl:        LvlTrace,
+		Stacktrace: LvlPanic,
+	}
+	formatter := &formatters.Plain{EnableCaller: true}
+	target := targets.NewTestingTarget(t)
+
+	if err := logger.log.Logr().AddTarget(target, "test", filter, formatter, 1000); err != nil {
+		t.Fatalf("failed to add target %v", err)
+	}
+
+	t.Cleanup(func() {
+		err := logger.Shutdown()
+		if err != nil {
+			t.Errorf("failed to shut down test logger %v", err)
+		}
+	})
+
 	return logger
 }
 
