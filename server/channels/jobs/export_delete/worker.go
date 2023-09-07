@@ -15,8 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 )
 
-const jobName = "ExportDelete"
-
 type AppIface interface {
 	configservice.ConfigService
 	ListExportDirectory(path string) ([]string, *model.AppError)
@@ -24,7 +22,9 @@ type AppIface interface {
 	RemoveExportFile(path string) *model.AppError
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
+	const workerName = "ExportDelete"
+
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
 	}
@@ -43,7 +43,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			filename := filepath.Base(exports[i])
 			modTime, appErr := app.ExportFileModTime(filepath.Join(exportPath, filename))
 			if appErr != nil {
-				mlog.Debug("Worker: Failed to get file modification time",
+				job.Logger.Debug("Worker: Failed to get file modification time",
 					mlog.Err(appErr), mlog.String("export", exports[i]))
 				errors.Append(appErr)
 				continue
@@ -52,7 +52,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			if time.Now().After(modTime.Add(retentionTime)) {
 				// remove file data from storage.
 				if appErr := app.RemoveExportFile(exports[i]); appErr != nil {
-					mlog.Debug("Worker: Failed to remove file",
+					job.Logger.Debug("Worker: Failed to remove file",
 						mlog.Err(appErr), mlog.String("export", exports[i]))
 					errors.Append(appErr)
 					continue
@@ -61,10 +61,10 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 
 		if err := errors.ErrorOrNil(); err != nil {
-			mlog.Warn("Worker: errors occurred", mlog.String("job-name", jobName), mlog.Err(err))
+			job.Logger.Warn("Worker: errors occurred", mlog.Err(err))
 		}
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

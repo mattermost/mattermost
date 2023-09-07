@@ -26,12 +26,12 @@ type Context struct {
 	context context.Context
 }
 
-func NewContext(ctx context.Context, requestId, ipAddress, path, userAgent, acceptLanguage string, session model.Session, t i18n.TranslateFunc) *Context {
+func NewContext(ctx context.Context, requestId, ipAddress, xForwardedFor, path, userAgent, acceptLanguage string, t i18n.TranslateFunc) *Context {
 	return &Context{
 		t:              t,
-		session:        session,
 		requestId:      requestId,
 		ipAddress:      ipAddress,
+		xForwardedFor:  xForwardedFor,
 		path:           path,
 		userAgent:      userAgent,
 		acceptLanguage: acceptLanguage,

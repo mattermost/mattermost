@@ -40,6 +40,7 @@ type LoggerIFace interface {
 	LogM([]Level, string, ...Field)
 	With(fields ...Field) *Logger
 	Flush() error
+	Sugar(fields ...Field) Sugar
 	StdLogger(level Level) *log.Logger
 }
 
