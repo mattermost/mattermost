@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {mount} from 'enzyme';
 import React from 'react';
 
-import {mount} from 'enzyme';
-
-import {FileSizes} from 'utils/file_utils';
-
 import ShowThreeDaysLeftTrialModal from 'components/announcement_bar/show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
+
 import {CloudProducts} from 'utils/constants';
+import {FileSizes} from 'utils/file_utils';
 
 let mockState: any;
 const mockDispatch = jest.fn();

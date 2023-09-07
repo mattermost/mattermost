@@ -2,22 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl, IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import * as GlobalActions from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
-import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
-
 import AboutBuildModal from 'components/about_build_modal';
 import CommercialSupportModal from 'components/commercial_support_modal';
 import LocalizedIcon from 'components/localized_icon';
-
 import Menu from 'components/widgets/menu/menu';
+
+import {ModalIdentifiers} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import MenuItemBlockableLink from './menu_item_blockable_link';
 

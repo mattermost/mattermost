@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import classNames from 'classnames';
+import React from 'react';
+
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+
 import {ItemStatus} from 'utils/constants';
 
 type Props = {

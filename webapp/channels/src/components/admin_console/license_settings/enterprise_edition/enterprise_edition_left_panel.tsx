@@ -1,30 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject, useEffect, useState} from 'react';
 import classNames from 'classnames';
+import React, {useEffect, useState} from 'react';
+import type {RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import Tag from 'components/widgets/tag/tag';
-
-import {ClientLicense} from '@mattermost/types/config';
+import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
-
-import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
-import {FileTypes, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {getSkuDisplayName} from 'utils/subscription';
-import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
-import './enterprise_edition.scss';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
-import {getExpandSeatsLink} from 'selectors/cloud';
-import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
-import {useQuery} from 'utils/http_utils';
 import {trackEvent} from 'actions/telemetry_actions';
+import {getExpandSeatsLink} from 'selectors/cloud';
+
+import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
+import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import Tag from 'components/widgets/tag/tag';
+
+import {FileTypes, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {useQuery} from 'utils/http_utils';
+import {calculateOverageUserActivated} from 'utils/overage_team';
+import {getSkuDisplayName} from 'utils/subscription';
+import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
+
+import './enterprise_edition.scss';
 
 const DAYS_UNTIL_EXPIRY_WARNING_DISPLAY_THRESHOLD = 30;
 const DAYS_UNTIL_EXPIRY_DANGER_DISPLAY_THRESHOLD = 5;

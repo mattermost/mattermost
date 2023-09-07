@@ -2,18 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, AnyAction, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, AnyAction, Dispatch} from 'redux';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {getChannelStats, updateChannelMemberSchemeRoles, removeChannelMember, getChannelMember} from 'mattermost-redux/actions/channels';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {canManageMembers} from 'utils/channel_utils';
-import {GlobalState} from 'types/store';
-import {Channel} from '@mattermost/types/channels';
+import type {Action} from 'mattermost-redux/types/actions';
+
 import {openModal} from 'actions/views/modals';
 
-import {Action} from 'mattermost-redux/types/actions';
+import {canManageMembers} from 'utils/channel_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelMembersDropdown from './channel_members_dropdown';
 

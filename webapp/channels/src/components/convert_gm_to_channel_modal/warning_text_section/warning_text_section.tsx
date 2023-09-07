@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FormattedMessage, useIntl} from 'react-intl';
 import React from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section.scss';
 

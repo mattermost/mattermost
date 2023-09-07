@@ -3,20 +3,20 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {RouteComponentProps} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
-import {Scheme, SchemeScope, SchemesState} from '@mattermost/types/schemes';
+import type {Scheme, SchemeScope, SchemesState} from '@mattermost/types/schemes';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import LoadingScreen from 'components/loading_screen';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import AdminPanelWithLink from 'components/widgets/admin_console/admin_panel_with_link';
 import ExternalLink from 'components/external_link';
+import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanelWithLink from 'components/widgets/admin_console/admin_panel_with_link';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {t} from 'utils/i18n';
 import {DocLinks, LicenseSkus} from 'utils/constants';
+import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import PermissionsSchemeSummary from './permissions_scheme_summary';

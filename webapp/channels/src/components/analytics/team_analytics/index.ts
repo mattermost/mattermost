@@ -2,20 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
-import {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getProfilesInTeam} from 'mattermost-redux/actions/users';
 import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
-
-import {GlobalState} from 'types/store';
-
-import {getCurrentLocale} from 'selectors/i18n';
+import type {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setGlobalItem} from 'actions/storage';
+import {getCurrentLocale} from 'selectors/i18n';
 import {makeGetGlobalItem} from 'selectors/storage';
+
+import type {GlobalState} from 'types/store';
 
 import TeamAnalytics from './team_analytics';
 

@@ -1,22 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from 'types/store';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
-import ConvertGmToChannelModal, {Props} from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
-import {closeModal} from 'actions/views/modals';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import {convertGroupMessageToPrivateChannel} from 'mattermost-redux/actions/channels';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
     makeGetProfilesInChannel,
 } from 'mattermost-redux/selectors/entities/users';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-import {convertGroupMessageToPrivateChannel} from 'mattermost-redux/actions/channels';
+import type {Action, ActionResult} from 'mattermost-redux/types/actions';
+
 import {moveChannelsInSidebar} from 'actions/views/channel_sidebar';
-import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import {closeModal} from 'actions/views/modals';
+
+import type {Props} from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
+import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
+
+import type {GlobalState} from 'types/store';
 
 function makeMapStateToProps() {
     const getProfilesInChannel = makeGetProfilesInChannel();

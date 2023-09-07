@@ -1,25 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {RouteComponentProps, withRouter} from 'react-router-dom';
+import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+import {withRouter} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {getProfiles} from 'mattermost-redux/actions/users';
-import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
-import {getIsMobileView} from 'selectors/views/browser';
-import {getIsRhsOpen, getIsRhsMenuOpen} from 'selectors/rhs';
 import {getIsLhsOpen} from 'selectors/lhs';
 import {getLastViewedChannelNameByTeamName, getLastViewedTypeByTeamName, getPreviousTeamId, getPreviousTeamLastViewedType} from 'selectors/local_storage';
-
-import {GlobalState} from 'types/store';
+import {getIsRhsOpen, getIsRhsMenuOpen} from 'selectors/rhs';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import {PreviousViewedTypes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import CenterChannel from './center_channel';
 

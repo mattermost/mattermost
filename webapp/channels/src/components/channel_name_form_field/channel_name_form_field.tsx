@@ -1,15 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Input, {CustomMessageInputType} from 'components/widgets/inputs/input/input';
-import Constants, {ItemStatus} from 'utils/constants';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {cleanUpUrlable, getSiteURL, validateChannelUrl} from 'utils/url';
-import URLInput from 'components/widgets/inputs/url_input/url_input';
-import {useSelector} from 'react-redux';
-import {GlobalState} from 'types/store';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+import Input from 'components/widgets/inputs/input/input';
+import URLInput from 'components/widgets/inputs/url_input/url_input';
+
+import Constants, {ItemStatus} from 'utils/constants';
+import {cleanUpUrlable, getSiteURL, validateChannelUrl} from 'utils/url';
+import {generateSlug, localizeMessage} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 export type Props = {
     value: string;
@@ -22,7 +28,6 @@ export type Props = {
 }
 
 import './channel_name_form_field.scss';
-import {generateSlug, localizeMessage} from 'utils/utils';
 
 function validateDisplayName(displayNameParam: string) {
     const errors: string[] = [];

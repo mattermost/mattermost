@@ -4,13 +4,14 @@
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ClientLicense} from '@mattermost/types/config';
+import type {ClientLicense} from '@mattermost/types/config';
+
+import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
+import TwoPeopleChattingSvg from 'components/common/svg_images_components/two_people_chatting_svg';
+import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
+import WomanWithCardSvg from 'components/common/svg_images_components/woman_with_card_svg';
 
 import {isEnterpriseOrE20License} from 'utils/license_utils';
-import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
-import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import WomanWithCardSvg from 'components/common/svg_images_components/woman_with_card_svg';
-import TwoPeopleChattingSvg from 'components/common/svg_images_components/two_people_chatting_svg';
 
 export interface EnterpriseEditionProps {
     isTrialLicense: boolean;

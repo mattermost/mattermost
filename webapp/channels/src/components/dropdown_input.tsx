@@ -1,15 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, CSSProperties} from 'react';
-import ReactSelect, {Props as SelectProps, ActionMeta, components} from 'react-select';
 import classNames from 'classnames';
+import React, {useState} from 'react';
+import type {CSSProperties} from 'react';
+import {useIntl} from 'react-intl';
+import ReactSelect, {components} from 'react-select';
+import type {Props as SelectProps, ActionMeta} from 'react-select';
+
+import InputError from 'components/input_error';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+
+import {ItemStatus} from 'utils/constants';
 
 import './dropdown_input.scss';
-import {useIntl} from 'react-intl';
-import {CustomMessageInputType} from 'components/widgets/inputs/input/input';
-import {ItemStatus} from 'utils/constants';
-import InputError from 'components/input_error';
 
 // TODO: This component needs work, should not be used outside of AddressInfo until this comment is removed.
 

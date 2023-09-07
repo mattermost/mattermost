@@ -1,28 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps, useCallback, useEffect, useState} from 'react';
-import {GenericModal} from '@mattermost/components';
+import classNames from 'classnames';
+import type {ComponentProps} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import './convert_gm_to_channel_modal.scss';
-import WarningTextSection from 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section';
+
+import {GenericModal} from '@mattermost/components';
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
+
+import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
+import {trackEvent} from 'actions/telemetry_actions';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
-import {Channel} from '@mattermost/types/channels';
-import {Actions} from 'components/convert_gm_to_channel_modal/index';
-import {UserProfile} from '@mattermost/types/users';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
-import {Team} from '@mattermost/types/teams';
-import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/team_selector';
-import {trackEvent} from 'actions/telemetry_actions';
-import loadingIcon from 'images/spinner-48x48-blue.apng';
-import classNames from 'classnames';
+import type {Actions} from 'components/convert_gm_to_channel_modal/index';
 import NoCommonTeamsError from 'components/convert_gm_to_channel_modal/no_common_teams/no_common_teams';
-import {useDispatch} from 'react-redux';
-import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {ServerError} from '@mattermost/types/errors';
+import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/team_selector';
+import WarningTextSection from 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section';
+
+import loadingIcon from 'images/spinner-48x48-blue.apng';
 
 export type Props = {
     onExited: () => void;

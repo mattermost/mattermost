@@ -1,23 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {injectIntl, IntlShape} from 'react-intl';
-import {Link} from 'react-router-dom';
-import {Draggable} from 'react-beautiful-dnd';
 import classNames from 'classnames';
+import React from 'react';
+import {Draggable} from 'react-beautiful-dnd';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
-import Constants from 'utils/constants';
-import {isDesktopApp} from 'utils/user_agent';
-import {localizeMessage} from 'utils/utils';
+
 import CopyUrlContextMenu from 'components/copy_url_context_menu';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import TeamIcon from '../../widgets/team_icon/team_icon';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+import TeamIcon from 'components/widgets/team_icon/team_icon';
+
+import Constants from 'utils/constants';
+import {isDesktopApp} from 'utils/user_agent';
+import {localizeMessage} from 'utils/utils';
 
 interface Props {
     btnClass?: string;

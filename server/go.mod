@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.19
+go 1.20
 
 require (
 	code.sajari.com/docconv v1.3.5
@@ -38,7 +38,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gziphandler v0.0.1
 	github.com/mattermost/logr/v2 v2.0.16
-	github.com/mattermost/mattermost/server/public v0.0.8
+	github.com/mattermost/mattermost/server/public v0.0.9
 	github.com/mattermost/morph v1.0.5-0.20230511171014-e76e25978d56
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.2.0
@@ -65,12 +65,12 @@ require (
 	github.com/wiggin77/merror v1.0.5
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.5.4
-	golang.org/x/crypto v0.10.0
+	golang.org/x/crypto v0.12.0
 	golang.org/x/image v0.8.0
-	golang.org/x/net v0.11.0
+	golang.org/x/net v0.14.0
 	golang.org/x/sync v0.3.0
-	golang.org/x/term v0.9.0
-	golang.org/x/tools v0.10.0
+	golang.org/x/term v0.11.0
+	golang.org/x/tools v0.12.0
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -188,9 +188,9 @@ require (
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/text v0.10.0 // indirect
+	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230629202037-9506855d4529 // indirect
 	google.golang.org/grpc v1.56.1 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect

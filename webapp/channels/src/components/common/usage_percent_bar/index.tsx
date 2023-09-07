@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import styled from 'styled-components';
 
 import {limitThresholds} from 'utils/limits';
@@ -34,9 +33,7 @@ const BarBackground = styled.div<BarBackgroundProps>`
     height: ${(props) => (typeof props.width === 'number' ? Math.ceil(props.width / 20).toString() + 'px' : '8px')};
     width: ${(props) => (typeof props.width === 'number' ? props.width.toString() + 'px' : props.width)};
     background: ${(props) => (
-        isExceeded(props.percent, props.thresholds) ?
-            'var(--dnd-indicator)' :
-            'rgba(var(--center-channel-color-rgb), 0.11)'
+        isExceeded(props.percent, props.thresholds) ? 'var(--dnd-indicator)' : 'rgba(var(--center-channel-color-rgb), 0.11)'
     )};
     border-radius: 8px;
     position: relative;

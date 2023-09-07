@@ -22,9 +22,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -333,7 +333,7 @@ type AppIface interface {
 	// SyncLdap starts an LDAP sync job.
 	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 	// be re-added; otherwise, they will not be re-added.
-	SyncLdap(includeRemovedMembers bool)
+	SyncLdap(c *request.Context, includeRemovedMembers bool)
 	// SyncPlugins synchronizes the plugins installed locally
 	// with the plugin bundles available in the file store.
 	SyncPlugins() *model.AppError
@@ -444,7 +444,7 @@ type AppIface interface {
 	BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int)
 	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CanNotifyAdmin(trial bool) bool
-	CancelJob(jobId string) *model.AppError
+	CancelJob(c *request.Context, jobId string) *model.AppError
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
 	Channels() *Channels
 	CheckCanInviteToSharedChannel(channelId string) error
@@ -488,7 +488,7 @@ type AppIface interface {
 	CreateGroupChannel(c request.CTX, userIDs []string, creatorId string) (*model.Channel, *model.AppError)
 	CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError)
 	CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
-	CreateJob(job *model.Job) (*model.Job, *model.AppError)
+	CreateJob(c *request.Context, job *model.Job) (*model.Job, *model.AppError)
 	CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	CreateOAuthStateToken(extra string) (*model.Token, *model.AppError)
 	CreateOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
@@ -582,7 +582,7 @@ type AppIface interface {
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
-	GenerateSupportPacket() []model.FileData
+	GenerateSupportPacket(c *request.Context) []model.FileData
 	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
 	GetAcknowledgementsForPostList(postList *model.PostList) (map[string][]*model.PostAcknowledgement, *model.AppError)
 	GetActivePluginManifests() ([]*model.Manifest, *model.AppError)
@@ -680,13 +680,11 @@ type AppIface interface {
 	GetIncomingWebhooksForTeamPageByUser(teamID string, userID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksPageByUser(userID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
-	GetJob(id string) (*model.Job, *model.AppError)
-	GetJobs(offset int, limit int) ([]*model.Job, *model.AppError)
-	GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
-	GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError)
-	GetJobsByTypes(jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError)
-	GetJobsByTypesPage(jobType []string, page int, perPage int) ([]*model.Job, *model.AppError)
-	GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError)
+	GetJob(c *request.Context, id string) (*model.Job, *model.AppError)
+	GetJobsByType(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
+	GetJobsByTypePage(c *request.Context, jobType string, page int, perPage int) ([]*model.Job, *model.AppError)
+	GetJobsByTypes(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError)
+	GetJobsByTypesPage(c *request.Context, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 	GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
 	GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError)
@@ -879,8 +877,8 @@ type AppIface interface {
 	ImageProxyRemover() (f func(string) string)
 	ImportPermissions(jsonl io.Reader) error
 	InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
-	InvalidateAllEmailInvites() *model.AppError
-	InvalidateAllResendInviteEmailJobs() *model.AppError
+	InvalidateAllEmailInvites(c *request.Context) *model.AppError
+	InvalidateAllResendInviteEmailJobs(c *request.Context) *model.AppError
 	InvalidateCacheForUser(userID string)
 	InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError
 	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError

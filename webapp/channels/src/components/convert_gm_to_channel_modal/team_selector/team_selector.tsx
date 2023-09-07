@@ -2,11 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState} from 'react';
-import DropdownInput from 'components/dropdown_input';
-import {Team} from '@mattermost/types/teams';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+
+import type {Team} from '@mattermost/types/teams';
+
 import {getCurrentLocale} from 'selectors/i18n';
+
+import DropdownInput from 'components/dropdown_input';
 
 export type Props = {
     teamsById: {[id: string]: Team};

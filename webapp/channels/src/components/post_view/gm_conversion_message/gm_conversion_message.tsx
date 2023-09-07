@@ -2,13 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useRef} from 'react';
-import {Post} from '@mattermost/types/posts';
-import {renderUsername} from 'components/post_markdown/system_message_helpers';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
+import type {Post} from '@mattermost/types/posts';
+
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
-import {GlobalState} from 'types/store';
+
+import {renderUsername} from 'components/post_markdown/system_message_helpers';
+
+import type {GlobalState} from 'types/store';
 
 export type Props = {
     post: Post;
