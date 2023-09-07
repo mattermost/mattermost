@@ -212,6 +212,7 @@ const (
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
 	DataRetentionSettingsDefaultBatchSize                      = 3000
 	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
+	DataRetentionSettingsDefaultRetentionIdsBatchSize          = 100
 
 	PluginSettingsDefaultDirectory         = "./plugins"
 	PluginSettingsDefaultClientDirectory   = "./client/plugins"
@@ -2875,6 +2876,7 @@ type DataRetentionSettings struct {
 	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
 	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
+	RetentionIdsBatchSize          *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2912,6 +2914,9 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.TimeBetweenBatchesMilliseconds == nil {
 		s.TimeBetweenBatchesMilliseconds = NewInt(DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds)
+	}
+	if s.RetentionIdsBatchSize == nil {
+		s.RetentionIdsBatchSize = NewInt(DataRetentionSettingsDefaultRetentionIdsBatchSize)
 	}
 }
 
