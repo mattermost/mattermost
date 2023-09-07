@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import type {CSSProperties, RefObject} from 'react';
 import React, {PureComponent, createRef} from 'react';
 import {Tab, Tabs} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
