@@ -287,8 +287,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 }
 
 func TestProcessAttachments(t *testing.T) {
-	logger, _ := mlog.NewLogger()
-	c := request.EmptyContext(logger)
+	c := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	genAttachments := func() *[]imports.AttachmentImportData {
 		return &[]imports.AttachmentImportData{
