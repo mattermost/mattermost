@@ -74,7 +74,7 @@ func TestInviteProvider(t *testing.T) {
 		channel2 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
 
 		msg := "@" + th.BasicUser2.Username + " @" + anotherUser.Username + " ~" + channel1.Name + " ~" + channel2.Name
-		expected := "api.command_invite.success\napi.command_invite.success\napi.command_invite.success\napi.command_invite.success"
+		expected := "api.command_invite.success"
 		runCmd(msg, expected)
 		checkIsMember(channel1.Id, th.BasicUser2.Id)
 		checkIsMember(channel2.Id, th.BasicUser2.Id)
@@ -254,6 +254,82 @@ func TestInviteGroup(t *testing.T) {
 			desc:     "try to add a user NOT part of the group to a group channel",
 			expected: "api.command_invite.user_not_in_team.app_error",
 			msg:      groupChannelUser3,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			actual := InviteP.DoCommand(th.App, th.Context, args, test.msg).Text
+			assert.Equal(t, test.expected, actual)
+		})
+	}
+}
+
+func TestUserGroups(t *testing.T) {
+	th := setup(t).initBasic()
+	defer th.tearDown()
+
+	privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
+
+	id := model.NewId()
+	teamGroup, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+		// MemberIDs:   []string{th.BasicUser2.Id},
+	})
+	assert.Nil(t, err)
+	teamGroupCommand := "@" + *teamGroup.Name + " ~" + privateChannel.Name
+
+	// th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	groupMembers, upsertErr := th.App.UpsertGroupMembers(teamGroup.Id, []string{th.BasicUser2.Id})
+	require.Nil(t, upsertErr)
+	assert.Len(t, groupMembers, 1)
+
+	basicUser3 := th.createUser()
+	basicUser4 := th.createUser()
+	id2 := model.NewId()
+	nonTeamGroup, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id2,
+		Name:        model.NewString("name" + id2),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id2,
+		// MemberIDs:   []string{basicUser3.Id, basicUser4.Id},
+	})
+	assert.Nil(t, err)
+	nonTeamGroupCommand := "@" + *nonTeamGroup.Name + " ~" + privateChannel.Name
+	nonTeamGroupMembers, upsertErr := th.App.UpsertGroupMembers(nonTeamGroup.Id, []string{basicUser3.Id, basicUser4.Id})
+	require.Nil(t, upsertErr)
+	assert.Len(t, nonTeamGroupMembers, 2)
+
+	InviteP := InviteProvider{}
+	args := &model.CommandArgs{
+		T:         func(s string, args ...any) string { return s },
+		ChannelId: th.BasicChannel.Id,
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+	}
+
+	tests := []struct {
+		desc     string
+		expected string
+		msg      string
+	}{
+		{
+			desc:     "try to add an new group of users ",
+			expected: "api.command_invite.success",
+			msg:      teamGroupCommand,
+		},
+		{
+			desc:     "try to add existing users",
+			expected: "api.command_invite.user_already_in_channel.app_error",
+			msg:      teamGroupCommand,
+		},
+		{
+			desc:     "try to add a user NOT part of the team",
+			expected: "api.command_invite.user_not_in_team.app_error",
+			msg:      nonTeamGroupCommand,
 		},
 	}
 
