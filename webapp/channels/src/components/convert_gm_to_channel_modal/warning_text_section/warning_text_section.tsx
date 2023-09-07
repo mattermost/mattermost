@@ -12,6 +12,14 @@ export type Props = {
 const WarningTextSection = (props: Props): JSX.Element => {
     const intl = useIntl();
 
+    let memberNames: string;
+
+    if (props.channelMemberNames.length > 0) {
+        memberNames = intl.formatList(props.channelMemberNames);
+    } else {
+        memberNames = intl.formatMessage({id: 'sidebar_left.sidebar_channel_modal.warning_body_yourself', defaultMessage: 'yourself'});
+    }
+
     return (
         <div className='warning-section'>
             <i className='fa fa-exclamation-circle'/>
@@ -27,7 +35,7 @@ const WarningTextSection = (props: Props): JSX.Element => {
                         id='sidebar_left.sidebar_channel_modal.warning_body'
                         defaultMessage='You are about to convert the Group Message with {memberNames} to a Channel. This cannot be undone.'
                         values={{
-                            memberNames: intl.formatList(props.channelMemberNames),
+                            memberNames: memberNames,
                         }}
                     />
                 </div>

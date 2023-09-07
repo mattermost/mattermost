@@ -26,13 +26,10 @@ const TeamSelector = (props: Props): JSX.Element => {
     }, []);
 
     const currentLocale = useSelector(getCurrentLocale);
-    const [options, setOptions] = useState<ValueType[]>([]);
 
-    useEffect(() => {
-        const teamValues = Object.values(props.teamsById).map((team) => ({value: team.id, label: team.display_name}));
-        teamValues.sort((teamA, teamB) => teamA.label.localeCompare(teamB.label, currentLocale));
-        setOptions(teamValues);
-    }, [props.teamsById]);
+    const teamValues = Object.values(props.teamsById)
+        .map((team) => ({value: team.id, label: team.display_name}))
+        .sort((teamA, teamB) => teamA.label.localeCompare(teamB.label, currentLocale));
 
     return (
         <DropdownInput
@@ -40,7 +37,7 @@ const TeamSelector = (props: Props): JSX.Element => {
             required={true}
             onChange={handleTeamChange}
             value={value ? {label: value.display_name, value: value.id} : undefined}
-            options={options}
+            options={teamValues}
             legend={formatMessage({id: 'sidebar_left.sidebar_channel_modal.select_team_placeholder', defaultMessage: 'Select Team'})}
             placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.select_team_placeholder', defaultMessage: 'Select Team'})}
             name='team_selector'

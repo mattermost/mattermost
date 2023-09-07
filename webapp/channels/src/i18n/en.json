@@ -4843,6 +4843,7 @@
   "sidebar_left.sidebar_channel_modal.no_common_teams_error.heading": "Unable to convert to a channel because group members are part of different teams",
   "sidebar_left.sidebar_channel_modal.select_team_placeholder": "Select Team",
   "sidebar_left.sidebar_channel_modal.warning_body": "You are about to convert the Group Message with {memberNames} to a Channel. This cannot be undone.",
+  "sidebar_left.sidebar_channel_modal.warning_body_yourself": "yourself",
   "sidebar_left.sidebar_channel_modal.warning_header": "Conversation history will be visible to any channel members",
   "sidebar_left.sidebar_channel_navigator.addChannelsCta": "Add channels",
   "sidebar_left.sidebar_channel_navigator.inviteUsers": "Invite Users",

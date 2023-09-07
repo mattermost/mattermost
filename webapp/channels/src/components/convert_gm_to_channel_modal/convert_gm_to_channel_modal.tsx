@@ -19,7 +19,6 @@ import {trackEvent} from 'actions/telemetry_actions';
 import loadingIcon from 'images/spinner-48x48-blue.apng';
 import classNames from 'classnames';
 import NoCommonTeamsError from 'components/convert_gm_to_channel_modal/no_common_teams/no_common_teams';
-import AllMembersDeactivatedError from 'components/convert_gm_to_channel_modal/all_members_deactivated/all_members_deactivated';
 import {useDispatch} from 'react-redux';
 import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
 import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
@@ -57,6 +56,8 @@ const ConvertGmToChannelModal = (props: Props) => {
         const validProfilesInChannel = props.profilesInChannel
             .filter((user) => user.id !== props.currentUserId && user.delete_at === 0)
             .map((user) => displayUsername(user, props.teammateNameDisplaySetting));
+
+        console.log(validProfilesInChannel);
 
         setChannelMemberNames(validProfilesInChannel);
     }, [props.profilesInChannel]);
@@ -128,16 +129,7 @@ const ConvertGmToChannelModal = (props: Props) => {
     const modalProps: Partial<ComponentProps<typeof GenericModal>> = {};
     let modalBody;
 
-    if (props.profilesInChannel.length === 0) {
-        modalProps.confirmButtonText = formatMessage({id: 'generic.okay', defaultMessage: 'Okay'});
-        modalProps.handleConfirm = props.onExited;
-
-        modalBody = (
-            <div className='convert-gm-to-channel-modal-body error'>
-                <AllMembersDeactivatedError/>
-            </div>
-        );
-    } else if (!showLoader && Object.keys(commonTeamsById).length === 0) {
+    if (!showLoader && Object.keys(commonTeamsById).length === 0) {
         modalProps.confirmButtonText = formatMessage({id: 'generic.okay', defaultMessage: 'Okay'});
         modalProps.handleConfirm = props.onExited;
 

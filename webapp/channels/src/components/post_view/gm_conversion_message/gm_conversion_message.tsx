@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Post} from '@mattermost/types/posts';
 import {renderUsername} from 'components/post_markdown/system_message_helpers';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -24,8 +24,9 @@ function GMConversionMessage(props: Props): JSX.Element {
         dispatch(getMissingProfilesByIds(gmMembersDuringConversionIDs));
     }, [props.post]);
 
+    const getProfilesByIdsAndUsernames = useRef(makeGetProfilesByIdsAndUsernames());
     const userProfiles = useSelector(
-        (state: GlobalState) => makeGetProfilesByIdsAndUsernames()(
+        (state: GlobalState) => getProfilesByIdsAndUsernames.current(
             state,
             {allUserIds: gmMembersDuringConversionIDs, allUsernames: []},
         ),

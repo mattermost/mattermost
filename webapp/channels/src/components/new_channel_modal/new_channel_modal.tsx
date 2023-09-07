@@ -197,10 +197,6 @@ const NewChannelModal = () => {
         }
     };
 
-    const handleOnURLChange = useCallback((updatedURL: string) => {
-        setURL(updatedURL);
-    }, []);
-
     const handleOnTypeChange = useCallback((channelType: ChannelType) => {
         setType(channelType);
         setServerError('');
@@ -275,7 +271,7 @@ const NewChannelModal = () => {
                     name='new-channel-modal-name'
                     placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
                     onDisplayNameChange={onChannelDisplayNameChanged}
-                    onURLChange={handleOnURLChange}
+                    onURLChange={setURL}
                     onErrorStateChange={setChannelInputError}
                 />
                 <PublicPrivateSelector

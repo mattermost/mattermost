@@ -145,13 +145,10 @@ export const getCurrentRelativeTeamUrl: (state: GlobalState) => string = createS
     },
 );
 
-export const getRelativeTeamUrl: (state: GlobalState, teamID: string) => string = createSelector(
-    'getRelativeTeamUrl',
-    (state: GlobalState, teamID: string) => getTeam(state, teamID),
-    (team) => {
-        return `/${team.name}`;
-    },
-);
+export function getRelativeTeamUrl(state: GlobalState, teamId: string): string {
+    const team = getTeam(state, teamId)
+    return `/${team.name}`;
+}
 
 export const getCurrentTeamStats: (state: GlobalState) => TeamStats = createSelector(
     'getCurrentTeamStats',
