@@ -2347,7 +2347,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "email", email)
 	audit.AddEventParameter(auditRec, "redirect", redirect)
 
-	user, err := c.App.GetUserForLogin("", email)
+	user, err := c.App.GetUserForLogin(c.AppContext, "", email)
 	if err != nil {
 		// Don't want to leak whether the email is valid or not
 		ReturnStatusOK(w)
@@ -2381,7 +2381,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 
 	if switchRequest.EmailToOAuth() {
-		link, err = c.App.SwitchEmailToOAuth(w, r, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.NewService)
+		link, err = c.App.SwitchEmailToOAuth(c.AppContext, w, r, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.NewService)
 	} else if switchRequest.OAuthToEmail() {
 		c.SessionRequired()
 		if c.Err != nil {
@@ -2390,9 +2390,9 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		link, err = c.App.SwitchOAuthToEmail(switchRequest.Email, switchRequest.NewPassword, c.AppContext.Session().UserId)
 	} else if switchRequest.EmailToLdap() {
-		link, err = c.App.SwitchEmailToLdap(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapLoginId, switchRequest.NewPassword)
+		link, err = c.App.SwitchEmailToLdap(c.AppContext, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapLoginId, switchRequest.NewPassword)
 	} else if switchRequest.LdapToEmail() {
-		link, err = c.App.SwitchLdapToEmail(switchRequest.Password, switchRequest.MfaCode, switchRequest.Email, switchRequest.NewPassword)
+		link, err = c.App.SwitchLdapToEmail(c.AppContext, switchRequest.Password, switchRequest.MfaCode, switchRequest.Email, switchRequest.NewPassword)
 	} else {
 		c.SetInvalidParam("switch_request")
 		return
