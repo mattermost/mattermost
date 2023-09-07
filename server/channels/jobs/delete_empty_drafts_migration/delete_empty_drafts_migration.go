@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -27,6 +28,7 @@ type AppIFace interface {
 type DeleteEmptyDraftsMigrationWorker struct {
 	name      string
 	jobServer *jobs.JobServer
+	logger    mlog.LoggerIFace
 	store     store.Store
 	app       AppIFace
 
@@ -38,6 +40,7 @@ type DeleteEmptyDraftsMigrationWorker struct {
 func MakeWorker(jobServer *jobs.JobServer, store store.Store, app AppIFace) model.Worker {
 	worker := &DeleteEmptyDraftsMigrationWorker{
 		jobServer: jobServer,
+		logger:    jobServer.Logger().With(mlog.String("workername", JobName)),
 		store:     store,
 		app:       app,
 		name:      JobName,
@@ -98,9 +101,10 @@ func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
 		return
 	}
 
+	c := request.EmptyContext(worker.logger)
 	var appErr *model.AppError
 	// We get the job again because ClaimJob changes the job status.
-	job, appErr = worker.jobServer.GetJob(job.Id)
+	job, appErr = worker.jobServer.GetJob(c, job.Id)
 	if appErr != nil {
 		mlog.Error("DeleteEmptyDraftsMigrationWorker: job execution error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
 		worker.setJobError(job, appErr)
