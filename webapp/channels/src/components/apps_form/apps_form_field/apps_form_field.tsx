@@ -3,18 +3,18 @@
 
 import React from 'react';
 
-import {AppField, AppSelectOption} from '@mattermost/types/apps';
-import {Channel} from '@mattermost/types/channels';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {AppField, AppSelectOption} from '@mattermost/types/apps';
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
-import TextSetting, {InputTypes} from 'components/widgets/settings/text_setting';
-import AutocompleteSelector from 'components/autocomplete_selector';
+import type AutocompleteSelector from 'components/autocomplete_selector';
+import Markdown from 'components/markdown';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import BoolSetting from 'components/widgets/settings/bool_setting';
-
-import Markdown from 'components/markdown';
+import TextSetting from 'components/widgets/settings/text_setting';
+import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 import AppsFormSelectField from './apps_form_select_field';
 

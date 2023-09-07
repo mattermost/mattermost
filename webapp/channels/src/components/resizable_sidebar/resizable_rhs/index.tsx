@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes, useEffect, useRef, useState} from 'react';
+import type {HTMLAttributes} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
 
-import {shouldRhsOverlapChannelView} from '../utils';
 import {CssVarKeyForResizable, RHS_MIN_MAX_WIDTH, ResizeDirection} from '../constants';
 import ResizableDivider from '../resizable_divider';
+import {shouldRhsOverlapChannelView} from '../utils';
 
 interface Props extends HTMLAttributes<'div'> {
     children: React.ReactNode;

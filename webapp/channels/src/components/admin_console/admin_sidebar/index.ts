@@ -1,25 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {PluginsResponse} from '@mattermost/types/plugins';
+import type {PluginsResponse} from '@mattermost/types/plugins';
 
 import {getPlugins} from 'mattermost-redux/actions/admin';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
+import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getAdminDefinition, getConsoleAccess} from 'selectors/admin_console';
 import {getNavigationBlocked} from 'selectors/views/admin';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
+
+import type {GlobalState} from 'types/store';
 
 import AdminSidebar from './admin_sidebar';
 

@@ -19,7 +19,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, _ time.Time, pen
 	return &nextTime
 }
 
-func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer) *Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
 	}

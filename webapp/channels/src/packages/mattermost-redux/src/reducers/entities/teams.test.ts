@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {TeamTypes, AdminTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import teamsReducer from 'mattermost-redux/reducers/entities/teams';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 type ReducerState = ReturnType<typeof teamsReducer>;

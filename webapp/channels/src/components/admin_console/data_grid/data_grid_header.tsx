@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
+import React from 'react';
+import type {CSSProperties} from 'react';
+
+import type {Column} from './data_grid';
 
 import './data_grid.scss';
-
-import {Column} from './data_grid';
 
 export type Props = {
     columns: Column[];

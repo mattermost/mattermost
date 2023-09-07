@@ -4,16 +4,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
-
 import {useDispatch, useSelector} from 'react-redux';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-
-import {retryFailedHostedCustomerFetches} from 'actions/hosted_customer';
-import {retryFailedCloudFetches} from 'actions/cloud';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {retryFailedCloudFetches} from 'actions/cloud';
+import {retryFailedHostedCustomerFetches} from 'actions/hosted_customer';
 
 import './cloud_fetch_error.scss';
 

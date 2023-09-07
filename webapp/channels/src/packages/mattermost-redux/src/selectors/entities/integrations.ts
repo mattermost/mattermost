@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {OutgoingWebhook, Command} from '@mattermost/types/integrations';
+import type {GlobalState} from '@mattermost/types/store';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import {OutgoingWebhook, Command} from '@mattermost/types/integrations';
-import {GlobalState} from '@mattermost/types/store';
-import {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {appsEnabled} from './apps';
 

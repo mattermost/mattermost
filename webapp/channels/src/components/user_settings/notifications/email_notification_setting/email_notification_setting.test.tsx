@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
-import {Preferences, NotificationLevels} from 'utils/constants';
+import EmailNotificationSetting from 'components/user_settings/notifications/email_notification_setting/email_notification_setting';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import EmailNotificationSetting from 'components/user_settings/notifications/email_notification_setting/email_notification_setting';
+import {Preferences, NotificationLevels} from 'utils/constants';
 
 describe('components/user_settings/notifications/EmailNotificationSetting', () => {
     const requiredProps: ComponentProps<typeof EmailNotificationSetting> = {

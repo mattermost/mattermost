@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {mount} from 'enzyme';
+import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import {mount, ReactWrapper} from 'enzyme';
 import * as reactRedux from 'react-redux';
 
 import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-
 import {CloudProducts, LicenseSkus} from 'utils/constants';
 
 import ADLDAPUpsellBanner from './ad_ldap_upsell_banner';

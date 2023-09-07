@@ -3,8 +3,7 @@
 
 import {mount} from 'enzyme';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {OverlayTrigger as BaseOverlayTrigger} from 'react-bootstrap';
+import {OverlayTrigger as BaseOverlayTrigger} from 'react-bootstrap'; // eslint-disable-line no-restricted-imports
 import {FormattedMessage, IntlProvider} from 'react-intl';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';

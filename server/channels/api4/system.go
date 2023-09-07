@@ -26,9 +26,11 @@ import (
 )
 
 const (
-	RedirectLocationCacheSize = 10000
-	DefaultServerBusySeconds  = 3600
-	MaxServerBusySeconds      = 86400
+	RedirectLocationCacheSize     = 10000
+	RedirectLocationMaximumLength = 2100
+	RedirectLocationCacheExpiry   = 1 * time.Hour
+	DefaultServerBusySeconds      = 3600
+	MaxServerBusySeconds          = 86400
 )
 
 var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
@@ -96,7 +98,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileDatas := c.App.GenerateSupportPacket()
+	fileDatas := c.App.GenerateSupportPacket(c.AppContext)
 
 	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
 	now := time.Now()
@@ -585,7 +587,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	res, err := client.Head(url)
 	if err != nil {
 		// Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)
+		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
 		// Always return a success status and a JSON string to limit information returned to client.
 		w.Write([]byte(model.MapToJSON(m)))
 		return
@@ -596,7 +598,17 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	}()
 
 	location = res.Header.Get("Location")
-	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour)
+
+	// If the location length is > 2100, we can probably ignore. Fixes https://mattermost.atlassian.net/browse/MM-54219
+	if len(location) > RedirectLocationMaximumLength {
+		// Treating as a "failure". Cache failures to prevent retries.
+		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		// Always return a success status and a JSON string to limit information returned to client.
+		w.Write([]byte(model.MapToJSON(m)))
+		return
+	}
+
+	redirectLocationDataCache.SetWithExpiry(url, location, RedirectLocationCacheExpiry)
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJSON(m)))

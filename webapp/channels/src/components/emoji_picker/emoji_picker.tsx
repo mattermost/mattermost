@@ -1,17 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import throttle from 'lodash/throttle';
 import React, {useRef, useState, useEffect, useCallback, memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {FixedSizeList} from 'react-window';
 import type InfiniteLoader from 'react-window-infinite-loader';
-import throttle from 'lodash/throttle';
 
-import {Emoji, EmojiCategory} from '@mattermost/types/emojis';
+import type {Emoji, EmojiCategory} from '@mattermost/types/emojis';
+
 import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
-import {NoResultsVariant} from 'components/no_results_indicator/types';
-import {CategoryOrEmojiRow, Categories, EmojiCursor, NavigationDirection, EmojiPosition, EmojiRow} from 'components/emoji_picker/types';
+import EmojiPickerCategories from 'components/emoji_picker/components/emoji_picker_categories';
+import EmojiPickerCurrentResults from 'components/emoji_picker/components/emoji_picker_current_results';
+import EmojiPickerCustomEmojiButton from 'components/emoji_picker/components/emoji_picker_custom_emoji_button';
+import EmojiPickerPreview from 'components/emoji_picker/components/emoji_picker_preview';
+import EmojiPickerSearch from 'components/emoji_picker/components/emoji_picker_search';
+import EmojiPickerSkin from 'components/emoji_picker/components/emoji_picker_skin';
 import {
     CATEGORIES,
     RECENT_EMOJI_CATEGORY,
@@ -21,14 +26,11 @@ import {
     EMOJI_PER_ROW,
     CUSTOM_EMOJI_SEARCH_THROTTLE_TIME_MS,
 } from 'components/emoji_picker/constants';
+import {NavigationDirection} from 'components/emoji_picker/types';
+import type {CategoryOrEmojiRow, Categories, EmojiCursor, EmojiPosition, EmojiRow} from 'components/emoji_picker/types';
 import {createCategoryAndEmojiRows, getCursorProperties, getUpdatedCategoriesAndAllEmojis} from 'components/emoji_picker/utils';
 import NoResultsIndicator from 'components/no_results_indicator';
-import EmojiPickerPreview from 'components/emoji_picker/components/emoji_picker_preview';
-import EmojiPickerSearch from 'components/emoji_picker/components/emoji_picker_search';
-import EmojiPickerSkin from 'components/emoji_picker/components/emoji_picker_skin';
-import EmojiPickerCategories from 'components/emoji_picker/components/emoji_picker_categories';
-import EmojiPickerCustomEmojiButton from 'components/emoji_picker/components/emoji_picker_custom_emoji_button';
-import EmojiPickerCurrentResults from 'components/emoji_picker/components/emoji_picker_current_results';
+import {NoResultsVariant} from 'components/no_results_indicator/types';
 
 import type {PropsFromRedux} from './index';
 
