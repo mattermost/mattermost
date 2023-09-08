@@ -260,7 +260,7 @@ export default class SettingPicture extends Component<Props, State> {
     render() {
         const img = this.renderImg();
 
-        let confirmButtonClass = 'btn btn-sm';
+        let confirmButtonClass = 'btn';
         let disableSaveButtonFocus = false;
         if (this.props.submitActive || this.state.removeSrc || this.state.setDefaultSrc) {
             confirmButtonClass += ' btn-primary';
@@ -298,7 +298,7 @@ export default class SettingPicture extends Component<Props, State> {
                     />
                     <button
                         data-testid='inputSettingPictureButton'
-                        className='btn btn-sm btn-primary btn-file'
+                        className='btn btn-primary btn-file'
                         disabled={this.props.loadingPicture}
                         onClick={this.handleInputFile}
                         aria-label={localizeMessage('setting_picture.select', 'Select')}
@@ -361,7 +361,7 @@ export default class SettingPicture extends Component<Props, State> {
                             {buttonRender}
                             <button
                                 data-testid='cancelSettingPicture'
-                                className='btn btn-tertiary btn-sm theme ml-2'
+                                className='btn btn-tertiary theme ml-2'
                                 onClick={this.handleCancel}
                                 aria-label={localizeMessage('setting_picture.cancel', 'Cancel')}
                             >
