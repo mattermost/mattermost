@@ -15,7 +15,7 @@ import UserGroupPopover from 'components/user_group_popover';
 import {MAX_LIST_HEIGHT, getListHeight, VIEWPORT_SCALE_FACTOR} from 'components/user_group_popover/group_member_list/group_member_list';
 
 import type {A11yFocusEventDetail} from 'utils/constants';
-import Constants from 'utils/constants';
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {popOverOverlayPosition, approxGroupPopOverHeight} from 'utils/position_utils';
 import {getUserOrGroupFromMentionName} from 'utils/post_utils';
@@ -178,7 +178,7 @@ export const AtMention = (props: Props) => {
                     onHide={hideGroupUserOverlay}
                     rootClose={true}
                 >
-                    {groupUser ? ( // needed for type checker
+                    {groupUser ? (
                         <ProfilePopover
                             className='user-profile-popover'
                             userId={groupUser.id}

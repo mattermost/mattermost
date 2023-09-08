@@ -758,10 +758,6 @@ export function mentionsMinusSpecialMentionsInText(message: string) {
     return mentions;
 }
 
-function isUserProfile(entity: UserProfile | Group): entity is UserProfile {
-    return (entity as UserProfile).username !== undefined;
-}
-
 export function makeGetUserOrGroupMentionCountFromMessage(): (state: GlobalState, message: Post['message']) => number {
     return createSelector(
         'getUserOrGroupMentionCountFromMessage',
@@ -773,15 +769,12 @@ export function makeGetUserOrGroupMentionCountFromMessage(): (state: GlobalState
             const markdownCleanedText = formatWithRenderer(message, new MentionableRenderer());
             const mentions = new Set(markdownCleanedText.match(Constants.MENTIONS_REGEX) || []);
             mentions.forEach((mention) => {
-                const data = {...groups, ...users};
-                const userOrGroup = getUserOrGroupFromMentionName(data, mention.substring(1));
+                const [user, group] = getUserOrGroupFromMentionName(mention.substring(1), users, groups);
 
-                if (userOrGroup) {
-                    if (isUserProfile(userOrGroup)) {
-                        count++;
-                    } else {
-                        count += userOrGroup.member_count;
-                    }
+                if (user) {
+                    count++;
+                } else if (group) {
+                    count += group.member_count;
                 }
             });
             return count;
