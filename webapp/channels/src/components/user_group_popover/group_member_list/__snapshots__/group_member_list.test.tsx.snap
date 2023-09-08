@@ -533,10 +533,10 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           <SendIcon>
                                             <svg
                                               fill="currentColor"
-                                              height="1em"
+                                              height={24}
                                               version="1.1"
                                               viewBox="0 0 24 24"
-                                              width="1em"
+                                              width={24}
                                               xmlns="http://www.w3.org/2000/svg"
                                             >
                                               <path
@@ -752,10 +752,10 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           <SendIcon>
                                             <svg
                                               fill="currentColor"
-                                              height="1em"
+                                              height={24}
                                               version="1.1"
                                               viewBox="0 0 24 24"
-                                              width="1em"
+                                              width={24}
                                               xmlns="http://www.w3.org/2000/svg"
                                             >
                                               <path
@@ -971,10 +971,10 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           <SendIcon>
                                             <svg
                                               fill="currentColor"
-                                              height="1em"
+                                              height={24}
                                               version="1.1"
                                               viewBox="0 0 24 24"
-                                              width="1em"
+                                              width={24}
                                               xmlns="http://www.w3.org/2000/svg"
                                             >
                                               <path
@@ -1190,10 +1190,10 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           <SendIcon>
                                             <svg
                                               fill="currentColor"
-                                              height="1em"
+                                              height={24}
                                               version="1.1"
                                               viewBox="0 0 24 24"
-                                              width="1em"
+                                              width={24}
                                               xmlns="http://www.w3.org/2000/svg"
                                             >
                                               <path
@@ -1409,10 +1409,10 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           <SendIcon>
                                             <svg
                                               fill="currentColor"
-                                              height="1em"
+                                              height={24}
                                               version="1.1"
                                               viewBox="0 0 24 24"
-                                              width="1em"
+                                              width={24}
                                               xmlns="http://www.w3.org/2000/svg"
                                             >
                                               <path

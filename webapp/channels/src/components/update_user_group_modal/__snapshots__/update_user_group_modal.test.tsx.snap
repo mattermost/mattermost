@@ -38,7 +38,7 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
   >
     <button
       aria-label="Close"
-      className="modal-header-back-button btn btn-xs btn-icon"
+      className="modal-header-back-button btn btn-icon"
       onClick={[Function]}
       type="button"
     >
