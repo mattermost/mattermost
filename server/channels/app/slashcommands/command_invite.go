@@ -70,6 +70,7 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 	// Verify that the inviter has permissions to invite users to the every channel.
 	targetChannels = i.checkPermissions(a, c, args, resps, targetUsers[0], targetChannels)
 
+	// track errors returned for various users.
 	differentChannels := make([]string, 0, 1)
 	nonTeamUsers := make([]string, 0, 1)
 	teamConstrained := make([]*model.User, 0, 1)
@@ -244,19 +245,6 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 	}
 
 	return targetUsers, targetChannels, ""
-}
-
-func (i *InviteProvider) getUserProfile(a *app.App, username string) *model.User {
-	userProfile, nErr := a.Srv().Store().User().GetByUsername(username)
-	if nErr != nil {
-		return nil
-	}
-
-	if userProfile.DeleteAt != 0 {
-		return nil
-	}
-
-	return userProfile
 }
 
 func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, targetUser *model.User, targetChannels []*model.Channel) []*model.Channel {
