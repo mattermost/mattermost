@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseHtmlTable, getHtmlTable, formatMarkdownMessage, formatGithubCodePaste, formatMarkdownLinkMessage, isTextUrl} from './paste';
+import {Locations} from './constants';
+import {execCommandInsertText} from './exec_commands';
+import {parseHtmlTable, getHtmlTable, formatMarkdownMessage, formatGithubCodePaste, formatMarkdownLinkMessage, isTextUrl, pasteHandler} from './paste';
 
 const validClipboardData: any = {
     items: [1],
@@ -220,4 +222,77 @@ describe('isTextUrl', () => {
 
         expect(isTextUrl(clipboardData)).toBe(false);
     });
+});
+
+jest.mock('utils/exec_commands', () => ({
+    execCommandInsertText: jest.fn(),
+}));
+
+describe('pasteHandler', () => {
+    const testCases = [
+        {
+            testName: 'should be able to format a pasted markdown table',
+            clipboardData: {
+                items: [1],
+                types: ['text/html'],
+                getData: () => {
+                    return '<table><tr><th>test</th><th>test</th></tr><tr><td>test</td><td>test</td></tr></table>';
+                },
+            },
+            expectedMarkdown: '| test | test |\n| --- | --- |\n| test | test |',
+        },
+        {
+            testName: 'should be able to format a pasted markdown table without headers',
+            clipboardData: {
+                items: [1],
+                types: ['text/html'],
+                getData: () => {
+                    return '<table><tr><td>test</td><td>test</td></tr><tr><td>test</td><td>test</td></tr></table>';
+                },
+            },
+            expectedMarkdown: '| test | test |\n| --- | --- |\n| test | test |\n',
+        },
+        {
+            testName: 'should be able to format a pasted hyperlink',
+            clipboardData: {
+                items: [1],
+                types: ['text/html'],
+                getData: () => {
+                    return '<a href="https://test.domain">link text</a>';
+                },
+            },
+            expectedMarkdown: '[link text](https://test.domain)',
+        },
+        {
+            testName: 'should be able to format a github codeblock (pasted as a table)',
+            clipboardData: {
+                items: [1],
+                types: ['text/plain', 'text/html'],
+                getData: (type: string) => {
+                    if (type === 'text/plain') {
+                        return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
+                    }
+                    return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
+                },
+            },
+            expectedMarkdown: "```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```",
+        },
+    ];
+
+    for (const tc of testCases) {
+        it(tc.testName, () => {
+            const location = Locations.RHS_COMMENT;
+            const event: any = {
+                target: {
+                    id: 'reply_textbox',
+                },
+                preventDefault: jest.fn(),
+                clipboardData: tc.clipboardData,
+            };
+
+            pasteHandler(event, location, '', false, 0);
+
+            expect(execCommandInsertText).toHaveBeenCalledWith(tc.expectedMarkdown);
+        });
+    }
 });

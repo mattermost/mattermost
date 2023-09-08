@@ -3,7 +3,6 @@
 
 /* eslint-disable max-lines */
 
-import {isNil} from 'lodash';
 import React from 'react';
 
 import type {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
@@ -14,6 +13,7 @@ import {GroupSource} from '@mattermost/types/groups';
 import type {Group} from '@mattermost/types/groups';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
+import {Posts} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
@@ -28,22 +28,11 @@ import PostDeletedModal from 'components/post_deleted_modal';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
-import {execCommandInsertText} from 'utils/exec_commands';
-import * as Keyboard from 'utils/keyboard';
 import {
     applyMarkdown,
 } from 'utils/markdown/apply_markdown';
 import type {
     ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
-import {
-    getHtmlTable,
-    hasHtmlLink,
-    formatMarkdownMessage,
-    isGitHubCodeBlock,
-    formatGithubCodePaste,
-    isTextUrl,
-    formatMarkdownLinkMessage,
-} from 'utils/paste';
 import {
     specialMentionsInText,
     postMessageOnKeyPress,
@@ -59,8 +48,6 @@ import * as Utils from 'utils/utils';
 import type {ModalData} from 'types/actions';
 import type {PostDraft} from 'types/store/draft';
 import type {PluginComponent} from 'types/store/plugins';
-
-const KeyCodes = Constants.KeyCodes;
 
 export type Props = {
     currentTeamId: string;
@@ -129,10 +116,10 @@ export type Props = {
     onResetHistoryIndex: () => void;
 
     // Called when navigating back through comment message history
-    onMoveHistoryIndexBack: () => void;
+    moveHistoryIndexBack: (index: string) => Promise<void>;
 
     // Called when navigating forward through comment message history
-    onMoveHistoryIndexForward: () => void;
+    moveHistoryIndexForward: (index: string) => Promise<void>;
 
     // Called to initiate editing the user's latest post
     onEditLatestPost: () => ActionResult;
@@ -204,11 +191,11 @@ type State = {
     uploadsProgressPercent: {[clientID: string]: FilePreviewInfo};
     renderScrollbar: boolean;
     scrollbarWidth: number;
-    draft?: PostDraft;
+    draft: PostDraft;
     rootId?: string;
     messageInHistory?: string;
     createPostErrorId?: string;
-    caretPosition?: number;
+    caretPosition: number;
     postError?: React.ReactNode;
     errorClass: string | null;
     serverError: (ServerError & {submittedMessage?: string}) | null;
@@ -246,7 +233,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             createPostErrorId: props.createPostErrorId,
             rootId: props.rootId,
             messageInHistory: props.messageInHistory,
-            draft: state.draft || {...props.draft, caretPosition: props.draft.message.length, uploadsInProgress: []},
         };
 
         const rootChanged = props.rootId !== state.rootId || props.draft.rootId !== state.draft?.rootId;
@@ -276,7 +262,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             serverError: null,
             showFormat: false,
             isFormattingBarHidden: props.isFormattingBarHidden,
-            caretPosition: props.draft.caretPosition,
+            caretPosition: props.draft.message.length,
+            draft: {...props.draft, uploadsInProgress: []},
         };
 
         this.textboxRef = React.createRef();
@@ -293,7 +280,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             this.focusTextbox();
         }
 
-        document.addEventListener('paste', this.pasteHandler);
         document.addEventListener('keydown', this.focusTextboxIfNecessary);
         window.addEventListener('beforeunload', this.saveDraftWithShow);
         this.getChannelMemberCountsByGroup();
@@ -308,7 +294,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         this.props.resetCreatePostRequest?.();
-        document.removeEventListener('paste', this.pasteHandler);
         document.removeEventListener('keydown', this.focusTextboxIfNecessary);
         window.removeEventListener('beforeunload', this.saveDraftWithShow);
         this.saveDraftOnUnmount();
@@ -348,6 +333,26 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             this.showPostDeletedModal();
         }
     }
+
+    fillMessageFromHistory() {
+        const lastMessage = this.props.messageInHistory;
+        this.setState((prev) => ({
+            draft: {
+                ...prev.draft,
+                message: lastMessage || '',
+            },
+        }));
+    }
+
+    loadPrevMessage = (e: React.KeyboardEvent) => {
+        e.preventDefault();
+        this.props.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT).then(() => this.fillMessageFromHistory());
+    };
+
+    loadNextMessage = (e: React.KeyboardEvent) => {
+        e.preventDefault();
+        this.props.moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT).then(() => this.fillMessageFromHistory());
+    };
 
     getChannelMemberCountsByGroup = () => {
         const {useLDAPGroupMentions, useCustomGroupMentions, channelId, isTimezoneEnabled, searchAssociatedGroupsForReference, getChannelMemberCountsByGroup, draft, currentTeamId} = this.props;
@@ -434,43 +439,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }, () => {
             Utils.setCaretPosition(textbox, newCaretPosition);
         });
-    };
-
-    pasteHandler = (event: ClipboardEvent) => {
-        const {clipboardData, target} = event;
-
-        if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== 'reply_textbox') {
-            return;
-        }
-
-        const {selectionStart, selectionEnd} = target as TextboxElement;
-
-        const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
-        const hasTextUrl = isTextUrl(clipboardData);
-        const hasHTMLLinks = !this.isNonFormattedPaste && hasHtmlLink(clipboardData);
-        const htmlTable = getHtmlTable(clipboardData);
-        const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
-        const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
-
-        if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const message = this.state.draft?.message ?? '';
-
-        // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
-        if (shouldApplyLinkMarkdown) {
-            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
-            execCommandInsertText(formattedLink);
-        } else if (shouldApplyGithubCodeBlock) {
-            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
-            execCommandInsertText(formattedCodeBlock);
-        } else {
-            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, this.state.caretPosition);
-            execCommandInsertText(formattedMarkdown);
-        }
     };
 
     handleNotifyAllConfirmation = () => {
@@ -839,186 +807,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         });
     };
 
-    handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
-        const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-        const lastMessageReactionKeyCombo = ctrlOrMetaKeyPressed && e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
-
-        const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
-        const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
-        const shiftAltCombo = !Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && e.altKey;
-
-        // fix for FF not capturing the paste without formatting event when using ctrl|cmd + shift + v
-        if (e.key === KeyCodes.V[0] && ctrlOrMetaKeyPressed) {
-            if (e.shiftKey) {
-                this.isNonFormattedPaste = true;
-                this.timeoutId = window.setTimeout(() => {
-                    this.isNonFormattedPaste = false;
-                }, 250);
-            }
-        }
-
-        // listen for line break key combo and insert new line character
-        if (Utils.isUnhandledLineBreakKeyCombo(e)) {
-            this.setState({
-                draft: {
-                    ...this.state.draft!,
-                    message: Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>),
-                },
-            });
-            return;
-        }
-
-        if (
-            (this.props.ctrlSend || this.props.codeBlockOnCtrlEnter) &&
-            Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
-            (e.ctrlKey || e.metaKey)
-        ) {
-            this.setShowPreview(false);
-            this.commentMsgKeyPress(e);
-            return;
-        }
-
-        const draft = this.state.draft!;
-        const {message} = draft;
-
-        if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
-            this.textboxRef.current?.blur();
-        }
-
-        if (
-            !e.ctrlKey &&
-            !e.metaKey &&
-            !e.altKey &&
-            !e.shiftKey &&
-            Keyboard.isKeyPressed(e, KeyCodes.UP) &&
-            message === ''
-        ) {
-            e.preventDefault();
-            if (this.textboxRef.current) {
-                this.textboxRef.current.blur();
-            }
-
-            const {data: canEditNow} = this.props.onEditLatestPost();
-            if (!canEditNow) {
-                this.focusTextbox(true);
-            }
-        }
-
-        const {
-            selectionStart,
-            selectionEnd,
-            value,
-        } = e.target as TextboxElement;
-
-        if (ctrlKeyCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
-                e.preventDefault();
-                this.props.onMoveHistoryIndexBack();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
-                e.preventDefault();
-                this.props.onMoveHistoryIndexForward();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.B)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'bold',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.I)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'italic',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            }
-        } else if (ctrlAltCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.C)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'code',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.E)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.toggleEmojiPicker();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.T)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.toggleAdvanceTextEditor();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setShowPreview(!this.props.shouldShowPreview);
-            }
-        } else if (shiftAltCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.X)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'strike',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.SEVEN)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'ol',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.EIGHT)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'ul',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.NINE)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'quote',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            }
-        }
-
-        if (lastMessageReactionKeyCombo) {
-            this.reactToLastMessage(e);
-        }
-    };
-
     applyMarkdown = (options: ApplyMarkdownOptions) => {
         if (this.props.shouldShowPreview) {
             return;
@@ -1217,6 +1005,25 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.lastBlurAt = Date.now();
     };
 
+    handleEditLatestPost = () => {
+        const {data: canEditNow} = this.props.onEditLatestPost();
+        if (!canEditNow) {
+            this.focusTextbox(true);
+        }
+    };
+
+    onMessageChange = (message: string, callback?: (() => void) | undefined) => {
+        const draft = this.state.draft;
+        const modifiedDraft = {
+            ...draft,
+            message,
+        };
+        this.handleDraftChange(modifiedDraft);
+        this.setState({
+            draft: modifiedDraft,
+        }, callback);
+    };
+
     render() {
         const draft = this.state.draft!;
 
@@ -1291,7 +1098,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     handlePostError={this.handlePostError}
                     emitTypingEvent={this.emitTypingEvent}
                     handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                    handleKeyDown={this.handleKeyDown}
                     postMsgKeyPress={this.commentMsgKeyPress}
                     handleChange={this.handleChange}
                     toggleEmojiPicker={this.toggleEmojiPicker}
@@ -1308,6 +1114,13 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     fileUploadRef={this.fileUploadRef}
                     isThreadView={this.props.isThreadView}
                     additionalControls={pluginItems.filter(Boolean)}
+                    codeBlockOnCtrlEnter={this.props.codeBlockOnCtrlEnter}
+                    ctrlSend={this.props.ctrlSend}
+                    loadNextMessage={this.loadNextMessage}
+                    loadPrevMessage={this.loadPrevMessage}
+                    onEditLatestPost={this.handleEditLatestPost}
+                    onMessageChange={this.onMessageChange}
+                    caretPosition={this.state.caretPosition}
                 />
             </form>
         );

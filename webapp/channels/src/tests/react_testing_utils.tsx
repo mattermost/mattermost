@@ -41,6 +41,19 @@ export const renderWithIntlAndStore = (component: React.ReactNode | React.ReactN
     );
 };
 
+export const renderWithRealStore = (component: React.ReactNode | React.ReactNodeArray, initialState: DeepPartial<GlobalState> = {}, locale = 'en', divContainer?: HTMLDivElement) => {
+    const realStore = configureStore(initialState);
+
+    return render(
+        <IntlProvider locale={locale}>
+            <Provider store={realStore}>
+                {component}
+            </Provider>
+        </IntlProvider>,
+        {container: divContainer},
+    );
+};
+
 export const renderWithFullContext = (component: React.ReactNode | React.ReactNodeArray, initialState: DeepPartial<GlobalState> = {}, locale = 'en') => {
     // We use a redux-mock-store store for testing, but we set up a real store to ensure the initial state is complete
     const testState = configureStore(initialState).getState();

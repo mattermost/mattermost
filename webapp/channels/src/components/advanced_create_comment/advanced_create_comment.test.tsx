@@ -11,12 +11,9 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {Props} from 'components/advanced_create_comment/advanced_create_comment';
 import AdvancedCreateComment from 'components/advanced_create_comment/advanced_create_comment';
-import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
-import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers.js';
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {execCommandInsertText} from 'utils/exec_commands';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
@@ -65,8 +62,8 @@ describe('components/AdvancedCreateComment', () => {
         updateCommentDraftWithRootId: jest.fn(),
         onSubmit: jest.fn(),
         onResetHistoryIndex: jest.fn(),
-        onMoveHistoryIndexBack: jest.fn(),
-        onMoveHistoryIndexForward: jest.fn(),
+        moveHistoryIndexBack: jest.fn(),
+        moveHistoryIndexForward: jest.fn(),
         onEditLatestPost: jest.fn(),
         resetCreatePostRequest: jest.fn(),
         setShowPreview: jest.fn(),
@@ -1208,99 +1205,6 @@ describe('components/AdvancedCreateComment', () => {
         expect(instance.focusTextbox).toHaveBeenCalledTimes(1);
     });
 
-    test('should call functions on handleKeyDown', () => {
-        const onMoveHistoryIndexBack = jest.fn();
-        const onMoveHistoryIndexForward = jest.fn();
-        const onEditLatestPost = jest.fn().
-            mockImplementationOnce(() => ({data: true})).
-            mockImplementationOnce(() => ({data: false}));
-        const wrapper = shallow<AdvancedCreateComment>(
-            <AdvancedCreateComment
-                {...baseProps}
-                ctrlSend={true}
-                onMoveHistoryIndexBack={onMoveHistoryIndexBack}
-                onMoveHistoryIndexForward={onMoveHistoryIndexForward}
-                onEditLatestPost={onEditLatestPost}
-            />,
-        );
-        const instance = wrapper.instance();
-        instance.commentMsgKeyPress = jest.fn();
-        instance.focusTextbox = jest.fn();
-        const blur = jest.fn();
-
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                getBoundingClientRect: jest.fn(mockTop),
-                blur: jest.fn(),
-                focus: jest.fn(),
-            };
-        };
-
-        const mockTop = () => {
-            return document.createElement('div');
-        };
-
-        (instance as any).textboxRef.current = {blur, focus, getInputBox: jest.fn(mockImpl)};
-
-        const mockTarget = {
-            selectionStart: 0,
-            selectionEnd: 0,
-            value: 'brown\nfox jumps over lazy dog',
-        };
-
-        const commentMsgKey: any = {
-            preventDefault: jest.fn(),
-            ctrlKey: true,
-            key: Constants.KeyCodes.ENTER[0],
-            keyCode: Constants.KeyCodes.ENTER[1],
-            target: mockTarget,
-        };
-        instance.handleKeyDown(commentMsgKey);
-        expect(instance.commentMsgKeyPress).toHaveBeenCalledTimes(1);
-
-        const upKey: any = {
-            preventDefault: jest.fn(),
-            ctrlKey: true,
-            key: Constants.KeyCodes.UP[0],
-            keyCode: Constants.KeyCodes.UP[1],
-            target: mockTarget,
-        };
-        instance.handleKeyDown(upKey);
-        expect(upKey.preventDefault).toHaveBeenCalledTimes(1);
-        expect(onMoveHistoryIndexBack).toHaveBeenCalledTimes(1);
-
-        const downKey = {
-            preventDefault: jest.fn(),
-            ctrlKey: true,
-            key: Constants.KeyCodes.DOWN[0],
-            keyCode: Constants.KeyCodes.DOWN[1],
-            target: mockTarget,
-        };
-        instance.handleKeyDown(downKey as any);
-        expect(downKey.preventDefault).toHaveBeenCalledTimes(1);
-        expect(onMoveHistoryIndexForward).toHaveBeenCalledTimes(1);
-
-        wrapper.setState({draft: emptyDraft});
-        const upKeyForEdit: any = {
-            preventDefault: jest.fn(),
-            ctrlKey: false,
-            key: Constants.KeyCodes.UP[0],
-            keyCode: Constants.KeyCodes.UP[1],
-            target: mockTarget,
-        };
-        instance.handleKeyDown(upKeyForEdit);
-        expect(upKeyForEdit.preventDefault).toHaveBeenCalledTimes(1);
-        expect(onEditLatestPost).toHaveBeenCalledTimes(1);
-        expect(blur).toHaveBeenCalledTimes(1);
-
-        instance.handleKeyDown(upKeyForEdit);
-        expect(upKeyForEdit.preventDefault).toHaveBeenCalledTimes(2);
-        expect(onEditLatestPost).toHaveBeenCalledTimes(2);
-        expect(instance.focusTextbox).toHaveBeenCalledTimes(1);
-        expect(instance.focusTextbox).toHaveBeenCalledWith(true);
-    });
-
     test('should the RHS thread scroll to bottom one time after mount when props.draft.message is not empty', () => {
         const draft: PostDraft = emptyDraft;
         const scrollToBottom = jest.fn();
@@ -1348,181 +1252,6 @@ describe('components/AdvancedCreateComment', () => {
         expect(scrollToBottom).toBeCalledTimes(2);
     });
 
-    test('should be able to format a pasted markdown table', () => {
-        const draft: PostDraft = emptyDraft;
-        const wrapper = shallow<AdvancedCreateComment>(
-            <AdvancedCreateComment
-                {...baseProps}
-                draft={draft}
-            />,
-        );
-
-        const mockTop = () => {
-            return document.createElement('div');
-        };
-
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                getBoundingClientRect: jest.fn(mockTop),
-                focus: jest.fn(),
-            };
-        };
-
-        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-        const event: any = {
-            target: {
-                id: 'reply_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/html'],
-                getData: () => {
-                    return '<table><tr><th>test</th><th>test</th></tr><tr><td>test</td><td>test</td></tr></table>';
-                },
-            },
-        };
-
-        const markdownTable = '| test | test |\n| --- | --- |\n| test | test |';
-
-        wrapper.instance().pasteHandler(event);
-        expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
-    });
-
-    test('should be able to format a pasted markdown table without headers', () => {
-        const draft: PostDraft = emptyDraft;
-        const wrapper = shallow<AdvancedCreateComment>(
-            <AdvancedCreateComment
-                {...baseProps}
-                draft={draft}
-            />,
-        );
-
-        const mockTop = () => {
-            return document.createElement('div');
-        };
-
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                getBoundingClientRect: jest.fn(mockTop),
-                focus: jest.fn(),
-            };
-        };
-
-        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-        const event: any = {
-            target: {
-                id: 'reply_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/html'],
-                getData: () => {
-                    return '<table><tr><td>test</td><td>test</td></tr><tr><td>test</td><td>test</td></tr></table>';
-                },
-            },
-        };
-
-        const markdownTable = '| test | test |\n| --- | --- |\n| test | test |\n';
-
-        wrapper.instance().pasteHandler(event);
-        expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
-    });
-
-    test('should be able to format a pasted hyperlink', () => {
-        const draft: PostDraft = emptyDraft;
-        const wrapper = shallow<AdvancedCreateComment>(
-            <AdvancedCreateComment
-                {...baseProps}
-                draft={draft}
-            />,
-        );
-
-        const mockTop = () => {
-            return document.createElement('div');
-        };
-
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                getBoundingClientRect: jest.fn(mockTop),
-                focus: jest.fn(),
-            };
-        };
-
-        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-        const event: any = {
-            target: {
-                id: 'reply_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/html'],
-                getData: () => {
-                    return '<a href="https://test.domain">link text</a>';
-                },
-            },
-        };
-
-        const markdownLink = '[link text](https://test.domain)';
-
-        wrapper.instance().pasteHandler(event);
-        expect(execCommandInsertText).toHaveBeenCalledWith(markdownLink);
-    });
-
-    test('should be able to format a github codeblock (pasted as a table)', () => {
-        const draft: PostDraft = emptyDraft;
-        const wrapper = shallow<AdvancedCreateComment>(
-            <AdvancedCreateComment
-                {...baseProps}
-                draft={draft}
-            />,
-        );
-
-        const mockTop = () => {
-            return document.createElement('div');
-        };
-
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                getBoundingClientRect: jest.fn(mockTop),
-                focus: jest.fn(),
-            };
-        };
-
-        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-        const event: any = {
-            target: {
-                id: 'reply_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/plain', 'text/html'],
-                getData: (type: any) => {
-                    if (type === 'text/plain') {
-                        return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
-                    }
-                    return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
-                },
-            },
-        };
-
-        const codeBlockMarkdown = "```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```";
-
-        wrapper.instance().pasteHandler(event);
-        expect(execCommandInsertText).toHaveBeenCalledWith(codeBlockMarkdown);
-    });
-
     test('should show preview and edit mode, and return focus on preview disable', () => {
         const wrapper = shallow<AdvancedCreateComment>(
             <AdvancedCreateComment {...baseProps}/>,
@@ -1552,73 +1281,4 @@ describe('components/AdvancedCreateComment', () => {
             ctrlSend={true}
         />
     ), (instance: any) => instance.state().draft.message, false);
-
-    testComponentForMarkdownHotkeys(
-        (value: any) => (
-            <AdvancedCreateComment
-                {...baseProps}
-                draft={{
-                    ...baseProps.draft,
-                    message: value,
-                }}
-                ctrlSend={true}
-            />
-        ),
-        (wrapper: any, setSelectionRangeFn: any) => {
-            const mockTop = () => {
-                return document.createElement('div');
-            };
-            wrapper.instance().textboxRef = {
-                current: {
-                    getInputBox: jest.fn(() => {
-                        return {
-                            focus: jest.fn(),
-                            getBoundingClientRect: jest.fn(mockTop),
-                            setSelectionRange: setSelectionRangeFn,
-                        };
-                    }),
-                },
-            };
-        },
-        (instance: any) => instance.find(AdvanceTextEditor),
-        (instance: any) => instance.state().draft.message,
-        false,
-        'reply_textbox',
-    );
-
-    it('should blur when ESCAPE is pressed', () => {
-        const wrapper = shallow<AdvancedCreateComment>(
-            <AdvancedCreateComment
-                {...baseProps}
-            />,
-        );
-        const instance = wrapper.instance();
-        const blur = jest.fn();
-
-        const mockImpl = () => {
-            return {
-                blur: jest.fn(),
-                focus: jest.fn(),
-            };
-        };
-
-        (instance as any).textboxRef.current = {blur, getInputBox: jest.fn(mockImpl)};
-
-        const mockTarget = {
-            selectionStart: 0,
-            selectionEnd: 0,
-            value: 'brown\nfox jumps over lazy dog',
-        };
-
-        const commentEscapeKey = {
-            preventDefault: jest.fn(),
-            ctrlKey: true,
-            key: Constants.KeyCodes.ESCAPE[0],
-            keyCode: Constants.KeyCodes.ESCAPE[1],
-            target: mockTarget,
-        };
-
-        instance.handleKeyDown(commentEscapeKey as any);
-        expect(blur).toHaveBeenCalledTimes(1);
-    });
 });
