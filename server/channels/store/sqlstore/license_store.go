@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"context"
+
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -41,7 +43,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 		return nil, errors.Wrap(err, "license_tosql")
 	}
 	var storedLicense model.LicenseRecord
-	if err := ls.GetReplicaX().Get(&storedLicense, queryString, args...); err != nil {
+	if err := ls.GetMasterX().Get(&storedLicense, queryString, args...); err != nil {
 		// Only insert if not exists
 		query, args, err := ls.getQueryBuilder().
 			Insert("Licenses").
@@ -62,7 +64,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 // Get obtains the license with the provided id parameter from the database.
 // If the license doesn't exist it returns a model.AppError with
 // http.StatusNotFound in the StatusCode field.
-func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
+func (ls SqlLicenseStore) Get(ctx context.Context, id string) (*model.LicenseRecord, error) {
 	query := ls.getQueryBuilder().
 		Select("Id, CreateAt, Bytes").
 		From("Licenses").
@@ -74,7 +76,7 @@ func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	}
 
 	license := &model.LicenseRecord{}
-	if err := ls.GetReplicaX().Get(license, queryString, args...); err != nil {
+	if err := ls.DBXFromContext(ctx).Get(license, queryString, args...); err != nil {
 		return nil, store.NewErrNotFound("License", id)
 	}
 	return license, nil
