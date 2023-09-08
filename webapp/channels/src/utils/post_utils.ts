@@ -704,7 +704,7 @@ export function makeGetUniqueReactionsToPost(): (state: GlobalState, postId: Pos
     );
 }
 
-export function getMentionDetails(usersByUsername: Record<string, UserProfile | Group>, mentionName: string): UserProfile | Group | '' {
+export function getMentionDetails(usersByUsername: Record<string, UserProfile | Group>, mentionName: string): UserProfile | Group | undefined {
     let mentionNameToLowerCase = mentionName.toLowerCase();
 
     while (mentionNameToLowerCase.length > 0) {
@@ -720,7 +720,7 @@ export function getMentionDetails(usersByUsername: Record<string, UserProfile | 
         }
     }
 
-    return '';
+    return undefined;
 }
 
 export function getUserOrGroupFromMentionName(
@@ -729,20 +729,20 @@ export function getUserOrGroupFromMentionName(
     groups: Record<string, Group>,
     groupsDisabled?: boolean,
     getMention = getMentionDetails,
-): [UserProfile | '', Group | ''] {
-    const user = getMention(users, mentionName) as UserProfile | '';
+): [UserProfile?, Group?] {
+    const user = getMention(users, mentionName) as UserProfile | undefined;
 
     // prioritizes user if user exists with the same name as a group.
     if (!user && !groupsDisabled) {
-        const group = getMention(groups, mentionName) as Group | '';
+        const group = getMention(groups, mentionName) as Group | undefined;
         if (group && !group.allow_reference) {
-            return ['', '']; // remove group mention if not allowed to reference
+            return [undefined, undefined]; // remove group mention if not allowed to reference
         }
 
-        return ['', group];
+        return [undefined, group];
     }
 
-    return [user, ''];
+    return [user, undefined];
 }
 
 export function mentionsMinusSpecialMentionsInText(message: string) {

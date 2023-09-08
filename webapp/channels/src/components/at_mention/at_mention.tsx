@@ -44,7 +44,7 @@ export const AtMention = (props: Props) => {
     const [target, setTarget] = useState<HTMLAnchorElement | undefined>();
     const [placement, setPlacement] = useState('right');
 
-    const showOverlay = (target?: HTMLAnchorElement, group?: Group | '') => {
+    const showOverlay = (target?: HTMLAnchorElement, group?: Group) => {
         const targetBounds = ref.current?.getBoundingClientRect();
 
         if (targetBounds) {
@@ -71,12 +71,12 @@ export const AtMention = (props: Props) => {
         }
     };
 
-    const handleClick = (group: Group | '') => (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const handleClick = (group?: Group) => (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         showOverlay(e.target as HTMLAnchorElement, group);
     };
 
-    const handleKeyDown = (group: Group | '') => (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+    const handleKeyDown = (group?: Group) => (e: React.KeyboardEvent<HTMLAnchorElement>) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
             e.preventDefault();
 
@@ -110,7 +110,7 @@ export const AtMention = (props: Props) => {
         ));
     };
 
-    const getPopOver = (user: UserProfile | '', group: Group | '') => {
+    const getPopOver = (user?: UserProfile, group?: Group) => {
         if (user) {
             return (
                 <ProfilePopover
@@ -135,7 +135,7 @@ export const AtMention = (props: Props) => {
             );
         }
 
-        return '';
+        return null;
     };
 
     const [user, group] = getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight);
@@ -188,7 +188,7 @@ export const AtMention = (props: Props) => {
                             hide={hideGroupUserOverlay}
                             returnFocus={returnFocus}
                         />
-                    ) : ''
+                    ) : null
                     }
                 </Overlay>
                 <a
