@@ -149,15 +149,22 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	appInstance := app.New(app.ServerConnector(h.Srv.Channels()))
 
+	c := &Context{
+		AppContext: &request.Context{},
+		App:        appInstance,
+	}
+
 	requestID := model.NewId()
-	logUserID := ""
 	var statusCode string
 	defer func() {
 		responseLogFields := []mlog.Field{
 			mlog.String("method", r.Method),
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
-			mlog.String("user_id", logUserID),
+		}
+		// if there is a session then include the user_id
+		if c.AppContext.Session() != nil {
+			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
 		}
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
@@ -165,11 +172,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		mlog.Debug("Received HTTP request", responseLogFields...)
 	}()
-
-	c := &Context{
-		AppContext: &request.Context{},
-		App:        appInstance,
-	}
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
 	c.AppContext = request.NewContext(
@@ -318,8 +320,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
-	logUserID = c.AppContext.Session().UserId
 
 	c.Logger = c.App.Log().With(
 		mlog.String("path", c.AppContext.Path()),
