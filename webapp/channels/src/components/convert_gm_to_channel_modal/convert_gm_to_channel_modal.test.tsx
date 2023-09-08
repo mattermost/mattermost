@@ -3,30 +3,39 @@
 
 import {renderWithFullContext} from "tests/react_testing_utils";
 import React from "react";
-import ConvertGmToChannelModal, {Actions} from "components/convert_gm_to_channel_modal/index";
+import ConvertGmToChannelModal from "components/convert_gm_to_channel_modal/convert_gm_to_channel_modal";
 import {Props} from "components/convert_gm_to_channel_modal/convert_gm_to_channel_modal";
-import {Channel} from "@mattermost/types/lib/channels";
-import {UserProfile} from "@mattermost/types/lib/users";
-import {TestHelper} from "utils/test_helper";
+import {Channel} from "@mattermost/types/channels";
+import {UserProfile} from "@mattermost/types/users";
 
-// describe('component/ConvertGmToChannelModal', () => {
-//
-//     const baseProps: Props = {
-//         onExited: jest.fn(),
-//         channel: {},
-//         actions: {},
-//         profilesInChannel: [
-//             TestHelper.fakeUser(),
-//         ] as UserProfile[],
-//         // teammateNameDisplaySetting: string;
-//         // channelsCategoryId: string | undefined;
-//         // currentUserId: string;
-//     }
-//
-//
-//     test('base case', () => {
-//         renderWithFullContext(
-//             <ConvertGmToChannelModal/>
-//         )
-//     });
-// });
+import TestHelper from 'packages/mattermost-redux/test/test_helper';
+import {Preferences} from "mattermost-redux/constants";
+
+
+describe('component/ConvertGmToChannelModal', () => {
+
+    const user1 = TestHelper.fakeUserWithId();
+    const user2 = TestHelper.fakeUserWithId();
+    const user3 = TestHelper.fakeUserWithId();
+
+    const baseProps: Props = {
+        onExited: jest.fn(),
+        channel: {id: 'asdasd', type: 'G'} as Channel,
+        actions: {
+            closeModal: jest.fn(),
+            convertGroupMessageToPrivateChannel: jest.fn(),
+            moveChannelsInSidebar: jest.fn(),
+        },
+        profilesInChannel: [user1, user2, user3] as UserProfile[],
+        teammateNameDisplaySetting: Preferences.DISPLAY_PREFER_FULL_NAME,
+        channelsCategoryId: 'sidebar_category_1',
+        currentUserId: user1.id,
+    }
+
+
+    test('base case', () => {
+        renderWithFullContext(
+            <ConvertGmToChannelModal {...baseProps}/>
+        );
+    });
+});
