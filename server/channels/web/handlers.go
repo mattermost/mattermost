@@ -157,7 +157,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("method", r.Method),
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
-			mlog.String("uswer_id", logUserID),
+			mlog.String("user_id", logUserID),
 		}
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
