@@ -3139,7 +3139,7 @@ func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error
 	return err
 }
 
-func (s *TimerLayerEmojiStore) Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) Get(ctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
 	start := time.Now()
 
 	result, err := s.EmojiStore.Get(ctx, id, allowFromCache)
@@ -3155,7 +3155,7 @@ func (s *TimerLayerEmojiStore) Get(ctx context.Context, id string, allowFromCach
 	return result, err
 }
 
-func (s *TimerLayerEmojiStore) GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) GetByName(ctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
 	start := time.Now()
 
 	result, err := s.EmojiStore.GetByName(ctx, name, allowFromCache)
@@ -3187,7 +3187,7 @@ func (s *TimerLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) GetMultipleByName(ctx request.CTX, names []string) ([]*model.Emoji, error) {
 	start := time.Now()
 
 	result, err := s.EmojiStore.GetMultipleByName(ctx, names)

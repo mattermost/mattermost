@@ -4168,7 +4168,7 @@ func TestImportImportEmoji(t *testing.T) {
 	appErr := th.App.importEmoji(th.Context, &data, true)
 	assert.NotNil(t, appErr, "Invalid emoji should have failed dry run")
 
-	emoji, nErr := th.App.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, nErr := th.App.Srv().Store().Emoji().GetByName(th.Context, *data.Name, true)
 	assert.Nil(t, emoji, "Emoji should not have been imported")
 	assert.Error(t, nErr)
 
@@ -4188,7 +4188,7 @@ func TestImportImportEmoji(t *testing.T) {
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.Nil(t, appErr, "Valid emoji should have succeeded apply mode")
 
-	emoji, nErr = th.App.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, nErr = th.App.Srv().Store().Emoji().GetByName(th.Context, *data.Name, true)
 	assert.NotNil(t, emoji, "Emoji should have been imported")
 	assert.NoError(t, nErr, "Emoji should have been imported without any error")
 

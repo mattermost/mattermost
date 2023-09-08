@@ -46,6 +46,13 @@ func EmptyContext(logger mlog.LoggerIFace) *Context {
 	}
 }
 
+// TestContext creates an empty context with a new logger to use in testing where a test helper is
+// not required.
+func TestContext() *Context {
+	logger, _ := mlog.NewLogger()
+	return EmptyContext(logger)
+}
+
 func (c *Context) T(translationID string, args ...any) string {
 	return c.t(translationID, args...)
 }
