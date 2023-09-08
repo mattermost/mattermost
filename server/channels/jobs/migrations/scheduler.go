@@ -74,7 +74,12 @@ func (scheduler *Scheduler) ScheduleJob(c *request.Context, cfg *model.Config, p
 		}
 
 		if state == MigrationStateUnscheduled {
-			job.Logger.Debug("Scheduling a new job for migration.", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("migration_key", key))
+			// GetMigrationState can return a nil job
+			logger := scheduler.jobServer.Logger()
+			if job != nil {
+				logger = job.Logger
+			}
+			logger.Debug("Scheduling a new job for migration.", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("migration_key", key))
 			return scheduler.createJob(c, key, job)
 		}
 
