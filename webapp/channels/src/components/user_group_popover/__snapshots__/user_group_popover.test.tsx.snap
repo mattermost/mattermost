@@ -234,7 +234,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                               <span
                                 className="NoShrink-kvXWXm Dot-etDJYJ wzpro jiooBj"
                               >
-                                 •
+                                •
                               </span>
                             </Dot>
                             <FormattedMessage
