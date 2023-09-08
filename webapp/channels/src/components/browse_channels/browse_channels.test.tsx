@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
-import BrowseChannels, {Filter, Props} from 'components/browse_channels/browse_channels';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import type {Props} from 'components/browse_channels/browse_channels';
+import BrowseChannels, {Filter} from 'components/browse_channels/browse_channels';
 import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';

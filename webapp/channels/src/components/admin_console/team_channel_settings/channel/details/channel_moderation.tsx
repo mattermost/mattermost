@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, MessageDescriptor, defineMessages} from 'react-intl';
-import {isNil} from 'lodash';
 import classNames from 'classnames';
+import {isNil} from 'lodash';
+import React from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
-import {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
+import type {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
 
 import {Permissions, Roles} from 'mattermost-redux/constants';
 
@@ -14,7 +15,7 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 
-import {ChannelModerationRoles} from './types';
+import type {ChannelModerationRoles} from './types';
 
 const PERIOD_TO_SLASH_REGEX = /\./g;
 

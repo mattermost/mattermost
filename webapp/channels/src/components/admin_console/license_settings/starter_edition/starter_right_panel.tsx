@@ -4,9 +4,9 @@
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
+import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
+import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
 
 const StarterRightPanel = () => {
     const upgradeAdvantages = [

@@ -1,38 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef, useState} from 'react';
-import {MessageDescriptor, useIntl, FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
-import Scrollbars from 'react-custom-scrollbars';
 import classNames from 'classnames';
+import React, {useEffect, useRef, useState} from 'react';
+import Scrollbars from 'react-custom-scrollbars';
+import {useIntl, FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 
-import SearchResultsHeader from 'components/search_results_header';
-import SearchHint from 'components/search_hint/search_hint';
-import LoadingSpinner from 'components/widgets/loading/loading_wrapper';
-import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
-import FlagIcon from 'components/widgets/icons/flag_icon';
 import FileSearchResultItem from 'components/file_search_results';
+import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import SearchHint from 'components/search_hint/search_hint';
+import SearchResultsHeader from 'components/search_results_header';
+import FlagIcon from 'components/widgets/icons/flag_icon';
+import LoadingSpinner from 'components/widgets/loading/loading_wrapper';
 
-import * as Utils from 'utils/utils';
 import {searchHintOptions, DataSearchTypes} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
 import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
-import {Post} from '@mattermost/types/posts';
-import {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
-
-import MessageOrFileSelector from './messages_or_files_selector';
 import FilesFilterMenu from './files_filter_menu';
+import MessageOrFileSelector from './messages_or_files_selector';
 import PostSearchResultsItem from './post_search_results_item';
 import SearchLimitsBanner from './search_limits_banner';
-
 import type {Props} from './types';
 
 import './search_results.scss';

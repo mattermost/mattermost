@@ -292,7 +292,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// Step 7: Init License
 	if model.BuildEnterpriseReady == "true" {
-		ps.TriggerLoadLicense()
+		ps.LoadLicense()
 	}
 
 	// Step 8: Init Metrics Server depends on step 6 (store) and 7 (license)
@@ -353,7 +353,9 @@ func (ps *PlatformService) Start() error {
 		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
 		message.Add("config", ps.ClientConfigWithComputed())
-		ps.Publish(message)
+		ps.Go(func() {
+			ps.Publish(message)
+		})
 
 		if err := ps.ReconfigureLogger(); err != nil {
 			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
@@ -366,7 +368,9 @@ func (ps *PlatformService) Start() error {
 
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", ps.GetSanitizedClientLicense())
-		ps.Publish(message)
+		ps.Go(func() {
+			ps.Publish(message)
+		})
 
 	})
 	return nil

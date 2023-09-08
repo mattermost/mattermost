@@ -3,21 +3,22 @@
 
 import React from 'react';
 
-import {Emoji} from '@mattermost/types/emojis';
+import type {Emoji} from '@mattermost/types/emojis';
 
 import {autocompleteCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
-
 import store from 'stores/redux_store.jsx';
 
 import {Preferences} from 'utils/constants';
-import * as Emoticons from 'utils/emoticons';
 import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
+import * as Emoticons from 'utils/emoticons';
 
-import {SuggestionContainer, SuggestionProps} from './suggestion';
-import Provider, {ResultsCallback} from './provider';
+import Provider from './provider';
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
 
 export const MIN_EMOTICON_LENGTH = 2;
 export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];
