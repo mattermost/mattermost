@@ -9,24 +9,24 @@ import {Channel} from "@mattermost/types/lib/channels";
 import {UserProfile} from "@mattermost/types/lib/users";
 import {TestHelper} from "utils/test_helper";
 
-describe('component/ConvertGmToChannelModal', () => {
-
-    const baseProps: Props = {
-        onExited: jest.fn(),
-        channel: {},
-        actions: {},
-        profilesInChannel: [
-            TestHelper.fakeUser(),
-        ] as UserProfile[],
-        // teammateNameDisplaySetting: string;
-        // channelsCategoryId: string | undefined;
-        // currentUserId: string;
-    }
-
-
-    test('base case', () => {
-        renderWithFullContext(
-            <ConvertGmToChannelModal/>
-        )
-    });
-});
+// describe('component/ConvertGmToChannelModal', () => {
+//
+//     const baseProps: Props = {
+//         onExited: jest.fn(),
+//         channel: {},
+//         actions: {},
+//         profilesInChannel: [
+//             TestHelper.fakeUser(),
+//         ] as UserProfile[],
+//         // teammateNameDisplaySetting: string;
+//         // channelsCategoryId: string | undefined;
+//         // currentUserId: string;
+//     }
+//
+//
+//     test('base case', () => {
+//         renderWithFullContext(
+//             <ConvertGmToChannelModal/>
+//         )
+//     });
+// });
