@@ -267,40 +267,32 @@ func (s *SqlDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(cr
 }
 
 func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
-
-	var sql string
-	var args []interface{}
+	var builder Builder
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		selectSql, selectArgs, err := s.getQueryBuilder().
-			Select("UserId", "ChannelId", "RootId").
-			From("Drafts").
-			Where(sq.Or{
-				sq.Gt{"CreateAt": createAt},
-				sq.And{
-					sq.Eq{"CreateAt": createAt},
-					sq.Gt{"UserId": userId},
-				},
-			}).
-			OrderBy("CreateAt", "UserId").
-			Limit(100).
-			ToSql()
-		if err != nil {
-			return err
-		}
-		sql = `
-			WITH dd AS (` + selectSql + `) 
-			DELETE FROM
-				Drafts d 
-			USING dd 
-			WHERE 
-				d.UserId = dd.UserId 
-				AND d.ChannelId = dd.ChannelId 
-				AND d.RootId = dd.RootId
-				AND d.Message = ''
-		`
-		args = selectArgs
+		builder = s.getQueryBuilder().
+			Delete("Drafts d").
+			PrefixExpr(s.getQueryBuilder().Select().
+				Prefix("WITH dd AS (").
+				Columns("UserId", "ChannelId", "RootId").
+				From("Drafts").
+				Where(sq.Or{
+					sq.Gt{"CreateAt": createAt},
+					sq.And{
+						sq.Eq{"CreateAt": createAt},
+						sq.Gt{"UserId": userId},
+					},
+				}).
+				OrderBy("CreateAt", "UserId").
+				Limit(100).
+				Suffix(")"),
+			).
+			Using("dd").
+			Where("d.UserId = dd.UserId").
+			Where("d.ChannelId = dd.ChannelId").
+			Where("d.RootId = dd.RootId").
+			Where("d.Message = ''")
 	} else if s.DriverName() == model.DatabaseDriverMysql {
-		deleteSql, deleteArgs, err := s.getQueryBuilder().
+		builder = s.getQueryBuilder().
 			Delete("Drafts").
 			Where(sq.And{
 				sq.Or{
@@ -313,16 +305,10 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 				sq.Eq{"Message": ""},
 			}).
 			OrderBy("CreateAt", "UserId").
-			Limit(100).
-			ToSql()
-		if err != nil {
-			return err
-		}
-		sql = deleteSql
-		args = deleteArgs
+			Limit(100)
 	}
 
-	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
+	if _, err := s.GetMasterX().ExecBuilder(builder); err != nil {
 		return errors.Wrapf(err, "failed to delete empty drafts")
 	}
 
