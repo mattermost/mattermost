@@ -9869,5 +9869,13 @@
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Kalıcı bildirim doğrulanamadı."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Okunmamış ve anma iletileri denetlenemedi"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Kanal tarafından tüm konular okunmuş olarak işaretlenemedi"
   }
 ]
