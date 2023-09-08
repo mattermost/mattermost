@@ -194,7 +194,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                             </Title>
                             <CloseButton
                               aria-label="Close"
-                              className="btn btn-icon"
+                              className="btn btn-xs btn-icon"
                               onClick={[Function]}
                             >
                               <button

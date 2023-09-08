@@ -92,6 +92,15 @@ button {
         font-size: 18px;
     }
 
+    &.btn-xs {
+        height: 28px;
+
+        &.btn-icon {
+            width: 28px;
+            padding: 0;
+        }
+    }
+
     &.btn-sm {
         height: 32px;
         padding: 0 16px;

@@ -202,7 +202,7 @@ const UserGroupPopover = (props: Props) => {
                             {group.display_name}
                         </Title>
                         <CloseButton
-                            className='btn btn-icon'
+                            className='btn btn-xs btn-icon'
                             aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close'})}
                             onClick={handleClose}
                             ref={closeRef}
