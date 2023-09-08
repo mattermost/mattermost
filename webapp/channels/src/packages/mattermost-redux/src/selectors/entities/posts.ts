@@ -296,7 +296,7 @@ export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel
             for (let i = 0; i < postIds.length; i++) {
                 const post = allPosts[postIds[i]];
 
-                if (shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
+                if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
                     continue;
                 }
 
