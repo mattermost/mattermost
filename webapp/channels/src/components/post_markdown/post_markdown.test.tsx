@@ -3,12 +3,11 @@
 
 import React from 'react';
 
-import {Post, PostType} from '@mattermost/types/posts';
+import type {Post, PostType} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
 
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-
 import {TestHelper} from 'utils/test_helper';
 
 import PostMarkdown from './post_markdown';

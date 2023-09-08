@@ -2,32 +2,29 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {FormattedMessage, useIntl} from 'react-intl';
+import type {Channel} from '@mattermost/types/channels';
 
-import EmptyStateThemeableSvg from 'components/common/svg_images_components/empty_state_themeable_svg';
-
-import {Channel} from '@mattermost/types/channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {Permissions} from 'mattermost-redux/constants';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import ToggleModalButton from 'components/toggle_modal_button';
-import InvitationModal from 'components/invitation_modal';
-import ChannelInviteModal from 'components/channel_invite_modal';
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
+import ChannelInviteModal from 'components/channel_invite_modal';
+import EmptyStateThemeableSvg from 'components/common/svg_images_components/empty_state_themeable_svg';
+import InvitationModal from 'components/invitation_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
+import ToggleModalButton from 'components/toggle_modal_button';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 import './add_members_button.scss';
-
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 export interface AddMembersButtonProps {
     totalUsers?: number;

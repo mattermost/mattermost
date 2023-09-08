@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {CustomEmoji} from '@mattermost/types/emojis';
+import type {GlobalState} from '@mattermost/types/store';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import {CustomEmoji} from '@mattermost/types/emojis';
-import {GlobalState} from '@mattermost/types/store';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
 export const getCustomEmojisEnabled = (state: GlobalState): boolean => {

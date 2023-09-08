@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject} from 'react';
+import React from 'react';
+import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserNotifyProps} from '@mattermost/types/users';
 
 import {getEmailInterval} from 'mattermost-redux/utils/notify_props';
 
+import SettingItemMax from 'components/setting_item_max';
+import SettingItemMin from 'components/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+
 import {Preferences, NotificationLevels} from 'utils/constants';
 import {a11yFocus, localizeMessage} from 'utils/utils';
-
-import SettingItemMin from 'components/setting_item_min';
-import SettingItemMax from 'components/setting_item_max';
-import SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
-
-import {UserNotifyProps} from '@mattermost/types/users';
-import {PreferenceType} from '@mattermost/types/preferences';
 
 const SECONDS_PER_MINUTE = 60;
 

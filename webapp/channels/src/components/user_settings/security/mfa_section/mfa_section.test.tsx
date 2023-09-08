@@ -7,6 +7,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 
 import MfaSection from 'components/user_settings/security/mfa_section/mfa_section';
+
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {getHistory} from 'utils/browser_history';
 

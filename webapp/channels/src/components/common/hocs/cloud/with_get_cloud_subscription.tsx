@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentType} from 'react';
-
 import {isEmpty} from 'lodash';
+import React from 'react';
+import type {ComponentType} from 'react';
 
-import {Subscription} from '@mattermost/types/cloud';
+import type {Subscription} from '@mattermost/types/cloud';
 
 interface Actions {
     getCloudSubscription?: () => void;
