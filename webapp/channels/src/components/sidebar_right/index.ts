@@ -6,8 +6,6 @@ import {bindActionCreators, Dispatch} from 'redux';
 
 import {withRouter, RouteComponentProps} from 'react-router-dom';
 
-import {memo} from 'react';
-
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -77,4 +75,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(memo(SidebarRight)));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SidebarRight));
