@@ -2479,7 +2479,7 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 
 	th.App.Srv().Store().Team()
 
-	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", "user_id_1", "user_id_2", "user_id_3").Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
+	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2", "user_id_3"}).Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
 	mockTeamStore.On("GetMany", []string{"team_id_1", "team_id_2", "team_id_3"}).Return(
 		[]*model.Team{
 			{DisplayName: "Team 1"},
@@ -2506,7 +2506,7 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 	require.Equal(t, 3, len(commonTeams))
 
 	// case of no common teams
-	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", "user_id_1", "user_id_2", "user_id_3").Return([]string{}, nil)
+	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2", "user_id_3"}).Return([]string{}, nil)
 	commonTeams, appErr = th.App.GetGroupMessageMembersCommonTeams(th.Context, "gm_channel_id")
 	require.Nil(t, appErr)
 	require.Equal(t, 0, len(commonTeams))
@@ -2547,7 +2547,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockTeamStore := mocks.TeamStore{}
 	mockStore.On("Team").Return(&mockTeamStore)
 	mockTeamStore.On("GetMember", sqlstore.WithMaster(context.Background()), "team_id_1", "user_id_1").Return(&model.TeamMember{}, nil)
-	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", "user_id_1", "user_id_2", "user_id_3").Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
+	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2", "user_id_3"}).Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
 	mockTeamStore.On("GetMany", []string{"team_id_1", "team_id_2", "team_id_3"}).Return(
 		[]*model.Team{
 			{Id: "team_id_1", DisplayName: "Team 1"},

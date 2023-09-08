@@ -4836,7 +4836,6 @@
   "sidebar_left.sidebar_channel_menu.unfavoriteChannel": "Unfavorite",
   "sidebar_left.sidebar_channel_menu.unmuteChannel": "Unmute Channel",
   "sidebar_left.sidebar_channel_menu.unmuteConversation": "Unmute Conversation",
-  "sidebar_left.sidebar_channel_modal.all_users_deactivated_error": "Unable to convert to a channel because all other group members are deactivated",
   "sidebar_left.sidebar_channel_modal.channel_name_placeholder": "Enter a name for the channel",
   "sidebar_left.sidebar_channel_modal.confirmation_text": "Convert to private channel",
   "sidebar_left.sidebar_channel_modal.header": "Convert to Private Channel",

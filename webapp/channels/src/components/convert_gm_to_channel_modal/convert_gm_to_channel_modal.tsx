@@ -53,8 +53,6 @@ const ConvertGmToChannelModal = (props: Props) => {
         setChannelChannelURL(newURL);
     }, []);
 
-    // const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting));
-
     const [channelMemberNames, setChannelMemberNames] = useState<string[]>([]);
 
     useEffect(() => {
