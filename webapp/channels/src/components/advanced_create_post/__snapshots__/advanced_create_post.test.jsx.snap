@@ -12,7 +12,9 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -44,7 +46,6 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -53,13 +54,18 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -90,7 +96,9 @@ exports[`components/advanced_create_post should match snapshot for center textbo
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -122,7 +130,6 @@ exports[`components/advanced_create_post should match snapshot for center textbo
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -131,13 +138,18 @@ exports[`components/advanced_create_post should match snapshot for center textbo
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -168,7 +180,9 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
     badConnection={false}
     canPost={false}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -200,7 +214,6 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -209,13 +222,18 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -246,7 +264,9 @@ exports[`components/advanced_create_post should match snapshot when file upload 
     badConnection={false}
     canPost={true}
     canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -278,7 +298,6 @@ exports[`components/advanced_create_post should match snapshot when file upload 
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -287,13 +306,18 @@ exports[`components/advanced_create_post should match snapshot when file upload 
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -324,7 +348,9 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -356,7 +382,6 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -365,13 +390,18 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -402,7 +432,9 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -434,7 +466,6 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -443,13 +474,18 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -480,7 +516,9 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     badConnection={false}
     canPost={false}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -512,7 +550,6 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -521,13 +558,18 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -558,7 +600,9 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     badConnection={false}
     canPost={false}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -590,7 +634,6 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -599,13 +642,18 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -636,7 +684,9 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -668,7 +718,6 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -677,13 +726,18 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -714,7 +768,9 @@ exports[`components/advanced_create_post should match snapshot, post priority di
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -751,7 +807,6 @@ exports[`components/advanced_create_post should match snapshot, post priority di
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -760,13 +815,18 @@ exports[`components/advanced_create_post should match snapshot, post priority di
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -805,7 +865,9 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -837,7 +899,6 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -846,13 +907,18 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -896,7 +962,9 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
@@ -933,7 +1001,6 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -957,13 +1024,18 @@ exports[`components/advanced_create_post should match snapshot, post priority en
         }
       />
     }
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
