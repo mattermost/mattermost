@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 
-import {General, Posts} from 'mattermost-redux/constants';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
 
-import * as Utils from 'utils/utils';
-import {TextFormattingOptions} from 'utils/text_formatting';
-import {getSiteURL} from 'utils/url';
+import {General, Posts} from 'mattermost-redux/constants';
+import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
+
 import Markdown from 'components/markdown';
 import CombinedSystemMessage from 'components/post_view/combined_system_message';
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {Team} from '@mattermost/types/teams';
+import type {TextFormattingOptions} from 'utils/text_formatting';
+import {getSiteURL} from 'utils/url';
 
 function renderUsername(value: string): ReactNode {
     const username = (value[0] === '@') ? value : `@${value}`;
@@ -387,7 +389,7 @@ const systemMessageRenderers = {
 };
 
 export function renderSystemMessage(post: Post, currentTeam: Team, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
-    const isEphemeral = Utils.isPostEphemeral(post);
+    const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
         return renderReminderACKMessage(post, currentTeam, Boolean(isMilitaryTime), timezone);
     }

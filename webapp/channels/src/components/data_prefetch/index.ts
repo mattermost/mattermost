@@ -2,28 +2,25 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {PostList} from '@mattermost/types/posts';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors/entities/channels';
-import {memoizeResult} from 'mattermost-redux/utils/helpers';
-import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
-
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {PostList} from '@mattermost/types/posts';
-
-import {RelationOneToOne} from '@mattermost/types/utilities';
+import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
+import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
 import {prefetchChannelPosts} from 'actions/views/channel';
-
 import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
-import {GlobalState} from 'types/store';
-
-import {getBool, isCollapsedThreadsEnabled} from '../../packages/mattermost-redux/src/selectors/entities/preferences';
-
 import {Preferences} from 'mattermost-redux/constants';
+import type {GlobalState} from 'types/store';
 
 import {trackPreloadedChannels} from './actions';
 import DataPrefetch from './data_prefetch';

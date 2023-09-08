@@ -3,11 +3,15 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import {AdminConfig} from '@mattermost/types/config';
-import {useIntl} from 'react-intl';
+import type {useIntl} from 'react-intl';
+
+import type {AdminConfig} from '@mattermost/types/config';
+
 import {ConsolePages, DocLinks} from 'utils/constants';
-import {ItemModel, ItemStatus, Options} from '../dashboard.type';
+
 import {impactModifiers} from '../dashboard.data';
+import {ItemStatus} from '../dashboard.type';
+import type {ItemModel, Options} from '../dashboard.type';
 
 /**
  *

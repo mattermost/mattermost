@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-import {Overlay} from 'react-bootstrap';
 import memoize from 'memoize-one';
+import React from 'react';
+import type {ReactNode} from 'react';
+import {Overlay} from 'react-bootstrap';
 
-import {popOverOverlayPosition} from 'utils/position_utils';
+import type {Emoji} from '@mattermost/types/emojis';
+
 import {Constants} from 'utils/constants';
-
-import {Emoji} from '@mattermost/types/emojis';
+import {popOverOverlayPosition} from 'utils/position_utils';
 
 import EmojiPickerTabs from '../emoji_picker_tabs';
 

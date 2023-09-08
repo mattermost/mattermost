@@ -3,12 +3,13 @@
 
 import React from 'react';
 
-import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
+import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
+
 import Markdown from 'components/markdown';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 type Props = {
     action: PostAction;

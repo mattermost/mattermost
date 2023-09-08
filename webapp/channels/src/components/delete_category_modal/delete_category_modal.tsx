@@ -4,14 +4,13 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ChannelCategory} from '@mattermost/types/channel_categories';
-
 import {GenericModal} from '@mattermost/components';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import {localizeMessage} from 'utils/utils';
 import {t} from 'utils/i18n';
+import {localizeMessage} from 'utils/utils';
 
 import '../category_modal.scss';
 
