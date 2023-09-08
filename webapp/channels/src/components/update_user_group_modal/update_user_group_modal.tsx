@@ -158,7 +158,7 @@ const UpdateUserGroupModal = (props: Props) => {
             <Modal.Header closeButton={true}>
                 <button
                     type='button'
-                    className='modal-header-back-button btn-icon'
+                    className='modal-header-back-button btn btn-icon'
                     aria-label='Close'
                     onClick={goBack}
                 >

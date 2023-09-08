@@ -202,7 +202,7 @@ const UserGroupPopover = (props: Props) => {
                             {group.display_name}
                         </Title>
                         <CloseButton
-                            className='btn-icon'
+                            className='btn btn-icon'
                             aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close'})}
                             onClick={handleClose}
                             ref={closeRef}
@@ -212,7 +212,7 @@ const UserGroupPopover = (props: Props) => {
                     </Heading>
                     <Subtitle>
                         <span className='overflow--ellipsis text-nowrap'>{'@'}{group.name}</span>
-                        <Dot>{' • '}</Dot>
+                        <Dot>{'•'}</Dot>
                         <FormattedMessage
                             id='user_group_popover.memberCount'
                             defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'

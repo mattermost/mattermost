@@ -66,7 +66,7 @@ const ViewUserGroupListItem = (props: Props) => {
                 (group.source.toLowerCase() !== GroupSource.Ldap && props.permissionToLeaveGroup) &&
                 <button
                     type='button'
-                    className='remove-group-member btn-icon'
+                    className='remove-group-member btn btn-icon'
                     aria-label='Close'
                     onClick={removeUserFromGroup}
                 >
