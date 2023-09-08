@@ -28,7 +28,7 @@ import LoadingScreen from 'components/loading_screen';
 import RhsPlugin from 'plugins/rhs_plugin';
 import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';
 
-type Props = {
+export type Props = {
     isExpanded: boolean;
     isOpen: boolean;
     channel: Channel;

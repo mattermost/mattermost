@@ -77,4 +77,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(memo(SidebarRight)));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SidebarRight));
