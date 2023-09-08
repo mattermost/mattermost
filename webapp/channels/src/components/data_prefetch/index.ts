@@ -9,6 +9,7 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PostList} from '@mattermost/types/posts';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
@@ -19,7 +20,6 @@ import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {prefetchChannelPosts} from 'actions/views/channel';
 import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
-import {Preferences} from 'mattermost-redux/constants';
 import type {GlobalState} from 'types/store';
 
 import {trackPreloadedChannels} from './actions';
