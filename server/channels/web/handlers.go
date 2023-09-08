@@ -150,12 +150,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	appInstance := app.New(app.ServerConnector(h.Srv.Channels()))
 
 	requestID := model.NewId()
+	logUserID := ""
 	var statusCode string
 	defer func() {
 		responseLogFields := []mlog.Field{
 			mlog.String("method", r.Method),
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
+			mlog.String("uswer_id", logUserID),
 		}
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
@@ -316,6 +318,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	logUserID = c.AppContext.Session().UserId
 
 	c.Logger = c.App.Log().With(
 		mlog.String("path", c.AppContext.Path()),
