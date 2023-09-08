@@ -26,8 +26,7 @@ import type {Actions} from 'components/convert_gm_to_channel_modal/index';
 import NoCommonTeamsError from 'components/convert_gm_to_channel_modal/no_common_teams/no_common_teams';
 import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/team_selector';
 import WarningTextSection from 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section';
-
-import loadingIcon from 'images/spinner-48x48-blue.apng';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 export type Props = {
     onExited: () => void;
@@ -150,9 +149,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         if (showLoader) {
             subBody = (
                 <div className='loadingIndicator'>
-                    <img
-                        src={loadingIcon}
-                    />
+                    <LoadingSpinner/>
                 </div>
             );
         } else {

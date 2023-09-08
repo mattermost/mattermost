@@ -27,14 +27,11 @@
         }
 
         .loadingIndicator {
-            margin-bottom: 48px;
-
-            img {
-                display: block;
-                width: 32px;
-                height: 32px;
-                margin: 36px auto;
-            }
+            display: block;
+            width: 32px;
+            height: 32px;
+            margin: 36px auto 48px;
+            font-size: 32px;
         }
 
         .conversion-error {

@@ -15,6 +15,7 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import ConvertChannelModal from 'components/convert_channel_modal';
+import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal';
 import DeleteChannelModal from 'components/delete_channel_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';

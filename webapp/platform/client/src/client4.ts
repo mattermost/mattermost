@@ -4203,6 +4203,8 @@ export default class Client4 {
     }
 
     getGroupMessageMembersCommonTeams = (channelId: string) => {
+        const u = `${this.getChannelRoute(channelId)}/common_teams`;
+        console.log(u);
         return this.doFetchWithResponse<Team[]>(
             `${this.getChannelRoute(channelId)}/common_teams`,
             {method: 'get'},
