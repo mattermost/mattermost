@@ -135,13 +135,13 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 			// Pretend like the bot doesn't exist at all to avoid revealing that the
 			// user is a bot. It's kind of silly in this case, sine we created the bot,
 			// but we don't have read bot permissions.
-			c.Err = model.MakeBotNotFoundError(botUserId)
+			c.Err = model.MakeBotNotFoundError("permissions", botUserId)
 			return
 		}
 	} else {
 		// Pretend like the bot doesn't exist at all, to avoid revealing that the
 		// user is a bot.
-		c.Err = model.MakeBotNotFoundError(botUserId)
+		c.Err = model.MakeBotNotFoundError("permissions", botUserId)
 		return
 	}
 
