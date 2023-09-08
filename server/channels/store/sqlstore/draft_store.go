@@ -293,19 +293,25 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 			Where("d.Message = ''")
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		builder = s.getQueryBuilder().
-			Delete("Drafts").
-			Where(sq.And{
-				sq.Or{
-					sq.Gt{"CreateAt": createAt},
-					sq.And{
-						sq.Eq{"CreateAt": createAt},
-						sq.Gt{"UserId": userId},
+			Delete("Drafts d").
+			What("d.*").
+			JoinClause(s.getQueryBuilder().Select().
+				Prefix("INNER JOIN (").
+				Columns("UserId, ChannelId, RootId").
+				From("Drafts").
+				Where(sq.And{
+					sq.Or{
+						sq.Gt{"CreateAt": createAt},
+						sq.And{
+							sq.Eq{"CreateAt": createAt},
+							sq.Gt{"UserId": userId},
+						},
 					},
-				},
-				sq.Eq{"Message": ""},
-			}).
-			OrderBy("CreateAt", "UserId").
-			Limit(100)
+				}).
+				OrderBy("CreateAt", "UserId").
+				Limit(100).
+				Suffix(") dj ON (d.UserId = dj.UserId AND d.ChannelId = dj.ChannelId AND d.RootId = dj.RootId)"),
+			).Where(sq.Eq{"Message": ""})
 	}
 
 	if _, err := s.GetMasterX().ExecBuilder(builder); err != nil {
