@@ -2312,6 +2312,10 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[stri
 	defer rows.Close()
 
 	memberCounts := make(map[string]int64)
+	// Initialize member counts for channels with zero members
+	for _, channelID := range channelIDs {
+		memberCounts[channelID] = 0
+	}
 	for rows.Next() {
 		var channelID string
 		var count int64
