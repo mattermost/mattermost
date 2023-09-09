@@ -1529,7 +1529,7 @@ func (s SqlTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]stri
 
 	query := s.getQueryBuilder().
 		Select("t.Id").
-		From("Teams AS T").
+		From("Teams AS t").
 		Join("("+subQuerySQL+") AS tm ON t.Id = tm.TeamId", subQueryParams...).
 		Where(sq.Eq{
 			"t.DeleteAt": 0,
