@@ -9865,5 +9865,13 @@
   {
     "id": "model.config.is_valid.persistent_notifications_interval.app_error",
     "translation": "Invalid frequency of persistent notifications. Must be at least two minutes."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Unable to check unreads and mentions"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Unable to mark all threads as read by channel"
   }
 ]
