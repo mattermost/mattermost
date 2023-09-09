@@ -263,7 +263,7 @@ func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID stri
 	if err == nil {
 		return true
 	}
-	if err.Id == "store.sql_bot.get.missing.app_error" && err.Unwrap() != nil {
+	if err.Id == "store.sql_bot.get.missing.app_error" && err.Where == "SqlBotStore.Get" {
 		if a.SessionHasPermissionToUser(session, userID) {
 			return true
 		}
@@ -385,7 +385,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 			if !a.SessionHasPermissionTo(session, model.PermissionReadBots) {
 				// If the user doesn't have permission to read bots, pretend as if
 				// the bot doesn't exist at all.
-				return model.MakeBotNotFoundError(botUserId)
+				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
 			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
 		}
@@ -394,7 +394,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 			if !a.SessionHasPermissionTo(session, model.PermissionReadOthersBots) {
 				// If the user doesn't have permission to read others' bots,
 				// pretend as if the bot doesn't exist at all.
-				return model.MakeBotNotFoundError(botUserId)
+				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
 			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageOthersBots})
 		}

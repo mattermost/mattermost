@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {memo} from 'react';
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -77,4 +76,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(memo(SidebarRight)));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SidebarRight));
