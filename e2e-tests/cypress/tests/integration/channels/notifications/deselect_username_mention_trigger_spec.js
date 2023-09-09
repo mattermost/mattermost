@@ -29,14 +29,16 @@ describe('Notifications', () => {
 
             // # Open 'Settings' modal
             cy.uiOpenSettingsModal().within(() => {
-                cy.get('#keysEdit').should('be.visible').click();
+                // # Open 'Keywords that trigger Notifications' setting
+                cy.findByRole('heading', {name: 'Keywords that trigger Notifications'}).should('be.visible').click();
 
                 // * As otherUser, ensure that 'Your non-case sensitive username' is not checked
-                cy.get('#notificationTriggerUsername').should('not.be.checked');
+                cy.findByRole('checkbox', {name: `Your non case-sensitive username "${otherUser.username}"`}).should('not.be.checked');
 
-                // # Close the modal
-                cy.get('#accountSettingsHeader').find('button').should('be.visible').click();
+                // # Save then close the modal
+                cy.uiSaveAndClose();
             });
+
             cy.apiLogout();
 
             // # Login as sysadmin
