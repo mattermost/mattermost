@@ -45,8 +45,6 @@ describe('Leave an archived channel', () => {
         // # Create a new channel
         cy.uiCreateChannel({isNewSidebar: true});
 
-        cy.makeClient().apiAddUsersToTeam()
-
         // # Make a post
         const archivedPostText = `archived${getRandomId()}`;
         cy.postMessage(archivedPostText);
