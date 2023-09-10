@@ -1,29 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import Permissions from 'mattermost-redux/constants/permissions';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {Channel, ChannelMembership, ChannelSearchOpts} from '@mattermost/types/channels';
 import {GenericModal} from '@mattermost/components';
+import type {Channel, ChannelMembership, ChannelSearchOpts} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import classNames from 'classnames';
+import Permissions from 'mattermost-redux/constants/permissions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
-import SearchableChannelList from 'components/searchable_channel_list';
-import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import LoadingScreen from 'components/loading_screen';
-
-import {ModalData} from 'types/actions';
-import {RhsState} from 'types/store/rhs';
+import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
+import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
+import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
 import {localizeMessage} from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 import './browse_channels.scss';
 
@@ -116,6 +116,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 return result.data ? result.data.map((channel) => channel.id) : [];
             },
             );
+            this.props.privateChannels.forEach((channel) => channelIDsForMemberCount.push(channel.id));
             if (channelIDsForMemberCount.length > 0) {
                 this.props.actions.getChannelsMemberCount(channelIDsForMemberCount);
             }

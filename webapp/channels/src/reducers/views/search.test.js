@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import searchReducer from 'reducers/views/search';
+
 import {SearchTypes} from 'utils/constants';
 
 describe('Reducers.Search', () => {

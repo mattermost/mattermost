@@ -13,7 +13,7 @@ type ElasticsearchIndexerInterface interface {
 
 type ElasticsearchAggregatorInterface interface {
 	MakeWorker() model.Worker
-	MakeScheduler() model.Scheduler
+	MakeScheduler() Scheduler
 }
 
 type ElasticsearchFixChannelIndexInterface interface {

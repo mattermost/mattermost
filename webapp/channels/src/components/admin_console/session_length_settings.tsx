@@ -4,12 +4,14 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
+import type {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
 import * as Utils from 'utils/utils';
 
-import AdminSettings, {BaseState, BaseProps} from './admin_settings';
+import AdminSettings from './admin_settings';
+import type {BaseState, BaseProps} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';

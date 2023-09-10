@@ -1,35 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, PropsWithChildren, useEffect} from 'react';
+import {isEmpty} from 'lodash';
+import React, {memo, useCallback, useEffect} from 'react';
+import type {PropsWithChildren} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {isEmpty} from 'lodash';
 
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
+import type {UserThread} from '@mattermost/types/threads';
 
-import * as Keyboard from 'utils/keyboard';
-import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 import {getThreads, markAllThreadsInTeamRead} from 'mattermost-redux/actions/threads';
-import {trackEvent} from 'actions/telemetry_actions';
-import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
-import NoResultsIndicator from 'components/no_results_indicator';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
-import Header from 'components/widgets/header';
-import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
-import {GlobalState} from 'types/store';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
-import CRTUnreadTutorialTip from 'components/tours/crt_tour/crt_unread_tutorial_tip';
-import {getIsMobileView} from 'selectors/views/browser';
-import {closeModal, openModal} from 'actions/views/modals';
+import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 
-import {UserThread} from '@mattermost/types/threads';
-import MarkAllThreadsAsReadModal, {MarkAllThreadsAsReadModalProps} from '../mark_all_threads_as_read_modal';
-import Button from '../../common/button';
-import BalloonIllustration from '../../common/balloon_illustration';
-import {useThreadRouting} from '../../hooks';
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal, openModal} from 'actions/views/modals';
+import {getIsMobileView} from 'selectors/views/browser';
+
+import NoResultsIndicator from 'components/no_results_indicator';
+import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
+import CRTUnreadTutorialTip from 'components/tours/crt_tour/crt_unread_tutorial_tip';
+import Header from 'components/widgets/header';
+import SimpleTooltip from 'components/widgets/simple_tooltip';
+
+import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+
+import type {GlobalState} from 'types/store';
 
 import VirtualizedThreadList from './virtualized_thread_list';
+
+import BalloonIllustration from '../../common/balloon_illustration';
+import Button from '../../common/button';
+import {useThreadRouting} from '../../hooks';
+import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
+import type {MarkAllThreadsAsReadModalProps} from '../mark_all_threads_as_read_modal';
+
 import './thread_list.scss';
 
 export enum ThreadFilter {

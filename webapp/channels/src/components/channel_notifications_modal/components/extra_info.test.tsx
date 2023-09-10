@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import {NotificationSections} from 'utils/constants';
+import React from 'react';
 
 import ExtraInfo from 'components/channel_notifications_modal/components/extra_info';
+
+import {NotificationSections} from 'utils/constants';
 
 describe('components/channel_notifications_modal/ExtraInfo', () => {
     const baseProps = {

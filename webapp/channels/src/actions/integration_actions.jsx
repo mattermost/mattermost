@@ -3,8 +3,8 @@
 
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 const DEFAULT_PAGE_SIZE = 100;
 

@@ -1,34 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 
-import {ProductIdentifier} from '@mattermost/types/products';
-import {Team} from '@mattermost/types/teams';
-import {Channel} from '@mattermost/types/channels';
-
-import {RhsState} from 'types/store/rhs';
+import type {Channel} from '@mattermost/types/channels';
+import type {ProductIdentifier} from '@mattermost/types/products';
+import type {Team} from '@mattermost/types/teams';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import Constants from 'utils/constants';
-import {isMac} from 'utils/user_agent';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-
-import FileUploadOverlay from 'components/file_upload_overlay';
-import RhsThread from 'components/rhs_thread';
-import RhsCard from 'components/rhs_card';
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
-import Search from 'components/search/index';
-import PostEditHistory from 'components/post_edit_history';
+import FileUploadOverlay from 'components/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
+import PostEditHistory from 'components/post_edit_history';
+import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';
+import RhsCard from 'components/rhs_card';
+import RhsThread from 'components/rhs_thread';
+import Search from 'components/search/index';
 
 import RhsPlugin from 'plugins/rhs_plugin';
-import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';
+import Constants from 'utils/constants';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {isMac} from 'utils/user_agent';
 
-type Props = {
+import type {RhsState} from 'types/store/rhs';
+
+export type Props = {
     isExpanded: boolean;
     isOpen: boolean;
     channel: Channel;

@@ -3,16 +3,14 @@
 
 import {mount, shallow} from 'enzyme';
 import React from 'react';
-
-import {DeepPartial} from 'redux';
-
 import {Provider} from 'react-redux';
+import type {DeepPartial} from 'redux';
 
 import ExternalImage from 'components/external_image';
 
 import mockStore from 'tests/test_store';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import YoutubeVideo from './youtube_video';
 
