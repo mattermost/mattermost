@@ -3,23 +3,18 @@
 
 import React, {useRef} from 'react';
 import {useIntl} from 'react-intl';
-import styled from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
+import styled from 'styled-components';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
-
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import {PlaybooksTourTip} from 'components/tours/onboarding_explore_tools_tour';
-import {FINISHED, TutorialTourName} from 'components/tours';
-
-import {isSwitcherOpen} from 'selectors/views/product_menu';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
+import {isSwitcherOpen} from 'selectors/views/product_menu';
+
 import {
     GenericTaskSteps,
     OnboardingTaskCategory,
@@ -27,17 +22,22 @@ import {
     TaskNameMapToSteps,
     useHandleOnBoardingTaskData,
 } from 'components/onboarding_tasks';
-import {ExploreOtherToolsTourSteps, suitePluginIds} from 'utils/constants';
-import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
-import {GlobalState} from 'types/store';
+import {FINISHED, TutorialTourName} from 'components/tours';
+import {PlaybooksTourTip} from 'components/tours/onboarding_explore_tools_tour';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useGetPluginsActivationState} from 'plugins/useGetPluginsActivationState';
+import {ExploreOtherToolsTourSteps, suitePluginIds} from 'utils/constants';
+import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
 
-import {useClickOutsideRef} from '../../hooks';
+import type {GlobalState} from 'types/store';
 
 import ProductBranding from './product_branding';
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
+
+import {useClickOutsideRef} from '../../hooks';
 
 export const ProductMenuContainer = styled.nav`
     display: flex;

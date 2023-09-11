@@ -14,11 +14,10 @@ import {
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
-
-import {GlobalState} from 'types/store';
-
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import NewChannelModal from './new_channel_modal';
 

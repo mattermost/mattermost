@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
-import {Instance} from '@popperjs/core';
-
+import type {Instance} from '@popperjs/core';
 import {debounce} from 'lodash';
+import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 
-import {MarkdownMode} from 'utils/markdown/apply_markdown';
+import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
 type WideMode = 'wide' | 'normal' | 'narrow' | 'min';
 

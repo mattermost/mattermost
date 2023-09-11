@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile} from '@mattermost/types/users';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {TeamTypes} from 'mattermost-redux/action_types';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
-import * as TeamActions from 'mattermost-redux/actions/teams';
-import {getUser} from 'mattermost-redux/actions/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import * as TeamActions from 'mattermost-redux/actions/teams';
 import {selectTeam} from 'mattermost-redux/actions/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getUser} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getHistory} from 'utils/browser_history';
 import {Preferences} from 'utils/constants';

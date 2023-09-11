@@ -3,40 +3,39 @@
 
 import React from 'react';
 import {isValidElementType} from 'react-is';
-import {Reducer} from 'redux';
+import type {Reducer} from 'redux';
 
-import {ProductScope} from '@mattermost/types/products';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {FileInfo} from '@mattermost/types/files';
+import type {ProductScope} from '@mattermost/types/products';
 
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
-
-import {
-    registerPluginWebSocketEvent,
-    unregisterPluginWebSocketEvent,
-    registerPluginReconnectHandler,
-    unregisterPluginReconnectHandler,
-} from 'actions/websocket_actions.jsx';
-
-import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
-
-import {
-    registerPluginTranslationsSource,
-    TranslationPluginFunction,
-} from 'actions/views/root';
 
 import {
     registerAdminConsolePlugin,
     unregisterAdminConsolePlugin,
     registerAdminConsoleCustomSetting,
 } from 'actions/admin_actions';
-
+import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
+import {
+    registerPluginTranslationsSource,
+} from 'actions/views/root';
+import type {
+    TranslationPluginFunction} from 'actions/views/root';
+import {
+    registerPluginWebSocketEvent,
+    unregisterPluginWebSocketEvent,
+    registerPluginReconnectHandler,
+    unregisterPluginReconnectHandler,
+} from 'actions/websocket_actions.jsx';
 import store from 'stores/redux_store.jsx';
+
 import {ActionTypes} from 'utils/constants';
-import {generateId} from 'utils/utils';
-import {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
-import {GlobalState} from 'types/store';
-import {FileInfo} from '@mattermost/types/files';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {reArg} from 'utils/func';
+import {generateId} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+import type {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 
@@ -1177,5 +1176,53 @@ export default class PluginRegistry {
             type: ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER,
             data,
         });
+    });
+
+    // Register a hook to intercept desktop notifications before they occur.
+    // Accepts a function to run before the desktop notification is triggered.
+    // The function has the following signature:
+    //   (post: Post, msgProps: NewPostMessageProps, channel: Channel,
+    //    teamId: string, args: DesktopNotificationArgs) => Promise<{
+    //         error?: string;
+    //         args?: DesktopNotificationArgs;
+    //     }>)
+    //
+    // DesktopNotificationArgs is the following type:
+    //   export type DesktopNotificationArgs = {
+    //     title: string;
+    //     body: string;
+    //     silent: boolean;
+    //     soundName: string;
+    //     url: string;
+    //     notify: boolean;
+    // };
+    //
+    // To stop a desktop notification and allow subsequent hooks to process the notification, return:
+    //   {args: {...args, notify: false}}
+    // To enable a desktop notification and allow subsequent hooks to process the notification, return:
+    //   {args: {...args, notify: true}}
+    // To stop a desktop notification and prevent subsequent hooks from processing the notification, return either:
+    //   {error: 'log this error'}, or {}
+    // To allow subsequent hooks to process the notification, return:
+    //   {args}, or null or undefined (thanks js)
+    //
+    // The args returned by the hook will be used as the args for the next hook, until all hooks are
+    // completed. The resulting args will be used as the arguments for the `notifyMe` function.
+    //
+    // Returns a unique identifier.
+    registerDesktopNotificationHook = reArg(['hook'], ({hook}) => {
+        const id = generateId();
+
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'DesktopNotificationHooks',
+            data: {
+                id,
+                pluginId: this.id,
+                hook,
+            },
+        });
+
+        return id;
     });
 }

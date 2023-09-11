@@ -2,16 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useState} from 'react';
-
 import {useSelector} from 'react-redux';
-
-import {GlobalState} from 'types/store';
 
 import CopyButton from 'components/copy_button';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
-
 import * as TextFormatting from 'utils/text_formatting';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     code: string;

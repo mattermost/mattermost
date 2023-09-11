@@ -3,12 +3,13 @@
 
 import nock from 'nock';
 
+import type {SearchParameter} from '@mattermost/types/search';
+
 import * as Actions from 'mattermost-redux/actions/search';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import {SearchParameter} from '@mattermost/types/search';
 
 describe('Actions.Search', () => {
     let store = configureStore();

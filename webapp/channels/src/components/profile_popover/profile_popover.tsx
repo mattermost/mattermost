@@ -1,54 +1,55 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {AccountOutlineIcon, AccountPlusOutlineIcon, CloseIcon, EmoticonHappyOutlineIcon, PhoneInTalkIcon, SendIcon} from '@mattermost/compass-icons/components';
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserCustomStatus, UserProfile} from '@mattermost/types/users';
+import {CustomStatusDuration} from '@mattermost/types/users';
 
-import Pluggable from 'plugins/pluggable';
-
-import {displayUsername, isGuest, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 import {Client4} from 'mattermost-redux/client';
+import {displayUsername, isGuest, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import * as GlobalActions from 'actions/global_actions';
 
-import {Channel} from '@mattermost/types/channels';
-import {ModalData} from 'types/actions';
-
-import {getHistory} from 'utils/browser_history';
-import Constants, {A11yClassNames, A11yCustomEventTypes, A11yFocusEventDetail, ModalIdentifiers, UserStatuses} from 'utils/constants';
-import {t} from 'utils/i18n';
-import * as Keyboard from 'utils/keyboard';
-import * as Utils from 'utils/utils';
-import {shouldFocusMainTextbox} from 'utils/post_utils';
-
-import {ProfileTimezone} from './profile_localtime';
-
-import StatusIcon from 'components/status_icon';
-import Timestamp from 'components/timestamp';
-import UserSettingsModal from 'components/user_settings/modal';
 import AddUserToChannelModal from 'components/add_user_to_channel_modal';
-import ToggleModalButton from 'components/toggle_modal_button';
-import Avatar from 'components/widgets/users/avatar';
-import Popover from 'components/widgets/popover';
-import SharedUserIndicator from 'components/shared_user_indicator';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import ProfilePopoverCallButton from 'components/profile_popover_call_button';
+import SharedUserIndicator from 'components/shared_user_indicator';
+import StatusIcon from 'components/status_icon';
+import Timestamp from 'components/timestamp';
+import ToggleModalButton from 'components/toggle_modal_button';
+import Tooltip from 'components/tooltip';
+import UserSettingsModal from 'components/user_settings/modal';
+import Popover from 'components/widgets/popover';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+import Tag from 'components/widgets/tag/tag';
+import Avatar from 'components/widgets/users/avatar';
 
-import {ServerError} from '@mattermost/types/errors';
-import {UserCustomStatus, UserProfile, CustomStatusDuration} from '@mattermost/types/users';
+import Pluggable from 'plugins/pluggable';
+import {getHistory} from 'utils/browser_history';
+import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Keyboard from 'utils/keyboard';
+import {shouldFocusMainTextbox} from 'utils/post_utils';
+import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+
+import {ProfileTimezone} from './profile_localtime';
 
 import './profile_popover.scss';
-import BotTag from '../widgets/tag/bot_tag';
-import GuestTag from '../widgets/tag/guest_tag';
-import Tag from '../widgets/tag/tag';
 
 export interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
 

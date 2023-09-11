@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
-import {AnyAction} from 'redux';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
+import {TeamTypes} from 'mattermost-redux/action_types';
 import {
     leaveChannel as leaveChannelRedux,
     joinChannel,
@@ -15,12 +16,9 @@ import {
     getChannel as loadChannel,
 } from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
-import {TeamTypes} from 'mattermost-redux/action_types';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {selectTeam} from 'mattermost-redux/actions/teams';
+import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {Posts, RequestStatus} from 'mattermost-redux/constants';
-
 import {
     getChannel,
     getChannelsNameMapInCurrentTeam,
@@ -33,6 +31,7 @@ import {
     isManuallyUnread,
     getCurrentChannelId,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getCurrentRelativeTeamUrl,
     getCurrentTeam,
@@ -41,24 +40,24 @@ import {
     getTeamsList,
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
-import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
-
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
-import {closeRightHandSide} from 'actions/views/rhs';
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
+import {closeRightHandSide} from 'actions/views/rhs';
 import {getLastViewedChannelName} from 'selectors/local_storage';
+import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
 import {getSocketStatus} from 'selectors/views/websocket';
-import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
+import LocalStorageStore from 'stores/local_storage_store';
 
 import {getHistory} from 'utils/browser_history';
-import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
-import LocalStorageStore from 'stores/local_storage_store';
 import {isArchivedChannel} from 'utils/channel_utils';
+import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 
 export function goToLastViewedChannel() {

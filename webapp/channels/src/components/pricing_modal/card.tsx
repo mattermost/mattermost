@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import classNames from 'classnames';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
-import classNames from 'classnames';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
 
 import {HostedCustomerLinks} from 'utils/constants';
 
+import BlankCardImage from './blank_card_image.svg';
 import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
-import BlankCardImage from './blank_card_image.svg';
 
 export enum ButtonCustomiserClasses {
     grayed = 'grayed',

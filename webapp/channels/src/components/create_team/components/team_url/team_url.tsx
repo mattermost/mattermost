@@ -5,19 +5,18 @@ import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
-import {ServerError} from '@mattermost/types/errors';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import Constants from 'utils/constants';
-import * as URL from 'utils/url';
-
-import logoImage from 'images/logo.png';
-
+import ExternalLink from 'components/external_link';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import ExternalLink from 'components/external_link';
+
+import logoImage from 'images/logo.png';
+import Constants from 'utils/constants';
+import * as URL from 'utils/url';
 
 type State = {
     isLoading: boolean;

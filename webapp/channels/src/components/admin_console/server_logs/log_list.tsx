@@ -5,14 +5,16 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ArrowDownIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
+import type {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
+import type {ChannelSearchOpts} from '@mattermost/types/channels';
 
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
-import {FilterOptions} from 'components/admin_console/filter/filter';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 
-import {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
-import {ChannelSearchOpts} from '@mattermost/types/channels';
-import './log_list.scss';
 import FullLogEventModal from '../full_log_event_modal';
+
+import './log_list.scss';
 
 type Props = {
     loading: boolean;

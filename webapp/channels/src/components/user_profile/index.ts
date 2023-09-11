@@ -3,11 +3,12 @@
 
 import {connect} from 'react-redux';
 
-import {getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import {getIsMobileView} from 'selectors/views/browser';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 import UserProfile from './user_profile';
 

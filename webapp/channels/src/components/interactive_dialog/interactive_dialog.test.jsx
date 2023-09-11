@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {Provider} from 'react-redux';
 
-import EmojiMap from 'utils/emoji_map';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
+import EmojiMap from 'utils/emoji_map';
 
 import InteractiveDialog from './interactive_dialog.jsx';
 
