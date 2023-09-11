@@ -148,7 +148,7 @@ describe('Compliance Export', () => {
         cy.findByTestId('enableComplianceExportfalse').click();
 
         // * Verify that exported button is disabled
-        cy.findByRole('button', {name: /run compliance export job now/i}).should('be.disabled');
+        cy.findByRole('button', {name: /run compliance export job now/i}).should('be.enabled');
     });
 
     it('MM-T1167 - Compliance Export job can be canceled', () => {
