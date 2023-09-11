@@ -4,11 +4,11 @@
 package storetest
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 
 	"github.com/stretchr/testify/assert"
@@ -53,6 +53,8 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 }
 
 func testEmojiGet(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	emojis := []model.Emoji{
 		{
 			CreatorId: model.NewId(),
@@ -81,17 +83,19 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 	}()
 
 	for _, emoji := range emojis {
-		_, err := ss.Emoji().Get(context.Background(), emoji.Id, false)
+		_, err := ss.Emoji().Get(c, emoji.Id, false)
 		require.NoErrorf(t, err, "failed to get emoji with id %v", emoji.Id)
 	}
 
 	for _, emoji := range emojis {
-		_, err := ss.Emoji().Get(context.Background(), emoji.Id, true)
+		_, err := ss.Emoji().Get(c, emoji.Id, true)
 		require.NoErrorf(t, err, "failed to get emoji with id %v", emoji.Id)
 	}
 }
 
 func testEmojiGetByName(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	emojis := []model.Emoji{
 		{
 			CreatorId: model.NewId(),
@@ -120,12 +124,14 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 	}()
 
 	for _, emoji := range emojis {
-		_, err := ss.Emoji().GetByName(context.Background(), emoji.Name, true)
+		_, err := ss.Emoji().GetByName(c, emoji.Name, true)
 		require.NoErrorf(t, err, "failed to get emoji with name %v", emoji.Name)
 	}
 }
 
 func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	emojis := []model.Emoji{
 		{
 			CreatorId: model.NewId(),
@@ -154,26 +160,26 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	}()
 
 	t.Run("one emoji", func(t *testing.T) {
-		received, err := ss.Emoji().GetMultipleByName(context.Background(), []string{emojis[0].Name})
+		received, err := ss.Emoji().GetMultipleByName(c, []string{emojis[0].Name})
 		require.NoError(t, err, "could not get emoji")
 		require.Len(t, received, 1, "got incorrect emoji")
 		require.Equal(t, *received[0], emojis[0], "got incorrect emoji")
 	})
 
 	t.Run("multiple emojis", func(t *testing.T) {
-		received, err := ss.Emoji().GetMultipleByName(context.Background(), []string{emojis[0].Name, emojis[1].Name, emojis[2].Name})
+		received, err := ss.Emoji().GetMultipleByName(c, []string{emojis[0].Name, emojis[1].Name, emojis[2].Name})
 		require.NoError(t, err, "could not get emojis")
 		require.Len(t, received, 3, "got incorrect emojis")
 	})
 
 	t.Run("one nonexistent emoji", func(t *testing.T) {
-		received, err := ss.Emoji().GetMultipleByName(context.Background(), []string{"ab"})
+		received, err := ss.Emoji().GetMultipleByName(c, []string{"ab"})
 		require.NoError(t, err, "could not get emoji", err)
 		require.Empty(t, received, "got incorrect emoji")
 	})
 
 	t.Run("multiple emojis with nonexistent names", func(t *testing.T) {
-		received, err := ss.Emoji().GetMultipleByName(context.Background(), []string{emojis[0].Name, emojis[1].Name, emojis[2].Name, "abcd", "1234"})
+		received, err := ss.Emoji().GetMultipleByName(c, []string{emojis[0].Name, emojis[1].Name, emojis[2].Name, "abcd", "1234"})
 		require.NoError(t, err, "could not get emojis")
 		require.Len(t, received, 3, "got incorrect emojis")
 	})
