@@ -2,25 +2,30 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import * as Menu from 'components/menu';
-
-import {MarkAsUnreadIcon} from '@mattermost/compass-icons/components';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
+
+import {MarkAsUnreadIcon} from '@mattermost/compass-icons/components';
+
 import {openModal} from 'actions/views/modals';
+
+import * as Menu from 'components/menu';
+
 import {ModalIdentifiers} from 'utils/constants';
+
 import MarkAsReadConfirmModal from './mark_as_read_confirm_modal';
 
-type Props = ({
+type Props = {
     id: string;
     handleViewCategory: () => void;
     numChannels: number;
-})
+}
 
 const MarkAsUnreadItem = ({
     id,
     handleViewCategory,
     numChannels,
+    ...otherProps
 }: Props) => {
     const dispatch = useDispatch();
 
@@ -56,6 +61,7 @@ const MarkAsUnreadItem = ({
                     defaultMessage='Mark category as read'
                 />
             )}
+            {...otherProps}
         />
     );
 };

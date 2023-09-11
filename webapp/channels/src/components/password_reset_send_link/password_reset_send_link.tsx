@@ -4,7 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ServerError} from '@mattermost/types/errors';
+import type {ServerError} from '@mattermost/types/errors';
+
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import BackButton from 'components/common/back_button';

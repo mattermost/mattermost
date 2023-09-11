@@ -29,8 +29,7 @@ func TestService_AddTopicListener(t *testing.T) {
 		return nil
 	}
 
-	mockServer := newMockServer(makeRemoteClusters(NumRemotes, ""))
-	defer mockServer.Shutdown()
+	mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ""))
 
 	service, err := NewRemoteClusterService(mockServer)
 	require.NoError(t, err)

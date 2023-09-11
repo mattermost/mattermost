@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {Provider} from 'react-redux';
-import {act} from 'react-dom/test-utils';
-
 import {shallow} from 'enzyme';
-
-import * as cloudActions from 'actions/cloud';
+import React from 'react';
+import {act} from 'react-dom/test-utils';
+import {Provider} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+
+import * as cloudActions from 'actions/cloud';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';

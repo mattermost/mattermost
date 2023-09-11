@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {useMeasurePunchouts} from '@mattermost/components';

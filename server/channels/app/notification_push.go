@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -81,6 +81,25 @@ func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *mo
 }
 
 func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
+	rejectionReason := ""
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		var replacementNotification *model.PushNotification
+		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
+		if rejectionReason != "" {
+			mlog.Info("Notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
+			return false
+		}
+		if replacementNotification != nil {
+			msg = replacementNotification
+		}
+		return true
+	}, plugin.NotificationWillBePushedID)
+
+	if rejectionReason != "" {
+		// Notifications rejected by a plugin should not be considered errors
+		return nil
+	}
+
 	sessions, err := a.getMobileAppSessions(userID)
 	if err != nil {
 		return err
@@ -140,27 +159,6 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 }
 
 func (a *App) sendPushNotification(notification *PostNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
-	cancelled := false
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-		cancelled = hooks.NotificationWillBePushed(&model.PluginPushNotification{
-			Post:               notification.Post.ForPlugin(),
-			Channel:            notification.Channel,
-			UserID:             user.Id,
-			ExplicitMention:    explicitMention,
-			ChannelWideMention: channelWideMention,
-			ReplyToThreadType:  replyToThreadType,
-		})
-		if cancelled {
-			mlog.Info("Notification cancelled by plugin")
-			return false
-		}
-		return true
-	}, plugin.NotificationWillBePushedID)
-
-	if cancelled {
-		return
-	}
-
 	cfg := a.Config()
 	channel := notification.Channel
 	post := notification.Post
@@ -605,6 +603,10 @@ func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string,
 	}
 
 	msg.Badge = badgeCount
+
+	// Add post and channel types for plugins to use in the NotificationWillBePushed hook
+	msg.PostType = post.Type
+	msg.ChannelType = channel.Type
 
 	return msg, nil
 }

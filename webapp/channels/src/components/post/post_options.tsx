@@ -1,26 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, useEffect, useRef, useState} from 'react';
-
+import classnames from 'classnames';
+import React, {useEffect, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {Emoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
-import {Locations} from 'utils/constants';
-import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 import ActionsMenu from 'components/actions_menu';
+import CommentIcon from 'components/common/comment_icon';
 import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
-import PostRecentReactions from 'components/post_view/post_recent_reactions';
 import PostReaction from 'components/post_view/post_reaction';
-import CommentIcon from 'components/common/comment_icon';
-import {PluginComponent} from 'types/store/plugins';
+import PostRecentReactions from 'components/post_view/post_recent_reactions';
 
-import {Emoji} from '@mattermost/types/emojis';
-import {Post} from '@mattermost/types/posts';
-import classnames from 'classnames';
+import {Locations, Constants} from 'utils/constants';
+import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
+
+import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     post: Post;
@@ -129,13 +131,17 @@ const PostOptions = (props: Props): JSX.Element => {
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
+        const showMoreReactions = props.isExpanded ||
+            props.location === 'CENTER' ||
+            (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > Constants.SIDEBAR_MINIMUM_WIDTH;
+
         showRecentReactions = (
             <PostRecentReactions
                 channelId={post.channel_id}
                 postId={post.id}
                 teamId={props.teamId}
                 emojis={props.recentEmojis}
-                size={props.isExpanded || props.location === 'CENTER' ? 3 : 1}
+                size={showMoreReactions ? 3 : 1}
             />
         );
     }

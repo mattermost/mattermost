@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import QuickInput from 'components/quick_input';
+
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';

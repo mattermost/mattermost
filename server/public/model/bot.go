@@ -213,8 +213,8 @@ func (l *BotList) Etag() string {
 
 // MakeBotNotFoundError creates the error returned when a bot does not exist, or when the user isn't allowed to query the bot.
 // The errors must the same in both cases to avoid leaking that a user is a bot.
-func MakeBotNotFoundError(userId string) *AppError {
-	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]any{"user_id": userId}, "", http.StatusNotFound)
+func MakeBotNotFoundError(where, userId string) *AppError {
+	return NewAppError(where, "store.sql_bot.get.missing.app_error", map[string]any{"user_id": userId}, "", http.StatusNotFound)
 }
 
 func IsBotDMChannel(channel *Channel, botUserID string) bool {

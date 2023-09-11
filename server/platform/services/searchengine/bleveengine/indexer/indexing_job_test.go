@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -22,12 +23,14 @@ func TestBleveIndexer(t *testing.T) {
 	defer mockStore.AssertExpectations(t)
 
 	t.Run("Call GetOldestEntityCreationTime for the first indexing call", func(t *testing.T) {
+		logger := mlog.CreateConsoleTestLogger(t)
 		job := &model.Job{
 			Id:       model.NewId(),
 			CreateAt: model.GetMillis(),
 			Status:   model.JobStatusPending,
 			Type:     model.JobTypeBlevePostIndexing,
 		}
+		job.InitLogger(logger)
 
 		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
 		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)

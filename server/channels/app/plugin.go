@@ -16,7 +16,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/gorilla/mux"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
@@ -24,7 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
@@ -552,7 +552,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
 	plugins := map[string]*model.MarketplacePlugin{}
 
-	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
+	if *a.Config().PluginSettings.EnableRemoteMarketplace && !a.Config().FeatureFlags.StreamlinedMarketplace && !filter.LocalOnly {
 		p, appErr := a.getRemotePlugins()
 		if appErr != nil {
 			return nil, appErr
@@ -561,20 +561,12 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	}
 
 	if !filter.RemoteOnly {
-		// Some plugin don't work on cloud. The remote Marketplace is aware of this fact,
-		// but prepackaged plugins are not. Hence, on a cloud installation prepackaged plugins
-		// shouldn't be shown in the Marketplace modal.
-		// This is a short term fix. The long term solution is to have a separate set of
-		// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
-		license := a.Srv().License()
-		if license == nil || !license.IsCloud() {
-			appErr := a.mergePrepackagedPlugins(plugins)
-			if appErr != nil {
-				return nil, appErr
-			}
+		appErr := a.mergePrepackagedPlugins(plugins)
+		if appErr != nil {
+			return nil, appErr
 		}
 
-		appErr := a.mergeLocalPlugins(plugins)
+		appErr = a.mergeLocalPlugins(plugins)
 		if appErr != nil {
 			return nil, appErr
 		}
