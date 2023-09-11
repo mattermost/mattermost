@@ -4,7 +4,6 @@
 import React from 'react';
 
 import amex from 'images/cloud/cards/amex.png';
-
 import dinersclub from 'images/cloud/cards/dinersclub.png';
 import discover from 'images/cloud/cards/discover.jpg';
 import jcb from 'images/cloud/cards/jcb.png';

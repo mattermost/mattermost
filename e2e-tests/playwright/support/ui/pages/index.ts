@@ -6,6 +6,7 @@ import {BoardsViewPage} from './boards_view';
 import {ChannelsPage} from './channels';
 import {LandingLoginPage} from './landing_login';
 import {LoginPage} from './login';
+import {ResetPasswordPage} from './reset_password';
 import {SignupPage} from './signup';
 
 const pages = {
@@ -14,6 +15,7 @@ const pages = {
     ChannelsPage,
     LandingLoginPage,
     LoginPage,
+    ResetPasswordPage,
     SignupPage,
 };
 

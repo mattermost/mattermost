@@ -54,14 +54,11 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
     <span
       className="emoji-picker__container"
     >
-      <EmojiPickerOverlay
-        enableGifPicker={false}
+      <Connect(EmojiPickerOverlay)
         onEmojiClick={[Function]}
         onHide={[Function]}
         rightOffset={15}
         show={false}
-        spaceRequiredAbove={476}
-        spaceRequiredBelow={497}
         target={[Function]}
         topOffset={-5}
       />

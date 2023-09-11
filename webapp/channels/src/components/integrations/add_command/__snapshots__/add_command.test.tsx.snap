@@ -3,25 +3,9 @@
 exports[`components/integrations/AddCommand should match snapshot 1`] = `
 <AbstractCommand
   action={[Function]}
-  footer={
-    Object {
-      "defaultMessage": "Save",
-      "id": "add_command.save",
-    }
-  }
-  header={
-    Object {
-      "defaultMessage": "Add",
-      "id": "integrations.add",
-    }
-  }
-  loading={
-    Object {
-      "defaultMessage": "Saving...",
-      "id": "add_command.saving",
-    }
-  }
-  renderExtra=""
+  footer="Save"
+  header="Add"
+  loading="Saving..."
   serverError=""
   team={
     Object {

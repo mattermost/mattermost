@@ -52,6 +52,13 @@ export async function initSetup({
         // Update user preference
         const preferences: PreferenceType[] = [
             {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
+            {
+                user_id: user.id,
+                category: 'drafts',
+                name: 'drafts_tour_tip_showed',
+                value: JSON.stringify({drafts_tour_tip_showed: true}),
+            },
+            {user_id: user.id, category: 'crt_thread_pane_step', name: user.id, value: '999'},
         ];
         await userClient.savePreferences(user.id, preferences);
 

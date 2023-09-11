@@ -1,0 +1,133 @@
+  /api/v4/actions/dialogs/open:
+    post:
+      tags:
+        - integration_actions
+      summary: Open a dialog
+      description: >
+        Open an interactive dialog using a trigger ID provided by a slash
+        command, or some other action payload. See
+        https://docs.mattermost.com/developer/interactive-dialogs.html for more
+        information on interactive dialogs.
+
+        __Minimum server version: 5.6__
+      operationId: OpenInteractiveDialog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - trigger_id
+                - url
+                - dialog
+              properties:
+                trigger_id:
+                  type: string
+                  description: Trigger ID provided by other action
+                url:
+                  type: string
+                  description: The URL to send the submitted dialog payload to
+                dialog:
+                  type: object
+                  required:
+                    - title
+                    - elements
+                  description: Post object to create
+                  properties:
+                    callback_id:
+                      type: string
+                      description: Set an ID that will be included when the dialog is
+                        submitted
+                    title:
+                      type: string
+                      description: Title of the dialog
+                    introduction_text:
+                      type: string
+                      description: Markdown formatted introductory paragraph
+                    elements:
+                      type: array
+                      description: Input elements, see
+                        https://docs.mattermost.com/developer/interactive-dialogs.html#elements
+                      items:
+                        type: object
+                    submit_label:
+                      type: string
+                      description: Label on the submit button
+                    notify_on_cancel:
+                      type: boolean
+                      description: Set true to receive payloads when user cancels a dialog
+                    state:
+                      type: string
+                      description: Set some state to be echoed back with the dialog
+                        submission
+        description: Metadata for the dialog to be opened
+        required: true
+      responses:
+        "200":
+          description: Dialog open successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /api/v4/actions/dialogs/submit:
+    post:
+      tags:
+        - integration_actions
+      summary: Submit a dialog
+      description: >
+        Endpoint used by the Mattermost clients to submit a dialog. See
+        https://docs.mattermost.com/developer/interactive-dialogs.html for more
+        information on interactive dialogs.
+
+        __Minimum server version: 5.6__
+      operationId: SubmitInteractiveDialog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - submission
+                - channel_id
+                - team_id
+              properties:
+                url:
+                  type: string
+                  description: The URL to send the submitted dialog payload to
+                channel_id:
+                  type: string
+                  description: Channel ID the user submitted the dialog from
+                team_id:
+                  type: string
+                  description: Team ID the user submitted the dialog from
+                submission:
+                  type: object
+                  description: String map where keys are element names and values are the
+                    element input values
+                callback_id:
+                  type: string
+                  description: Callback ID sent when the dialog was opened
+                state:
+                  type: string
+                  description: State sent when the dialog was opened
+                cancelled:
+                  type: boolean
+                  description: Set to true if the dialog was cancelled
+        description: Dialog submission data
+        required: true
+      responses:
+        "200":
+          description: Dialog submission successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"

@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 // AutocompleteArgType describes autocomplete argument type
@@ -234,7 +236,7 @@ func (ad *AutocompleteData) IsValid() error {
 		return errors.New("Command should be lowercase")
 	}
 	roles := []string{SystemAdminRoleId, SystemUserRoleId, ""}
-	if stringNotInSlice(ad.RoleID, roles) {
+	if !utils.Contains(roles, ad.RoleID) {
 		return errors.New("Wrong role in the autocomplete data")
 	}
 	if len(ad.Arguments) > 0 && len(ad.SubCommands) > 0 {
@@ -398,13 +400,4 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		a.Data = &AutocompleteDynamicListArg{FetchURL: url}
 	}
 	return nil
-}
-
-func stringNotInSlice(a string, slice []string) bool {
-	for _, b := range slice {
-		if b == a {
-			return false
-		}
-	}
-	return true
 }

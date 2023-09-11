@@ -30,15 +30,16 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
@@ -54,6 +55,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -250,21 +252,22 @@ func NewServer(options ...Option) (*Server, error) {
 
 	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
-		ServerKey:                s,
-		product.ConfigKey:        s.platform,
-		product.LicenseKey:       s.licenseWrapper,
-		product.FilestoreKey:     s.platform.FileBackend(),
-		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		product.ClusterKey:       s.platform,
-		product.UserKey:          app,
-		product.LogKey:           s.platform.Log(),
-		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		product.KVStoreKey:       s.platform,
-		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
-		product.SystemKey:        &systemServiceAdapter{server: s},
-		product.SessionKey:       app,
-		product.FrontendKey:      app,
-		product.CommandKey:       app,
+		ServerKey:                  s,
+		product.ConfigKey:          s.platform,
+		product.LicenseKey:         s.licenseWrapper,
+		product.FilestoreKey:       s.platform.FileBackend(),
+		product.ExportFilestoreKey: s.platform.ExportFileBackend(),
+		product.FileInfoStoreKey:   &fileInfoWrapper{srv: s},
+		product.ClusterKey:         s.platform,
+		product.UserKey:            app,
+		product.LogKey:             s.platform.Log(),
+		product.CloudKey:           &cloudWrapper{cloud: s.Cloud},
+		product.KVStoreKey:         s.platform,
+		product.StoreKey:           store.NewStoreServiceAdapter(s.Store()),
+		product.SystemKey:          &systemServiceAdapter{server: s},
+		product.SessionKey:         app,
+		product.FrontendKey:        app,
+		product.CommandKey:         app,
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -462,12 +465,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
-		go func() {
+		s.platform.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
-		}()
+		})
 	}
 
 	if s.skipPostInit {
@@ -1476,6 +1479,10 @@ func (s *Server) FileBackend() filestore.FileBackend {
 	return s.platform.FileBackend()
 }
 
+func (s *Server) ExportFileBackend() filestore.FileBackend {
+	return s.platform.ExportFileBackend()
+}
+
 func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
 }
@@ -1489,7 +1496,7 @@ func (ch *Channels) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s.platform, s.Store(), s.GetMetrics())
+	s.Jobs = jobs.NewJobServer(s.platform, s.Store(), s.GetMetrics(), s.Log())
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -1564,6 +1571,11 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypeS3PathMigration,
+		s3_path_migration.MakeWorker(s.Jobs, s.Store(), s.FileBackend()),
+		nil)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,
 		export_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		export_delete.MakeScheduler(s.Jobs),
@@ -1633,6 +1645,12 @@ func (s *Server) initJobs() {
 		model.JobTypeHostedPurchaseScreening,
 		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
 		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeCleanupDesktopTokens,
+		cleanup_desktop_tokens.MakeWorker(s.Jobs, s.Store()),
+		cleanup_desktop_tokens.MakeScheduler(s.Jobs),
 	)
 
 	s.platform.Jobs = s.Jobs

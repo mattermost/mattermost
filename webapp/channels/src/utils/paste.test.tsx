@@ -170,6 +170,33 @@ describe('formatMarkdownLinkMessage', () => {
         const formatttedMarkdownLinkMessage = formatMarkdownLinkMessage({selectionStart: 0, selectionEnd: 4, message, clipboardData});
         expect(formatttedMarkdownLinkMessage).toEqual('[test](https://example.com/)');
     });
+
+    test('Should not add link when pasting inside of a formatted markdown link', () => {
+        const message = '[test](url)';
+        const formatttedMarkdownLinkMessage = formatMarkdownLinkMessage({selectionStart: 7, selectionEnd: 10, message, clipboardData});
+        expect(formatttedMarkdownLinkMessage).toEqual('https://example.com/');
+    });
+
+    test('Should add link when pasting inside of an improper formatted markdown link', () => {
+        const improperFormattedLinkMessages = [
+            {message: '[test](url)', selection: 'ur', expected: '[ur](https://example.com/)'},
+            {message: '[test](url)', selection: '(url', expected: '[(url](https://example.com/)'},
+            {message: '[test](url)', selection: 'url)', expected: '[url)](https://example.com/)'},
+            {message: '[test](url)', selection: '(url)', expected: '[(url)](https://example.com/)'},
+            {message: '[test](url)', selection: '[test](url', expected: '[[test](url](https://example.com/)'},
+            {message: '[test](url)', selection: 'test](url', expected: '[test](url](https://example.com/)'},
+            {message: '[test](url)', selection: 'test](url)', expected: '[test](url)](https://example.com/)'},
+            {message: '[test](url)', selection: '[test](url)', expected: '[[test](url)](https://example.com/)'},
+        ];
+
+        for (const {message, selection, expected} of improperFormattedLinkMessages) {
+            const selectionStart = message.indexOf(selection);
+            const selectionEnd = selectionStart + selection.length;
+
+            const formatttedMarkdownLinkMessage = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+            expect(formatttedMarkdownLinkMessage).toEqual(expected);
+        }
+    });
 });
 
 describe('isTextUrl', () => {

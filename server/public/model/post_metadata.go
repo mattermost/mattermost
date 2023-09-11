@@ -30,9 +30,9 @@ type PostMetadata struct {
 	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 }
 
-func (pm *PostMetadata) Auditable() map[string]any {
-	embeds := make([]map[string]any, 0, len(pm.Embeds))
-	for _, pe := range pm.Embeds {
+func (p *PostMetadata) Auditable() map[string]any {
+	embeds := make([]map[string]any, 0, len(p.Embeds))
+	for _, pe := range p.Embeds {
 		embeds = append(embeds, pe.Auditable())
 	}
 	if len(embeds) == 0 {
@@ -41,12 +41,12 @@ func (pm *PostMetadata) Auditable() map[string]any {
 
 	return map[string]any{
 		"embeds":           embeds,
-		"emojis":           pm.Emojis,
-		"files":            pm.Files,
-		"images":           pm.Images,
-		"reactions":        pm.Reactions,
-		"priority":         pm.Priority,
-		"acknowledgements": pm.Acknowledgements,
+		"emojis":           p.Emojis,
+		"files":            p.Files,
+		"images":           p.Images,
+		"reactions":        p.Reactions,
+		"priority":         p.Priority,
+		"acknowledgements": p.Acknowledgements,
 	}
 }
 

@@ -275,7 +275,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -624,7 +623,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -1069,7 +1067,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -1420,7 +1417,6 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -1769,7 +1765,6 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -2122,7 +2117,6 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -2473,7 +2467,6 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
         </SettingsGroup>
@@ -2797,7 +2790,6 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -3153,7 +3145,6 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -3502,7 +3493,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -3914,7 +3904,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -4294,7 +4283,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -4674,7 +4662,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -5054,7 +5041,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div

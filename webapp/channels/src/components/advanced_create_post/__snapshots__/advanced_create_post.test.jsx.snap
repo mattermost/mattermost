@@ -47,7 +47,6 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -126,7 +125,6 @@ exports[`components/advanced_create_post should match snapshot for center textbo
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -205,7 +203,6 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -284,7 +281,6 @@ exports[`components/advanced_create_post should match snapshot when file upload 
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -363,7 +359,6 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -442,7 +437,6 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -521,7 +515,6 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -600,7 +593,6 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -679,7 +671,6 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -763,7 +754,6 @@ exports[`components/advanced_create_post should match snapshot, post priority di
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -850,7 +840,6 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -947,7 +936,6 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}

@@ -212,51 +212,22 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) 
 	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
 }
 
-func (hooks *hooksTimerLayer) UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.UserHasPermissionToCollection(c, userID, collectionType, collectionId, permission)
-	hooks.recordTime(startTime, "UserHasPermissionToCollection", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (hooks *hooksTimerLayer) GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.GetAllCollectionIDsForUser(c, userID, collectionType)
-	hooks.recordTime(startTime, "GetAllCollectionIDsForUser", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (hooks *hooksTimerLayer) GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.GetAllUserIdsForCollection(c, collectionType, collectionID)
-	hooks.recordTime(startTime, "GetAllUserIdsForCollection", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (hooks *hooksTimerLayer) GetTopicRedirect(c *Context, topicType, topicID string) (string, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.GetTopicRedirect(c, topicType, topicID)
-	hooks.recordTime(startTime, "GetTopicRedirect", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (hooks *hooksTimerLayer) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.GetCollectionMetadataByIds(c, collectionType, collectionIds)
-	hooks.recordTime(startTime, "GetCollectionMetadataByIds", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (hooks *hooksTimerLayer) GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.GetTopicMetadataByIds(c, topicType, topicIds)
-	hooks.recordTime(startTime, "GetTopicMetadataByIds", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
 func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.ConfigurationWillBeSaved(newCfg)
 	hooks.recordTime(startTime, "ConfigurationWillBeSaved", _returnsB == nil)
 	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.NotificationWillBePushed(pushNotification, userID)
+	hooks.recordTime(startTime, "NotificationWillBePushed", true)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) UserHasBeenDeactivated(c *Context, user *model.User) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.UserHasBeenDeactivated(c, user)
+	hooks.recordTime(startTime, "UserHasBeenDeactivated", true)
 }

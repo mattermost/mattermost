@@ -39,8 +39,10 @@ export type Props = {
     keyboardEscape?: boolean;
     headerInput?: React.ReactNode;
     bodyPadding?: boolean;
+    bodyDivider?: boolean;
     footerContent?: React.ReactNode;
     footerDivider?: boolean;
+    appendedContent?: React.ReactNode;
     headerButton?: React.ReactNode;
 };
 
@@ -95,6 +97,9 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
     private onEnterKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === 'Enter') {
+            if (event.nativeEvent.isComposing) {
+                return;
+            }
             if (this.props.autoCloseOnConfirmButton) {
                 this.onHide();
             }
@@ -196,7 +201,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             </>
                         )}
                     </Modal.Header>
-                    <Modal.Body>
+                    <Modal.Body className={classNames({divider: this.props.bodyDivider})}>
                         {this.props.compassDesign ? (
                             this.props.errorText && (
                                 <div className='genericModalError'>
@@ -223,6 +228,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             )}
                         </Modal.Footer>
                     )}
+                    {Boolean(this.props.appendedContent) && this.props.appendedContent}
                 </div>
             </Modal>
         );

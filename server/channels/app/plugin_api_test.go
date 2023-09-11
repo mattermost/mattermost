@@ -19,6 +19,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,7 +31,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -178,26 +179,20 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, 2, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
-	assert.Equal(t, model.PreferenceNameInsights, preferences[0].Name)
-	assert.Equal(t, "{\"insights_modal_viewed\":false}", preferences[0].Value)
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
+	assert.Equal(t, "hide", preferences[0].Name)
+	assert.Equal(t, "false", preferences[0].Value)
 
 	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
-	assert.Equal(t, "hide", preferences[1].Name)
-	assert.Equal(t, "false", preferences[1].Value)
-
-	assert.Equal(t, user1.Id, preferences[2].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
-	assert.Equal(t, user1.Id, preferences[2].Name)
-	assert.Equal(t, "0", preferences[2].Value)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.Equal(t, user1.Id, preferences[1].Name)
+	assert.Equal(t, "0", preferences[1].Value)
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
-	t.Skip("MM-47612")
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -212,7 +207,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, 2, len(preferences))
 
 	err = api.DeletePreferencesForUser(user1.Id, preferences)
 	require.Nil(t, err)
@@ -239,16 +234,17 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 4, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
 	require.Nil(t, err)
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
-	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
+	assert.Equal(t, 2, len(preferences))
+	assert.ElementsMatch(t,
+		[]string{model.PreferenceRecommendedNextSteps, model.PreferenceCategoryTutorialSteps},
+		[]string{preferences[0].Category, preferences[1].Category},
+	)
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
@@ -266,22 +262,16 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, 2, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
-	assert.Equal(t, model.PreferenceNameInsights, preferences[0].Name)
-	assert.Equal(t, "{\"insights_modal_viewed\":false}", preferences[0].Value)
-
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
+	assert.Equal(t, "hide", preferences[0].Name)
+	assert.Equal(t, "false", preferences[0].Value)
 	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
-	assert.Equal(t, "hide", preferences[1].Name)
-	assert.Equal(t, "false", preferences[1].Value)
-
-	assert.Equal(t, user1.Id, preferences[2].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
-	assert.Equal(t, user1.Id, preferences[2].Name)
-	assert.Equal(t, "0", preferences[2].Value)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.Equal(t, user1.Id, preferences[1].Name)
+	assert.Equal(t, "0", preferences[1].Value)
 
 	preference := model.Preference{
 		Name:     user1.Id,
@@ -296,8 +286,8 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	preferences, err = api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
 
-	assert.Equal(t, 4, len(preferences))
-	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps, model.PreferenceCategoryInsights}
+	assert.Equal(t, 3, len(preferences))
+	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps}
 	for _, pref := range preferences {
 		assert.Contains(t, expectedCategories, pref.Category)
 		assert.Equal(t, user1.Id, pref.UserId)
@@ -2019,89 +2009,6 @@ func TestPluginAPIIsEnterpriseReady(t *testing.T) {
 	assert.Equal(t, true, api.IsEnterpriseReady())
 }
 
-func TestRegisterCollectionAndTopic(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_THREADSEVERYWHERE", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_THREADSEVERYWHERE")
-	th := Setup(t)
-	defer th.TearDown()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.FeatureFlags.ThreadsEverywhere = true
-	})
-	api := th.SetupPluginAPI()
-
-	err := api.RegisterCollectionAndTopic("collection1", "topic1")
-	assert.NoError(t, err)
-	err = api.RegisterCollectionAndTopic("collection1", "topic1")
-	assert.NoError(t, err)
-	err = api.RegisterCollectionAndTopic("collection1", "topic2")
-	assert.NoError(t, err)
-	err = api.RegisterCollectionAndTopic("collection2", "topic3")
-	assert.NoError(t, err)
-	err = api.RegisterCollectionAndTopic("collection2", "topic1")
-	assert.Error(t, err)
-
-	pluginCode := `
-    package main
-
-    import (
-	  "github.com/pkg/errors"
-      "github.com/mattermost/mattermost/server/public/plugin"
-    )
-
-    type MyPlugin struct {
-      plugin.MattermostPlugin
-    }
-
-	func (p *MyPlugin) OnActivate() error {
-		if err := p.API.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some topic"); err != nil {
-			return errors.Wrap(err, "cannot register collection")
-		}
-		if err := p.API.RegisterCollectionAndTopic("some collection", "topicToBeRepeated"); err != nil {
-			return errors.Wrap(err, "cannot register collection")
-		}
-		return nil
-	}
-
-    func main() {
-      plugin.ClientMain(&MyPlugin{})
-    }
-  `
-	pluginDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	webappPluginDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Directory = pluginDir
-		*cfg.PluginSettings.ClientDirectory = webappPluginDir
-	})
-
-	newPluginAPI := func(manifest *model.Manifest) plugin.API {
-		return th.App.NewPluginAPI(th.Context, manifest)
-	}
-
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
-	require.NoError(t, err)
-
-	th.App.ch.SetPluginsEnvironment(env)
-
-	pluginID := "testplugin"
-	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
-	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-	utils.CompileGo(t, pluginCode, backend)
-
-	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
-	manifest, activated, reterr := env.Activate(pluginID)
-	require.NoError(t, reterr)
-	require.NotNil(t, manifest)
-	require.True(t, activated)
-
-	err = api.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some other topic")
-	assert.Error(t, err)
-	err = api.RegisterCollectionAndTopic("some other collection", "topicToBeRepeated")
-	assert.Error(t, err)
-}
-
 func TestPluginUploadsAPI(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2298,4 +2205,101 @@ func TestConfigurationWillBeSavedHook(t *testing.T) {
 			"custom_key": "custom_val",
 		}, newCfg.PluginSettings.Plugins["custom_plugin"])
 	})
+}
+
+func TestSendPushNotification(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping TestSendPushNotification test in short mode")
+	}
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// Create 3 users, each having 2 sessions.
+	type userSession struct {
+		user    *model.User
+		session *model.Session
+	}
+	var userSessions []userSession
+	for i := 0; i < 3; i++ {
+		u := th.CreateUser()
+		sess, err := th.App.CreateSession(&model.Session{
+			UserId:    u.Id,
+			DeviceId:  "deviceID" + u.Id,
+			ExpiresAt: model.GetMillis() + 100000,
+		})
+		require.Nil(t, err)
+		// We don't need to track the 2nd session.
+		_, err = th.App.CreateSession(&model.Session{
+			UserId:    u.Id,
+			DeviceId:  "deviceID" + u.Id,
+			ExpiresAt: model.GetMillis() + 100000,
+		})
+		require.Nil(t, err)
+		_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
+		require.Nil(t, err)
+		th.AddUserToChannel(u, th.BasicChannel)
+		userSessions = append(userSessions, userSession{
+			user:    u,
+			session: sess,
+		})
+	}
+
+	handler := &testPushNotificationHandler{
+		t:        t,
+		behavior: "simple",
+	}
+	pushServer := httptest.NewServer(
+		http.HandlerFunc(handler.handleReq),
+	)
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationContents = model.FullNotification
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	var wg sync.WaitGroup
+	for _, data := range userSessions {
+		wg.Add(1)
+		go func(user model.User) {
+			defer wg.Done()
+			post := th.CreatePost(th.BasicChannel)
+			post.Message = "started a conversation"
+			notification := &model.PushNotification{
+				Category:    model.CategoryCanReply,
+				Version:     model.PushMessageV2,
+				Type:        model.PushTypeMessage,
+				TeamId:      th.BasicChannel.TeamId,
+				ChannelId:   th.BasicChannel.Id,
+				PostId:      post.Id,
+				RootId:      post.RootId,
+				SenderId:    post.UserId,
+				SenderName:  "Sender Name",
+				PostType:    post.Type,
+				ChannelType: th.BasicChannel.Type,
+				Message:     "Custom message",
+			}
+			appErr := api.SendPushNotification(notification, user.Id)
+			require.Nil(t, appErr)
+		}(*data.user)
+	}
+	wg.Wait()
+
+	// Hack to let the worker goroutines complete.
+	time.Sleep(1 * time.Second)
+	// Server side verification.
+	var numMessages int
+	for _, n := range handler.notifications() {
+		switch n.Type {
+		case model.PushTypeMessage:
+			numMessages++
+			assert.Equal(t, th.BasicChannel.Id, n.ChannelId)
+			assert.Equal(t, "Custom message", n.Message)
+		default:
+			assert.Fail(t, "should not receive any other push notification types")
+		}
+	}
+	assert.Equal(t, 6, numMessages)
 }

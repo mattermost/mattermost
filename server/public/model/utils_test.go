@@ -677,7 +677,7 @@ func TestNowhereNil(t *testing.T) {
 	t.Parallel()
 
 	var nilStringPtr *string
-	var nonNilStringPtr *string = new(string)
+	var nonNilStringPtr = new(string)
 	var nilSlice []string
 	var nilStruct *struct{}
 	var nilMap map[bool]bool

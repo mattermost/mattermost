@@ -8,7 +8,7 @@
 // ***************************************************************
 
 // Stage: @prod
-// Group: @channels @plugin @not_cloud
+// Group: @channels @plugin @plugins_uninstall @not_cloud
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {demoPlugin, testPlugin} from '../../../utils/plugins';

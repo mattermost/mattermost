@@ -82,6 +82,6 @@ describe('Team Settings', () => {
             typeWithForce(email).
             wait(TIMEOUTS.HALF_SEC).
             typeWithForce('{enter}');
-        cy.get('#inviteMembersButton').click();
+        cy.findByTestId('inviteButton').click();
     }
 });

@@ -41,6 +41,7 @@ func TestCreateUser(t *testing.T) {
 		Username:      GenerateTestUsername(),
 		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 		EmailVerified: true,
+		DeleteAt:      1,
 	}
 
 	ruser, resp, err := th.Client.CreateUser(context.Background(), &user)
@@ -53,6 +54,7 @@ func TestCreateUser(t *testing.T) {
 
 	require.Equal(t, user.Nickname, ruser.Nickname, "nickname didn't match")
 	require.Equal(t, model.SystemUserRoleId, ruser.Roles, "did not clear roles")
+	require.Equal(t, int64(0), ruser.DeleteAt, "did not reset deleteAt")
 
 	CheckUserSanitization(t, ruser)
 
@@ -1723,6 +1725,13 @@ func TestGetUsersByIds(t *testing.T) {
 
 			require.Len(t, users, 1, "1 user should be returned")
 		})
+
+		t.Run("should only return unique users when multiple IDs are requested", func(t *testing.T) {
+			users, _, err := client.GetUsersByIds(context.Background(), []string{th.BasicUser.Id, th.BasicUser.Id, th.BasicUser.Id})
+			require.NoError(t, err)
+
+			require.Len(t, users, 1, "1 user should be returned")
+		})
 	})
 
 	t.Run("should return error when not logged in", func(t *testing.T) {
@@ -1930,6 +1939,27 @@ func TestUpdateAdminUser(t *testing.T) {
 	require.Equal(t, user.Email, u2.Email)
 }
 
+func TestUpdateBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+	botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
+	require.NoError(t, err)
+
+	updateUser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), botUser)
+	require.NoError(t, err)
+	require.Equal(t, botUser.Id, updateUser.Id)
+
+	_, resp, err := th.Client.UpdateUser(context.Background(), botUser)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestPatchUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2041,6 +2071,27 @@ func TestPatchUser(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestPatchBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+	patch := &model.UserPatch{}
+	patch.Email = model.NewString("newemail@test.com")
+
+	user, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
+	require.NoError(t, err)
+	require.Equal(t, bot.UserId, user.Id)
+
+	_, resp, err := th.Client.PatchUser(context.Background(), bot.UserId, patch)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestPatchAdminUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2061,6 +2112,7 @@ func TestPatchAdminUser(t *testing.T) {
 	_, _, err = th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
 	require.NoError(t, err)
 }
+
 func TestUserUnicodeNames(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -2139,7 +2191,6 @@ func TestUpdateUserAuth(t *testing.T) {
 	userAuth := &model.UserAuth{}
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = user.AuthService
-	userAuth.Password = user.Password
 
 	// Regular user can not use endpoint
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
@@ -2147,19 +2198,16 @@ func TestUpdateUserAuth(t *testing.T) {
 
 	userAuth.AuthData = model.NewString("test@test.com")
 	userAuth.AuthService = model.UserAuthServiceSaml
-	userAuth.Password = "newpassword"
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
 
 	// AuthData and AuthService are set, password is set to empty
 	require.Equal(t, *userAuth.AuthData, *ruser.AuthData)
 	require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
-	require.Empty(t, ruser.Password)
 
 	// When AuthData or AuthService are empty, password must be valid
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = ""
-	userAuth.Password = "1"
 	_, respErr, _ = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr)
 
@@ -2173,7 +2221,6 @@ func TestUpdateUserAuth(t *testing.T) {
 
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = user.AuthService
-	userAuth.Password = user.Password
 	_, respErr, _ = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Should have errored")
 }
@@ -2225,6 +2272,21 @@ func TestDeleteUser(t *testing.T) {
 	})
 	_, err = th.Client.DeleteUser(context.Background(), selfDeleteUser.Id)
 	require.NoError(t, err)
+}
+
+func TestDeleteBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+
+	_, err := th.Client.DeleteUser(context.Background(), bot.UserId)
+	require.Error(t, err)
+	require.Equal(t, err.Error(), ": You do not have the appropriate permissions.")
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
@@ -3785,6 +3847,18 @@ func TestLogin(t *testing.T) {
 
 		_, _, err = th.Client.Login(context.Background(), botUser.Email, "password")
 		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
+	})
+
+	t.Run("remote user login rejected", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
+		ruser, _, _ := th.Client.CreateUser(context.Background(), &user)
+
+		_, err := th.SystemAdminClient.UpdateUserPassword(context.Background(), ruser.Id, "", "password")
+		require.NoError(t, err)
+
+		_, _, err = th.Client.Login(context.Background(), ruser.Email, "password")
+		CheckErrorID(t, err, "api.user.login.remote_users.login.error")
 	})
 
 	t.Run("login with terms_of_service set", func(t *testing.T) {

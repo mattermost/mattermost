@@ -34,5 +34,5 @@ func (a *App) GetPriorityForPostList(list *model.PostList) (map[string]*model.Po
 }
 
 func (a *App) IsPostPriorityEnabled() bool {
-	return a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
+	return *a.Config().ServiceSettings.PostPriority
 }

@@ -5,13 +5,14 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
-import Constants from 'utils/constants';
+import type {Channel} from '@mattermost/types/channels';
+
 import LocalizedIcon from 'components/localized_icon';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import {t} from 'utils/i18n';
 
-import {Channel} from '@mattermost/types/channels';
+import Constants from 'utils/constants';
+import {t} from 'utils/i18n';
 
 interface Props {
     channel: Channel;

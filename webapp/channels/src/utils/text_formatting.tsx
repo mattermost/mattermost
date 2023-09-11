@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import emojiRegex from 'emoji-regex';
-import {Renderer} from 'marked';
+import type {Renderer} from 'marked';
 
-import {SystemEmoji} from '@mattermost/types/emojis';
+import type {SystemEmoji} from '@mattermost/types/emojis';
 
 import {formatWithRenderer} from 'utils/markdown';
 
+import Constants from './constants';
+import type EmojiMap from './emoji_map.js';
 import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
-import Constants from './constants';
-import EmojiMap from './emoji_map.js';
 
 const punctuationRegex = /[^\p{L}\d]/u;
 const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
@@ -210,9 +210,24 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     postId: '',
 };
 
-// pattern to detect the existence of a Chinese, Japanese, or Korean character in a string
-// http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
-const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3]/;
+/**
+* pattern to detect the existence of a Chinese, Japanese, or Korean character in a string
+* http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
+* recently enhanced to support some more CJK, Hangul, and Cyrillic characters
+* CJK punctuation: \u3000-\u303f
+* Hiragana: \u3040-\u309f
+* Katakana: \u30a0-\u30ff
+* Full-width ASCII characters: \uff00-\uff9f
+* Common CJK characters: \u4e00-\u9fff
+* Additional CJK characters: \u3400-\u4dbf
+* Hangul characters: \uac00-\ud7af
+* Hangul Jamo: \u1100-\u11ff
+* Hangul Compatibility Jamo: \u3130-\u318f
+* Cyrillic characters: \u0400-\u04ff, \u0500-\u052f
+* Additional CJK and Hangul compatibility characters: \u2de0-\u2dff
+**/
+// eslint-disable-next-line no-misleading-character-class
+const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff]/;
 
 export function formatText(
     text: string,
@@ -616,7 +631,7 @@ export function convertEntityToCharacter(text: string): string {
         replace(/&amp;/g, '&');
 }
 
-function highlightCurrentMentions(
+export function highlightCurrentMentions(
     text: string,
     tokens: Tokens,
     mentionKeys: MentionKey[] = [],
@@ -674,7 +689,7 @@ function highlightCurrentMentions(
         }
 
         let pattern;
-        if (cjkPattern.test(mention.key)) {
+        if (cjkrPattern.test(mention.key)) {
             // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
             pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
         } else {
@@ -819,7 +834,7 @@ export function parseSearchTerms(searchTerm: string): string[] {
 function convertSearchTermToRegex(term: string): SearchPattern {
     let pattern;
 
-    if (cjkPattern.test(term)) {
+    if (cjkrPattern.test(term)) {
         // term contains Chinese, Japanese, or Korean characters so don't mark word boundaries
         pattern = '()(' + escapeRegex(term.replace(/\*/g, '')) + ')';
     } else if ((/[^\s][*]$/).test(term)) {

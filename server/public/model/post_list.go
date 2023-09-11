@@ -47,11 +47,11 @@ func (o *PostList) Clone() *PostList {
 }
 
 func (o *PostList) ForPlugin() *PostList {
-	copy := o.Clone()
-	for k, p := range copy.Posts {
-		copy.Posts[k] = p.ForPlugin()
+	plCopy := o.Clone()
+	for k, p := range plCopy.Posts {
+		plCopy.Posts[k] = p.ForPlugin()
 	}
-	return copy
+	return plCopy
 }
 
 func (o *PostList) ToSlice() []*Post {
@@ -68,12 +68,12 @@ func (o *PostList) ToSlice() []*Post {
 }
 
 func (o *PostList) WithRewrittenImageURLs(f func(string) string) *PostList {
-	copy := *o
-	copy.Posts = make(map[string]*Post)
+	plCopy := *o
+	plCopy.Posts = make(map[string]*Post)
 	for id, post := range o.Posts {
-		copy.Posts[id] = post.WithRewrittenImageURLs(f)
+		plCopy.Posts[id] = post.WithRewrittenImageURLs(f)
 	}
-	return &copy
+	return &plCopy
 }
 
 func (o *PostList) StripActionIntegrations() {
@@ -87,9 +87,9 @@ func (o *PostList) StripActionIntegrations() {
 }
 
 func (o *PostList) ToJSON() (string, error) {
-	copy := *o
-	copy.StripActionIntegrations()
-	b, err := json.Marshal(&copy)
+	plCopy := *o
+	plCopy.StripActionIntegrations()
+	b, err := json.Marshal(&plCopy)
 	return string(b), err
 }
 
@@ -164,7 +164,7 @@ func (o *PostList) SortByCreateAt() {
 func (o *PostList) Etag() string {
 
 	id := "0"
-	var t int64 = 0
+	var t int64
 
 	for _, v := range o.Posts {
 		if v.UpdateAt > t {

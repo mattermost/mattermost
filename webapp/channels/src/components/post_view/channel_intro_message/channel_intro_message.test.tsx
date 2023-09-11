@@ -3,14 +3,14 @@
 
 import React from 'react';
 
-import {Constants} from 'utils/constants';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel, ChannelType} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Channel, ChannelType} from '@mattermost/types/channels';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {Constants} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import ChannelIntroMessage from './channel_intro_message';
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/ChannelIntroMessages', () => {
     const channel = {

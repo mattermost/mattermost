@@ -2,20 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
+import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import {Command} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
+import type {Command} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
-import {ActionResult} from 'mattermost-redux/types/actions.js';
+import type {ActionResult} from 'mattermost-redux/types/actions.js';
 
-import {t} from 'utils/i18n';
-
-import AbstractCommand from '../abstract_command.jsx';
-
-const HEADER = {id: t('integrations.add'), defaultMessage: 'Add'};
-const FOOTER = {id: t('add_command.save'), defaultMessage: 'Save'};
-const LOADING = {id: t('add_command.saving'), defaultMessage: 'Saving...'};
+import AbstractCommand from '../abstract_command';
 
 export type Props = {
 
@@ -35,7 +31,10 @@ export type Props = {
 
 const AddCommand = ({team, actions}: Props) => {
     const history = useHistory();
-
+    const {formatMessage} = useIntl();
+    const headerMessage = formatMessage({id: ('integrations.add'), defaultMessage: 'Add'}) as MessageDescriptor;
+    const footerMessage = formatMessage({id: ('add_command.save'), defaultMessage: 'Save'}) as MessageDescriptor;
+    const loadingMessage = formatMessage({id: ('add_command.saving'), defaultMessage: 'Saving...'}) as MessageDescriptor;
     const [serverError, setServerError] = useState('');
 
     const addCommand = async (command: Command) => {
@@ -55,10 +54,9 @@ const AddCommand = ({team, actions}: Props) => {
     return (
         <AbstractCommand
             team={team}
-            header={HEADER}
-            footer={FOOTER}
-            loading={LOADING}
-            renderExtra={''}
+            header={headerMessage}
+            footer={footerMessage}
+            loading={loadingMessage}
             action={addCommand}
             serverError={serverError}
         />
