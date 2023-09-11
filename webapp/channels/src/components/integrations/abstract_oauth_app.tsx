@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
+import type {ChangeEvent, FormEvent} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -13,53 +17,71 @@ import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
 
-import {localizeMessage} from 'utils/utils';
+import * as Utils from 'utils/utils';
 
-export default class AbstractOAuthApp extends React.PureComponent {
-    static propTypes = {
+type App = Omit<OAuthApp, 'id' | 'creator_id' | 'create_at' | 'update_at'| 'client_secret'>;
 
-        /**
-        * The current team
-        */
-        team: PropTypes.object.isRequired,
+type Props = {
 
-        /**
-        * The header text to render, has id and defaultMessage
-        */
-        header: PropTypes.object.isRequired,
+    /**
+   * The current team
+   */
+    team: Team;
 
-        /**
-        * The footer text to render, has id and defaultMessage
-        */
-        footer: PropTypes.object.isRequired,
+    /**
+   * The header text to render, has id and defaultMessage
+   */
+    header: MessageDescriptor | string;
 
-        /**
-        * The spinner loading text to render, has id and defaultMessage
-        */
-        loading: PropTypes.object.isRequired,
+    /**
+   * The footer text to render, has id and defaultMessage
+   */
+    footer: MessageDescriptor | string;
 
-        /**
-         * Any extra component/node to render
-         */
-        renderExtra: PropTypes.node.isRequired,
+    /**
+   * The spinner loading text to render, has id and defaultMessage
+   */
+    loading: MessageDescriptor | string;
 
-        /**
-        * The server error text after a failed action
-        */
-        serverError: PropTypes.string.isRequired,
+    /**
+   * Any extra component/node to render
+   */
+    renderExtra: JSX.Element;
 
-        /**
-        * The OAuthApp used to set the initial state
-        */
-        initialApp: PropTypes.object,
+    /**
+    * The server error text after a failed action
+    */
+    serverError: string;
 
-        /**
-        * The async function to run when the action button is pressed
-        */
-        action: PropTypes.func.isRequired,
-    };
+    /**
+   * The OAuthApp used to set the initial state
+   */
+    initialApp: App;
 
-    constructor(props) {
+    /**
+    * The async function to run when the action button is pressed
+    */
+    action: (app: App) => Promise<void>;
+
+}
+
+type State = {
+    name: string;
+    description: string;
+    homepage: string;
+    icon_url: string;
+    callbackUrls: string;
+    is_trusted: boolean;
+    has_icon: boolean;
+    saving: boolean;
+    clientError: JSX.Element | null | string;
+};
+
+export default class AbstractOAuthApp extends React.PureComponent<Props, State> {
+    private image: HTMLImageElement;
+    private icon_url: React.RefObject<HTMLInputElement>;
+
+    constructor(props: Props) {
         super(props);
 
         this.image = new Image();
@@ -68,7 +90,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
         this.state = this.getStateFromApp(this.props.initialApp || {});
     }
 
-    getStateFromApp = (app) => {
+    getStateFromApp = (app: App) => {
         return {
             name: app.name || '',
             description: app.description || '',
@@ -85,11 +107,11 @@ export default class AbstractOAuthApp extends React.PureComponent {
     imageLoaded = () => {
         this.setState({
             has_icon: true,
-            icon_url: this.icon_url.current.value,
+            icon_url: this.icon_url.current?.value || '',
         });
     };
 
-    handleSubmit = (e) => {
+    handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
         if (this.state.saving) {
@@ -178,31 +200,57 @@ export default class AbstractOAuthApp extends React.PureComponent {
         this.props.action(app).then(() => this.setState({saving: false}));
     };
 
-    updateName = (e) => {
+    getHeader = () => {
+        if (typeof this.props.header === 'string') {
+            return <span>{this.props.header}</span>;
+        }
+
+        return (
+            <FormattedMessage
+                id={this.props.header.id}
+                defaultMessage={this.props.header.defaultMessage}
+            />
+        );
+    };
+
+    getFooter = () => {
+        if (typeof this.props.footer === 'string') {
+            return <span>{this.props.footer}</span>;
+        }
+
+        return (
+            <FormattedMessage
+                id={this.props.footer.id}
+                defaultMessage={this.props.footer.defaultMessage}
+            />
+        );
+    };
+
+    updateName = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             name: e.target.value,
         });
     };
 
-    updateTrusted = (e) => {
+    updateTrusted = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             is_trusted: e.target.value === 'true',
         });
     };
 
-    updateDescription = (e) => {
+    updateDescription = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             description: e.target.value,
         });
     };
 
-    updateHomepage = (e) => {
+    updateHomepage = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             homepage: e.target.value,
         });
     };
 
-    updateIconUrl = (e) => {
+    updateIconUrl = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             has_icon: false,
             icon_url: e.target.value,
@@ -210,15 +258,13 @@ export default class AbstractOAuthApp extends React.PureComponent {
         this.image.src = e.target.value;
     };
 
-    updateCallbackUrls = (e) => {
+    updateCallbackUrls = (e: ChangeEvent<HTMLTextAreaElement>) => {
         this.setState({
             callbackUrls: e.target.value,
         });
     };
 
     render() {
-        const headerToRender = this.props.header;
-        const footerToRender = this.props.footer;
         const renderExtra = this.props.renderExtra;
 
         let icon;
@@ -292,10 +338,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                             defaultMessage='Installed OAuth2 Apps'
                         />
                     </Link>
-                    <FormattedMessage
-                        id={headerToRender.id}
-                        defaultMessage={headerToRender.defaultMessage}
-                    />
+                    {this.getHeader()}
                 </BackstageHeader>
                 <div className='backstage-form'>
                     {icon}
@@ -315,7 +358,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                 <input
                                     id='name'
                                     type='text'
-                                    maxLength='64'
+                                    maxLength={64}
                                     className='form-control'
                                     value={this.state.name}
                                     onChange={this.updateName}
@@ -342,7 +385,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                 <input
                                     id='description'
                                     type='text'
-                                    maxLength='512'
+                                    maxLength={512}
                                     className='form-control'
                                     value={this.state.description}
                                     onChange={this.updateDescription}
@@ -369,7 +412,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                 <input
                                     id='homepage'
                                     type='url'
-                                    maxLength='256'
+                                    maxLength={256}
                                     className='form-control'
                                     value={this.state.homepage}
                                     onChange={this.updateHomepage}
@@ -397,7 +440,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                     id='icon_url'
                                     ref={this.icon_url}
                                     type='url'
-                                    maxLength='512'
+                                    maxLength={512}
                                     className='form-control'
                                     value={this.state.icon_url}
                                     onChange={this.updateIconUrl}
@@ -423,8 +466,8 @@ export default class AbstractOAuthApp extends React.PureComponent {
                             <div className='col-md-5 col-sm-8'>
                                 <textarea
                                     id='callbackUrls'
-                                    rows='3'
-                                    maxLength='1024'
+                                    rows={3}
+                                    maxLength={1024}
                                     className='form-control'
                                     value={this.state.callbackUrls}
                                     onChange={this.updateCallbackUrls}
@@ -455,14 +498,11 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage(this.props.loading.id, this.props.loading.defaultMessage)}
+                                spinningText={typeof this.props.loading === 'string' ? this.props.loading : Utils.localizeMessage(this.props.loading?.id ?? '', this.props.loading?.defaultMessage as string)}
                                 onClick={this.handleSubmit}
                                 id='saveOauthApp'
                             >
-                                <FormattedMessage
-                                    id={footerToRender.id}
-                                    defaultMessage={footerToRender.defaultMessage}
-                                />
+                                {this.getFooter()}
                             </SpinnerButton>
                             {renderExtra}
                         </div>
