@@ -1,66 +1,63 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page} from '@playwright/test';
+import {BoardsSidebar} from './boards/sidebar';
+import {ChannelsHeader} from './channels/header';
+import {ChannelsHeaderMobile} from './channels/header_mobile';
+import {ChannelsAppBar} from './channels/app_bar';
+import {ChannelsPostCreate} from './channels/post_create';
+import {ChannelsPost} from './channels/post';
+import {ChannelsCenterView} from './channels/center_view'
+import {ChannelsSidebarLeft} from './channels/sidebar_left';
+import {ChannelsSidebarRight} from './channels/sidebar_right';
+import {DeletePostModal} from './channels/delete_post_modal';
+import {FindChannelsModal} from './channels/find_channels_modal';
+import {Footer} from './footer';
+import {GlobalHeader} from './global_header';
+import {MainHeader} from './main_header';
+import {PostDotMenu} from './channels/post_dot_menu';
+import {PostReminderMenu} from './channels/post_reminder_menu';
+import {PostMenu} from './channels/post_menu';
+import {ThreadFooter} from './channels/thread_footer';
+import {EmojiGifPicker} from './channels/emoji_gif_picker';
 
-import {components} from '@e2e-support/ui/components';
-import {isSmallScreen} from '@e2e-support/util';
+const components = {
+    BoardsSidebar,
+    GlobalHeader,
+    ChannelsCenterView,
+    ChannelsSidebarLeft,
+    ChannelsSidebarRight,
+    ChannelsAppBar,
+    ChannelsHeader,
+    ChannelsHeaderMobile,
+    ChannelsPostCreate,
+    ChannelsPost,
+    FindChannelsModal,
+    DeletePostModal,
+    PostDotMenu,
+    PostMenu,
+    ThreadFooter,
+    Footer,
+    MainHeader,
+    PostReminderMenu,
+    EmojiGifPicker,
+};
 
-export default class ChannelsPage {
-    readonly channels = 'Channels';
-
-    readonly page: Page;
-
-    readonly globalHeader;
-    readonly centerView;
-    readonly sidebarLeft;
-    readonly sidebarRight;
-    readonly appBar;
-
-    readonly findChannelsModal;
-    readonly deletePostModal;
-    
-    readonly postDotMenu;
-    readonly postReminderMenu;
-
-    constructor(page: Page) {
-        this.page = page;
-
-        // The main areas of the app
-        this.globalHeader = new components.GlobalHeader(page.locator('#global-header'));
-        this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'));
-        this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
-        this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
-        this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
-
-        // Modals        
-        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
-        this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
-
-        // Menus
-        this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
-        this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
-    }
-
-    async toBeVisible() {
-        if (!isSmallScreen(this.page.viewportSize())) {
-            await this.globalHeader.toBeVisible(this.channels);
-        }
-
-        await this.centerView.toBeVisible();
-    }
-
-    async goto(teamName = '', channelName = '') {
-        let channelsUrl = '/';
-        if (teamName) {
-            channelsUrl += `${teamName}`;
-            if (channelName) {
-                channelsUrl += `/${channelName}`;
-            }
-        }
-
-        await this.page.goto(channelsUrl);
-    }
-}
-
-export {ChannelsPage};
+export {
+    components,
+    BoardsSidebar,
+    GlobalHeader,
+    ChannelsCenterView,
+    ChannelsSidebarLeft,
+    ChannelsSidebarRight,
+    ChannelsAppBar,
+    ChannelsHeader,
+    ChannelsHeaderMobile,
+    ChannelsPostCreate,
+    ChannelsPost,
+    FindChannelsModal,
+    DeletePostModal,
+    PostDotMenu,
+    PostMenu,
+    ThreadFooter,
+};

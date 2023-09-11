@@ -3,81 +3,53 @@
 
 import {expect, Locator} from '@playwright/test';
 
-export default class ChannelsPostCreate {
+import {components} from '@e2e-support/ui/components';
+
+export default class ChannelsSidebarRight {
     readonly container: Locator;
 
-    readonly input;
+    readonly postCreate;
+    readonly closeButton;
 
-    readonly attachmentButton;
-    readonly emojiButton;
-    readonly sendMessageButton;
-
-    constructor(container: Locator, isRHS = false) {
+    constructor(container: Locator) {
         this.container = container;
 
-        if (!isRHS) {
-            this.input = container.getByTestId('post_textbox');
-        } else {
-            this.input = container.getByTestId('reply_textbox');
-        }
-
-        this.attachmentButton = container.getByLabel('attachment');
-        this.emojiButton = container.getByLabel('select an emoji');
-        this.sendMessageButton = container.getByTestId('SendMessageButton');
+        this.postCreate = new components.ChannelsPostCreate(container.getByTestId('comment-create'), true);
+        this.closeButton = container.locator('#rhsCloseButton');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
-
-        await this.input.waitFor();
-        await expect(this.input).toBeVisible();
     }
 
     /**
-     * It just writes the message in the input and doesn't send it
-     * @param message : Message to be written in the input
+     * Returns the RHS post by post id
+     * @param postId Just the ID without the prefix
      */
-    async writeMessage(message: string) {
-        await this.input.waitFor();
-        await expect(this.input).toBeVisible();
-
-        await this.input.fill(message);
+    async getPostById(postId: string) {
+        const post = this.container.locator(`[id="rhsPost_${postId}"]`);
+        await post.waitFor();
+        return new components.ChannelsPost(post);
     }
 
     /**
-     * Returns the value of the message input
+     * Return the last post in the RHS
      */
-    async getInputValue() {
-        await expect(this.input).toBeVisible();
-        return await this.input.inputValue();
+    async getLastPost() {
+        const post = this.container.getByTestId('rhsPostView').last();
+        await post.waitFor();
+        return new components.ChannelsPost(post);
     }
 
     /**
-     * Sends the message already written in the input
+     * Closes the RHS
      */
-    async sendMessage() {
-        await expect(this.input).toBeVisible();
-        const messageInputValue = await this.getInputValue();
-        expect(messageInputValue).not.toBe('');
+    async close() {
+        await this.closeButton.waitFor();
+        await this.closeButton.click();
 
-        await expect(this.sendMessageButton).toBeVisible();
-        await expect(this.sendMessageButton).toBeEnabled();
-
-        await this.sendMessageButton.click();
-    }
-
-    /**
-     * Composes and sends a message
-     */
-    async postMessage(message: string) {
-        await this.writeMessage(message);
-        await this.sendMessage();
-    }
-
-    async openEmojiPicker() {
-        await expect(this.emojiButton).toBeVisible();
-        await this.emojiButton.click();
+        await expect(this.container).not.toBeVisible();
     }
 }
 
-export {ChannelsPostCreate};
+export {ChannelsSidebarRight};

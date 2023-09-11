@@ -18,7 +18,7 @@ test('MM-XXX Should search, select and post correct Gif when Gif picker is opene
     await channelPage.toBeVisible();
 
     // # Open emoji/gif picker
-    await channelPage.postCreate.openEmojiPicker();
+    await channelPage.centerView.postCreate.openEmojiPicker();
     await channelPage.emojiGifPickerPopup.toBeVisible();
 
     // # Open gif tab
@@ -32,10 +32,10 @@ test('MM-XXX Should search, select and post correct Gif when Gif picker is opene
     await firstSearchGifResult.click();
 
     // # Send the selected gif as a message
-    await channelPage.postCreate.sendMessage();
+    await channelPage.centerView.postCreate.sendMessage();
 
     // * Verify that last message has the gif
-    const lastPost = await channelPage.getLastPost();
+    const lastPost = await channelPage.centerView.getLastPost();
     await lastPost.toBeVisible();
     await expect(lastPost.body.getByLabel('file thumbnail')).toHaveAttribute('alt', altOfFirstSearchGifResult);
 });
@@ -55,10 +55,10 @@ test('MM-XXX Should search, select and post correct Gif when Gif picker is opene
     await channelPage.toBeVisible();
 
     // # Send a message
-    await channelPage.postCreate.postMessage('Message to open RHS');
+    await channelPage.centerView.postCreate.postMessage('Message to open RHS');
 
     // # Open the last post sent in RHS
-    const lastPost = await channelPage.getLastPost();
+    const lastPost = await channelPage.centerView.getLastPost();
     await lastPost.hover();
     await lastPost.postMenu.toBeVisible();
     await lastPost.postMenu.reply();
