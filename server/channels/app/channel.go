@@ -3613,8 +3613,8 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 		usernames[i] = user.Username
 	}
 
-	message := fmt.Sprintf(i18n.T(
-		"api.channel.group_message.converted.to_private_channel"),
+	message := i18n.T(
+		"api.channel.group_message.converted.to_private_channel",
 		map[string]any{
 			"ConvertedByUsername": convertedByUser.Username,
 			"GMMembers":           utils.JoinList(usernames),
