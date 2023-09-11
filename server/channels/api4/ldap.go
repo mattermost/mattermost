@@ -66,7 +66,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SyncLdap(opts.IncludeRemovedMembers)
+	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
 
 	auditRec.Success()
 	ReturnStatusOK(w)

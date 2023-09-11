@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import PropTypes from 'prop-types';
-import React, {PureComponent, ReactNode, ChangeEvent} from 'react';
+import React, {PureComponent} from 'react';
+import type {ReactNode, ChangeEvent} from 'react';
+
+import type {EmailSettings} from '@mattermost/types/config';
 
 import Setting from './setting';
-import {EmailSettings} from '@mattermost/types/config';
 
 type Props = {
     id: string;

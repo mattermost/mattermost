@@ -225,3 +225,9 @@ func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.P
 	hooks.recordTime(startTime, "NotificationWillBePushed", true)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) UserHasBeenDeactivated(c *Context, user *model.User) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.UserHasBeenDeactivated(c, user)
+	hooks.recordTime(startTime, "UserHasBeenDeactivated", true)
+}

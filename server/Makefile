@@ -161,12 +161,12 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.18.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.19.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.38.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
@@ -213,6 +213,7 @@ include build/*.mk
 include public/Makefile
 
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
+LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.MattermostGiphySdkKey=$(MM_GIPHY_SDK_KEY)"
 
 RUN_IN_BACKGROUND ?=
 ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
@@ -376,7 +377,7 @@ plugin-mocks: ## Creates mock files for plugins.
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
-	$(GOBIN)/mockery --dir channels/einterfaces --all --output channels/einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
+	$(GOBIN)/mockery --dir einterfaces --all --output einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
 
 searchengine-mocks: ## Creates mock files for searchengines.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
@@ -396,7 +397,7 @@ email-mocks: ## Creates mocks for misc interfaces.
 	$(GOBIN)/mockery --dir channels/app/email --name ServiceInterface --output channels/app/email/mocks --note 'Regenerate this file using `make email-mocks`.'
 
 platform-mocks: ## Creates mocks for platform interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.14.0
+	$(GO) install github.com/vektra/mockery/v2/...@v2.32.2
 	$(GOBIN)/mockery --dir channels/app/platform --name SuiteIFace --output channels/app/platform/mocks --note 'Regenerate this file using `make platform-mocks`.'
 
 mmctl-mocks: ## Creates mocks for mmctl
@@ -487,7 +488,7 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS)-timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -574,17 +575,17 @@ test-mmctl-e2e: gotestsum start-docker
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl: export MM_SERVER_PATH := $(MM_SERVER_PATH)
-test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
-test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
-test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-mmctl: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-mmctl: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-mmctl: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-mmctl: gotestsum start-docker
 	@echo Running all mmctl tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl-coverage: export MM_SERVER_PATH := $(MM_SERVER_PATH)
-test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
-test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
-test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-mmctl-coverage: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-mmctl-coverage: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-mmctl-coverage: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-mmctl-coverage: gotestsum start-docker
 	@echo Running all mmctl tests with coverage
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_TESTFLAGS)
@@ -697,19 +698,19 @@ run-job-server: ## Runs the background job server.
 config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
 
-	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "localhost"|g' config/config.json
-	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "dc=mm,dc=test,dc=com"|g' config/config.json
-	@sed -i'' -e 's|"BindUsername": ".*"|"BindUsername": "cn=admin,dc=mm,dc=test,dc=com"|g' config/config.json
-	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "mostest"|g' config/config.json
-	@sed -i'' -e 's|"FirstNameAttribute": ".*"|"FirstNameAttribute": "cn"|g' config/config.json
-	@sed -i'' -e 's|"LastNameAttribute": ".*"|"LastNameAttribute": "sn"|g' config/config.json
-	@sed -i'' -e 's|"NicknameAttribute": ".*"|"NicknameAttribute": "cn"|g' config/config.json
-	@sed -i'' -e 's|"EmailAttribute": ".*"|"EmailAttribute": "mail"|g' config/config.json
-	@sed -i'' -e 's|"UsernameAttribute": ".*"|"UsernameAttribute": "uid"|g' config/config.json
-	@sed -i'' -e 's|"IdAttribute": ".*"|"IdAttribute": "uid"|g' config/config.json
-	@sed -i'' -e 's|"LoginIdAttribute": ".*"|"LoginIdAttribute": "uid"|g' config/config.json
-	@sed -i'' -e 's|"GroupDisplayNameAttribute": ".*"|"GroupDisplayNameAttribute": "cn"|g' config/config.json
-	@sed -i'' -e 's|"GroupIdAttribute": ".*"|"GroupIdAttribute": "entryUUID"|g' config/config.json
+	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "localhost"|g' ../config/config.json
+	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "dc=mm,dc=test,dc=com"|g' ../config/config.json
+	@sed -i'' -e 's|"BindUsername": ".*"|"BindUsername": "cn=admin,dc=mm,dc=test,dc=com"|g' ../config/config.json
+	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "mostest"|g' ../config/config.json
+	@sed -i'' -e 's|"FirstNameAttribute": ".*"|"FirstNameAttribute": "cn"|g' ../config/config.json
+	@sed -i'' -e 's|"LastNameAttribute": ".*"|"LastNameAttribute": "sn"|g' ../config/config.json
+	@sed -i'' -e 's|"NicknameAttribute": ".*"|"NicknameAttribute": "cn"|g' ../config/config.json
+	@sed -i'' -e 's|"EmailAttribute": ".*"|"EmailAttribute": "mail"|g' ../config/config.json
+	@sed -i'' -e 's|"UsernameAttribute": ".*"|"UsernameAttribute": "uid"|g' ../config/config.json
+	@sed -i'' -e 's|"IdAttribute": ".*"|"IdAttribute": "uid"|g' ../config/config.json
+	@sed -i'' -e 's|"LoginIdAttribute": ".*"|"LoginIdAttribute": "uid"|g' ../config/config.json
+	@sed -i'' -e 's|"GroupDisplayNameAttribute": ".*"|"GroupDisplayNameAttribute": "cn"|g' ../config/config.json
+	@sed -i'' -e 's|"GroupIdAttribute": ".*"|"GroupIdAttribute": "entryUUID"|g' ../config/config.json
 
 config-reset: ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default

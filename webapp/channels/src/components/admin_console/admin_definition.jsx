@@ -10,11 +10,6 @@ import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutl
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
-import {isCloudFreePlan} from 'utils/cloud_utils';
-import {isCloudLicense} from 'utils/license_utils';
-import {getSiteURL} from 'utils/url';
-import {t} from 'utils/i18n';
 import {
     ldapTest, invalidateAllCaches, reloadConfig, testS3Connection,
     removeIdpSamlCertificate, uploadIdpSamlCertificate,
@@ -24,57 +19,40 @@ import {
     removePublicLdapCertificate, uploadPublicLdapCertificate,
     invalidateAllEmailInvites, testSmtp, testSiteURL, getSamlMetadataFromIdp, setSamlIdpCertificateFromMetadata,
 } from 'actions/admin_actions';
-import SystemAnalytics from 'components/analytics/system_analytics';
-import TeamAnalytics from 'components/analytics/team_analytics';
-import PluginManagement from 'components/admin_console/plugin_management';
-import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
-import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
-
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
+import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
+import PluginManagement from 'components/admin_console/plugin_management';
+import SystemAnalytics from 'components/analytics/system_analytics';
+import TeamAnalytics from 'components/analytics/team_analytics';
 import ExternalLink from 'components/external_link';
+import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import OpenIdConvert from './openid_convert';
+import {isCloudFreePlan} from 'utils/cloud_utils';
+import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {isCloudLicense} from 'utils/license_utils';
+import {getSiteURL} from 'utils/url';
+
+import * as DefinitionConstants from './admin_definition_constants';
 import Audits from './audits';
-import CustomURLSchemesSetting from './custom_url_schemes_setting';
-import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
-import LicenseSettings from './license_settings';
-import PermissionSchemesSettings from './permission_schemes_settings';
-import PermissionSystemSchemeSettings from './permission_schemes_settings/permission_system_scheme_settings';
-import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
-import ValidationResult from './validation';
-import SystemRoles from './system_roles';
-import SystemRole from './system_roles/system_role';
-import SystemUsers from './system_users';
-import SystemUserDetail from './system_user_detail';
-import ServerLogs from './server_logs';
+import BillingHistory from './billing/billing_history';
+import BillingSubscriptions from './billing/billing_subscriptions/index.tsx';
+import CompanyInfo from './billing/company_info';
+import CompanyInfoEdit from './billing/company_info_edit';
+import PaymentInfo from './billing/payment_info';
+import PaymentInfoEdit from './billing/payment_info_edit';
+import BleveSettings from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
-import GroupSettings from './group_settings/group_settings';
-import GroupDetails from './group_settings/group_details';
-import TeamSettings from './team_channel_settings/team';
-import TeamDetails from './team_channel_settings/team/details';
-import ChannelSettings from './team_channel_settings/channel';
-import ChannelDetails from './team_channel_settings/channel/details';
-import PasswordSettings from './password_settings';
-import PushNotificationsSettings from './push_settings';
+import ClusterSettings from './cluster_settings.jsx';
+import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
+import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
+import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import DataRetentionSettings from './data_retention_settings';
-import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
-import MessageExportSettings from './message_export_settings.jsx';
+import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
 import DatabaseSettings from './database_settings.jsx';
 import ElasticSearchSettings from './elasticsearch_settings';
-import BleveSettings from './bleve_settings';
-import FeatureFlags from './feature_flags.tsx';
-import ClusterSettings from './cluster_settings.jsx';
-import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
-import SessionLengthSettings from './session_length_settings';
-import BillingSubscriptions from './billing/billing_subscriptions/index.tsx';
-import BillingHistory from './billing/billing_history';
-import CompanyInfo from './billing/company_info';
-import PaymentInfo from './billing/payment_info';
-import CompanyInfoEdit from './billing/company_info_edit';
-import PaymentInfoEdit from './billing/payment_info_edit';
-import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 import {
     LDAPFeatureDiscovery,
     SAMLFeatureDiscovery,
@@ -88,8 +66,29 @@ import {
     SystemRolesFeatureDiscovery,
     GroupsFeatureDiscovery,
 } from './feature_discovery/features';
-
-import * as DefinitionConstants from './admin_definition_constants';
+import FeatureFlags from './feature_flags.tsx';
+import GroupDetails from './group_settings/group_details';
+import GroupSettings from './group_settings/group_settings';
+import LicenseSettings from './license_settings';
+import MessageExportSettings from './message_export_settings.jsx';
+import OpenIdConvert from './openid_convert';
+import PasswordSettings from './password_settings';
+import PermissionSchemesSettings from './permission_schemes_settings';
+import PermissionSystemSchemeSettings from './permission_schemes_settings/permission_system_scheme_settings';
+import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
+import PushNotificationsSettings from './push_settings';
+import ServerLogs from './server_logs';
+import SessionLengthSettings from './session_length_settings';
+import SystemRoles from './system_roles';
+import SystemRole from './system_roles/system_role';
+import SystemUserDetail from './system_user_detail';
+import SystemUsers from './system_users';
+import ChannelSettings from './team_channel_settings/channel';
+import ChannelDetails from './team_channel_settings/channel/details';
+import TeamSettings from './team_channel_settings/team';
+import TeamDetails from './team_channel_settings/team/details';
+import ValidationResult from './validation';
+import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -2278,6 +2277,15 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'TeamSettings.EnableJoinLeaveMessageByDefault',
+                        label: t('admin.team.enableJoinLeaveMessageTitle'),
+                        label_default: 'Enable join/leave messages by default:',
+                        help_text: t('admin.team.enableJoinLeaveMessageDescription'),
+                        help_text_default: 'Choose the default configuration of system messages displayed when users join or leave channels. Users can override this default by configuring Join/Leave messages in Account Settings > Advanced.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_DROPDOWN,
                         key: 'TeamSettings.RestrictDirectMessage',
                         label: t('admin.team.restrictDirectMessage'),
@@ -2353,7 +2361,7 @@ const AdminDefinition = {
                         label: t('admin.privacy.showEmailTitle'),
                         label_default: 'Show Email Address:',
                         help_text: t('admin.privacy.showEmailDescription'),
-                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators.',
+                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators and the System Roles with read/write access to Compliance, Billing, or User Management.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
@@ -3045,6 +3053,15 @@ const AdminDefinition = {
                         type: Constants.SettingsTypes.TYPE_CUSTOM,
                         component: CustomURLSchemesSetting,
                         key: 'DisplaySettings.CustomURLSchemes',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'DisplaySettings.MaxMarkdownNodes',
+                        label: t('admin.customization.maxMarkdownNodesTitle'),
+                        label_default: 'Max Markdown Nodes:',
+                        help_text: t('admin.customization.maxMarkdownNodesDesc'),
+                        help_text_default: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {

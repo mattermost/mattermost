@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import SystemUserDetail from 'components/admin_console/system_user_detail/system_user_detail';
 

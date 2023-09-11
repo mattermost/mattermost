@@ -70,6 +70,7 @@ export type ClientConfig = {
     EnableGifPicker: string;
     EnableGuestAccounts: string;
     EnableIncomingWebhooks: string;
+    EnableJoinLeaveMessageByDefault: string;
     EnableLatex: string;
     EnableInlineLatex: string;
     EnableLdap: string;
@@ -121,8 +122,6 @@ export type ClientConfig = {
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
     ForgotPasswordLink: string;
-    GfycatAPIKey: string;
-    GfycatAPISecret: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
     GuestAccountsEnforceMultifactorAuthentication: string;
@@ -335,8 +334,6 @@ export type ServiceSettings = {
     EnableCustomEmoji: boolean;
     EnableEmojiPicker: boolean;
     EnableGifPicker: boolean;
-    GfycatAPIKey: string;
-    GfycatAPISecret: string;
     GiphySdkKey: string;
     PostEditTimeLimit: number;
     TimeBetweenUserTypingUpdatesMilliseconds: number;

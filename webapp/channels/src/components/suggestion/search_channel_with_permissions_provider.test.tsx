@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import store from 'stores/redux_store';
+
 import mockStore from 'tests/test_store';
 
 import SearchChannelWithPermissionsProvider from './search_channel_with_permissions_provider';

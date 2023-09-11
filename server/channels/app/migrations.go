@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
@@ -554,7 +555,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	}
 }
 
-func (s *Server) doElasticsearchFixChannelIndex() {
+func (s *Server) doElasticsearchFixChannelIndex(c *request.Context) {
 	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		if model.BuildEnterpriseReady != "true" || newLicense == nil || !*newLicense.Features.Elasticsearch {
 			return
@@ -564,7 +565,7 @@ func (s *Server) doElasticsearchFixChannelIndex() {
 			return
 		}
 
-		if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+		if _, appErr := s.Jobs.CreateJob(c, model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
 			mlog.Fatal("failed to start job for fixing Elasticsearch channels index on license application", mlog.Err(appErr))
 			return
 		}
@@ -581,13 +582,13 @@ func (s *Server) doElasticsearchFixChannelIndex() {
 		return
 	}
 
-	if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJob(c, model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
 		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
 		return
 	}
 }
 
-func (s *Server) doCloudS3PathMigrations() {
+func (s *Server) doCloudS3PathMigrations(c *request.Context) {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
 		return
@@ -600,7 +601,7 @@ func (s *Server) doCloudS3PathMigrations() {
 
 	// If there is a job already pending, no need to schedule again.
 	// This is possible if the pod was rolled over.
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(model.JobTypeS3PathMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeS3PathMigration, model.JobStatusPending)
 	if err != nil {
 		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
 		return
@@ -609,7 +610,7 @@ func (s *Server) doCloudS3PathMigrations() {
 		return
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(model.JobTypeS3PathMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeS3PathMigration, nil); appErr != nil {
 		mlog.Fatal("failed to start job for migrating s3 file paths", mlog.Err(appErr))
 		return
 	}
@@ -621,6 +622,8 @@ func (a *App) DoAppMigrations() {
 }
 
 func (s *Server) doAppMigrations() {
+	c := request.EmptyContext(s.Log())
+
 	s.doAdvancedPermissionsMigration()
 	s.doEmojisPermissionsMigration()
 	s.doGuestRolesCreationMigration()
@@ -637,6 +640,6 @@ func (s *Server) doAppMigrations() {
 	s.doFirstAdminSetupCompleteMigration()
 	s.doRemainingSchemaMigrations()
 	s.doPostPriorityConfigDefaultTrueMigration()
-	s.doElasticsearchFixChannelIndex()
-	s.doCloudS3PathMigrations()
+	s.doElasticsearchFixChannelIndex(c)
+	s.doCloudS3PathMigrations(c)
 }

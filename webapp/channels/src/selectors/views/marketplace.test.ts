@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AuthorType, MarketplaceApp, MarketplacePlugin, ReleaseStage} from '@mattermost/types/marketplace';
+import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
+import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 
 import {
     getPlugins,
@@ -14,7 +15,7 @@ import {
     getError,
 } from 'selectors/views/marketplace';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 describe('marketplace', () => {
     const samplePlugin: MarketplacePlugin = {

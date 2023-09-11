@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
-import AccessDeniedHappySvg from 'components/common/svg_images_components/access_denied_happy_svg';
-import IconMessage from 'components/purchase_modal/icon_message';
 import {useOpenSelfHostedZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
+import AccessDeniedHappySvg from 'components/common/svg_images_components/access_denied_happy_svg';
+import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
 import ExternalLink from 'components/external_link';
+import IconMessage from 'components/purchase_modal/icon_message';
 
 interface Props {
     nextAction: () => void;
