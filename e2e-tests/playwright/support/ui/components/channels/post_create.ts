@@ -7,14 +7,20 @@ export default class ChannelsPostCreate {
     readonly container: Locator;
 
     readonly input;
+
     readonly attachmentButton;
     readonly emojiButton;
     readonly sendMessageButton;
 
-    constructor(container: Locator, inRHS = false) {
+    constructor(container: Locator, isRHS = false) {
         this.container = container;
 
-        this.input = inRHS ? container.getByTestId('reply_textbox') : container.getByTestId('post_textbox');
+        if (!isRHS) {
+            this.input = container.getByTestId('post_textbox');
+        } else {
+            this.input = container.getByTestId('reply_textbox');
+        }
+
         this.attachmentButton = container.getByLabel('attachment');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
@@ -22,6 +28,8 @@ export default class ChannelsPostCreate {
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+
+        await this.input.waitFor();
         await expect(this.input).toBeVisible();
     }
 
@@ -32,6 +40,7 @@ export default class ChannelsPostCreate {
     async writeMessage(message: string) {
         await this.input.waitFor();
         await expect(this.input).toBeVisible();
+
         await this.input.fill(message);
     }
 
@@ -44,14 +53,16 @@ export default class ChannelsPostCreate {
     }
 
     /**
-     * Sends the message written in the input
+     * Sends the message already written in the input
      */
     async sendMessage() {
-        await expect(this.sendMessageButton).toBeVisible();
-        
+        await expect(this.input).toBeVisible();
         const messageInputValue = await this.getInputValue();
         expect(messageInputValue).not.toBe('');
-        
+
+        await expect(this.sendMessageButton).toBeVisible();
+        await expect(this.sendMessageButton).toBeEnabled();
+
         await this.sendMessageButton.click();
     }
 
@@ -64,6 +75,7 @@ export default class ChannelsPostCreate {
     }
 
     async openEmojiPicker() {
+        await expect(this.emojiButton).toBeVisible();
         await this.emojiButton.click();
     }
 }
