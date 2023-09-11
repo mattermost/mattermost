@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 
-import {CustomStatusDuration, UserCustomStatus} from '@mattermost/types/users';
+import type {UserCustomStatus} from '@mattermost/types/users';
+import {CustomStatusDuration} from '@mattermost/types/users';
 
+import RenderEmoji from 'components/emoji/render_emoji';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import RenderEmoji from 'components/emoji/render_emoji';
+
 import Constants, {durationValues} from 'utils/constants';
 
 import CustomStatusText from './custom_status_text';
@@ -39,29 +41,28 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
         }
     };
 
-    const clearButton = handleClear ?
-        (
-            <div
-                className='suggestion-clear'
+    const clearButton = handleClear ? (
+        <div
+            className='suggestion-clear'
+        >
+            <OverlayTrigger
+                delayShow={Constants.OVERLAY_TIME_DELAY}
+                placement='top'
+                overlay={
+                    <Tooltip id='clear-recent-custom-status'>
+                        {'Clear'}
+                    </Tooltip>
+                }
             >
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
-                    overlay={
-                        <Tooltip id='clear-recent-custom-status'>
-                            {'Clear'}
-                        </Tooltip>
-                    }
+                <button
+                    className='style--none input-clear-x'
+                    onClick={handleRecentCustomStatusClear}
                 >
-                    <button
-                        className='style--none input-clear-x'
-                        onClick={handleRecentCustomStatusClear}
-                    >
-                        <i className='icon icon-close-circle'/>
-                    </button>
-                </OverlayTrigger>
-            </div>
-        ) : null;
+                    <i className='icon icon-close-circle'/>
+                </button>
+            </OverlayTrigger>
+        </div>
+    ) : null;
 
     return (
         <button

@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useEffect, useRef} from 'react';
-
-import {useDispatch} from 'react-redux';
-
 import throttle from 'lodash/throttle';
+import {useCallback, useEffect, useRef} from 'react';
+import {useDispatch} from 'react-redux';
 
 import {setLhsSize} from 'actions/views/lhs';
 import {setRhsSize} from 'actions/views/rhs';
 
-import Constants from 'utils/constants';
 import {SidebarSize} from 'components/resizable_sidebar/constants';
+
+import Constants from 'utils/constants';
 
 function WindowSizeObserver() {
     const dispatch = useDispatch();

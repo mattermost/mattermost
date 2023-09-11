@@ -1,35 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import EditCategoryModal from 'components/edit_category_modal';
-import MoreDirectChannels from 'components/more_direct_channels';
-import DataPrefetch from 'components/data_prefetch';
+
 import BrowseChannels from 'components/browse_channels';
-import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
+import CreateUserGroupsModal from 'components/create_user_groups_modal';
+import DataPrefetch from 'components/data_prefetch';
+import EditCategoryModal from 'components/edit_category_modal';
 import InvitationModal from 'components/invitation_modal';
+import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
+import MoreDirectChannels from 'components/more_direct_channels';
+import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
+import ResizableLhs from 'components/resizable_sidebar/resizable_lhs';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import Pluggable from 'plugins/pluggable';
-
-import {ModalData} from 'types/actions';
-import {RhsState} from 'types/store/rhs';
-
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
-import CreateUserGroupsModal from 'components/create_user_groups_modal';
-import KeyboardShortcutsModal from '../keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 import ChannelNavigator from './channel_navigator';
-import SidebarList from './sidebar_list';
-import SidebarHeader from './sidebar_header';
 import MobileSidebarHeader from './mobile_sidebar_header';
-import ResizableLhs from 'components/resizable_sidebar/resizable_lhs';
+import SidebarHeader from './sidebar_header';
+import SidebarList from './sidebar_list';
 
 type Props = {
     teamId: string;
@@ -235,8 +234,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     'move--right': this.props.isOpen && this.props.isMobileView,
                     dragging: this.state.isDragging,
                 })}
-                disabled={this.props.isMobileView}
-
             >
                 {this.props.isMobileView ? <MobileSidebarHeader/> : (
                     <SidebarHeader

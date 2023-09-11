@@ -10,12 +10,10 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 )
-
-const jobName = "ExportProcess"
 
 type AppIface interface {
 	configservice.ConfigService
@@ -24,7 +22,9 @@ type AppIface interface {
 	Log() *mlog.Logger
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
+	const workerName = "ExportProcess"
+
 	isEnabled := func(cfg *model.Config) bool { return true }
 	execute := func(job *model.Job) error {
 		defer jobServer.HandleJobPanic(job)
@@ -59,8 +59,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			}
 		}()
 
-		logger := app.Log().With(mlog.String("job_id", job.Id))
-		appErr := app.BulkExport(request.EmptyContext(logger), wr, outPath, job, opts)
+		appErr := app.BulkExport(request.EmptyContext(job.Logger), wr, outPath, job, opts)
 		wr.Close() // Close never returns an error
 
 		if appErr != nil {
@@ -69,6 +68,6 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

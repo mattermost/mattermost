@@ -4,21 +4,20 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DocLinks, JobTypes, exportFormats} from 'utils/constants';
-import * as Utils from 'utils/utils';
 import {getSiteURL} from 'utils/url';
-
-import ExternalLink from 'components/external_link';
+import * as Utils from 'utils/utils';
 
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import DropdownSetting from './dropdown_setting';
 import JobsTable from './jobs';
+import RadioSetting from './radio_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
-import RadioSetting from './radio_setting';
 
 export default class MessageExportSettings extends AdminSettings {
     getConfigFromState = (config) => {

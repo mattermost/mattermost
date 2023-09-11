@@ -4,21 +4,21 @@
 import {uniq} from 'lodash';
 import {batchActions} from 'redux-batched-actions';
 
+import type {Post} from '@mattermost/types/posts';
 import type {UserThread, UserThreadList} from '@mattermost/types/threads';
-import {Post} from '@mattermost/types/posts';
 
 import {ThreadTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
+import {getMissingFilesByPosts} from 'mattermost-redux/actions/files';
+import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import ThreadConstants from 'mattermost-redux/constants/threads';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
-import {getMissingFilesByPosts} from 'mattermost-redux/actions/files';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread as getThreadSelector, getThreadItemsInChannel} from 'mattermost-redux/selectors/entities/threads';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {forceLogoutIfNecessary} from './helpers';

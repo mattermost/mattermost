@@ -4,18 +4,18 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import {Role} from '@mattermost/types/roles';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {isEnterpriseLicense, isNonEnterpriseLicense} from 'utils/license_utils';
 
-import PermissionGroup from '../permission_group';
+import type {AdditionalValues, Group} from './types';
+
 import EditPostTimeLimitButton from '../edit_post_time_limit_button';
 import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
-
-import {AdditionalValues, Group} from './types';
+import PermissionGroup from '../permission_group';
 
 type Props = {
     scope: string;

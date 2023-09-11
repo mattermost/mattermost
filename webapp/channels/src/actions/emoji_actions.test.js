@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getRecentEmojisData, getEmojiMap} from 'selectors/emojis';
-import * as EmojiActions from 'actions/emoji_actions';
 import * as PreferenceActions from 'mattermost-redux/actions/preferences';
+
+import * as EmojiActions from 'actions/emoji_actions';
+import {getRecentEmojisData, getEmojiMap} from 'selectors/emojis';
 
 import mockStore from 'tests/test_store';
 

@@ -3,24 +3,38 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
 import {isNil} from 'lodash';
+import React from 'react';
+
+import type {Channel, ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
+import {GroupSource} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import {PostPriority} from '@mattermost/types/posts';
+import type {Post, PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Posts} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {Channel, ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import {Post, PostMetadata, PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {ServerError} from '@mattermost/types/errors';
-import {CommandArgs} from '@mattermost/types/integrations';
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {FileInfo} from '@mattermost/types/files';
-import {Emoji} from '@mattermost/types/emojis';
-import {PluginComponent} from 'types/store/plugins';
 
 import * as GlobalActions from 'actions/global_actions';
+
+import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
+import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import NotifyConfirmModal from 'components/notify_confirm_modal';
+import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
+import PostPriorityPickerOverlay from 'components/post_priority/post_priority_picker_overlay';
+import ResetStatusModal from 'components/reset_status_modal';
+import type TextboxClass from 'components/textbox/textbox';
+
 import Constants, {
     StoragePrefixes,
     ModalIdentifiers,
@@ -29,7 +43,20 @@ import Constants, {
     Preferences,
     AdvancedTextEditor as AdvancedTextEditorConst,
 } from 'utils/constants';
+import type EmojiMap from 'utils/emoji_map';
+import {execCommandInsertText} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
+import {applyMarkdown} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {
+    getHtmlTable,
+    hasHtmlLink,
+    formatMarkdownMessage,
+    formatGithubCodePaste,
+    isGitHubCodeBlock,
+    formatMarkdownLinkMessage,
+    isTextUrl,
+} from 'utils/paste';
 import {
     containsAtChannel,
     specialMentionsInText,
@@ -41,36 +68,13 @@ import {
     mentionsMinusSpecialMentionsInText,
     hasRequestedPersistentNotifications,
 } from 'utils/post_utils';
-import {
-    getHtmlTable,
-    hasHtmlLink,
-    formatMarkdownMessage,
-    formatGithubCodePaste,
-    isGitHubCodeBlock,
-    formatMarkdownLinkMessage,
-    isTextUrl,
-} from 'utils/paste';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
-import EmojiMap from 'utils/emoji_map';
-import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
-import {execCommandInsertText} from 'utils/exec_commands';
 
-import NotifyConfirmModal from 'components/notify_confirm_modal';
-import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
-import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import ResetStatusModal from 'components/reset_status_modal';
-import TextboxClass from 'components/textbox/textbox';
-import PostPriorityPickerOverlay from 'components/post_priority/post_priority_picker_overlay';
-import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
+import type {ModalData} from 'types/actions';
+import type {PostDraft} from 'types/store/draft';
+import type {PluginComponent} from 'types/store/plugins';
 
-import {PostDraft} from 'types/store/draft';
-import {ModalData} from 'types/actions';
-
-import AdvancedTextEditor from '../advanced_text_editor/advanced_text_editor';
-import FileLimitStickyBanner from '../file_limit_sticky_banner';
-import {FilePreviewInfo} from '../file_preview/file_preview';
 import PriorityLabels from './priority_labels';
 
 const KeyCodes = Constants.KeyCodes;
@@ -266,6 +270,8 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     private lastOrientation?: string;
     private saveDraftFrame?: number | null;
     private isDraftSubmitting = false;
+    private isNonFormattedPaste = false;
+    private timeoutId: number | null = null;
 
     private topDiv: React.RefObject<HTMLFormElement>;
     private textboxRef: React.RefObject<TextboxClass>;
@@ -355,6 +361,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         window.removeEventListener('beforeunload', this.unloadHandler);
         this.removeOrientationListeners();
         this.saveDraftWithShow();
+        if (this.timeoutId !== null) {
+            clearTimeout(this.timeoutId);
+        }
     }
 
     getChannelMemberCountsByGroup = () => {
@@ -929,7 +938,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
         const hasTextUrl = isTextUrl(clipboardData);
-        const hasHTMLLinks = hasHtmlLink(clipboardData);
+        const hasHTMLLinks = !this.isNonFormattedPaste && hasHtmlLink(clipboardData);
         const htmlTable = getHtmlTable(clipboardData);
         const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
         const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
@@ -1134,8 +1143,18 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
         const messageIsEmpty = this.state.message.length === 0;
         const draftMessageIsEmpty = this.props.draft.message.length === 0;
-
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
+
+        // fix for FF not capturing the paste without formatting event when using ctrl|cmd + shift + v
+        if (e.key === KeyCodes.V[0] && ctrlOrMetaKeyPressed) {
+            if (e.shiftKey) {
+                this.isNonFormattedPaste = true;
+                this.timeoutId = window.setTimeout(() => {
+                    this.isNonFormattedPaste = false;
+                }, 250);
+            }
+        }
+
         const ctrlEnterKeyCombo = (this.props.ctrlSend || this.props.codeBlockOnCtrlEnter) &&
             Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
             ctrlOrMetaKeyPressed;

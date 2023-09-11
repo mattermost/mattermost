@@ -93,7 +93,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
     >
       <WindowSizeObserver />
       <Connect(ModalController) />
-      <Connect(_class) />
+      <Connect(Component) />
       <Connect(SystemNotice) />
       <GlobalHeader />
       <CloudEffectsWrapper />
@@ -125,7 +125,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       <Connect(Pluggable)
         pluggableName="Global"
       />
-      <withRouter(Connect(Component)) />
+      <withRouter(Connect(SidebarRight)) />
       <AppBar />
       <Connect(SidebarRightMenu) />
     </CompassThemeProvider>

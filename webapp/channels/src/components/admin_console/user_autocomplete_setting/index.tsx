@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {autocompleteUsers} from 'actions/user_actions';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import UserAutocompleteSetting, {Props} from './user_autocomplete_setting';
+import UserAutocompleteSetting from './user_autocomplete_setting';
+import type {Props} from './user_autocomplete_setting';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {

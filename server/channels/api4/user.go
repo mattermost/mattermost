@@ -3072,7 +3072,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if migrate := c.App.AccountMigration(); migrate != nil {
-		if err := migrate.MigrateToLdap(from, matchField, force, false); err != nil {
+		if err := migrate.MigrateToLdap(c.AppContext, from, matchField, force, false); err != nil {
 			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}

@@ -3,38 +3,38 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
 import {isNil} from 'lodash';
+import React from 'react';
 
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import {Emoji} from '@mattermost/types/emojis';
-import {ServerError} from '@mattermost/types/errors';
-import {FileInfo} from '@mattermost/types/files';
+import type {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
+import {GroupSource} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import * as GlobalActions from 'actions/global_actions';
 
-import {PostDraft} from 'types/store/draft';
-import {PluginComponent} from 'types/store/plugins';
-import {ModalData} from 'types/actions';
+import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import NotifyConfirmModal from 'components/notify_confirm_modal';
+import PostDeletedModal from 'components/post_deleted_modal';
+import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
+import {execCommandInsertText} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 import {
-    specialMentionsInText,
-    postMessageOnKeyPress,
-    shouldFocusMainTextbox,
-    isErrorInvalidSlashCommand,
-    splitMessageBasedOnCaretPosition,
-    groupsMentionedInText,
-    mentionsMinusSpecialMentionsInText,
-} from 'utils/post_utils';
+    applyMarkdown,
+} from 'utils/markdown/apply_markdown';
+import type {
+    ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     getHtmlTable,
     hasHtmlLink,
@@ -45,22 +45,24 @@ import {
     formatMarkdownLinkMessage,
 } from 'utils/paste';
 import {
-    applyMarkdown,
-    ApplyMarkdownOptions,
-} from 'utils/markdown/apply_markdown';
-import {execCommandInsertText} from 'utils/exec_commands';
+    specialMentionsInText,
+    postMessageOnKeyPress,
+    shouldFocusMainTextbox,
+    isErrorInvalidSlashCommand,
+    splitMessageBasedOnCaretPosition,
+    groupsMentionedInText,
+    mentionsMinusSpecialMentionsInText,
+} from 'utils/post_utils';
+import * as UserAgent from 'utils/user_agent';
+import * as Utils from 'utils/utils';
 
-import NotifyConfirmModal from 'components/notify_confirm_modal';
-import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import PostDeletedModal from 'components/post_deleted_modal';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
-import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
-import {TextboxClass, TextboxElement} from 'components/textbox';
-import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
+import type {ModalData} from 'types/actions';
+import type {PostDraft} from 'types/store/draft';
+import type {PluginComponent} from 'types/store/plugins';
 
 const KeyCodes = Constants.KeyCodes;
 
-type Props = {
+export type Props = {
     currentTeamId: string;
 
     // The channel for which this comment is a part of
@@ -219,16 +221,20 @@ function isDraftEmpty(draft: PostDraft): boolean {
 }
 
 class AdvancedCreateComment extends React.PureComponent<Props, State> {
-    private lastBlurAt = 0;
-    private draftsForPost: {[postID: string]: PostDraft | null} = {};
-    private doInitialScrollToBottom = false;
+    // public because accessed in advanced_create_comment.test.tsx
+    public draftsForPost: {[postID: string]: PostDraft | null} = {};
+    public doInitialScrollToBottom = false;
 
+    private readonly textboxRef: React.RefObject<TextboxClass>;
+
+    private lastBlurAt = 0;
     private saveDraftFrame?: number | null;
 
     private isDraftSubmitting = false;
     private isDraftEdited = false;
+    private isNonFormattedPaste = false;
+    private timeoutId: number | null = null;
 
-    private readonly textboxRef: React.RefObject<TextboxClass>;
     private readonly fileUploadRef: React.RefObject<FileUploadClass>;
 
     static defaultProps = {
@@ -306,6 +312,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         document.removeEventListener('keydown', this.focusTextboxIfNecessary);
         window.removeEventListener('beforeunload', this.saveDraftWithShow);
         this.saveDraftOnUnmount();
+        if (this.timeoutId !== null) {
+            clearTimeout(this.timeoutId);
+        }
     }
 
     componentDidUpdate(prevProps: Props, prevState: State) {
@@ -438,7 +447,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
         const hasTextUrl = isTextUrl(clipboardData);
-        const hasHTMLLinks = hasHtmlLink(clipboardData);
+        const hasHTMLLinks = !this.isNonFormattedPaste && hasHtmlLink(clipboardData);
         const htmlTable = getHtmlTable(clipboardData);
         const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
         const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
@@ -837,6 +846,16 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
         const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
         const shiftAltCombo = !Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && e.altKey;
+
+        // fix for FF not capturing the paste without formatting event when using ctrl|cmd + shift + v
+        if (e.key === KeyCodes.V[0] && ctrlOrMetaKeyPressed) {
+            if (e.shiftKey) {
+                this.isNonFormattedPaste = true;
+                this.timeoutId = window.setTimeout(() => {
+                    this.isNonFormattedPaste = false;
+                }, 250);
+            }
+        }
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {

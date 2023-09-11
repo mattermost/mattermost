@@ -8,12 +8,13 @@ import {Client4} from 'mattermost-redux/client';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {ModalData} from 'types/actions';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import {
     ModalIdentifiers,
 } from 'utils/constants';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+
+import type {ModalData} from 'types/actions';
 
 import NoInternetConnection from '../no_internet_connection/no_internet_connection';
 

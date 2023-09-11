@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import PQueue from 'p-queue';
+import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+
+import {loadProfilesForSidebar} from 'actions/user_actions';
 
 import {Constants} from 'utils/constants';
-import {loadProfilesForSidebar} from 'actions/user_actions';
 
 const queue = new PQueue({concurrency: 2});
 

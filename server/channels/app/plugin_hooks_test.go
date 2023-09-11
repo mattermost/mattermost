@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	_ "embed"
 	"fmt"
 	"io"
@@ -26,7 +25,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -944,10 +943,9 @@ func TestErrorString(t *testing.T) {
 func TestHookContext(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
-	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-	ctx.SetLogger(th.TestLogger)
 	ctx.Session().Id = model.NewId()
 
 	var mockAPI plugintest.API

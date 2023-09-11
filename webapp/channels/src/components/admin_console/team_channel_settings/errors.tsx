@@ -4,12 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import FormError from 'components/form_error';
 import ToggleModalButton from 'components/toggle_modal_button';
 
 import {ModalIdentifiers} from 'utils/constants';
-
-import {UserProfile} from '@mattermost/types/users';
 
 import UsersToBeRemovedModal from './users_to_be_removed_modal';
 

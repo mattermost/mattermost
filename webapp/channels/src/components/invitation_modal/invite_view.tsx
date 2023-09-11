@@ -1,28 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
-import classNames from 'classnames';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
-
-import {getSiteURL} from 'utils/url';
-import {Constants} from 'utils/constants';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import useCopyText from 'components/common/hooks/useCopyText';
-import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
-import {getAnalyticsCategory} from 'components/onboarding_tasks';
 
+import useCopyText from 'components/common/hooks/useCopyText';
+import {getAnalyticsCategory} from 'components/onboarding_tasks';
+import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
+
+import {Constants} from 'utils/constants';
 import {t} from 'utils/i18n';
+import {getSiteURL} from 'utils/url';
 import {getTrackFlowRole, getRoleForTrackFlow, getSourceForTrackFlow} from 'utils/utils';
 
-import AddToChannels, {CustomMessageProps, InviteChannels, defaultCustomMessage, defaultInviteChannels} from './add_to_channels';
+import AddToChannels, {defaultCustomMessage, defaultInviteChannels} from './add_to_channels';
+import type {CustomMessageProps, InviteChannels} from './add_to_channels';
 import InviteAs, {InviteType} from './invite_as';
 import OverageUsersBannerNotice from './overage_users_banner_notice';
 
