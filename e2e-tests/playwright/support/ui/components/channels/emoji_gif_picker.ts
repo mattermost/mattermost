@@ -7,15 +7,15 @@ export default class EmojiGifPicker {
     readonly container: Locator;
 
     readonly gifTab: Locator;
-    readonly gifInput: Locator;
-    readonly gifPlane: Locator;
+    readonly gifSearchInput: Locator;
+    readonly gifPickerItems: Locator;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.gifTab = container.getByText('GIFs');
-        this.gifInput = container.getByPlaceholder('Search GIPHY');
-        this.gifPlane = container.locator('.gif-picker__items')
+        this.gifSearchInput = container.getByPlaceholder('Search GIPHY');
+        this.gifPickerItems = container.locator('.gif-picker__items')
     }
 
     async toBeVisible() {
@@ -27,20 +27,20 @@ export default class EmojiGifPicker {
         
         await this.gifTab.click({force: true});
 
-        await expect(this.gifInput).toBeVisible();
-        await expect(this.gifPlane).toBeVisible();
+        await expect(this.gifSearchInput).toBeVisible();
+        await expect(this.gifPickerItems).toBeVisible();
     }
 
     async searchGif(name: string) {
-        await this.gifInput.fill(name);
-        await expect(this.gifInput).toHaveValue(name);
+        await this.gifSearchInput.fill(name);
+        await expect(this.gifSearchInput).toHaveValue(name);
     }
 
     async getNthGif(n: number) {
-        await expect(this.gifPlane).toBeVisible();
+        await expect(this.gifPickerItems).toBeVisible();
 
-        await this.gifPlane.locator('img').nth(n).waitFor();
-        const nthGif = this.gifPlane.locator('img').nth(n);
+        await this.gifPickerItems.locator('img').nth(n).waitFor();
+        const nthGif = this.gifPickerItems.locator('img').nth(n);
         await expect(nthGif).toBeVisible()
 
         const nthGifSrc = await nthGif.getAttribute('src');
