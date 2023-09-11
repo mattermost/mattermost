@@ -55,6 +55,7 @@ export default function ChannelController(props: Props) {
             <div
                 id='channel_view'
                 className='channel-view'
+                data-testid='channel_view'
             >
                 <FaviconTitleHandler/>
                 <ProductNoticesModal/>

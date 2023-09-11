@@ -92,6 +92,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         <div
             className='post-create__container'
             ref={ref}
+            data-testid='comment-create'
         >
             <AdvancedCreateComment
                 focusOnMount={focusOnMount}
