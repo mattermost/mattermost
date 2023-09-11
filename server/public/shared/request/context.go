@@ -5,6 +5,7 @@ package request
 
 import (
 	"context"
+	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -48,8 +49,8 @@ func EmptyContext(logger mlog.LoggerIFace) *Context {
 
 // TestContext creates an empty context with a new logger to use in testing where a test helper is
 // not required.
-func TestContext() *Context {
-	logger, _ := mlog.NewLogger()
+func TestContext(t *testing.T) *Context {
+	logger := mlog.CreateConsoleTestLogger(t)
 	return EmptyContext(logger)
 }
 

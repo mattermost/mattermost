@@ -53,7 +53,7 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 }
 
 func testEmojiGet(t *testing.T, ss store.Store) {
-	c := request.TestContext()
+	c := request.TestContext(t)
 
 	emojis := []model.Emoji{
 		{
@@ -94,7 +94,7 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 }
 
 func testEmojiGetByName(t *testing.T, ss store.Store) {
-	c := request.TestContext()
+	c := request.TestContext(t)
 
 	emojis := []model.Emoji{
 		{
@@ -130,7 +130,7 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 }
 
 func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
-	c := request.TestContext()
+	c := request.TestContext(t)
 
 	emojis := []model.Emoji{
 		{

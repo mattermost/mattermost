@@ -29,7 +29,7 @@ func getMockCacheProvider() cache.Provider {
 	return &mockCacheProvider
 }
 
-func getMockStore() *mocks.Store {
+func getMockStore(t *testing.T) *mocks.Store {
 	mockStore := mocks.Store{}
 
 	fakeReaction := model.Reaction{PostId: "123"}
@@ -76,13 +76,13 @@ func getMockStore() *mocks.Store {
 	mockEmojiStore.On("Get", mock.Anything, "123", true).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("Get", mock.Anything, "123", false).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("Get", mock.IsType(&request.Context{}), "master", true).Return(&ctxEmoji, nil)
-	mockEmojiStore.On("Get", sqlstore.RequestContextWithMaster(request.TestContext()), "master", true).Return(&ctxEmoji, nil)
+	mockEmojiStore.On("Get", sqlstore.RequestContextWithMaster(request.TestContext(t)), "master", true).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", true).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", false).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123"}).Return([]*model.Emoji{&fakeEmoji}, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123", "name321"}).Return([]*model.Emoji{&fakeEmoji, &fakeEmoji2}, nil)
 	mockEmojiStore.On("GetByName", mock.IsType(&request.Context{}), "master", true).Return(&ctxEmoji, nil)
-	mockEmojiStore.On("GetByName", sqlstore.RequestContextWithMaster(request.TestContext()), "master", false).Return(&ctxEmoji, nil)
+	mockEmojiStore.On("GetByName", sqlstore.RequestContextWithMaster(request.TestContext(t)), "master", false).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
 	mockEmojiStore.On("Delete", &ctxEmoji, int64(0)).Return(nil)
 	mockStore.On("Emoji").Return(&mockEmojiStore)

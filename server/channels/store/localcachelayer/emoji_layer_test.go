@@ -25,8 +25,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	ctxEmoji := model.Emoji{Id: "master", Name: "name123"}
 
 	t.Run("first call by id not cached, second cached and returning same data", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -42,8 +42,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("GetByName: first call by name not cached, second cached and returning same data", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -59,8 +59,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("GetMultipleByName: first call by name not cached, second cached and returning same data", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -78,8 +78,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("GetMultipleByName: multiple elements", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -98,8 +98,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call by id not cached, second force not cached", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -111,8 +111,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call by name not cached, second force not cached", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -124,8 +124,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call by id force not cached, second not cached, third cached", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -139,8 +139,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call by name force not cached, second not cached, third cached", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -154,8 +154,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call by id, second call by name and GetMultipleByName cached", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -169,8 +169,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call by name, second call by id cached", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -182,8 +182,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call by id not cached, invalidate, and then not cached again", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -196,8 +196,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("call by id, use master", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -210,8 +210,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call by name not cached, invalidate, and then not cached again", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -224,8 +224,8 @@ func TestEmojiStoreCache(t *testing.T) {
 	})
 
 	t.Run("call by name, use master", func(t *testing.T) {
-		c := request.TestContext()
-		mockStore := getMockStore()
+		c := request.TestContext(t)
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)

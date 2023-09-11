@@ -22,7 +22,7 @@ func TestFileInfoStoreCache(t *testing.T) {
 	fakeFileInfo := model.FileInfo{PostId: "123"}
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -37,7 +37,7 @@ func TestFileInfoStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call not cached, second force no cached", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -49,7 +49,7 @@ func TestFileInfoStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
