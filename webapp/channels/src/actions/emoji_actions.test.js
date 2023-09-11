@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getRecentEmojisData, getEmojiMap} from 'selectors/emojis';
-import * as EmojiActions from 'actions/emoji_actions';
 import * as PreferenceActions from 'mattermost-redux/actions/preferences';
+
+import * as EmojiActions from 'actions/emoji_actions';
+import {getRecentEmojisData, getEmojiMap} from 'selectors/emojis';
 
 import mockStore from 'tests/test_store';
 
@@ -234,6 +235,51 @@ describe('Actions.Emojis', () => {
         }];
 
         await store.dispatch(EmojiActions.addRecentEmoji('accept'));
+        expect(store.getActions()).toEqual(expectedActions);
+    });
+
+    test('Should add multiple emojis to recent emojis at once', async () => {
+        const recentEmojisList = [
+            {name: 'trumpet', usageCount: 1},
+            {name: 'balloon', usageCount: 3},
+            {name: 'taco', usageCount: 4},
+        ];
+        getRecentEmojisData.mockImplementation(() => {
+            return recentEmojisList;
+        });
+
+        getEmojiMap.mockImplementation(() => {
+            return new Map([
+                ['accept', {short_name: 'accept'}],
+                ['balloon', {short_name: 'balloon'}],
+                ['grinning', {short_name: 'grinning'}],
+                ['taco', {short_name: 'taco'}],
+                ['trumpet', {short_name: 'trumpet'}],
+            ]);
+        });
+
+        const expectedActions = [{
+            type: 'RECEIVED_PREFERENCES',
+            args: [
+                'current_user_id',
+                [
+                    {
+                        category: 'recent_emojis',
+                        name: 'current_user_id',
+                        user_id: 'current_user_id',
+                        value: JSON.stringify([
+                            {name: 'trumpet', usageCount: 1},
+                            {name: 'grinning', usageCount: 1},
+                            {name: 'accept', usageCount: 2},
+                            {name: 'taco', usageCount: 4},
+                            {name: 'balloon', usageCount: 5},
+                        ]),
+                    },
+                ],
+            ],
+        }];
+
+        await store.dispatch(EmojiActions.addRecentEmojis(['balloon', 'grinning', 'accept', 'balloon', 'accept']));
         expect(store.getActions()).toEqual(expectedActions);
     });
 });

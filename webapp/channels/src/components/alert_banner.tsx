@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
 import classNames from 'classnames';
-
+import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
+
 import {
     AlertOutlineIcon,
     CheckIcon,
@@ -14,6 +14,7 @@ import {
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
 import Constants from 'utils/constants';
 
 import './alert_banner.scss';
@@ -50,6 +51,7 @@ const AlertBanner = ({
     children,
 }: AlertBannerProps) => {
     const {formatMessage} = useIntl();
+    const closeText = formatMessage({id: 'alert_banner.tooltipCloseBtn', defaultMessage: 'Close'});
     const [tooltipId] = useState(`alert_banner_close_btn_tooltip_${Math.random()}`);
 
     const bannerIcon = useCallback(() => {
@@ -110,12 +112,11 @@ const AlertBanner = ({
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement='left'
                     overlay={closeBtnTooltip || (
-                        <Tooltip id={tooltipId}>
-                            {formatMessage({id: 'alert_banner.tooltipCloseBtn', defaultMessage: 'Close'})}
-                        </Tooltip>
+                        <Tooltip id={tooltipId}>{closeText}</Tooltip>
                     )}
                 >
                     <button
+                        aria-label={closeText}
                         className='AlertBanner__closeButton'
                         onClick={onDismiss}
                     >

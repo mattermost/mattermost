@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestSlackConvertTimeStamp(t *testing.T) {
@@ -339,8 +339,7 @@ func TestOldImportChannel(t *testing.T) {
 	store := &mocks.Store{}
 	config := &model.Config{}
 	config.SetDefaults()
-	ctx := request.EmptyContext(nil)
-	ctx.SetLogger(mlog.CreateConsoleTestLogger(true, mlog.LvlDebug))
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	t.Run("No panic on direct channel", func(t *testing.T) {
 		// ch := th.CreateDmChannel(u1)

@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/client",
-  "version": "8.0.0",
+  "version": "9.1.0",
   "description": "JavaScript/TypeScript client for Mattermost",
   "keywords": [
     "mattermost"
@@ -35,5 +35,8 @@
     "test": "jest",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
     "clean": "rm -rf lib node_modules tsconfig.tsbuildinfo"
+  },
+  "devDependencies": {
+    "jest": "27.1.0"
   }
 }

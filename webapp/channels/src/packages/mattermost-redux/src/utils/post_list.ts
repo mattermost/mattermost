@@ -3,21 +3,20 @@
 
 import moment from 'moment-timezone';
 
-import * as reselect from 'reselect';
+import type {ActivityEntry, Post} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {Posts, Preferences} from 'mattermost-redux/constants';
-
-import {makeGetPostsForIds, UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {makeGetPostsForIds} from 'mattermost-redux/selectors/entities/posts';
+import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-
 import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
 import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook} from 'mattermost-redux/utils/post_utils';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
-
-import {ActivityEntry, Post} from '@mattermost/types/posts';
-import {GlobalState} from '@mattermost/types/store';
 
 export const COMBINED_USER_ACTIVITY = 'user-activity-';
 export const CREATE_COMMENT = 'create-comment';
@@ -26,8 +25,11 @@ export const START_OF_NEW_MESSAGES = 'start-of-new-messages';
 export const MAX_COMBINED_SYSTEM_POSTS = 100;
 
 export function shouldShowJoinLeaveMessages(state: GlobalState) {
+    const config = getConfig(state);
+    const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
+
     // This setting is true or not set if join/leave messages are to be displayed
-    return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, true);
+    return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage);
 }
 
 interface PostFilterOptions {
@@ -275,7 +277,7 @@ export function makeGenerateCombinedPost(): (state: GlobalState, combinedId: str
     const getPostsForIds = makeGetPostsForIds();
     const getPostIds = memoizeResult(getPostIdsForCombinedUserActivityPost);
 
-    return reselect.createSelector(
+    return createSelector(
         'makeGenerateCombinedPost',
         (state: GlobalState, combinedId: string) => combinedId,
         (state: GlobalState, combinedId: string) => getPostsForIds(state, getPostIds(combinedId)),

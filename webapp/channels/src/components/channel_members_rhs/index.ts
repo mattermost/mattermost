@@ -2,10 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {AnyAction, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {AnyAction, Dispatch} from 'redux';
 
-import {createSelector} from 'reselect';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import {loadMyChannelMemberAndRole} from 'mattermost-redux/actions/channels';
+import {Permissions} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getCurrentChannel,
     getCurrentChannelStats,
@@ -13,30 +19,28 @@ import {
     getMyCurrentChannelMembership,
     isCurrentChannelArchived,
 } from 'mattermost-redux/selectors/entities/channels';
-import {GlobalState} from 'types/store';
-import {Constants, RHSStates} from 'utils/constants';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     getActiveProfilesInCurrentChannelWithoutSorting,
     getUserStatuses, searchActiveProfilesInCurrentChannel,
 } from 'mattermost-redux/selectors/entities/users';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {Permissions} from 'mattermost-redux/constants';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
+
 import {openDirectChannelToUserId} from 'actions/channel_actions';
+import {loadProfilesAndReloadChannelMembers, searchProfilesAndChannelMembers} from 'actions/user_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, goBack, setEditChannelMembers} from 'actions/views/rhs';
-import {getIsEditingMembers, getPreviousRhsState} from 'selectors/rhs';
 import {setChannelMembersRhsSearchTerm} from 'actions/views/search';
-import {loadProfilesAndReloadChannelMembers, searchProfilesAndChannelMembers} from 'actions/user_actions';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {loadMyChannelMemberAndRole} from 'mattermost-redux/actions/channels';
+import {getIsEditingMembers, getPreviousRhsState} from 'selectors/rhs';
 
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne} from '@mattermost/types/utilities';
+import {Constants, RHSStates} from 'utils/constants';
 
-import RHS, {Props, ChannelMember} from './channel_members_rhs';
+import type {GlobalState} from 'types/store';
+
+import RHS from './channel_members_rhs';
+import type {Props, ChannelMember} from './channel_members_rhs';
 
 const buildProfileList = (
     profilesInCurrentChannel: UserProfile[],

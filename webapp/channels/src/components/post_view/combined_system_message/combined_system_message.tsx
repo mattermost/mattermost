@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl, IntlShape, MessageDescriptor} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {UserProfile} from '@mattermost/types/users';
-
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import Markdown from 'components/markdown';
 
 import {t} from 'utils/i18n';
-import Markdown from 'components/markdown';
 
 import LastUsers from './last_users';
 
@@ -322,14 +323,15 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         );
     }
 
-    renderMessage(postType: string, userIds: string[], actorId?: string): JSX.Element {
+    renderMessage(index: number, postType: string, userIds: string[], actorId?: string): JSX.Element {
         return (
-            <React.Fragment key={postType + actorId}>
+            <React.Fragment key={index}>
                 {this.renderFormattedMessage(postType, userIds, actorId)}
                 <br/>
             </React.Fragment>
         );
     }
+
     render(): JSX.Element {
         const {
             currentUserId,
@@ -337,7 +339,8 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         } = this.props;
 
         const content = [];
-        for (const message of messageData) {
+        for (let i = 0; i < messageData.length; i++) {
+            const message = messageData[i];
             const {
                 postType,
                 actorId,
@@ -356,7 +359,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
                 }
             }
 
-            content.push(this.renderMessage(postType, userIds, actorId));
+            content.push(this.renderMessage(i, postType, userIds, actorId));
         }
 
         return (

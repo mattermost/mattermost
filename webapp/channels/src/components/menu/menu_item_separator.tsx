@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {Divider} from '@mui/material';
+import React from 'react';
 
 /**
  * A horizontal separator for use in menus.
@@ -10,6 +10,7 @@ import {Divider} from '@mui/material';
  * <Menu.Container>
  *   <Menu.Item>
  *   <Menu.Separator />
+ * </Menu.Container>
  */
 export function MenuItemSeparator() {
     return (

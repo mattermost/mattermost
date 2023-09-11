@@ -86,7 +86,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         });
     });
 
-    it('MM-T1467 Accessibility Support in More Channels Dialog screen', () => {
+    it('MM-T1467 Accessibility Support in Browse Channels Dialog screen', () => {
         function getChannelAriaLabel(channel) {
             return channel.display_name.toLowerCase() + ', ' + channel.purpose.toLowerCase();
         }
@@ -104,30 +104,26 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 cy.uiBrowseOrCreateChannel('Browse channels').click();
 
                 // * Verify the accessibility support in More Channels Dialog
-                cy.findByRole('dialog', {name: 'More Channels'}).within(() => {
-                    cy.findByRole('heading', {name: 'More Channels'});
+                cy.findByRole('dialog', {name: 'Browse Channels'}).within(() => {
+                    cy.findByRole('heading', {name: 'Browse Channels'});
 
                     // * Verify the accessibility support in search input
                     cy.findByPlaceholderText('Search channels');
 
-                    cy.waitUntil(() => cy.get('#moreChannelsList').then((el) => {
+                    cy.get('#moreChannelsList').should('be.visible').then((el) => {
                         return el[0].children.length === 2;
-                    }));
+                    });
 
-                    // # Focus on the Create Channel button and TAB twice
-                    cy.get('#createNewChannel').focus().tab().tab();
+                    // # Hide already joined channels
+                    cy.findByText('Hide Joined').click();
+
+                    // # Focus on the Create Channel button and TAB four time
+                    cy.get('#createNewChannelButton').focus().tab().tab().tab().tab();
 
                     // * Verify channel name is highlighted and reader reads the channel name and channel description
-                    cy.get('#moreChannelsList').children().eq(0).within(() => {
+                    cy.get('#moreChannelsList').within(() => {
                         const selectedChannel = getChannelAriaLabel(channel);
-                        cy.findByLabelText(selectedChannel).should('be.focused');
-
-                        // * Press Tab and verify if focus changes to Join button
-                        cy.focused().tab();
-                        cy.findByText('Join').parent().should('be.focused');
-
-                        // * Verify previous button should no longer be focused
-                        cy.findByLabelText(selectedChannel).should('not.be.focused');
+                        cy.findByLabelText(selectedChannel).should('be.visible').should('be.focused');
                     });
 
                     // * Press Tab again and verify if focus changes to next row

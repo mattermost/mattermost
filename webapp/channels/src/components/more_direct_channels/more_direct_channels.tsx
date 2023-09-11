@@ -1,25 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {debounce} from 'lodash';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
-import {debounce} from 'lodash';
 
-import {UserProfile} from '@mattermost/types/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+
+import type MultiSelect from 'components/multiselect/multiselect';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import MultiSelect from 'components/multiselect/multiselect';
 
 import List from './list';
 import {USERS_PER_PAGE} from './list/list';
 import {
     isGroupChannel,
     optionValue,
-    OptionValue,
 } from './types';
+import type {
+    OptionValue} from './types';
 
 export type Props = {
     currentUserId: string;
@@ -291,7 +294,6 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 role='dialog'
                 aria-labelledby='moreDmModalLabel'
                 id='moreDmModal'
-                enforceFocus={false}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title

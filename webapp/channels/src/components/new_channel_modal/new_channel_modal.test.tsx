@@ -4,18 +4,24 @@
 import React from 'react';
 import {act} from 'react-dom/test-utils';
 
+import {createChannel} from 'mattermost-redux/actions/channels';
+import Permissions from 'mattermost-redux/constants/permissions';
+
+import {
+    render,
+    renderWithIntl,
+    screen,
+    userEvent,
+    waitFor,
+} from 'tests/react_testing_utils';
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
-import {GlobalState} from 'types/store';
-import Permissions from 'mattermost-redux/constants/permissions';
-import {createChannel} from 'mattermost-redux/actions/channels';
 
-jest.mock('mattermost-redux/actions/channels');
+import type {GlobalState} from 'types/store';
 
 import NewChannelModal from './new_channel_modal';
-import {render, screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import {renderWithIntl} from 'tests/react_testing_utils';
+
+jest.mock('mattermost-redux/actions/channels');
 
 const mockDispatch = jest.fn();
 let mockState: GlobalState;
@@ -321,7 +327,6 @@ describe('components/new_channel_modal', () => {
 
         // Change display name to invalid
         userEvent.clear(channelNameInput);
-        userEvent.type(channelNameInput, '');
 
         // Confirm button should be disabled
         expect(createChannelButton).toBeDisabled();

@@ -1,37 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
-import classNames from 'classnames';
-import {t} from 'utils/i18n';
-import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
-import {closeModal, openModal} from 'actions/views/modals';
-import {requestTrialLicense} from 'actions/admin_actions';
-import {validateBusinessEmail} from 'actions/cloud';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {requestTrialLicense} from 'actions/admin_actions';
+import {validateBusinessEmail} from 'actions/cloud';
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal, openModal} from 'actions/views/modals';
+import {isModalOpen} from 'selectors/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
+import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
-import {COUNTRIES} from 'utils/countries';
-
-import {LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-
-import Input, {SIZE, CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import DropdownInput from 'components/dropdown_input';
-import StartTrialFormModalResult from './failure_modal';
 import ExternalLink from 'components/external_link';
-import {trackEvent} from 'actions/telemetry_actions';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+
+import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {COUNTRIES} from 'utils/countries';
+import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
+
+import AirGappedModal from './air_gapped_modal';
+import StartTrialFormModalResult from './failure_modal';
 
 import './start_trial_form_modal.scss';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
-import AirGappedModal from './air_gapped_modal';
 
 const TrialBenefitsModal = makeAsyncComponent('TrialBenefitsModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
 
@@ -344,7 +347,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                             ),
                             privacypolicy: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://mattermost.com/privacy-policy/'
+                                    href={AboutLinks.PRIVACY_POLICY}
                                     location='start_trial_form_modal'
                                 >
                                     {msg}

@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/server/public/model"
+	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -249,6 +249,32 @@ func (_m *RetentionPolicyStore) GetCount() (int64, error) {
 
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetIdsForDeletionByTableName provides a mock function with given fields: tableName, limit
+func (_m *RetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
+	ret := _m.Called(tableName, limit)
+
+	var r0 []*model.RetentionIdsForDeletion
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int) ([]*model.RetentionIdsForDeletion, error)); ok {
+		return rf(tableName, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int) []*model.RetentionIdsForDeletion); ok {
+		r0 = rf(tableName, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RetentionIdsForDeletion)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(tableName, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

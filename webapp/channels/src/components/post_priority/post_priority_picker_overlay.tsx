@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 import {
     FloatingFocusManager,
     FloatingPortal,
@@ -17,13 +14,15 @@ import {
     flip,
     shift,
 } from '@floating-ui/react-dom-interactions';
+import classNames from 'classnames';
+import React, {memo, useCallback, useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import useTooltip from 'components/common/hooks/useTooltip';
-
-import {PostPriorityMetadata} from '@mattermost/types/posts';
 
 import PostPriorityPicker from './post_priority_picker';
 
@@ -41,19 +40,16 @@ function PostPriorityPickerOverlay({
     onClose,
 }: Props) {
     const [pickerOpen, setPickerOpen] = useState(false);
+    const {formatMessage} = useIntl();
 
+    const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
     const {
         reference: tooltipRef,
         getReferenceProps: getTooltipReferenceProps,
         tooltip,
     } = useTooltip({
         placement: 'top',
-        message: (
-            <FormattedMessage
-                id='shortcuts.msgs.formatting_bar.post_priority'
-                defaultMessage={'Message priority'}
-            />
-        ),
+        message: messagePriority,
     });
 
     const handleClose = useCallback(() => {
@@ -100,10 +96,12 @@ function PostPriorityPickerOverlay({
                 {...getTooltipReferenceProps()}
             >
                 <IconContainer
+                    id='messagePriority'
                     ref={pickerRef}
                     className={classNames({control: true, active: pickerOpen})}
                     disabled={disabled}
                     type='button'
+                    aria-label={messagePriority}
                     {...getPickerReferenceProps()}
                 >
                     <AlertCircleOutlineIcon

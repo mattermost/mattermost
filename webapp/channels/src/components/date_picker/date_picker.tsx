@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
-
-import {DayPicker, DayPickerProps} from 'react-day-picker';
 import {
     useFloating,
     autoUpdate,
@@ -15,6 +12,9 @@ import {
     useDismiss,
 } from '@floating-ui/react-dom-interactions';
 import type {Locale} from 'date-fns';
+import React, {useCallback, useEffect, useState} from 'react';
+import {DayPicker} from 'react-day-picker';
+import type {DayPickerProps} from 'react-day-picker';
 
 import {getDatePickerLocalesForDateFns} from 'utils/utils';
 
@@ -34,11 +34,11 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
     const {x, y, reference, floating, strategy, context} = useFloating({
         open: isPopperOpen,
         onOpenChange: () => handlePopperOpenState(false),
-        placement: 'bottom',
+        placement: 'bottom-start',
         whileElementsMounted: autoUpdate,
         middleware: [
             offset(5),
-            flip({fallbackPlacements: ['bottom', 'right'], padding: 5}),
+            flip({fallbackPlacements: ['bottom-end', 'top-start', 'top-end', 'right-start', 'left-start'], padding: 5}),
             shift(),
         ],
     });
@@ -82,23 +82,23 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                 >
                     <div
                         ref={floating}
+                        style={{
+                            position: strategy,
+                            top: y ?? 0,
+                            left: x ?? 0,
+                            width: 'auto',
+                            zIndex: 999,
+                        }}
+                        {...getFloatingProps()}
                     >
                         <DayPicker
                             {...datePickerProps}
-                            style={{
-                                position: strategy,
-                                top: y ?? 0,
-                                left: x ?? 0,
-                                width: 'auto',
-                                zIndex: 999,
-                            }}
                             className='date-picker__popper'
                             locale={loadedLocales[locale]}
                             components={{
                                 IconRight: iconRight,
                                 IconLeft: iconLeft,
                             }}
-                            {...getFloatingProps}
                         />
                     </div>
 

@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getUser} from 'mattermost-redux/actions/users';
-import {UserProfile} from '@mattermost/types/users';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from '@mattermost/types/store';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
-import SystemUsersList from './system_users_list';
 import {getNonBotUsers} from './selectors';
+import SystemUsersList from './system_users_list';
 
 type Actions = {
     getUser: (id: string) => UserProfile;

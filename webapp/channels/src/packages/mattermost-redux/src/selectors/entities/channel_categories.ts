@@ -3,22 +3,20 @@
 
 import shallowEquals from 'shallow-equals';
 
-import {createSelector} from 'reselect';
+import type {ChannelCategory, ChannelCategoryType} from '@mattermost/types/channel_categories';
+import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {General, Preferences} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelMessageCounts, getCurrentChannelId, getMyChannelMemberships, makeGetChannelsForIds} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getMyPreferences, getTeammateNameDisplaySetting, getVisibleDmGmLimit, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
-import {ChannelCategory, ChannelCategoryType, CategorySorting} from '@mattermost/types/channel_categories';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
-import {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
-
 import {
     calculateUnreadCount,
     getUserIdFromChannelName,

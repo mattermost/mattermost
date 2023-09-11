@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // JoinedThread allows querying the Threads + Posts table in a single query, before looking up
@@ -919,6 +919,7 @@ func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(now, globalPol
 		NowMillis:           now,
 		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
+		StoreDeletedIds:     false,
 	}, s.SqlStore, cursor)
 }
 
@@ -939,66 +940,32 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 		NowMillis:           now,
 		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
+		StoreDeletedIds:     false,
 	}, s.SqlStore, cursor)
 }
 
 // DeleteOrphanedRows removes orphaned rows from Threads and ThreadMemberships
 func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	var threadsQuery string
-	// We need the extra level of nesting to deal with MySQL's locking
-	if s.DriverName() == model.DatabaseDriverMysql {
-		// MySQL fails to do a proper antijoin if the selecting column
-		// and the joining column are different. In that case, doing a subquery
-		// leads to a faster plan because MySQL materializes the sub-query
-		// and does a covering index scan on Threads table. More details on the PR with
-		// this commit.
-		threadsQuery = `
-	DELETE FROM Threads WHERE PostId IN (
-		SELECT * FROM (
-			SELECT Threads.PostId FROM Threads
-			WHERE Threads.ChannelId NOT IN (SELECT Id FROM Channels USE INDEX(PRIMARY))
-			LIMIT ?
-		) AS A
-	)`
-	} else {
-		threadsQuery = `
-	DELETE FROM Threads WHERE PostId IN (
-        SELECT * FROM (
-			SELECT Threads.PostId FROM Threads
-			LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT ?
-		) AS A
-	)`
-	}
 	// We only delete a thread membership if the entire thread no longer exists,
 	// not if the root post has been deleted
 	const threadMembershipsQuery = `
-	DELETE FROM ThreadMemberships WHERE PostId IN (
-		SELECT * FROM (
-			SELECT ThreadMemberships.PostId FROM ThreadMemberships
-			LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
-			WHERE Threads.PostId IS NULL
-			LIMIT ?
-		) AS A
-	)`
-	result, err := s.GetMasterX().Exec(threadsQuery, limit)
+		DELETE FROM ThreadMemberships WHERE PostId IN (
+			SELECT * FROM (
+				SELECT ThreadMemberships.PostId FROM ThreadMemberships
+				LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+				WHERE Threads.PostId IS NULL
+				LIMIT ?
+			) AS A
+		)`
+
+	result, err := s.GetMasterX().Exec(threadMembershipsQuery, limit)
 	if err != nil {
 		return
 	}
-	rpcDeleted, err := result.RowsAffected()
+	deleted, err = result.RowsAffected()
 	if err != nil {
 		return
 	}
-	result, err = s.GetMasterX().Exec(threadMembershipsQuery, limit)
-	if err != nil {
-		return
-	}
-	rptDeleted, err := result.RowsAffected()
-	if err != nil {
-		return
-	}
-	deleted = rpcDeleted + rptDeleted
 	return
 }
 
@@ -1020,210 +987,4 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 	}
 
 	return unreadReplies, nil
-}
-
-// Top threads in all public channels and private channels userID is a member of. Returns a list of threads ranked by interactions.
-func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
-	var args []any
-	query := `select
-		threads_list.PostId,
-		threads_list.ReplyCount,
-		threads_list.ChannelId,
-		threads_list.DisplayName,
-		threads_list.Name,
-		threads_list.Participants,
-		p.UserId
-	from((
-		SELECT
-			t.PostId,
-			t.ReplyCount,
-			t.ChannelId,
-			t.Participants,
-			c.DisplayName,
-			c.Name
-		FROM
-			Threads t
-			LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
-		WHERE
-			t.threaddeleteat IS NULL
-			AND t.LastReplyAt > ?
-			AND c.TeamId = ?
-		GROUP BY
-			t.PostId,
-			c.DisplayName,
-			c.Name,
-			t.Participants
-	)
-	UNION
-	ALL (
-		SELECT
-			t.PostId,
-			t.ReplyCount,
-			t.ChannelId,
-			t.Participants,
-			c.DisplayName,
-			c.Name
-		FROM
-			Threads t
-			LEFT JOIN ChannelMembers cm ON t.ChannelId = cm.ChannelId
-			LEFT JOIN Channels c ON t.ChannelId = c.Id
-		WHERE
-			t.threaddeleteat IS NULL
-			AND cm.UserId = ?
-			AND c.Type = 'P'
-			AND c.TeamId = ?
-			AND t.LastReplyAt > ?
-		GROUP BY
-			t.PostId,
-			c.DisplayName,
-			c.Name,
-			t.Participants
-	)) as threads_list
-	LEFT JOIN Posts as p on p.Id = threads_list.PostId
-	ORDER BY ReplyCount DESC
-	limit ? offset ?`
-
-	args = append(args, since, teamID, userID, teamID, since, limit+1, offset)
-
-	topThreads := make([]*model.TopThread, 0)
-	err := s.GetReplicaX().Select(&topThreads, query, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get top threads=%s", teamID)
-	}
-	topThreads, err = postProcessTopThreads(topThreads, s, teamID)
-	if err != nil {
-		return nil, err
-	}
-	return model.GetTopThreadListWithPagination(topThreads, limit), nil
-}
-
-func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
-	var args []any
-
-	// gets all threads within the team which user follows.
-	query := `select
-		threads_list.PostId,
-		threads_list.ReplyCount,
-		threads_list.ChannelId,
-		threads_list.DisplayName,
-		threads_list.Name,
-		threads_list.Participants,
-		p.UserId
-	from((
-		SELECT
-			t.PostId,
-			t.ReplyCount,
-			t.ChannelId,
-			t.Participants,
-			c.DisplayName,
-			c.Name
-		FROM
-			Threads t
-			LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
-			LEFT JOIN ThreadMemberships as tm on t.PostId = tm.PostId
-		WHERE
-			t.threaddeleteat IS NULL
-			AND t.LastReplyAt > ?
-			AND c.TeamId = ?
-			AND tm.UserId = ?
-            AND tm.Following = TRUE
-		GROUP BY
-			t.PostId,
-			c.DisplayName,
-			c.Name,
-			t.Participants
-	)
-	UNION
-	ALL (
-		SELECT
-			t.PostId,
-			t.ReplyCount,
-			t.ChannelId,
-			t.Participants,
-			c.DisplayName,
-			c.Name
-		FROM
-			Threads t
-			LEFT JOIN ChannelMembers cm ON t.ChannelId = cm.ChannelId
-			LEFT JOIN Channels c ON t.ChannelId = c.Id
-			LEFT JOIN ThreadMemberships as tm on t.PostId = tm.PostId
-		WHERE
-			cm.UserId = ?
-			AND c.Type = 'P'
-			AND c.TeamId = ?
-			AND t.threaddeleteat IS NULL
-			AND t.LastReplyAt > ?
-			AND tm.UserId = ?
-            AND tm.Following = TRUE
-		GROUP BY
-			t.PostId,
-			c.DisplayName,
-			c.Name,
-			t.Participants
-	)) as threads_list
-	LEFT JOIN Posts as p on p.Id = threads_list.PostId
-	ORDER BY ReplyCount DESC
-	limit ? offset ?`
-
-	args = append(args, since, teamID, userID, userID, teamID, since, userID, limit+1, offset)
-
-	topThreads := make([]*model.TopThread, 0)
-	err := s.GetReplicaX().Select(&topThreads, query, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get top threads=%s", teamID)
-	}
-	topThreads, err = postProcessTopThreads(topThreads, s, teamID)
-	if err != nil {
-		return nil, err
-	}
-	return model.GetTopThreadListWithPagination(topThreads, limit), nil
-}
-
-func userContains(userIDs []string, searchedUserID string) bool {
-	for _, userID := range userIDs {
-		if userID == searchedUserID {
-			return true
-		}
-	}
-	return false
-}
-
-func postProcessTopThreads(topThreads []*model.TopThread, s *SqlThreadStore, teamID string) ([]*model.TopThread, error) {
-	// create list of userIDs
-	var userIDs []string
-	for _, topThread := range topThreads {
-		userID := topThread.UserId
-		if !userContains(userIDs, userID) {
-			userIDs = append(userIDs, userID)
-		}
-	}
-
-	usersMap := map[string]*model.User{}
-
-	users, err := s.User().GetProfileByIds(context.Background(), userIDs, &store.UserGetByIdsOpts{}, true)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get users for top threads in team=%s", teamID)
-	}
-	for _, user := range users {
-		usersMap[user.Id] = user
-	}
-
-	// resolve user, root post for each top thread
-	for _, topThread := range topThreads {
-		postCreator := usersMap[topThread.UserId]
-		topThread.UserInformation = &model.InsightUserInformation{
-			Id:                postCreator.Id,
-			LastPictureUpdate: postCreator.LastPictureUpdate,
-			FirstName:         postCreator.FirstName,
-			LastName:          postCreator.LastName,
-			Username:          postCreator.Username,
-			NickName:          postCreator.Nickname,
-		}
-		post, err := s.Post().GetSingle(topThread.PostId, false)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get extended post for post id=%s", topThread.PostId)
-		}
-		topThread.Post = post
-	}
-	return topThreads, nil
 }

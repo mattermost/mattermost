@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -62,7 +62,6 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, ss, s) })
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, ss) })
-	t.Run("GetTopDMsForUserSince", func(t *testing.T) { testGetTopDMsForUserSince(t, ss, s) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, ss) })
 }
 
@@ -745,7 +744,6 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
-		t.Skip("MM-46134")
 		teamId := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -755,15 +753,16 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}, -1)
 		require.NoError(t, err)
 
-		o1, err := ss.Post().Save(&model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestId()})
+		now := model.GetMillis()
+		o1, err := ss.Post().Save(&model.Post{CreateAt: now, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestId()})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		_, err = ss.Post().Save(&model.Post{CreateAt: now + 1, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		m1, err := ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		m1, err := ss.Post().Save(&model.Post{CreateAt: now + 2, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		_, err = ss.Post().Save(&model.Post{CreateAt: now + 3, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		_, err = ss.Post().Save(&model.Post{CreateAt: now + 4, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
 
 		opts := model.GetPostsOptions{
@@ -773,7 +772,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
 		assert.True(t, r1.HasNext)
 
 		lastPostID := r1.Order[len(r1.Order)-1]
@@ -788,7 +788,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -803,7 +804,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -817,7 +819,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
 		assert.True(t, r1.HasNext)
 
@@ -830,7 +833,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Posts, 2)
 		assert.True(t, r1.HasNext)
 
 		lastPostID = r1.Order[len(r1.Order)-1]
@@ -846,7 +850,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 4) // including the root post
+		require.Len(t, r1.Order, 4) // including the root post
+		require.Len(t, r1.Posts, 4)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -862,7 +867,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -876,7 +882,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Posts, 2)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
 		assert.True(t, r1.HasNext)
 	})
@@ -1303,6 +1310,88 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		// last reply at should be 0
 		require.Equal(t, int64(0), thread.LastReplyAt)
 	})
+
+	t.Run("thread with file attachments", func(t *testing.T) {
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		// Create a root post
+		rootPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
+
+		// Create another root post
+		rootPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
+
+		// Reply to first root post with file attachments
+		replyPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+		file11, err := ss.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    replyPost1.Id,
+			CreatorId: replyPost1.UserId,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+		file12, err := ss.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    replyPost1.Id,
+			CreatorId: replyPost1.UserId,
+			Path:      "file2.png",
+		})
+		require.NoError(t, err)
+
+		// Reply to second root post with file attachments
+		replyPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost2.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost2.Id,
+		})
+		require.NoError(t, err)
+		file21, err := ss.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    replyPost2.Id,
+			CreatorId: replyPost2.UserId,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+
+		// Delete the first root post
+		err = ss.Post().Delete(rootPost1.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		// Verify the reply post's files are deleted
+		_, err = ss.FileInfo().Get(file11.Id)
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
+		_, err = ss.FileInfo().Get(file12.Id)
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
+
+		// Verify the other reply post's files are NOT deleted
+		_, err = ss.FileInfo().Get(file21.Id)
+		require.NoError(t, err, "Not deleted id should have succeeded")
+	})
 }
 
 func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
@@ -1330,6 +1419,30 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
 
+	r1 := &model.Reaction{}
+	r1.ChannelId = o1.ChannelId
+	r1.UserId = o2.UserId
+	r1.PostId = o1.Id
+	r1.EmojiName = "smile"
+	r1, err = ss.Reaction().Save(r1)
+	require.NoError(t, err)
+
+	r2 := &model.Reaction{}
+	r2.ChannelId = o1.ChannelId
+	r2.UserId = o1.UserId
+	r2.PostId = o2.Id
+	r2.EmojiName = "wave"
+	_, err = ss.Reaction().Save(r2)
+	require.NoError(t, err)
+
+	r3 := &model.Reaction{}
+	r3.ChannelId = o1.ChannelId
+	r3.UserId = model.NewId()
+	r3.PostId = o1.Id
+	r3.EmojiName = "sad"
+	r3, err = ss.Reaction().Save(r3)
+	require.NoError(t, err)
+
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "DisplayName2",
@@ -1342,6 +1455,14 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	o3.UserId = model.NewId()
 	o3.Message = NewTestId()
 	o3, err = ss.Post().Save(o3)
+	require.NoError(t, err)
+
+	r4 := &model.Reaction{}
+	r4.ChannelId = channel2.Id
+	r4.UserId = model.NewId()
+	r4.PostId = o3.Id
+	r4.EmojiName = "angry"
+	_, err = ss.Reaction().Save(r4)
 	require.NoError(t, err)
 
 	channel3, err := ss.Channel().Save(&model.Channel{
@@ -1394,8 +1515,20 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err, "Deleted id shouldn't have failed")
 
+	reactions, err := ss.Reaction().GetForPost(o1.Id, false)
+	require.NoError(t, err, "Reactions should exist")
+	require.Equal(t, 2, len(reactions))
+	emojis := []string{r1.EmojiName, r3.EmojiName}
+	for _, reaction := range reactions {
+		require.Contains(t, emojis, reaction.EmojiName)
+	}
+
 	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
+
+	reactions, err = ss.Reaction().GetForPost(o2.Id, false)
+	require.NoError(t, err, "No error for not found")
+	require.Equal(t, 0, len(reactions))
 
 	thread, err = ss.Thread().Get(o5.Id)
 	require.NoError(t, err)
@@ -1407,6 +1540,17 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	thread, err = ss.Thread().Get(o5.Id)
 	require.NoError(t, err)
 	require.Nil(t, thread)
+
+	reactions, err = ss.Reaction().GetForPost(o3.Id, false)
+	require.NoError(t, err, "No error for not found")
+	require.Equal(t, 0, len(reactions))
+
+	reactions, err = ss.Reaction().GetForPost(o1.Id, false)
+	require.NoError(t, err, "Reactions should exist")
+	require.Equal(t, 2, len(reactions))
+	for _, reaction := range reactions {
+		require.Contains(t, emojis, reaction.EmojiName)
+	}
 
 	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
@@ -3845,8 +3989,9 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
-	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
+	deleted, _, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
+	require.Equal(t, int64(2), deleted)
 
 	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Should have not found post 1 after purge")
@@ -3856,6 +4001,14 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err, "Should have found post 3 after purge")
+
+	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rows))
+	require.Equal(t, 2, len(rows[0].Ids))
+	// Clean up retention ids table
+	err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+	require.NoError(t, err)
 
 	t.Run("with pagination", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
@@ -3869,13 +4022,31 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		}
 		cursor := model.RetentionPolicyCursor{}
 
-		deleted, cursor, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
+		deleted, cursor, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), deleted)
+
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(rows))
+		require.Equal(t, 2, len(rows[0].Ids))
+
+		// Clean up retention ids table
+		err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+		require.NoError(t, err)
 
 		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
 		require.NoError(t, err)
 		require.Equal(t, int64(1), deleted)
+
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(rows))
+		require.Equal(t, 1, len(rows[0].Ids))
+
+		// Clean up retention ids table
+		err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+		require.NoError(t, err)
 	})
 
 	t.Run("with data retention policies", func(t *testing.T) {
@@ -3943,6 +4114,14 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 		err2 = ss.RetentionPolicy().Delete(teamPolicy.ID)
 		require.NoError(t, err2)
+
+		// Clean up retention ids table
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		require.NoError(t, err)
+		for _, row := range rows {
+			err = ss.Reaction().DeleteOrphanedRowsByIds(row)
+			require.NoError(t, err)
+		}
 	})
 
 	t.Run("with channel, team and global policies", func(t *testing.T) {
@@ -4008,6 +4187,17 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		deleted, _, err2 := ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 2, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		require.Equal(t, int64(3), deleted)
+
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		require.NoError(t, err)
+		// Each policy would generate it's own row
+		require.Equal(t, 3, len(rows))
+
+		// Clean up retention ids table
+		for _, row := range rows {
+			err = ss.Reaction().DeleteOrphanedRowsByIds(row)
+			require.NoError(t, err)
+		}
 	})
 }
 
@@ -4073,6 +4263,14 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
 
+	c2 := model.Channel{}
+	c2.TeamId = t1.Id
+	c2.DisplayName = "Channel2"
+	c2.Name = NewTestId()
+	c2.Type = model.ChannelTypeOpen
+	_, nErr = ss.Channel().Save(&c2, -1)
+	require.NoError(t, nErr)
+
 	u1 := model.User{}
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
@@ -4088,21 +4286,56 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	p1, nErr = ss.Post().Save(p1)
 	require.NoError(t, nErr)
 
-	posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.NoError(t, err)
+	p2 := &model.Post{}
+	p2.ChannelId = c2.Id
+	p2.UserId = u1.Id
+	p2.Message = NewTestId()
+	p2.CreateAt = 1000
+	p2, nErr = ss.Post().Save(p2)
+	require.NoError(t, nErr)
+	nErr = ss.Channel().Delete(c2.Id, model.GetMillis())
+	require.NoError(t, nErr)
 
-	found := false
-	for _, p := range posts {
-		if p.Id == p1.Id {
-			found = true
-			assert.Equal(t, p.Id, p1.Id)
-			assert.Equal(t, p.Message, p1.Message)
-			assert.Equal(t, p.Username, u1.Username)
-			assert.Equal(t, p.TeamName, t1.Name)
-			assert.Equal(t, p.ChannelName, c1.Name)
+	t.Run("without archived channels", func(t *testing.T) {
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		assert.NoError(t, err)
+
+		found := false
+		foundArchived := false
+		for _, p := range posts {
+			if p.Id == p1.Id {
+				found = true
+				assert.Equal(t, p.Id, p1.Id)
+				assert.Equal(t, p.Message, p1.Message)
+				assert.Equal(t, p.Username, u1.Username)
+				assert.Equal(t, p.TeamName, t1.Name)
+				assert.Equal(t, p.ChannelName, c1.Name)
+			}
+			if p.Id == p2.Id {
+				foundArchived = true
+			}
 		}
-	}
-	assert.True(t, found)
+		assert.True(t, found)
+		assert.False(t, foundArchived, "posts from archived channel should not be returned")
+	})
+
+	t.Run("with archived channels", func(t *testing.T) {
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true)
+		assert.NoError(t, err)
+
+		found := false
+		for _, p := range posts {
+			if p.Id == p2.Id {
+				found = true
+				assert.Equal(t, p.Id, p2.Id)
+				assert.Equal(t, p.Message, p2.Message)
+				assert.Equal(t, p.Username, u1.Username)
+				assert.Equal(t, p.TeamName, t1.Name)
+				assert.Equal(t, p.ChannelName, c2.Name)
+			}
+		}
+		assert.True(t, found)
+	})
 }
 
 func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
@@ -4778,180 +5011,6 @@ func testGetNthRecentPostTime(t *testing.T, ss store.Store) {
 	_, err = ss.Post().GetNthRecentPostTime(10000)
 	assert.Error(t, err)
 	assert.IsType(t, &store.ErrNotFound{}, err)
-}
-
-func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
-	// users
-	user := model.User{Email: MakeEmail(), Username: model.NewId()}
-	u1 := model.User{Email: MakeEmail(), Username: model.NewId()}
-	u2 := model.User{Email: MakeEmail(), Username: model.NewId()}
-	u3 := model.User{Email: MakeEmail(), Username: model.NewId()}
-	u4 := model.User{Email: MakeEmail(), Username: model.NewId()}
-	u5 := model.User{Email: MakeEmail(), Username: model.NewId()}
-
-	_, err := ss.User().Save(&user)
-	require.NoError(t, err)
-	_, err = ss.User().Save(&u1)
-	require.NoError(t, err)
-	_, err = ss.User().Save(&u2)
-	require.NoError(t, err)
-	_, err = ss.User().Save(&u3)
-	require.NoError(t, err)
-	_, err = ss.User().Save(&u4)
-	require.NoError(t, err)
-	_, err = ss.User().Save(&u5)
-	require.NoError(t, err)
-	bot := &model.Bot{
-		Username:    "bot_user",
-		Description: "bot",
-		OwnerId:     model.NewId(),
-		UserId:      u5.Id,
-	}
-
-	savedBot, nErr := ss.Bot().Save(bot)
-	require.NoError(t, nErr)
-	// user direct messages
-	chUser1, nErr := ss.Channel().CreateDirectChannel(&u1, &user)
-	require.NoError(t, nErr)
-	chUser2, nErr := ss.Channel().CreateDirectChannel(&u2, &user)
-	require.NoError(t, nErr)
-	chUser3, nErr := ss.Channel().CreateDirectChannel(&u3, &user)
-	require.NoError(t, nErr)
-	// other user direct message
-	chUser3User4, nErr := ss.Channel().CreateDirectChannel(&u3, &u4)
-	require.NoError(t, nErr)
-
-	// bot direct message - should be ignored by top DMs
-	botUser, err := ss.User().Get(context.Background(), savedBot.UserId)
-	require.NoError(t, err)
-	chBot, nErr := ss.Channel().CreateDirectChannel(&user, botUser)
-	require.NoError(t, nErr)
-	_, err = ss.Post().Save(&model.Post{
-		ChannelId: chBot.Id,
-		UserId:    botUser.Id,
-	})
-	require.NoError(t, err)
-
-	// sample post data
-	// for u1
-	_, err = ss.Post().Save(&model.Post{
-		ChannelId: chUser1.Id,
-		UserId:    u1.Id,
-	})
-	require.NoError(t, err)
-	_, err = ss.Post().Save(&model.Post{
-		ChannelId: chUser1.Id,
-		UserId:    user.Id,
-	})
-	require.NoError(t, err)
-	// for u2: 1 post
-	postToDelete, err := ss.Post().Save(&model.Post{
-		ChannelId: chUser2.Id,
-		UserId:    u2.Id,
-	})
-	require.NoError(t, err)
-	// create second post for u2: modify create at to a very old date to make sure it isn't counted
-	_, err = ss.Post().Save(&model.Post{
-		ChannelId: chUser2.Id,
-		UserId:    u2.Id,
-		CreateAt:  100,
-	})
-	require.NoError(t, err)
-	// for user-u3: 3 posts
-	for i := 0; i < 3; i++ {
-		_, err = ss.Post().Save(&model.Post{
-			ChannelId: chUser3.Id,
-			UserId:    user.Id,
-		})
-		require.NoError(t, err)
-	}
-	// for u4-u3: 4 posts
-	u3u4Post1, err := ss.Post().Save(&model.Post{
-		ChannelId: chUser3User4.Id,
-		UserId:    u3.Id,
-	})
-	require.NoError(t, err)
-	_, err = ss.Post().Save(&model.Post{
-		ChannelId: chUser3User4.Id,
-		UserId:    u4.Id,
-	})
-	require.NoError(t, err)
-	u3u4Post2, err := ss.Post().Save(&model.Post{
-		ChannelId: chUser3User4.Id,
-		UserId:    u3.Id,
-	})
-	require.NoError(t, err)
-
-	_, err = ss.Post().Save(&model.Post{
-		ChannelId: chUser3User4.Id,
-		UserId:    u4.Id,
-	})
-	require.NoError(t, err)
-	t.Run("should return topDMs when userid is specified ", func(t *testing.T) {
-		topDMs, storeErr := ss.Post().GetTopDMsForUserSince(user.Id, 100, 0, 100)
-		require.NoError(t, storeErr)
-		// len of topDMs.Items should be 3
-		require.Len(t, topDMs.Items, 3)
-		// check order, magnitude of items
-		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
-		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
-		require.Equal(t, topDMs.Items[0].OutgoingMessageCount, int64(3))
-		require.Equal(t, topDMs.Items[1].SecondParticipant.Id, u1.Id)
-		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
-		require.Equal(t, topDMs.Items[1].OutgoingMessageCount, int64(1))
-		require.Equal(t, topDMs.Items[2].SecondParticipant.Id, u2.Id)
-		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
-		require.Equal(t, topDMs.Items[2].OutgoingMessageCount, int64(0))
-		// this also ensures that u3-u4 conversation doesn't show up in others' top DMs.
-	})
-	t.Run("topDMs should only consider user's DM channels ", func(t *testing.T) {
-		// u4 only takes part in one conversation
-		topDMs, storeErr := ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
-		require.NoError(t, storeErr)
-		// len of topDMs.Items should be 3
-		require.Len(t, topDMs.Items, 1)
-		// check order, magnitude of items
-		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
-		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
-	})
-	t.Run("topDMs will not consider self dms", func(t *testing.T) {
-		chUser, nErr := ss.Channel().CreateDirectChannel(&user, &user)
-		require.NoError(t, nErr)
-		_, err = ss.Post().Save(&model.Post{
-			ChannelId: chUser.Id,
-			UserId:    user.Id,
-		})
-		// delete u2 post
-		err := ss.Post().Delete(postToDelete.Id, 200, user.Id)
-		require.NoError(t, err)
-		// u4 only takes part in one conversation
-		topDMs, err := ss.Post().GetTopDMsForUserSince(user.Id, 100, 0, 100)
-		require.NoError(t, err)
-		// len of topDMs.Items should be 3
-		require.Len(t, topDMs.Items, 2)
-	})
-	t.Run("topDMs will not consider deleted second user", func(t *testing.T) {
-		// u4 only takes part in one conversation
-		topDMs, err := ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
-		require.NoError(t, err)
-		// len of topDMs.Items should be 1
-		require.Len(t, topDMs.Items, 1)
-		// delete user3
-		err = ss.User().PermanentDelete(u3.Id)
-		require.NoError(t, err)
-		// delete user3 posts
-		err = ss.Post().Delete(u3u4Post1.Id, 200, u3.Id)
-		require.NoError(t, err)
-		err = ss.Post().Delete(u3u4Post2.Id, 200, u3.Id)
-		require.NoError(t, err)
-		// delete channel memberships
-		err = ss.Channel().PermanentDeleteMembersByUser(u3.Id)
-		require.NoError(t, err)
-		topDMs, err = ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
-		require.NoError(t, err)
-		// len of topDMs.Items should be 0 since u3 is deleted
-		require.Len(t, topDMs.Items, 0)
-	})
 }
 
 func testGetEditHistoryForPost(t *testing.T, ss store.Store) {

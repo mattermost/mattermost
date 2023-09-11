@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
-import {getHistory} from 'utils/browser_history';
-import InvitationModal from 'components/invitation_modal';
-import LocalStorageStore from 'stores/local_storage_store';
-import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
+import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
+import LocalStorageStore from 'stores/local_storage_store';
 
-import WorkTemplateModal from 'components/work_templates';
+import InvitationModal from 'components/invitation_modal';
+
+import {getHistory} from 'utils/browser_history';
+import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {openModal} from './modals';
 
@@ -43,23 +44,6 @@ export function openInvitationsModal(timeout = 1) {
                 },
             }));
         }, timeout);
-        return {data: true};
-    };
-}
-
-export function openWorkTemplateModal(redirectToChannels = true) {
-    return (dispatch: DispatchFunc) => {
-        if (redirectToChannels) {
-            dispatch(switchToChannels());
-        }
-        setTimeout(() => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.WORK_TEMPLATE,
-                dialogType: WorkTemplateModal,
-                dialogProps: {
-                },
-            }));
-        }, redirectToChannels ? 1000 : 1);
         return {data: true};
     };
 }

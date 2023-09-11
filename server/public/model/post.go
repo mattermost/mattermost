@@ -15,7 +15,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/markdown"
+	"github.com/mattermost/mattermost/server/public/shared/markdown"
 )
 
 const (
@@ -45,7 +45,6 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
-	PostTypeWelcomePost            = "system_welcome_post"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
@@ -76,11 +75,6 @@ const (
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
 	PostPropsPersistentNotifications = "persistent_notifications"
-)
-
-const (
-	ModifierMessages string = "messages"
-	ModifierFiles    string = "files"
 )
 
 type Post struct {
@@ -120,6 +114,11 @@ type Post struct {
 }
 
 func (o *Post) Auditable() map[string]interface{} {
+	var metaData map[string]any
+	if o.Metadata != nil {
+		metaData = o.Metadata.Auditable()
+	}
+
 	return map[string]interface{}{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
@@ -139,7 +138,7 @@ func (o *Post) Auditable() map[string]interface{} {
 		"reply_count":     o.ReplyCount,
 		"last_reply_at":   o.LastReplyAt,
 		"is_following":    o.IsFollowing,
-		"metadata":        o.Metadata,
+		"metadata":        metaData,
 	}
 }
 
@@ -193,7 +192,6 @@ type SearchParameter struct {
 	Page                   *int    `json:"page"`
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
-	Modifier               *string `json:"modifier"` // whether it's messages or file
 }
 
 type AnalyticsPostCountsOptions struct {
@@ -203,11 +201,11 @@ type AnalyticsPostCountsOptions struct {
 }
 
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
-	copy := *o
-	if copy.Message != nil {
-		*copy.Message = RewriteImageURLs(*o.Message, f)
+	pCopy := *o //nolint:revive
+	if pCopy.Message != nil {
+		*pCopy.Message = RewriteImageURLs(*o.Message, f)
 	}
-	return &copy
+	return &pCopy
 }
 
 func (o *PostPatch) Auditable() map[string]interface{} {
@@ -292,15 +290,15 @@ func (o *Post) ShallowCopy(dst *Post) error {
 
 // Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
-	copy := &Post{}
-	o.ShallowCopy(copy)
-	return copy
+	pCopy := &Post{} //nolint:revive
+	o.ShallowCopy(pCopy)
+	return pCopy
 }
 
 func (o *Post) ToJSON() (string, error) {
-	copy := o.Clone()
-	copy.StripActionIntegrations()
-	b, err := json.Marshal(copy)
+	pCopy := o.Clone() //nolint:revive
+	pCopy.StripActionIntegrations()
+	b, err := json.Marshal(pCopy)
 	return string(b), err
 }
 
@@ -429,7 +427,6 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeChangeChannelPrivacy,
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
-		PostTypeWelcomePost,
 		PostTypeReminder,
 		PostTypeMe:
 	default:
@@ -704,12 +701,12 @@ var markdownDestinationEscaper = strings.NewReplacer(
 // WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
 // rewritten via RewriteImageURLs.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
-	copy := o.Clone()
-	copy.Message = RewriteImageURLs(o.Message, f)
-	if copy.MessageSource == "" && copy.Message != o.Message {
-		copy.MessageSource = o.Message
+	pCopy := o.Clone()
+	pCopy.Message = RewriteImageURLs(o.Message, f)
+	if pCopy.MessageSource == "" && pCopy.Message != o.Message {
+		pCopy.MessageSource = o.Message
 	}
-	return copy
+	return pCopy
 }
 
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced

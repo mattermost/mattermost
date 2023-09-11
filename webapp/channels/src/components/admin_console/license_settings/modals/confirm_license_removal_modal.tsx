@@ -2,21 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {FormattedMessage} from 'react-intl';
+import {GenericModal} from '@mattermost/components';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
+import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import GenericModal from 'components/generic_modal';
 import AlertSvg from 'components/common/svg_images_components/alert_svg';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {closeModal} from 'actions/views/modals';
+import type {GlobalState} from 'types/store';
 
 import './confirm_license_removal_modal.scss';
 

@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-
 import React from 'react';
 
-import {ChannelType} from '@mattermost/types/channels';
-import {Post, PostEmbed} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
+import type {ChannelType} from '@mattermost/types/channels';
+import type {Post, PostEmbed} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
 
-import PostMessagePreview, {Props} from './post_message_preview';
+import PostMessagePreview from './post_message_preview';
+import type {Props} from './post_message_preview';
 
 describe('PostMessagePreview', () => {
     const previewPost = {
@@ -63,6 +63,32 @@ describe('PostMessagePreview', () => {
         );
 
         expect(wrapper).toMatchSnapshot();
+    });
+
+    test('show render without preview when preview posts becomes undefined after being defined', () => {
+        const props = {...baseProps};
+        let wrapper = shallow(
+            <PostMessagePreview
+                {...props}
+            />,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+        let permalink = wrapper.find('.permalink');
+        expect(permalink.length).toBe(1);
+
+        // now we'll set the preview post to undefined. This happens when the
+        // previewed post is deleted.
+        props.previewPost = undefined;
+
+        wrapper = shallow(
+            <PostMessagePreview
+                {...props}
+            />,
+        );
+        expect(wrapper).toMatchSnapshot();
+        permalink = wrapper.find('.permalink');
+        expect(permalink.length).toBe(0);
     });
 
     test('should not render bot icon', () => {

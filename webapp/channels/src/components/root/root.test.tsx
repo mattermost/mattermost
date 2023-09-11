@@ -1,21 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {RouteComponentProps} from 'react-router-dom';
+// side-effect necessary before other imports
+import matchMedia from 'tests/helpers/match_media.mock'; // eslint-disable-line import/order
+
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {RouteComponentProps} from 'react-router-dom';
 import rudderAnalytics from 'rudder-sdk-js';
 
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {ServiceEnvironment} from '@mattermost/types/config';
 
-import {Client4} from 'mattermost-redux/client';
 import {GeneralTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
+import * as GlobalActions from 'actions/global_actions';
+import store from 'stores/redux_store.jsx';
 
 import Root from 'components/root/root';
-import * as GlobalActions from 'actions/global_actions';
+
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
-import matchMedia from 'tests/helpers/match_media.mock';
-import {ProductComponent} from 'types/store/plugins';
+
+import type {ProductComponent} from 'types/store/plugins';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),
@@ -31,11 +38,17 @@ jest.mock('actions/global_actions', () => ({
     redirectUserToDefaultTeam: jest.fn(),
 }));
 
-jest.mock('utils/utils', () => ({
-    localizeMessage: () => {},
-    applyTheme: jest.fn(),
-    makeIsEligibleForClick: jest.fn(),
-}));
+jest.mock('utils/utils', () => {
+    const original = jest.requireActual('utils/utils');
+
+    return {
+        ...original,
+        localizeMessage: () => {},
+        applyTheme: jest.fn(),
+        makeIsEligibleForClick: jest.fn(),
+
+    };
+});
 
 jest.mock('mattermost-redux/actions/general', () => ({
     setUrl: () => {},
@@ -195,12 +208,16 @@ describe('components/Root', () => {
     describe('onConfigLoaded', () => {
         afterEach(() => {
             Client4.telemetryHandler = undefined;
-
-            Constants.TELEMETRY_RUDDER_KEY = 'placeholder_rudder_key';
-            Constants.TELEMETRY_RUDDER_DATAPLANE_URL = 'placeholder_rudder_dataplane_url';
         });
 
         test('should not set a TelemetryHandler when onConfigLoaded is called if Rudder is not configured', () => {
+            store.dispatch({
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {
+                    ServiceEnvironment: ServiceEnvironment.DEV,
+                },
+            });
+
             const wrapper = shallow(<Root {...baseProps}/>);
 
             Client4.trackEvent('category', 'event');
@@ -211,8 +228,12 @@ describe('components/Root', () => {
         });
 
         test('should set a TelemetryHandler when onConfigLoaded is called if Rudder is configured', () => {
-            Constants.TELEMETRY_RUDDER_KEY = 'testKey';
-            Constants.TELEMETRY_RUDDER_DATAPLANE_URL = 'url';
+            store.dispatch({
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {
+                    ServiceEnvironment: ServiceEnvironment.TEST,
+                },
+            });
 
             const wrapper = shallow(<Root {...baseProps}/>);
 
@@ -230,8 +251,12 @@ describe('components/Root', () => {
                 // Simulate an error occurring and the callback not getting called
             });
 
-            Constants.TELEMETRY_RUDDER_KEY = 'testKey';
-            Constants.TELEMETRY_RUDDER_DATAPLANE_URL = 'url';
+            store.dispatch({
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {
+                    ServiceEnvironment: ServiceEnvironment.TEST,
+                },
+            });
 
             const wrapper = shallow(<Root {...baseProps}/>);
 

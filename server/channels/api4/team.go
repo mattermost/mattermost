@@ -14,9 +14,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 const (
@@ -42,7 +42,6 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(getTeam)).Methods("GET")
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(updateTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(deleteTeam)).Methods("DELETE")
-	api.BaseRoutes.Team.Handle("/except", api.APISessionRequired(softDeleteTeamsExcept)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/patch", api.APISessionRequired(patchTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/restore", api.APISessionRequired(restoreTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/privacy", api.APISessionRequired(updateTeamPrivacy)).Methods("PUT")
@@ -461,25 +460,6 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	ReturnStatusOK(w)
-}
-
-func softDeleteTeamsExcept(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireTeamId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
-		c.SetPermissionError(model.PermissionManageTeam)
-		return
-	}
-
-	err := c.App.SoftDeleteAllTeamsExcept(c.Params.TeamId)
-	if err != nil {
-		c.Err = err
-	}
-
 	ReturnStatusOK(w)
 }
 
@@ -1452,7 +1432,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// we then manually schedule the job to send another invite after 48 hours
-		_, appErr = c.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, jobData)
+		_, appErr = c.App.Srv().Jobs.CreateJob(c.AppContext, model.JobTypeResendInvitationEmail, jobData)
 		if appErr != nil {
 			c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
 			return
@@ -1612,7 +1592,7 @@ func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord("invalidateAllEmailInvites", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.InvalidateAllEmailInvites(); err != nil {
+	if err := c.App.InvalidateAllEmailInvites(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}

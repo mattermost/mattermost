@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {zeroStateLimitedViews} from '../reducers/entities/posts';
 
@@ -58,6 +58,7 @@ const state: GlobalState = {
             channelModerations: {},
             channelMemberCountsByGroup: {},
             messageCounts: {},
+            channelsMemberCount: {},
         },
         posts: {
             expandedURLs: {},
@@ -149,39 +150,6 @@ const state: GlobalState = {
             roles: {},
             pending: new Set(),
         },
-        gifs: {
-            app: {
-                appClassName: '',
-                appId: '',
-                appName: '',
-                basePath: '',
-                enableHistory: false,
-                header: {
-                    tabs: [],
-                    displayText: false,
-                },
-                itemTapType: 0,
-                shareEvent: '',
-            },
-            categories: {
-                tagsList: [],
-                tagsDict: {},
-                cursor: '',
-                hasMore: false,
-                isFetching: false,
-            },
-            cache: {
-                gifs: {},
-                updating: false,
-            },
-            search: {
-                searchText: '',
-                searchBarText: '',
-                resultsByTerm: {},
-                scrollPosition: 0,
-                priorLocation: null,
-            },
-        },
         schemes: {
             schemes: {},
         },
@@ -251,16 +219,6 @@ const state: GlobalState = {
                 cloudArchived: 0,
                 teamsLoaded: false,
             },
-        },
-        insights: {
-            topReactions: {},
-            myTopReactions: {},
-        },
-        worktemplates: {
-            categories: [],
-            templatesInCategory: {},
-            playbookTemplates: [],
-            linkedProducts: {},
         },
     },
     errors: [],

@@ -3,22 +3,23 @@
 
 import React from 'react';
 
-import {Post, PostEmbed} from '@mattermost/types/posts';
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post, PostEmbed} from '@mattermost/types/posts';
 
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
-import {AppBinding} from '@mattermost/types/apps';
 
 import MessageAttachmentList from 'components/post_view/message_attachments/message_attachment_list';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostImage from 'components/post_view/post_image';
+import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
 
-import {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
-import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
-import {TextFormattingOptions} from 'utils/text_formatting';
-import PostMessagePreview from 'components/post_view/post_message_preview';
-
 import webSocketClient from 'client/web_websocket_client.jsx';
+import type {TextFormattingOptions} from 'utils/text_formatting';
+
+import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
+
+import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
 
 export type Props = {
     post: Post;
@@ -126,7 +127,6 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
                 return (
                     <PostMessagePreview
                         metadata={embed.data}
-                        previewPost={embed.data.post}
                         handleFileDropdownOpened={this.props.handleFileDropdownOpened}
                     />
                 );

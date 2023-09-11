@@ -5,7 +5,6 @@
     "plugin:react-hooks/recommended"
   ],
   "plugins": [
-    "@babel",
     "mattermost",
     "import",
     "no-only-tests",
@@ -35,23 +34,53 @@
     "import/no-duplicates": 2,
     "max-nested-callbacks": ["error", 10],
     "no-unused-expressions": 0,
-    "@babel/no-unused-expressions": 2,
     "eol-last": ["error", "always"],
     "import/no-unresolved": 2,
     "import/order": [
-      0,
+      2,
       {
-        "newlines-between": "always-and-inside-groups",
+        "newlines-between": "always",
         "groups": [
           "builtin",
           "external",
-          [
-            "internal",
-            "parent"
-          ],
+          "internal",
           "sibling",
+          "parent",
           "index"
-        ]
+        ],
+        "pathGroups": [
+          {
+            "pattern": "@mattermost/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "mattermost-redux/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "@(selectors|actions|stores|store|reducers){,/**}",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "components/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "types{,/**}",
+            "group": "internal",
+            "position": "after"
+          }
+        ],
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        },
+        "distinctGroup": true,
+        "pathGroupsExcludedImportTypes": ["builtin"]
       }
     ],
     "no-undefined": 0,
@@ -97,7 +126,8 @@
       }
     ],
     "max-lines": ["warn", {"max": 800, "skipBlankLines": true, "skipComments": true}],
-    "formatjs/no-multiple-whitespaces": 2
+    "formatjs/no-multiple-whitespaces": 2,
+    "@typescript-eslint/consistent-type-imports": ["error", {"disallowTypeAnnotations": false}]
   },
   "overrides": [
     {

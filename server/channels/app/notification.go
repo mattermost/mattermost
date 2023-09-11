@@ -15,12 +15,12 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/markdown"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/markdown"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) canSendPushNotifications() bool {
@@ -121,35 +121,10 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		groups = result.Data.(map[string]*model.Group)
 	}
 
-	mentions := &ExplicitMentions{}
-	allActivityPushUserIds := []string{}
-	var allowChannelMentions bool
-	var keywords map[string][]string
-	if channel.Type == model.ChannelTypeDirect {
-		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
+	mentions, keywords := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
 
-		_, ok := profileMap[otherUserId]
-		if ok {
-			mentions.addMention(otherUserId, DMMention)
-		}
-
-		if post.GetProp("from_webhook") == "true" {
-			mentions.addMention(post.UserId, DMMention)
-		}
-	} else {
-		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
-		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
-
-		mentions = getExplicitMentions(post, keywords, groups)
-		// Add an implicit mention when a user is added to a channel
-		// even if the user has set 'username mentions' to false in account settings.
-		if post.Type == model.PostTypeAddToChannel {
-			addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string)
-			if ok {
-				mentions.addMention(addedUserId, KeywordMention)
-			}
-		}
-
+	var allActivityPushUserIds []string
+	if channel.Type != model.ChannelTypeDirect {
 		// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
 		for _, group := range mentions.GroupMentions {
 			anyUsersMentionedByGroup, err := a.insertGroupMentions(group, channel, profileMap, mentions)
@@ -160,36 +135,6 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			if !anyUsersMentionedByGroup {
 				a.sendNoUsersNotifiedByGroupInChannel(c, sender, post, channel, group)
 			}
-		}
-
-		// get users that have comment thread mentions enabled
-		if post.RootId != "" && parentPostList != nil {
-			for _, threadPost := range parentPostList.Posts {
-				profile := profileMap[threadPost.UserId]
-				if profile == nil {
-					continue
-				}
-				// If this is the root post and it was posted by an OAuth bot, don't notify the user
-				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
-					continue
-				}
-				if a.IsCRTEnabledForUser(c, profile.Id) {
-					continue
-				}
-				if profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny || (profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyRoot && threadPost.Id == parentPostList.Order[0]) {
-					mentionType := ThreadMention
-					if threadPost.Id == parentPostList.Order[0] {
-						mentionType = CommentMention
-					}
-
-					mentions.addMention(threadPost.UserId, mentionType)
-				}
-			}
-		}
-
-		// prevent the user from mentioning themselves
-		if post.GetProp("from_webhook") != "true" {
-			mentions.removeMention(post.UserId)
 		}
 
 		go func() {
@@ -661,6 +606,212 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		}
 	}
 	return mentionedUsersList, nil
+}
+
+func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *model.Channel) error {
+	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
+
+	// CRT is the main issue in this case as notifications indicator are not updated when accessing threads from the sidebar.
+	if isCRTAllowed && post.RootId != "" {
+		var team *model.Team
+		if channel.TeamId != "" {
+			t, err1 := a.Srv().Store().Team().Get(channel.TeamId)
+			if err1 != nil {
+				return model.NewAppError("RemoveNotifications", "app.post.delete_post.get_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err1)
+			}
+			team = t
+		} else {
+			// Blank team for DMs
+			team = &model.Team{}
+		}
+
+		pCh := make(chan store.StoreResult, 1)
+		go func() {
+			props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+			pCh <- store.StoreResult{Data: props, NErr: err}
+			close(pCh)
+		}()
+
+		cmnCh := make(chan store.StoreResult, 1)
+		go func() {
+			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+			cmnCh <- store.StoreResult{Data: props, NErr: err}
+			close(cmnCh)
+		}()
+
+		var gCh chan store.StoreResult
+		if a.allowGroupMentions(c, post) {
+			gCh = make(chan store.StoreResult, 1)
+			go func() {
+				groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
+				gCh <- store.StoreResult{Data: groupsMap, NErr: err}
+				close(gCh)
+			}()
+		}
+
+		result := <-pCh
+		if result.NErr != nil {
+			return result.NErr
+		}
+		profileMap := result.Data.(map[string]*model.User)
+
+		result = <-cmnCh
+		if result.NErr != nil {
+			return result.NErr
+		}
+		channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
+
+		groups := make(map[string]*model.Group)
+		if gCh != nil {
+			result = <-gCh
+			if result.NErr != nil {
+				return result.NErr
+			}
+			groups = result.Data.(map[string]*model.Group)
+		}
+
+		mentions, _ := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, nil)
+
+		userIDs := []string{}
+		for _, group := range mentions.GroupMentions {
+			for page := 0; ; page++ {
+				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(group.Id, page, 100, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
+				if appErr != nil {
+					return appErr
+				}
+
+				for _, user := range groupMemberPage {
+					userIDs = append(userIDs, user.Id)
+				}
+
+				// count is the total number of users that match the filter criteria.
+				// When we've processed `count` number of users, we know there aren't
+				// any more users left to query and we can break the loop
+				if len(userIDs) == count {
+					break
+				}
+			}
+		}
+
+		for userID := range mentions.Mentions {
+			userIDs = append(userIDs, userID)
+		}
+
+		for _, userID := range userIDs {
+			threadMembership, appErr := a.GetThreadMembershipForUser(userID, post.RootId)
+			if appErr != nil {
+				return appErr
+			}
+
+			// If the user has viewed the thread or there are no unread mentions, skip.
+			if threadMembership.LastViewed > post.CreateAt || threadMembership.UnreadMentions == 0 {
+				continue
+			}
+
+			threadMembership.UnreadMentions -= 1
+			if _, err := a.Srv().Store().Thread().UpdateMembership(threadMembership); err != nil {
+				return err
+			}
+
+			userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.IsPostPriorityEnabled())
+			if err != nil {
+				return err
+			}
+
+			if userThread != nil {
+				previousUnreadMentions := int64(0)
+				previousUnreadReplies := int64(0)
+
+				a.sanitizeProfiles(userThread.Participants, false)
+				userThread.Post.SanitizeProps()
+
+				sanitizedPost, err1 := a.SanitizePostMetadataForUser(c, userThread.Post, userID)
+				if err1 != nil {
+					return err1
+				}
+				userThread.Post = sanitizedPost
+
+				payload, jsonErr := json.Marshal(userThread)
+				if jsonErr != nil {
+					mlog.Warn("Failed to encode thread to JSON")
+				}
+
+				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
+				message.Add("thread", string(payload))
+				message.Add("previous_unread_mentions", previousUnreadMentions)
+				message.Add("previous_unread_replies", previousUnreadReplies)
+
+				a.Publish(message)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*ExplicitMentions, map[string][]string) {
+	mentions := &ExplicitMentions{}
+	var allowChannelMentions bool
+	var keywords map[string][]string
+
+	if channel.Type == model.ChannelTypeDirect {
+		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
+
+		_, ok := profileMap[otherUserId]
+		if ok {
+			mentions.addMention(otherUserId, DMMention)
+		}
+
+		if post.GetProp("from_webhook") == "true" {
+			mentions.addMention(post.UserId, DMMention)
+		}
+	} else {
+		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
+		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
+
+		mentions = getExplicitMentions(post, keywords, groups)
+		// Add an implicit mention when a user is added to a channel
+		// even if the user has set 'username mentions' to false in account settings.
+		if post.Type == model.PostTypeAddToChannel {
+			addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string)
+			if ok {
+				mentions.addMention(addedUserId, KeywordMention)
+			}
+		}
+
+		// Get users that have comment thread mentions enabled
+		if post.RootId != "" && parentPostList != nil {
+			for _, threadPost := range parentPostList.Posts {
+				profile := profileMap[threadPost.UserId]
+				if profile == nil {
+					continue
+				}
+
+				// If this is the root post and it was posted by an OAuth bot, don't notify the user
+				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
+					continue
+				}
+				if a.IsCRTEnabledForUser(c, profile.Id) {
+					continue
+				}
+				if profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny || (profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyRoot && threadPost.Id == parentPostList.Order[0]) {
+					mentionType := ThreadMention
+					if threadPost.Id == parentPostList.Order[0] {
+						mentionType = CommentMention
+					}
+
+					mentions.addMention(threadPost.UserId, mentionType)
+				}
+			}
+		}
+
+		// Prevent the user from mentioning themselves
+		if post.GetProp("from_webhook") != "true" {
+			mentions.removeMention(post.UserId)
+		}
+	}
+
+	return mentions, keywords
 }
 
 func max(a, b int64) int64 {

@@ -1,20 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {LinkHTMLAttributes} from 'react';
-import {FormattedMessage, IntlShape} from 'react-intl';
-
-import cssVars from 'css-vars-ponyfill';
-
-import moment from 'moment';
-
-import type {Locale} from 'date-fns';
-
 import {getName} from 'country-list';
-
+import cssVars from 'css-vars-ponyfill';
+import type {Locale} from 'date-fns';
 import {isNil} from 'lodash';
+import moment from 'moment';
+import React from 'react';
+import type {LinkHTMLAttributes} from 'react';
+import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
+import type {Channel} from '@mattermost/types/channels';
+import type {Address} from '@mattermost/types/cloud';
+import type {ClientConfig} from '@mattermost/types/config';
+import type {FileInfo} from '@mattermost/types/files';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {
     getChannel as getChannelAction,
@@ -25,50 +28,38 @@ import {
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-import {Posts, Preferences, General} from 'mattermost-redux/constants';
+import {Preferences, General} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInTeam,
     getMyChannelMemberships,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getBool, getTeammateNameDisplaySetting, Theme, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+import {getBool, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getTeamByName,
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
 } from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
+import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
-import {addUserToTeam} from 'actions/team_actions';
 import {searchForTerm} from 'actions/post_actions';
-import {getHistory} from 'utils/browser_history';
-import * as Keyboard from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
-import {isDesktopApp} from 'utils/user_agent';
-import {t} from 'utils/i18n';
+import {addUserToTeam} from 'actions/team_actions';
+import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 import store from 'stores/redux_store.jsx';
 
-import {getCurrentLocale, getTranslations} from 'selectors/i18n';
-import {getIsMobileView} from 'selectors/views/browser';
-
-import {FileInfo} from '@mattermost/types/files';
-import {Team} from '@mattermost/types/teams';
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-
-import {ClientConfig} from '@mattermost/types/config';
-
-import {GlobalState} from '@mattermost/types/store';
-
 import {focusPost} from 'components/permalink_view/actions';
+import type {TextboxElement} from 'components/textbox';
 
-import {TextboxElement} from '../components/textbox';
-
-import {Address} from '@mattermost/types/cloud';
+import {getHistory} from 'utils/browser_history';
+import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Keyboard from 'utils/keyboard';
+import * as UserAgent from 'utils/user_agent';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
 
@@ -309,13 +300,6 @@ export function getIconClassName(fileTypeIn: string) {
     return 'generic';
 }
 
-export function getMenuItemIcon(name: string, dangerous?: boolean) {
-    const colorClass = dangerous ? 'MenuItem__compass-icon-dangerous' : 'MenuItem__compass-icon';
-    return (
-        <span className={`${name} ${colorClass}`}/>
-    );
-}
-
 export function toTitleCase(str: string): string {
     function doTitleCase(txt: string) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -400,13 +384,9 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('.app__body .sidebar--right', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__body', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
-        if (!UserAgent.isFirefox() && !UserAgent.isInternetExplorer() && !UserAgent.isEdge()) {
-            changeCss('body.app__body ::-webkit-scrollbar-thumb', 'background:' + changeOpacity(theme.centerChannelColor, 0.4));
-        }
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
         changeCss('.app__body .post-create__container .post-create-body .btn-file svg, .app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .status svg, .app__body .edit-post__actions .icon svg', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
-        changeCss('.app__body .post.post--comment .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
@@ -467,7 +447,6 @@ export function applyTheme(theme: Theme) {
 
     if (theme.mentionHighlightBg) {
         changeCss('.app__body .search-highlight', 'background:' + theme.mentionHighlightBg);
-        changeCss('.app__body .post.post--comment .post__body.mention-comment', 'border-color:' + theme.mentionHighlightBg);
         changeCss('.app__body .post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5));
     }
 
@@ -856,10 +835,6 @@ export function setCaretPosition(input: HTMLInputElement, pos: number) {
     setSelectionRange(input, pos, pos);
 }
 
-export function scrollbarWidth(el: HTMLElement) {
-    return el.offsetWidth - el.clientWidth;
-}
-
 export function isValidUsername(name: string) {
     let error;
     if (!name) {
@@ -905,10 +880,6 @@ export function isValidBotUsername(name: string) {
     }
 
     return error;
-}
-
-export function isMobile() {
-    return getIsMobileView(store.getState());
 }
 
 export function loadImage(
@@ -1236,18 +1207,6 @@ export function clearFileInput(elm: HTMLInputElement) {
     }
 }
 
-export function isPostEphemeral(post: Post) {
-    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Posts.POST_DELETED;
-}
-
-export function getRootId(post: Post) {
-    return post.root_id === '' ? post.id : post.root_id;
-}
-
-export function getRootPost(postList: Post[]) {
-    return postList.find((post) => post.root_id === '');
-}
-
 export function localizeMessage(id: string, defaultMessage?: string) {
     const state = store.getState();
 
@@ -1550,19 +1509,6 @@ export function moveCursorToEnd(e: React.MouseEvent | React.FocusEvent) {
     }
 }
 
-export function compareChannels(a: Channel, b: Channel) {
-    const aDisplayName = a.display_name.toUpperCase();
-    const bDisplayName = b.display_name.toUpperCase();
-    const result = aDisplayName.localeCompare(bDisplayName);
-    if (result !== 0) {
-        return result;
-    }
-
-    const aName = a.name.toUpperCase();
-    const bName = b.name.toUpperCase();
-    return aName.localeCompare(bName);
-}
-
 export function setCSRFFromCookie() {
     if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
         const cookies = document.cookie.split(';');
@@ -1573,68 +1519,6 @@ export function setCSRFFromCookie() {
                 break;
             }
         }
-    }
-}
-
-/**
- * Get closest parent which match selector
- */
-export function getClosestParent(elem: HTMLElement, selector: string) {
-    // Element.matches() polyfill
-    if (!Element.prototype.matches) {
-        Element.prototype.matches =
-            (Element.prototype as any).matchesSelector ||
-            (Element.prototype as any).mozMatchesSelector ||
-            (Element.prototype as any).msMatchesSelector ||
-            (Element.prototype as any).oMatchesSelector ||
-            (Element.prototype as any).webkitMatchesSelector ||
-            ((s) => {
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                const matches = (this.document || this.ownerDocument).querySelectorAll(s);
-                let i = matches.length - 1;
-
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                while (i >= 0 && matches.item(i) !== this) {
-                    i--;
-                }
-                return i > -1;
-            });
-    }
-
-    // Get the closest matching element
-    let currentElem = elem;
-
-    // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-    for (; currentElem && currentElem !== document; currentElem = currentElem.parentNode) {
-        if (currentElem.matches(selector)) {
-            return currentElem;
-        }
-    }
-    return null;
-}
-
-/**
- * Adjust selection to correct text when there is Italic markdown (_) around selected text.
- */
-export function adjustSelection(inputBox: HTMLInputElement, e: React.SyntheticEvent<TextboxElement>) {
-    const el = e.target as TextboxElement;
-    const {selectionEnd, selectionStart, value} = el;
-
-    if (selectionStart === selectionEnd) {
-        // nothing selected.
-        return;
-    }
-
-    e.preventDefault();
-
-    const firstUnderscore = value.charAt(selectionStart!) === '_';
-    const lastUnderscore = value.charAt(selectionEnd! - 1) === '_';
-
-    const spaceBefore = value.charAt(selectionStart! - 1) === ' ';
-    const spaceAfter = value.charAt(selectionEnd!) === ' ';
-
-    if (firstUnderscore && lastUnderscore && (spaceBefore || spaceAfter)) {
-        setSelectionRange(inputBox, selectionStart! + 1, selectionEnd! - 1);
     }
 }
 
@@ -1824,9 +1708,9 @@ const TrackFlowSources: Record<string, string> = {
 };
 
 function getTrackFlowSource() {
-    if (isMobile()) {
+    if (UserAgent.isMobile()) {
         return TrackFlowSources.wm;
-    } else if (isDesktopApp()) {
+    } else if (UserAgent.isDesktopApp()) {
         return TrackFlowSources.d;
     }
     return TrackFlowSources.wd;

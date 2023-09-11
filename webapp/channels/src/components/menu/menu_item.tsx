@@ -1,13 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactElement, ReactNode, Children, KeyboardEvent, MouseEvent} from 'react';
-import {styled} from '@mui/material/styles';
 import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
+import {styled} from '@mui/material/styles';
+import {cloneDeep} from 'lodash';
+import React, {
+    Children,
+    useContext,
+} from 'react';
+import type {
+    ReactElement,
+    ReactNode,
+    KeyboardEvent,
+    MouseEvent} from 'react';
+import {useSelector} from 'react-redux';
 
-import Constants from 'utils/constants';
+import {getIsMobileView} from 'selectors/views/browser';
+
+import Constants, {EventTypes} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+
+import {MenuContext, SubMenuContext} from './menu_context';
 
 export interface Props extends MuiMenuItemProps {
 
@@ -63,7 +77,7 @@ export interface Props extends MuiMenuItemProps {
      */
     isDestructive?: boolean;
 
-    onClick: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
+    onClick?: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
@@ -73,12 +87,21 @@ export interface Props extends MuiMenuItemProps {
 
 /**
  * To be used as a child of Menu component.
- * Checkout Compass's Menu Item(compass.mattermost.com)  for terminology, styling and usage guidelines.
+ * Checkout Compass's Menu Item(compass.mattermost.com) for terminology, styling and usage guidelines.
  *
- * @example
+ * @example <caption>Using a menu in a component</caption>
  * <Menu.Container>
- *    <Menu.Item/>
+ *     <Menu.Item/>
  * </Menu.Container>
+ * @example <caption>Wrapping a menu item in another component</caption>
+ * // Remember to pass all unused props into the Menu.Item to ensure MUI props for a11y are passed properly
+ * const ConsoleLogItem = ({message, ...otherProps}) => ({
+ *     <Menu.Item
+ *         onClick={() => console.log(message)}
+ *         {...otherProps}
+ *     />
+ * });
+ *
  */
 export function MenuItem(props: Props) {
     const {
@@ -89,17 +112,44 @@ export function MenuItem(props: Props) {
         isLabelsRowLayout,
         children,
         onClick,
-        ...restProps
+        ...otherProps
     } = props;
 
-    // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
-    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
+    const menuContext = useContext(MenuContext);
+    const subMenuContext = useContext(SubMenuContext);
+
+    const isMobileView = useSelector(getIsMobileView);
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
-            onClick(event);
+            // close submenu first if it is open
+            if (subMenuContext.close) {
+                subMenuContext.close();
+            }
+
+            // And then close the menu
+            if (menuContext.close) {
+                menuContext.close();
+            }
+
+            if (onClick) {
+                if (isMobileView) {
+                    // If the menu is in mobile view, we execute the click event immediately.
+                    onClick(event);
+                } else {
+                    // Clone the event since we delay the click handler until after the menu has closed.
+                    const clonedEvent = cloneDeep(event);
+
+                    menuContext.addOnClosedListener(() => {
+                        onClick(clonedEvent);
+                    });
+                }
+            }
         }
     }
+
+    // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
+    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
 
     return (
         <MenuItemStyled
@@ -108,9 +158,9 @@ export function MenuItem(props: Props) {
             isDestructive={isDestructive}
             hasSecondaryLabel={hasSecondaryLabel}
             isLabelsRowLayout={isLabelsRowLayout}
+            onClick={handleClick}
             onKeyDown={handleClick}
-            onMouseDown={handleClick}
-            {...restProps}
+            {...otherProps}
         >
             {leadingElement && <div className='leading-element'>{leadingElement}</div>}
             <div className='label-elements'>{labels}</div>
@@ -169,7 +219,7 @@ const MenuItemStyled = styled(MuiMenuItem, {
                 '&.Mui-focusVisible .label-elements>:last-child, &.Mui-focusVisible .label-elements>:first-child, &.Mui-focusVisible .label-elements>:only-child': {
                     color: isDestructive && 'var(--button-color)',
                 },
-                '&.Mui-focusVisible .leading-element': {
+                '&.Mui-focusVisible .leading-element, &.Mui-focusVisible .trailing-elements': {
                     color: isDestructive && 'var(--button-color)',
                 },
 
@@ -239,14 +289,14 @@ const MenuItemStyled = styled(MuiMenuItem, {
  * @returns true if the menu item was pressed by mouse's "Primary" key or keyboard's "Space" or "Enter" key
  **/
 function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-    if (event.type === 'keydown') {
+    if (event.type === EventTypes.KEY_DOWN) {
         const keyboardEvent = event as KeyboardEvent<HTMLLIElement>;
         if (isKeyPressed(keyboardEvent, Constants.KeyCodes.ENTER) || isKeyPressed(keyboardEvent, Constants.KeyCodes.SPACE)) {
             return true;
         }
 
         return false;
-    } else if (event.type === 'mousedown') {
+    } else if (event.type === EventTypes.CLICK) {
         const mouseEvent = event as MouseEvent<HTMLLIElement>;
         if (mouseEvent.button === 0) {
             return true;

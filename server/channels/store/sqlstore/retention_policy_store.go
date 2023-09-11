@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,9 +15,9 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type SqlRetentionPolicyStore struct {
@@ -817,6 +818,92 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 	return count, nil
 }
 
+func scanRetentionIdsForDeletion(rows *sql.Rows, isPostgres bool) ([]*model.RetentionIdsForDeletion, error) {
+	idsForDeletion := []*model.RetentionIdsForDeletion{}
+	for rows.Next() {
+		var row model.RetentionIdsForDeletion
+		if isPostgres {
+			if err := rows.Scan(
+				&row.Id, &row.TableName, pq.Array(&row.Ids),
+			); err != nil {
+				return nil, errors.Wrap(err, "unable to scan columns")
+			}
+		} else {
+			var ids []byte
+			if err := rows.Scan(
+				&row.Id, &row.TableName, &ids,
+			); err != nil {
+				return nil, errors.Wrap(err, "unable to scan columns")
+			}
+			if err := json.Unmarshal(ids, &row.Ids); err != nil {
+				return nil, errors.Wrap(err, "failed to unmarshal ids")
+			}
+		}
+
+		idsForDeletion = append(idsForDeletion, &row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error while iterating over rows")
+	}
+	return idsForDeletion, nil
+}
+
+func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("RetentionIdsForDeletion").
+		Where(
+			sq.Eq{"TableName": tableName},
+		).
+		Limit(uint64(limit))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_ids_for_deletion_tosql")
+	}
+
+	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get ids for deletion")
+	}
+	defer rows.Close()
+
+	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
+	idsForDeletion, err := scanRetentionIdsForDeletion(rows, isPostgres)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to scan ids for deletion")
+	}
+
+	return idsForDeletion, nil
+}
+
+func insertRetentionIdsForDeletion(txn *sqlxTxWrapper, row *model.RetentionIdsForDeletion, s *SqlStore) error {
+	row.PreSave()
+	insertBuilder := s.getQueryBuilder().
+		Insert("RetentionIdsForDeletion").
+		Columns("Id", "TableName", "Ids")
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		insertBuilder = insertBuilder.
+			Values(row.Id, row.TableName, pq.Array(row.Ids))
+	} else {
+		jsonIds, err := json.Marshal(row.Ids)
+		if err != nil {
+			return err
+		}
+		insertBuilder = insertBuilder.
+			Values(row.Id, row.TableName, jsonIds)
+	}
+	insertQuery, insertArgs, err := insertBuilder.ToSql()
+	if err != nil {
+		return err
+	}
+
+	if _, err = txn.Exec(insertQuery, insertArgs...); err != nil {
+		return err
+	}
+	return nil
+}
+
 // RetentionPolicyBatchDeletionInfo gives information on how to delete records
 // under a retention policy; see `genericPermanentDeleteBatchForRetentionPolicies`.
 //
@@ -845,6 +932,7 @@ type RetentionPolicyBatchDeletionInfo struct {
 	NowMillis           int64
 	GlobalPolicyEndTime int64
 	Limit               int64
+	StoreDeletedIds     bool
 }
 
 // genericPermanentDeleteBatchForRetentionPolicies is a helper function for tables
@@ -958,31 +1046,115 @@ func genericRetentionPoliciesDeletion(
 	if err != nil {
 		return 0, errors.Wrap(err, r.Table+"_tosql")
 	}
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
-		query = `
-		DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
-		` + query + `
-		)`
-	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		clauses := make([]string, len(r.PrimaryKeys))
-		for i, key := range r.PrimaryKeys {
-			clauses[i] = r.Table + "." + key + " = A." + key
+
+	if r.StoreDeletedIds {
+		txn, err := s.GetMasterX().Beginx()
+		if err != nil {
+			return 0, err
 		}
-		joinClause := strings.Join(clauses, " AND ")
-		query = `
-		DELETE ` + r.Table + ` FROM ` + r.Table + ` INNER JOIN (
-		` + query + `
-		) AS A ON ` + joinClause
-	}
-	result, err := s.GetMasterX().Exec(query, args...)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete "+r.Table)
-	}
-	rowsAffected, err = result.RowsAffected()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
+		defer finalizeTransactionX(txn, &err)
+
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
+
+			query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s) RETURNING %s.%s", r.Table, primaryKeysStr, query, r.Table, r.PrimaryKeys[0])
+			var rows *sql.Rows
+			rows, err = txn.Query(query, args...)
+			if err != nil {
+				return 0, errors.Wrap(err, "failed to delete "+r.Table)
+			}
+
+			defer rows.Close()
+			ids := []string{}
+			for rows.Next() {
+				var id string
+				if err = rows.Scan(&id); err != nil {
+					return 0, errors.Wrap(err, "unable to scan from rows")
+				}
+				ids = append(ids, id)
+			}
+			if err = rows.Err(); err != nil {
+				return 0, errors.Wrap(err, "failed while iterating over rows")
+			}
+			rowsAffected = int64(len(ids))
+
+			if len(ids) > 0 {
+				retentionIdsRow := model.RetentionIdsForDeletion{
+					TableName: r.Table,
+					Ids:       ids,
+				}
+				err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
+				if err != nil {
+					return 0, err
+				}
+			}
+		} else {
+			retentionIdsRow := model.RetentionIdsForDeletion{
+				TableName: r.Table,
+				Ids:       []string{},
+			}
+			// 1. Select rows that will be deleted
+			if err = txn.Select(&retentionIdsRow.Ids, query, args...); err != nil {
+				return 0, err
+			}
+
+			if len(retentionIdsRow.Ids) > 0 {
+				// 2. Insert selected ids into RetentionIdsForDeletion table
+				err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
+				if err != nil {
+					return 0, err
+				}
+
+				query = getDeleteQueriesForMySQL(r, query)
+
+				// 3. Delete from Parent table
+				var result sql.Result
+				result, err = txn.Exec(query, args...)
+				if err != nil {
+					return 0, errors.Wrap(err, "failed to delete "+r.Table)
+				}
+
+				rowsAffected, err = result.RowsAffected()
+				if err != nil {
+					return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
+				}
+			}
+		}
+		if err = txn.Commit(); err != nil {
+			return 0, err
+		}
+	} else {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
+			query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s)", r.Table, primaryKeysStr, query)
+		} else {
+			query = getDeleteQueriesForMySQL(r, query)
+		}
+		result, err := s.GetMasterX().Exec(query, args...)
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to delete "+r.Table)
+		}
+		rowsAffected, err = result.RowsAffected()
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
+		}
 	}
 	return
+}
+
+func getDeleteQueriesForMySQL(r RetentionPolicyBatchDeletionInfo, query string) string {
+	// MySQL does not support the LIMIT clause in a subquery with IN
+	clauses := make([]string, len(r.PrimaryKeys))
+	for i, key := range r.PrimaryKeys {
+		clauses[i] = r.Table + "." + key + " = A." + key
+	}
+	joinClause := strings.Join(clauses, " AND ")
+	return fmt.Sprintf("DELETE %s FROM %s INNER JOIN (%s) AS A ON %s", r.Table, r.Table, query, joinClause)
+}
+
+func deleteFromRetentionIdsTx(txn *sqlxTxWrapper, id string) (err error) {
+	if _, err := txn.Exec("DELETE FROM RetentionIdsForDeletion WHERE Id = ?", id); err != nil {
+		return errors.Wrap(err, "Failed to delete from RetentionIdsForDeletion")
+	}
+	return nil
 }

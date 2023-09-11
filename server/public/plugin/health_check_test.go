@@ -11,9 +11,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin/utils"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestPluginHealthCheck(t *testing.T) {
@@ -35,7 +35,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type MyPlugin struct {
@@ -51,10 +51,8 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer log.Shutdown()
-
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	logger := mlog.CreateConsoleTestLogger(t)
+	supervisor, err := newSupervisor(bundle, nil, nil, logger, nil)
 	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
@@ -73,8 +71,8 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/model"
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type MyPlugin struct {
@@ -94,10 +92,8 @@ func testPluginHealthCheckPanic(t *testing.T) {
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer log.Shutdown()
-
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	logger := mlog.CreateConsoleTestLogger(t)
+	supervisor, err := newSupervisor(bundle, nil, nil, logger, nil)
 	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()

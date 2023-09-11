@@ -1,29 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {Store} from 'redux';
-
-import globalStore from 'stores/redux_store';
-
-import Provider from '../provider';
-import {GlobalState} from 'types/store';
-
-import {Constants} from 'utils/constants';
+import type React from 'react';
+import type {Store} from 'redux';
 
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 
-import AtMentionSuggestion from '../at_mention_provider/at_mention_suggestion';
-
-import {ChannelMentionSuggestion} from '../channel_mention_provider';
-
 import {openAppsModal} from 'actions/apps';
+import globalStore from 'stores/redux_store';
+
+import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
-
-import {AutocompleteSuggestion, Channel, COMMAND_SUGGESTION_CHANNEL, COMMAND_SUGGESTION_USER, intlShim, UserProfile} from './app_command_parser/app_command_parser_dependencies';
+import {COMMAND_SUGGESTION_CHANNEL, COMMAND_SUGGESTION_USER, intlShim} from './app_command_parser/app_command_parser_dependencies';
+import type {AutocompleteSuggestion, Channel, UserProfile} from './app_command_parser/app_command_parser_dependencies';
 import {CommandSuggestion} from './command_provider';
+
+import AtMentionSuggestion from '../at_mention_provider/at_mention_suggestion';
+import {ChannelMentionSuggestion} from '../channel_mention_provider';
+import Provider from '../provider';
+import type {ResultsCallback} from '../provider';
 
 type Props = {
     teamId: string;
@@ -31,19 +29,11 @@ type Props = {
     rootId?: string;
 };
 
-export type Results = {
-    matchedPretext: string;
-    terms: string[];
-    items: Array<AutocompleteSuggestion | UserProfile | {channel: Channel}>;
-    component?: React.ElementType;
-    components?: React.ElementType[];
-}
-
-type ResultsCallback = (results: Results) => void;
+type Item = AutocompleteSuggestion | UserProfile | {channel: Channel};
 
 export default class AppCommandProvider extends Provider {
     private store: Store<GlobalState>;
-    private triggerCharacter: string;
+    public triggerCharacter: string;
     private appCommandParser: AppCommandParser;
 
     constructor(props: Props) {
@@ -58,7 +48,7 @@ export default class AppCommandProvider extends Provider {
         this.appCommandParser.setChannelContext(props.channelId, props.teamId, props.rootId);
     }
 
-    handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<Item>) {
         if (!pretext.startsWith(this.triggerCharacter)) {
             return false;
         }

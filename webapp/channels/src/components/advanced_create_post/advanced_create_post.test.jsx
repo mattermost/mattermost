@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import AdvancedCreatePost from 'components/advanced_create_post/advanced_create_post';
+import React from 'react';
 
 import {Posts} from 'mattermost-redux/constants';
+
+import * as GlobalActions from 'actions/global_actions';
+
+import AdvancedCreatePost from 'components/advanced_create_post/advanced_create_post';
+import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
 import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers.js';
-import * as GlobalActions from 'actions/global_actions';
-import EmojiMap from 'utils/emoji_map';
-
 import Constants, {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
+import EmojiMap from 'utils/emoji_map';
+import {execCommandInsertText} from 'utils/exec_commands';
 import * as Utils from 'utils/utils';
-import AdvanceTextEditor from '../advanced_text_editor/advanced_text_editor';
 
 jest.mock('actions/global_actions', () => ({
     emitLocalUserTypingEvent: jest.fn(),
@@ -27,6 +29,10 @@ jest.mock('actions/post_actions', () => ({
             process.nextTick(() => resolve());
         });
     }),
+}));
+
+jest.mock('utils/exec_commands', () => ({
+    execCommandInsertText: jest.fn(),
 }));
 
 const currentTeamIdProp = 'r7rws4y7ppgszym3pdd5kaibfa';
@@ -82,7 +88,6 @@ const actionsProp = {
     searchAssociatedGroupsForReference: jest.fn(),
 };
 
-/* eslint-disable react/prop-types */
 function advancedCreatePost({
     currentChannel = currentChannelProp,
     currentTeamId = currentTeamIdProp,
@@ -145,7 +150,6 @@ function advancedCreatePost({
         />
     );
 }
-/* eslint-enable react/prop-types */
 
 describe('components/advanced_create_post', () => {
     jest.useFakeTimers('legacy');
@@ -1288,7 +1292,7 @@ describe('components/advanced_create_post', () => {
         const markdownTable = '| test | test |\n| --- | --- |\n| test | test |';
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(markdownTable);
+        expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
     });
 
     it('should be able to format a pasted markdown table without headers', () => {
@@ -1318,7 +1322,7 @@ describe('components/advanced_create_post', () => {
         const markdownTable = '| test | test |\n| --- | --- |\n| test | test |\n';
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(markdownTable);
+        expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
     });
 
     it('should be able to format a pasted hyperlink', () => {
@@ -1348,51 +1352,7 @@ describe('components/advanced_create_post', () => {
         const markdownLink = '[link text](https://test.domain)';
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(markdownLink);
-    });
-
-    it('should preserve the original message after pasting a markdown table', () => {
-        const wrapper = shallow(advancedCreatePost());
-
-        const message = 'original message';
-        wrapper.setState({
-            message,
-            caretPosition: message.length,
-        });
-
-        const event = {
-            target: {
-                id: 'post_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/html'],
-                getData: () => {
-                    return '<table><tr><td>test</td><td>test</td></tr><tr><td>test</td><td>test</td></tr></table>';
-                },
-            },
-        };
-
-        const markdownTable = '| test | test |\n| --- | --- |\n| test | test |\n\n';
-        const expectedMessage = `${message}\n\n${markdownTable}`;
-
-        const mockTop = () => {
-            return document.createElement('div');
-        };
-
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                getBoundingClientRect: jest.fn(mockTop),
-                focus: jest.fn(),
-            };
-        };
-
-        wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-        wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(expectedMessage);
+        expect(execCommandInsertText).toHaveBeenCalledWith(markdownLink);
     });
 
     it('should be able to format a github codeblock (pasted as a table)', () => {
@@ -1425,95 +1385,7 @@ describe('components/advanced_create_post', () => {
         const codeBlockMarkdown = "```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```";
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(codeBlockMarkdown);
-    });
-
-    it('should be able to format a github codeblock (pasted as a table) with existing draft post', () => {
-        const wrapper = shallow(advancedCreatePost());
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                focus: jest.fn(),
-            };
-        };
-        wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-        wrapper.setState({
-            message: 'test',
-            caretPosition: 'test'.length, // cursor is at the end
-        });
-
-        const event = {
-            target: {
-                id: 'post_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/plain', 'text/html'],
-                getData: (type) => {
-                    if (type === 'text/plain') {
-                        return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
-                    }
-                    return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
-                },
-            },
-        };
-
-        const codeBlockMarkdown = "test\n```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```";
-
-        wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(codeBlockMarkdown);
-    });
-
-    it('should call handlePostPasteDraft to update the draft after pasting', () => {
-        const wrapper = shallow(advancedCreatePost());
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                focus: jest.fn(),
-            };
-        };
-        wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-        wrapper.instance().handlePostPasteDraft = jest.fn();
-
-        const event = {
-            target: {
-                id: 'post_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/html'],
-                getData: () => {
-                    return '<a href="https://test.domain">link text</a>';
-                },
-            },
-        };
-
-        wrapper.instance().pasteHandler(event);
-        expect(wrapper.instance().handlePostPasteDraft).toHaveBeenCalledTimes(1);
-    });
-
-    it('should update draft when handlePostPasteDraft is called', () => {
-        const setDraft = jest.fn();
-
-        const wrapper = shallow(
-            advancedCreatePost({
-                actions: {
-                    ...actionsProp,
-                    setDraft,
-                },
-            }),
-        );
-
-        const testMessage = 'test';
-        const expectedDraft = {
-            ...draftProp,
-            message: testMessage,
-        };
-
-        wrapper.instance().handlePostPasteDraft(testMessage);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, expectedDraft, currentChannelProp.id);
+        expect(execCommandInsertText).toHaveBeenCalledWith(codeBlockMarkdown);
     });
 
     /**
@@ -1583,35 +1455,6 @@ describe('components/advanced_create_post', () => {
         false,
         'post_textbox',
     );
-
-    /**
-     * TODO@all: move this test to advanced_text_editor.test.tsx and rewrite it according to the component
-     *
-     * it is not possible to test for this here since we only shallow render
-     *
-     * @see: https://mattermost.atlassian.net/browse/MM-44343
-     */
-    // it('should adjust selection to correct text', () => {
-    //     const value = 'Jalebi _Fafda_ and Sambharo';
-    //     const wrapper = shallow(advancedCreatePost({draft: {...draftProp, message: value}}));
-    //
-    //     const setSelectionRangeFn = jest.fn();
-    //     wrapper.instance().textboxRef = {
-    //         current: {
-    //             getInputBox: jest.fn(() => {
-    //                 return {
-    //                     focus: jest.fn(),
-    //                     setSelectionRange: setSelectionRangeFn,
-    //                 };
-    //             }),
-    //         },
-    //     };
-    //
-    //     const textbox = wrapper.find(Textbox);
-    //     const e = makeSelectionEvent(value, 7, 14);
-    //     textbox.props().onSelect(e);
-    //     expect(setSelectionRangeFn).toHaveBeenCalledWith(8, 13);
-    // });
 
     it('should match snapshot, can post; preview enabled', () => {
         const wrapper = shallow(advancedCreatePost({canPost: true, isMarkdownPreviewEnabled: true}));

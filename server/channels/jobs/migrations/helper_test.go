@@ -6,8 +6,11 @@ package migrations
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/stretchr/testify/require"
 )
 
 func Setup(tb testing.TB) store.Store {
@@ -16,17 +19,15 @@ func Setup(tb testing.TB) store.Store {
 	return store
 }
 
-func deleteAllJobsByTypeAndMigrationKey(store store.Store, jobType string, migrationKey string) {
-	jobs, err := store.Job().GetAllByType(model.JobTypeMigrations)
-	if err != nil {
-		panic(err)
-	}
+func deleteAllJobsByTypeAndMigrationKey(t *testing.T, store store.Store, jobType string, migrationKey string) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
+	jobs, err := store.Job().GetAllByType(ctx, model.JobTypeMigrations)
+	require.NoError(t, err)
 
 	for _, job := range jobs {
 		if key, ok := job.Data[JobDataKeyMigration]; ok && key == migrationKey {
-			if _, err = store.Job().Delete(job.Id); err != nil {
-				panic(err)
-			}
+			_, err = store.Job().Delete(job.Id)
+			require.NoError(t, err)
 		}
 	}
 }

@@ -3,26 +3,26 @@
 
 import moment from 'moment';
 
-import {createSelector} from 'reselect';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
+import type {UserThread} from '@mattermost/types/threads';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {makeGetPostsForIds} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThreads} from 'mattermost-redux/selectors/entities/threads';
 import {isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-
-import {Team} from '@mattermost/types/teams';
-import {UserThread} from '@mattermost/types/threads';
-import {Post} from '@mattermost/types/posts';
-
-import {DATE_LINE, makeCombineUserActivityPosts, START_OF_NEW_MESSAGES, CREATE_COMMENT} from 'mattermost-redux/utils/post_list';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
+import {DATE_LINE, makeCombineUserActivityPosts, START_OF_NEW_MESSAGES, CREATE_COMMENT} from 'mattermost-redux/utils/post_list';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import {GlobalState} from 'types/store';
-import {ViewsState} from 'types/store/views';
 import {getIsRhsOpen, getSelectedPostId} from 'selectors/rhs';
+
 import {isFromWebhook} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
+import type {ViewsState} from 'types/store/views';
 
 interface PostFilterOptions {
     postIds: Array<Post['id']>;

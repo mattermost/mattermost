@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -66,6 +66,10 @@ func copyFile(src, dst string) (err error) {
 	}
 
 	return
+}
+
+func (b *LocalFileBackend) DriverName() string {
+	return driverLocal
 }
 
 func (b *LocalFileBackend) TestConnection() error {

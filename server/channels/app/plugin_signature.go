@@ -13,9 +13,11 @@ import (
 	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
 	"golang.org/x/crypto/openpgp/armor" //nolint:staticcheck
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
+
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // GetPublicKey will return the actual public key saved in the `name` file.
@@ -46,7 +48,7 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
-		if !utils.StringInSlice(name, cfg.PluginSettings.SignaturePublicKeyFiles) {
+		if !pUtils.Contains(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
 		}
 	})

@@ -18,15 +18,16 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	emailmocks "github.com/mattermost/mattermost-server/server/v8/channels/app/email/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -469,41 +470,6 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 
 }
 
-func TestSoftDeleteAllTeamsExcept(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	teams := []*model.Team{
-		{
-			DisplayName: "team-1",
-			Name:        "team-1",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-	}
-	teamId := ""
-	for _, create := range teams {
-		team, err := th.App.CreateTeam(th.Context, create)
-		require.Nil(t, err)
-		teamId = team.Id
-	}
-
-	err := th.App.SoftDeleteAllTeamsExcept(teamId)
-	assert.Nil(t, err)
-	allTeams, err := th.App.GetAllTeams()
-	require.Nil(t, err)
-	for _, team := range allTeams {
-		if team.Id == teamId {
-			require.Equal(t, int64(0), team.DeleteAt)
-			require.Equal(t, false, team.CloudLimitsArchived)
-		} else {
-			require.NotEqual(t, int64(0), team.DeleteAt)
-			require.Equal(t, true, team.CloudLimitsArchived)
-		}
-	}
-
-}
-
 func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -727,7 +693,7 @@ func TestSanitizeTeam(t *testing.T) {
 	}
 
 	copyTeam := func() *model.Team {
-		copy := &model.Team{}
+		copy := &model.Team{} //nolint:revive
 		*copy = *team
 		return copy
 	}
@@ -917,119 +883,6 @@ func TestSanitizeTeams(t *testing.T) {
 func TestJoinUserToTeam(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-
-	id := model.NewId()
-	team := &model.Team{
-		DisplayName: "dn_" + id,
-		Name:        "name" + id,
-		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TeamOpen,
-	}
-
-	_, err := th.App.CreateTeam(th.Context, team)
-	require.Nil(t, err, "Should create a new team")
-
-	maxUsersPerTeam := th.App.Config().TeamSettings.MaxUsersPerTeam
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = maxUsersPerTeam })
-		th.App.PermanentDeleteTeam(th.Context, team)
-	}()
-	one := 1
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = &one })
-
-	t.Run("new join", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(th.Context, &user)
-		defer th.App.PermanentDeleteUser(th.Context, &user)
-
-		_, appErr := th.App.JoinUserToTeam(th.Context, team, ruser, "")
-		require.Nil(t, appErr, "Should return no error")
-	})
-
-	t.Run("new join with limit problem", func(t *testing.T) {
-		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser1, _ := th.App.CreateUser(th.Context, &user1)
-		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser2, _ := th.App.CreateUser(th.Context, &user2)
-
-		defer th.App.PermanentDeleteUser(th.Context, &user1)
-		defer th.App.PermanentDeleteUser(th.Context, &user2)
-
-		_, appErr := th.App.JoinUserToTeam(th.Context, team, ruser1, ruser2.Id)
-		require.Nil(t, appErr, "Should return no error")
-
-		_, appErr = th.App.JoinUserToTeam(th.Context, team, ruser2, ruser1.Id)
-		require.NotNil(t, appErr, "Should fail")
-	})
-
-	t.Run("re-join after leaving with limit problem", func(t *testing.T) {
-		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser1, _ := th.App.CreateUser(th.Context, &user1)
-
-		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser2, _ := th.App.CreateUser(th.Context, &user2)
-
-		defer th.App.PermanentDeleteUser(th.Context, &user1)
-		defer th.App.PermanentDeleteUser(th.Context, &user2)
-
-		_, appErr := th.App.JoinUserToTeam(th.Context, team, ruser1, ruser2.Id)
-		require.Nil(t, appErr, "Should return no error")
-		appErr = th.App.LeaveTeam(th.Context, team, ruser1, ruser1.Id)
-		require.Nil(t, appErr, "Should return no error")
-		_, appErr = th.App.JoinUserToTeam(th.Context, team, ruser2, ruser2.Id)
-		require.Nil(t, appErr, "Should return no error")
-
-		_, appErr = th.App.JoinUserToTeam(th.Context, team, ruser1, ruser2.Id)
-		require.NotNil(t, appErr, "Should fail")
-	})
-
-	t.Run("new join with correct scheme_admin value from group syncable", func(t *testing.T) {
-		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser1, _ := th.App.CreateUser(th.Context, &user1)
-		defer th.App.PermanentDeleteUser(th.Context, &user1)
-
-		group := th.CreateGroup()
-
-		_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
-		require.Nil(t, err)
-
-		gs, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
-			AutoAdd:     true,
-			SyncableId:  team.Id,
-			Type:        model.GroupSyncableTypeTeam,
-			GroupId:     group.Id,
-			SchemeAdmin: false,
-		})
-		require.Nil(t, err)
-
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(999) })
-
-		tm1, appErr := th.App.JoinUserToTeam(th.Context, team, ruser1, "")
-		require.Nil(t, appErr)
-		require.False(t, tm1.SchemeAdmin)
-
-		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser2, _ := th.App.CreateUser(th.Context, &user2)
-		defer th.App.PermanentDeleteUser(th.Context, &user2)
-
-		_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
-		require.Nil(t, err)
-
-		gs.SchemeAdmin = true
-		_, err = th.App.UpdateGroupSyncable(gs)
-		require.Nil(t, err)
-
-		tm2, appErr := th.App.JoinUserToTeam(th.Context, team, ruser2, "")
-		require.Nil(t, appErr)
-		require.True(t, tm2.SchemeAdmin)
-	})
-}
-
-func TestJoinUserToTeamWithAppsCategoryEnabled(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AppsSidebarCategory = true })
 
 	id := model.NewId()
 	team := &model.Team{
@@ -1505,18 +1358,19 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
-	job, err := th.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, map[string]string{})
+	job, err := th.App.Srv().Jobs.CreateJob(ctx, model.JobTypeResendInvitationEmail, map[string]string{})
 	require.Nil(t, err)
 
 	sysVar := &model.System{Name: job.Id, Value: "0"}
 	e := th.App.Srv().Store().System().SaveOrUpdate(sysVar)
 	require.NoError(t, e)
 
-	appErr := th.App.InvalidateAllResendInviteEmailJobs()
+	appErr := th.App.InvalidateAllResendInviteEmailJobs(ctx)
 	require.Nil(t, appErr)
 
-	j, e := th.App.Srv().Store().Job().Get(job.Id)
+	j, e := th.App.Srv().Store().Job().Get(ctx, job.Id)
 	require.NoError(t, e)
 	require.Equal(t, j.Status, model.JobStatusCanceled)
 
@@ -1528,6 +1382,7 @@ func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 func TestInvalidateAllEmailInvites(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	t1 := model.Token{
 		Token:    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
@@ -1556,7 +1411,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	err = th.App.Srv().Store().Token().Save(&t3)
 	require.NoError(t, err)
 
-	appErr := th.App.InvalidateAllEmailInvites()
+	appErr := th.App.InvalidateAllEmailInvites(ctx)
 	require.Nil(t, appErr)
 
 	_, err = th.App.Srv().Store().Token().GetByToken(t1.Token)
@@ -1765,196 +1620,6 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.NotNil(t, res[0].Error)
-	})
-}
-
-func TestGetNewTeamMembersSince(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	team := th.CreateTeam()
-
-	t.Run("counts team members", func(t *testing.T) {
-		var originalExpectedCount int64
-		var newTeamMemberJoinTime int64
-		var anotherUser *model.User
-
-		t.Run("since time 0", func(t *testing.T) {
-			teamMembers, err := th.App.Srv().Store().Team().GetMembers(team.Id, 0, 1000, nil)
-			require.NoError(t, err)
-			originalExpectedCount = int64(len(teamMembers))
-			_, actualCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Equal(t, originalExpectedCount, actualCount)
-		})
-
-		t.Run("after a new team member was added", func(t *testing.T) {
-			anotherUser = th.CreateUser()
-			newTeamMember, appErr := th.App.JoinUserToTeam(th.Context, team, anotherUser, "")
-			newTeamMemberJoinTime = newTeamMember.CreateAt
-			require.Nil(t, appErr)
-			_, actualCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Equal(t, originalExpectedCount+1, actualCount)
-		})
-
-		t.Run("after a team member was added to a different team, ensuring the wrong team's member count isn't incremented", func(t *testing.T) {
-			anotherUser2 := th.CreateUser()
-			anotherTeam := th.CreateTeam()
-			_, appErr := th.App.JoinUserToTeam(th.Context, anotherTeam, anotherUser2, "")
-			require.Nil(t, appErr)
-			_, actualCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Equal(t, originalExpectedCount+1, actualCount)
-		})
-
-		t.Run("since a given time", func(t *testing.T) {
-			_, actualCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: newTeamMemberJoinTime, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Equal(t, int64(1), actualCount)
-		})
-
-		t.Run("after a team member was removed", func(t *testing.T) {
-			th.RemoveUserFromTeam(anotherUser, team)
-			_, actualCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Equal(t, originalExpectedCount, actualCount)
-		})
-
-		t.Run("after a user was deactivated", func(t *testing.T) {
-			_, appErr := th.App.JoinUserToTeam(th.Context, team, anotherUser, "")
-			require.Nil(t, appErr)
-			_, beforeCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			_, appErr = th.App.UpdateActive(th.Context, anotherUser, false)
-			defer th.App.UpdateActive(th.Context, anotherUser, true)
-			require.Nil(t, appErr)
-			_, afterCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Equal(t, beforeCount-1, afterCount)
-		})
-
-		t.Run("after a user was permanently deleted", func(t *testing.T) {
-			_, beforeCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			appErr = th.App.PermanentDeleteUser(th.Context, anotherUser)
-			require.Nil(t, appErr)
-			_, afterCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Equal(t, beforeCount-1, afterCount)
-		})
-
-		t.Run("exclude bots", func(t *testing.T) {
-			user := th.CreateUser()
-			_, appErr := th.App.ConvertUserToBot(user)
-			require.Nil(t, appErr)
-			_, appErr = th.App.JoinUserToTeam(th.Context, team, user, "")
-			require.Nil(t, appErr)
-			_, actualCount, appErr := th.App.GetNewTeamMembersSince(th.Context, team.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Equal(t, originalExpectedCount, actualCount)
-		})
-	})
-
-	t.Run("returns the correct team members", func(t *testing.T) {
-		var originalExpectedMembers []*model.TeamMember
-		var newTeamMemberJoinTime int64
-		var anotherUser *model.User
-
-		uIDs := func(members []*model.TeamMember) []string {
-			ids := []string{}
-			for _, member := range members {
-				ids = append(ids, member.UserId)
-			}
-			return ids
-		}
-
-		nUIDs := func(members []*model.NewTeamMember) []string {
-			ids := []string{}
-			for _, member := range members {
-				ids = append(ids, member.Id)
-			}
-			return ids
-		}
-
-		t.Run("since time 0", func(t *testing.T) {
-			var err error
-			originalExpectedMembers, err = th.App.Srv().Store().Team().GetMembers(th.BasicTeam.Id, 0, 1000, nil)
-			require.NoError(t, err)
-			actualMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.ElementsMatch(t, uIDs(originalExpectedMembers), nUIDs(actualMembersList.Items))
-		})
-
-		t.Run("after a new team member was added", func(t *testing.T) {
-			anotherUser = th.CreateUser()
-			newTeamMember, appErr := th.App.JoinUserToTeam(th.Context, th.BasicTeam, anotherUser, "")
-			newTeamMemberJoinTime = newTeamMember.CreateAt
-			require.Nil(t, appErr)
-			actualMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.ElementsMatch(t, append(uIDs(originalExpectedMembers), anotherUser.Id), nUIDs(actualMembersList.Items))
-		})
-
-		t.Run("after a team member was added to a different team, ensuring the wrong team's member count isn't incremented", func(t *testing.T) {
-			anotherUser2 := th.CreateUser()
-			anotherTeam := th.CreateTeam()
-			_, appErr := th.App.JoinUserToTeam(th.Context, anotherTeam, anotherUser2, "")
-			require.Nil(t, appErr)
-			actualMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.ElementsMatch(t, append(uIDs(originalExpectedMembers), anotherUser.Id), nUIDs(actualMembersList.Items))
-		})
-
-		t.Run("since a given time", func(t *testing.T) {
-			actualMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: newTeamMemberJoinTime, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Len(t, actualMembersList.Items, 1)
-			require.Equal(t, anotherUser.Id, actualMembersList.Items[0].Id)
-		})
-
-		t.Run("after a team member was removed", func(t *testing.T) {
-			th.RemoveUserFromTeam(anotherUser, th.BasicTeam)
-			actualMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.ElementsMatch(t, uIDs(originalExpectedMembers), nUIDs(actualMembersList.Items))
-		})
-
-		t.Run("after a user was deactivated", func(t *testing.T) {
-			_, appErr := th.App.JoinUserToTeam(th.Context, th.BasicTeam, anotherUser, "")
-			require.Nil(t, appErr)
-			beforeMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Contains(t, nUIDs(beforeMembersList.Items), anotherUser.Id)
-			_, appErr = th.App.UpdateActive(th.Context, anotherUser, false)
-			defer th.App.UpdateActive(th.Context, anotherUser, true)
-			require.Nil(t, appErr)
-			afterMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.NotContains(t, nUIDs(afterMembersList.Items), anotherUser.Id)
-		})
-
-		t.Run("after a user was permanently deleted", func(t *testing.T) {
-			beforeMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.Contains(t, nUIDs(beforeMembersList.Items), anotherUser.Id)
-			appErr = th.App.PermanentDeleteUser(th.Context, anotherUser)
-			require.Nil(t, appErr)
-			afterMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.NotContains(t, nUIDs(afterMembersList.Items), anotherUser.Id)
-		})
-
-		t.Run("exclude bots", func(t *testing.T) {
-			user := th.CreateUser()
-			_, appErr := th.App.ConvertUserToBot(user)
-			require.Nil(t, appErr)
-			_, appErr = th.App.JoinUserToTeam(th.Context, th.BasicTeam, user, "")
-			require.Nil(t, appErr)
-			actualMembersList, _, appErr := th.App.GetNewTeamMembersSince(th.Context, th.BasicTeam.Id, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 1000})
-			require.Nil(t, appErr)
-			require.ElementsMatch(t, uIDs(originalExpectedMembers), nUIDs(actualMembersList.Items))
-		})
 	})
 }
 

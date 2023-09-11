@@ -112,7 +112,6 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   menu={
     Object {
       "aria-label": "Post extra options",
-      "closeMenuManually": false,
       "id": "CENTER_dropdown_post_id_1",
       "onKeyDown": [Function],
       "onToggle": [Function],
@@ -185,15 +184,6 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
       />
     }
   />
-  <Connect(ChannelPermissionGate)
-    channelId=""
-    permissions={
-      Array [
-        "add_reaction",
-      ]
-    }
-    teamId="team_id_1"
-  />
   <MenuItem
     data-testid="follow_post_thread_post_id_1"
     id="follow_post_thread_post_id_1"
@@ -236,7 +226,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
       />
     }
   />
-  <PostReminderSubmenu
+  <Memo(PostReminderSubmenu)
     isMilitaryTime={false}
     post={
       Object {

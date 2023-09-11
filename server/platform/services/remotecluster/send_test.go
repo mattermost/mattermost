@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 const (
@@ -82,8 +82,7 @@ func TestBroadcastMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
-		defer mockServer.Shutdown()
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
 
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
@@ -139,8 +138,7 @@ func TestBroadcastMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
-		defer mockServer.Shutdown()
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
 
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)

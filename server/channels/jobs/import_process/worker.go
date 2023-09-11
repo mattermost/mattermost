@@ -12,15 +12,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/configservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
-
-const jobName = "ImportProcess"
 
 type AppIface interface {
 	configservice.ConfigService
@@ -32,8 +30,10 @@ type AppIface interface {
 	Log() *mlog.Logger
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
-	appContext := request.EmptyContext(app.Log())
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
+	const workerName = "ImportProcess"
+
+	appContext := request.EmptyContext(jobServer.Logger())
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
@@ -113,6 +113,6 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

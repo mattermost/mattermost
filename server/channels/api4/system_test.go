@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -21,9 +22,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 func TestGetPing(t *testing.T) {
@@ -32,7 +33,7 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, _, err := client.GetPing()
+			status, _, err := client.GetPing(context.Background())
 			require.NoError(t, err)
 			assert.Equal(t, model.StatusOk, status)
 		})
@@ -44,7 +45,7 @@ func TestGetPing(t *testing.T) {
 			}()
 
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
-			status, resp, err := client.GetPing()
+			status, resp, err := client.GetPing(context.Background())
 			require.Error(t, err)
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.StatusUnhealthy, status)
@@ -53,7 +54,7 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, _, err := client.GetPingWithServerStatus()
+			status, _, err := client.GetPingWithServerStatus(context.Background())
 			require.NoError(t, err)
 			assert.Equal(t, model.StatusOk, status)
 		})
@@ -61,7 +62,7 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
-		resp, err := client.DoAPIGet("/system/ping", "")
+		resp, err := client.DoAPIGet(context.Background(), "/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err := io.ReadAll(resp.Body)
@@ -74,7 +75,7 @@ func TestGetPing(t *testing.T) {
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
 		th.App.ReloadConfig()
 
-		resp, err = client.DoAPIGet("/system/ping", "")
+		resp, err = client.DoAPIGet(context.Background(), "/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err = io.ReadAll(resp.Body)
@@ -85,7 +86,7 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
-		resp, err := client.DoAPIGet("/system/ping?device_id=platform:id", "")
+		resp, err := client.DoAPIGet(context.Background(), "/system/ping?device_id=platform:id", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		var respMap map[string]string
@@ -100,27 +101,27 @@ func TestGetAudits(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	audits, _, err := th.SystemAdminClient.GetAudits(0, 100, "")
+	audits, _, err := th.SystemAdminClient.GetAudits(context.Background(), 0, 100, "")
 	require.NoError(t, err)
 	require.NotEmpty(t, audits, "should not be empty")
 
-	audits, _, err = th.SystemAdminClient.GetAudits(0, 1, "")
+	audits, _, err = th.SystemAdminClient.GetAudits(context.Background(), 0, 1, "")
 	require.NoError(t, err)
 	require.Len(t, audits, 1, "should only be 1")
 
-	audits, _, err = th.SystemAdminClient.GetAudits(1, 1, "")
+	audits, _, err = th.SystemAdminClient.GetAudits(context.Background(), 1, 1, "")
 	require.NoError(t, err)
 	require.Len(t, audits, 1, "should only be 1")
 
-	_, _, err = th.SystemAdminClient.GetAudits(-1, -1, "")
+	_, _, err = th.SystemAdminClient.GetAudits(context.Background(), -1, -1, "")
 	require.NoError(t, err)
 
-	_, resp, err := client.GetAudits(0, 100, "")
+	_, resp, err := client.GetAudits(context.Background(), 0, 100, "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout()
-	_, resp, err = client.GetAudits(0, 100, "")
+	client.Logout(context.Background())
+	_, resp, err = client.GetAudits(context.Background(), 0, 100, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -162,13 +163,13 @@ func TestEmailTest(t *testing.T) {
 	}
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.TestEmail(&config)
+		resp, err := client.TestEmail(context.Background(), &config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.TestEmail(&config)
+		resp, err := th.SystemAdminClient.TestEmail(context.Background(), &config)
 		CheckErrorID(t, err, "api.admin.test_email.missing_server")
 		CheckBadRequestStatus(t, resp)
 
@@ -184,7 +185,7 @@ func TestEmailTest(t *testing.T) {
 
 		*config.EmailSettings.SMTPServer = inbucket_host
 		*config.EmailSettings.SMTPPort = inbucket_port
-		resp, err = th.SystemAdminClient.TestEmail(&config)
+		resp, err = th.SystemAdminClient.TestEmail(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
@@ -192,14 +193,14 @@ func TestEmailTest(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := th.SystemAdminClient.TestEmail(&config)
+		resp, err := th.SystemAdminClient.TestEmail(context.Background(), &config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("empty email settings", func(t *testing.T) {
 		config.EmailSettings = model.EmailSettings{}
-		resp, err := th.SystemAdminClient.TestEmail(&config)
+		resp, err := th.SystemAdminClient.TestEmail(context.Background(), &config)
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.file.test_connection_email_settings_nil.app_error")
 		CheckBadRequestStatus(t, resp)
@@ -215,7 +216,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		l := model.NewTestLicense()
 		th.App.Srv().SetLicense(l)
 
-		file, _, err := th.SystemAdminClient.GenerateSupportPacket()
+		file, _, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
 		require.NoError(t, err)
 		require.NotZero(t, len(file))
 	})
@@ -229,28 +230,28 @@ func TestGenerateSupportPacket(t *testing.T) {
 			})
 		}()
 
-		_, resp, err := th.SystemAdminClient.GenerateSupportPacket()
+		_, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("As a system role, not system admin", func(t *testing.T) {
-		_, resp, err := th.SystemManagerClient.GenerateSupportPacket()
+		_, resp, err := th.SystemManagerClient.GenerateSupportPacket(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("As a Regular User", func(t *testing.T) {
-		_, resp, err := th.Client.GenerateSupportPacket()
+		_, resp, err := th.Client.GenerateSupportPacket(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("Server with no License", func(t *testing.T) {
-		_, err := th.SystemAdminClient.RemoveLicenseFile()
+		_, err := th.SystemAdminClient.RemoveLicenseFile(context.Background())
 		require.NoError(t, err)
 
-		_, resp, err := th.SystemAdminClient.GenerateSupportPacket()
+		_, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -274,21 +275,21 @@ func TestSiteURLTest(t *testing.T) {
 	invalidSiteURL := ts.URL + "/invalid"
 
 	t.Run("as system admin", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.TestSiteURL("")
+		resp, err := th.SystemAdminClient.TestSiteURL(context.Background(), "")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		resp, err = th.SystemAdminClient.TestSiteURL(invalidSiteURL)
+		resp, err = th.SystemAdminClient.TestSiteURL(context.Background(), invalidSiteURL)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		resp, err = th.SystemAdminClient.TestSiteURL(validSiteURL)
+		resp, err = th.SystemAdminClient.TestSiteURL(context.Background(), validSiteURL)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.TestSiteURL(validSiteURL)
+		resp, err := client.TestSiteURL(context.Background(), validSiteURL)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -296,7 +297,7 @@ func TestSiteURLTest(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := client.TestSiteURL(validSiteURL)
+		resp, err := client.TestSiteURL(context.Background(), validSiteURL)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -308,20 +309,20 @@ func TestDatabaseRecycle(t *testing.T) {
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.DatabaseRecycle()
+		resp, err := client.DatabaseRecycle(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, err := th.SystemAdminClient.DatabaseRecycle()
+		_, err := th.SystemAdminClient.DatabaseRecycle(context.Background())
 		require.NoError(t, err)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := th.SystemAdminClient.DatabaseRecycle()
+		resp, err := th.SystemAdminClient.DatabaseRecycle(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -333,20 +334,20 @@ func TestInvalidateCaches(t *testing.T) {
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.InvalidateCaches()
+		resp, err := client.InvalidateCaches(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, err := th.SystemAdminClient.InvalidateCaches()
+		_, err := th.SystemAdminClient.InvalidateCaches(context.Background())
 		require.NoError(t, err)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := th.SystemAdminClient.InvalidateCaches()
+		resp, err := th.SystemAdminClient.InvalidateCaches(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -364,7 +365,7 @@ func TestGetLogs(t *testing.T) {
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err2 := c.GetLogs(0, 10)
+		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
 		require.NoError(t, err2)
 		require.Len(t, logs, 10)
 
@@ -372,28 +373,28 @@ func TestGetLogs(t *testing.T) {
 			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
 		}
 
-		logs, _, err = c.GetLogs(1, 10)
+		logs, _, err = c.GetLogs(context.Background(), 1, 10)
 		require.NoError(t, err)
 		require.Len(t, logs, 10)
 
-		logs, _, err = c.GetLogs(-1, -1)
+		logs, _, err = c.GetLogs(context.Background(), -1, -1)
 		require.NoError(t, err)
 		require.NotEmpty(t, logs, "should not be empty")
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		_, resp, err2 := th.Client.GetLogs(0, 10)
+		_, resp, err2 := th.Client.GetLogs(context.Background(), 0, 10)
 		require.Error(t, err2)
 		CheckForbiddenStatus(t, resp)
 	})
 
-	_, resp, err := th.Client.GetLogs(0, 10)
+	_, resp, err := th.Client.GetLogs(context.Background(), 0, 10)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.Client.Logout()
-	_, resp, err = th.Client.GetLogs(0, 10)
+	th.Client.Logout(context.Background())
+	_, resp, err = th.Client.GetLogs(context.Background(), 0, 10)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -413,28 +414,28 @@ func TestPostLog(t *testing.T) {
 	message["level"] = "ERROR"
 	message["message"] = "this is a test"
 
-	_, _, err := client.PostLog(message)
+	_, _, err := client.PostLog(context.Background(), message)
 	require.NoError(t, err)
 
 	*th.App.Config().ServiceSettings.EnableDeveloper = false
 
-	_, _, err = client.PostLog(message)
+	_, _, err = client.PostLog(context.Background(), message)
 	require.NoError(t, err)
 
 	*th.App.Config().ServiceSettings.EnableDeveloper = true
 
-	client.Logout()
+	client.Logout(context.Background())
 
-	_, _, err = client.PostLog(message)
+	_, _, err = client.PostLog(context.Background(), message)
 	require.NoError(t, err)
 
 	*th.App.Config().ServiceSettings.EnableDeveloper = false
 
-	_, resp, err := client.PostLog(message)
+	_, resp, err := client.PostLog(context.Background(), message)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	logMessage, _, err := th.SystemAdminClient.PostLog(message)
+	logMessage, _, err := th.SystemAdminClient.PostLog(context.Background(), message)
 	require.NoError(t, err)
 	require.NotEmpty(t, logMessage, "should return the log message")
 
@@ -445,11 +446,11 @@ func TestGetAnalyticsOld(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	rows, resp, err := client.GetAnalyticsOld("", "")
+	rows, resp, err := client.GetAnalyticsOld(context.Background(), "", "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	require.Nil(t, rows, "should be nil")
-	rows, _, err = th.SystemAdminClient.GetAnalyticsOld("", "")
+	rows, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "", "")
 	require.NoError(t, err)
 
 	found := false
@@ -466,16 +467,16 @@ func TestGetAnalyticsOld(t *testing.T) {
 	assert.True(t, found, "should return unique user count")
 	assert.True(t, found2, "should return inactive user count")
 
-	_, _, err = th.SystemAdminClient.GetAnalyticsOld("post_counts_day", "")
+	_, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "post_counts_day", "")
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.GetAnalyticsOld("user_counts_with_posts_day", "")
+	_, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "user_counts_with_posts_day", "")
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.GetAnalyticsOld("extra_counts", "")
+	_, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "extra_counts", "")
 	require.NoError(t, err)
 
-	rows, _, err = th.SystemAdminClient.GetAnalyticsOld("", th.BasicTeam.Id)
+	rows, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "", th.BasicTeam.Id)
 	require.NoError(t, err)
 
 	for _, row := range rows {
@@ -484,7 +485,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 		}
 	}
 
-	rows2, _, err := th.SystemAdminClient.GetAnalyticsOld("standard", "")
+	rows2, _, err := th.SystemAdminClient.GetAnalyticsOld(context.Background(), "standard", "")
 	require.NoError(t, err)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(0), rows2[5].Value)
@@ -492,20 +493,20 @@ func TestGetAnalyticsOld(t *testing.T) {
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
-	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld("standard", "")
+	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "standard", "")
 	require.NoError(t, err)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(1), rows2[5].Value)
 
 	WebSocketClient.Close()
 
-	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld("standard", "")
+	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "standard", "")
 	require.NoError(t, err)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(0), rows2[5].Value)
 
-	client.Logout()
-	_, resp, err = client.GetAnalyticsOld("", th.BasicTeam.Id)
+	client.Logout(context.Background())
+	_, resp, err = client.GetAnalyticsOld(context.Background(), "", th.BasicTeam.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -544,13 +545,13 @@ func TestS3TestConnection(t *testing.T) {
 	}
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.TestS3Connection(&config)
+		resp, err := client.TestS3Connection(context.Background(), &config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.TestS3Connection(&config)
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, err, "S3 Bucket is required")
 		// If this fails, check the test configuration to ensure minio is setup with the
@@ -558,22 +559,22 @@ func TestS3TestConnection(t *testing.T) {
 		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
 		config.FileSettings.AmazonS3PathPrefix = model.NewString("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
-		resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		config.FileSettings.AmazonS3Region = model.NewString("")
-		resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
-		resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
 
 		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
-		resp, err = th.SystemAdminClient.TestS3Connection(&config)
+		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
 	})
@@ -581,7 +582,7 @@ func TestS3TestConnection(t *testing.T) {
 	t.Run("with incorrect credentials", func(t *testing.T) {
 		configCopy := config
 		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
-		resp, err := th.SystemAdminClient.TestS3Connection(&configCopy)
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
 	})
@@ -590,14 +591,14 @@ func TestS3TestConnection(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
 
-		resp, err := th.SystemAdminClient.TestS3Connection(&config)
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("empty file settings", func(t *testing.T) {
 		config.FileSettings = model.FileSettings{}
-		resp, err := th.SystemAdminClient.TestS3Connection(&config)
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.file.test_connection_s3_settings_nil.app_error")
 		CheckBadRequestStatus(t, resp)
@@ -610,7 +611,7 @@ func TestSupportedTimezones(t *testing.T) {
 	client := th.Client
 
 	supportedTimezonesFromConfig := th.App.Timezones().GetSupported()
-	supportedTimezones, _, err := client.GetSupportedTimezone()
+	supportedTimezones, _, err := client.GetSupportedTimezone(context.Background())
 
 	require.NoError(t, err)
 	assert.Equal(t, supportedTimezonesFromConfig, supportedTimezones)
@@ -639,39 +640,66 @@ func TestRedirectLocation(t *testing.T) {
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
 	*th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 
-	_, _, err := th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
+	_, _, err := th.SystemAdminClient.GetRedirectLocation(context.Background(), "https://mattermost.com/", "")
 	require.NoError(t, err)
 
-	_, resp, err := th.SystemAdminClient.GetRedirectLocation("", "")
+	_, resp, err := th.SystemAdminClient.GetRedirectLocation(context.Background(), "", "")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	actual, _, err := th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	actual, _, err := th.SystemAdminClient.GetRedirectLocation(context.Background(), mockBitlyLink, "")
 	require.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
 	// Check cached value
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), mockBitlyLink, "")
 	require.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = false
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), "https://mattermost.com/", "")
 	require.NoError(t, err)
 	assert.Equal(t, actual, "")
 
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation("", "")
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), "", "")
 	require.NoError(t, err)
 	assert.Equal(t, actual, "")
 
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), mockBitlyLink, "")
 	require.NoError(t, err)
 	assert.Equal(t, actual, "")
 
-	client.Logout()
-	_, resp, err = client.GetRedirectLocation("", "")
+	client.Logout(context.Background())
+	_, resp, err = client.GetRedirectLocation(context.Background(), "", "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// Check that too-long redirect locations are ignored
+	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
+	urlPrefix := "https://example.co"
+	almostTooLongUrl := urlPrefix + strings.Repeat("a", 2100-len(urlPrefix))
+	testServer2 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Location", almostTooLongUrl)
+		res.WriteHeader(http.StatusFound)
+		res.Write([]byte("body"))
+	}))
+	defer func() { testServer2.Close() }()
+
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer2.URL, "")
+	require.NoError(t, err)
+	assert.Equal(t, almostTooLongUrl, actual)
+
+	tooLongUrl := urlPrefix + strings.Repeat("a", 2101-len(urlPrefix))
+	testServer3 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Location", tooLongUrl)
+		res.WriteHeader(http.StatusFound)
+		res.Write([]byte("body"))
+	}))
+	defer func() { testServer3.Close() }()
+
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer3.URL, "")
+	require.NoError(t, err)
+	assert.Equal(t, "", actual)
 }
 
 func TestSetServerBusy(t *testing.T) {
@@ -681,14 +709,14 @@ func TestSetServerBusy(t *testing.T) {
 	const secs = 30
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := th.Client.SetServerBusy(secs)
+		resp, err := th.Client.SetServerBusy(context.Background(), secs)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, th.App.Srv().Platform().Busy.IsBusy(), "server should not be marked busy")
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		_, err := c.SetServerBusy(secs)
+		_, err := c.SetServerBusy(context.Background(), secs)
 		require.NoError(t, err)
 		require.True(t, th.App.Srv().Platform().Busy.IsBusy(), "server should be marked busy")
 	}, "as system admin")
@@ -701,7 +729,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		params := []int{-1, 0, MaxServerBusySeconds + 1}
 		for _, p := range params {
-			resp, err := c.SetServerBusy(p)
+			resp, err := c.SetServerBusy(context.Background(), p)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 			require.False(t, th.App.Srv().Platform().Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
@@ -715,7 +743,7 @@ func TestClearServerBusy(t *testing.T) {
 
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := th.Client.ClearServerBusy()
+		resp, err := th.Client.ClearServerBusy(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.True(t, th.App.Srv().Platform().Busy.IsBusy(), "server should be marked busy")
@@ -723,7 +751,7 @@ func TestClearServerBusy(t *testing.T) {
 
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		_, err := c.ClearServerBusy()
+		_, err := c.ClearServerBusy(context.Background())
 		require.NoError(t, err)
 		require.False(t, th.App.Srv().Platform().Busy.IsBusy(), "server should not be marked busy")
 	}, "as system admin")
@@ -736,13 +764,13 @@ func TestGetServerBusy(t *testing.T) {
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, err := th.Client.GetServerBusy()
+		_, resp, err := th.Client.GetServerBusy(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		sbs, _, err := c.GetServerBusy()
+		sbs, _, err := c.GetServerBusy(context.Background())
 		expires := time.Unix(sbs.Expires, 0)
 		require.NoError(t, err)
 		require.Greater(t, expires.Unix(), time.Now().Unix())
@@ -757,28 +785,28 @@ func TestServerBusy503(t *testing.T) {
 
 	t.Run("search users while busy", func(t *testing.T) {
 		us := &model.UserSearch{Term: "test"}
-		_, resp, err := th.SystemAdminClient.SearchUsers(us)
+		_, resp, err := th.SystemAdminClient.SearchUsers(context.Background(), us)
 		require.Error(t, err)
 		CheckServiceUnavailableStatus(t, resp)
 	})
 
 	t.Run("search teams while busy", func(t *testing.T) {
 		ts := &model.TeamSearch{}
-		_, resp, err := th.SystemAdminClient.SearchTeams(ts)
+		_, resp, err := th.SystemAdminClient.SearchTeams(context.Background(), ts)
 		require.Error(t, err)
 		CheckServiceUnavailableStatus(t, resp)
 	})
 
 	t.Run("search channels while busy", func(t *testing.T) {
 		cs := &model.ChannelSearch{}
-		_, resp, err := th.SystemAdminClient.SearchChannels("foo", cs)
+		_, resp, err := th.SystemAdminClient.SearchChannels(context.Background(), "foo", cs)
 		require.Error(t, err)
 		CheckServiceUnavailableStatus(t, resp)
 	})
 
 	t.Run("search archived channels while busy", func(t *testing.T) {
 		cs := &model.ChannelSearch{}
-		_, resp, err := th.SystemAdminClient.SearchArchivedChannels("foo", cs)
+		_, resp, err := th.SystemAdminClient.SearchArchivedChannels(context.Background(), "foo", cs)
 		require.Error(t, err)
 		CheckServiceUnavailableStatus(t, resp)
 	})
@@ -787,7 +815,7 @@ func TestServerBusy503(t *testing.T) {
 
 	t.Run("search users while not busy", func(t *testing.T) {
 		us := &model.UserSearch{Term: "test"}
-		_, _, err := th.SystemAdminClient.SearchUsers(us)
+		_, _, err := th.SystemAdminClient.SearchUsers(context.Background(), us)
 		require.NoError(t, err)
 	})
 }
@@ -827,6 +855,8 @@ func TestPushNotificationAck(t *testing.T) {
 }
 
 func TestCompleteOnboarding(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -896,18 +926,18 @@ func TestCompleteOnboarding(t *testing.T) {
 	}
 
 	t.Run("as a regular user", func(t *testing.T) {
-		resp, err := th.Client.CompleteOnboarding(req)
+		resp, err := th.Client.CompleteOnboarding(context.Background(), req)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as a system admin", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.CompleteOnboarding(req)
+		resp, err := th.SystemAdminClient.CompleteOnboarding(context.Background(), req)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		t.Cleanup(func() {
-			resp, err = th.SystemAdminClient.RemovePlugin("testplugin2")
+			resp, err = th.SystemAdminClient.RemovePlugin(context.Background(), "testplugin2")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 		})
@@ -916,7 +946,7 @@ func TestCompleteOnboarding(t *testing.T) {
 
 		go func() {
 			for {
-				installedPlugins, resp, err := th.SystemAdminClient.GetPlugins()
+				installedPlugins, resp, err := th.SystemAdminClient.GetPlugins(context.Background())
 				if err != nil || resp.StatusCode != http.StatusOK {
 					time.Sleep(500 * time.Millisecond)
 					continue
@@ -952,7 +982,7 @@ func TestCompleteOnboarding(t *testing.T) {
 			})
 		})
 
-		resp, err := th.SystemAdminClient.CompleteOnboarding(req)
+		resp, err := th.SystemAdminClient.CompleteOnboarding(context.Background(), req)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
@@ -963,7 +993,7 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as a regular user", func(t *testing.T) {
-		_, resp, err := th.Client.GetAppliedSchemaMigrations()
+		_, resp, err := th.Client.GetAppliedSchemaMigrations(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -973,13 +1003,13 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 		require.Nil(t, appErr)
 		th.LoginBasic2()
 
-		_, resp, err := th.Client.GetAppliedSchemaMigrations()
+		_, resp, err := th.Client.GetAppliedSchemaMigrations(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		_, resp, err := c.GetAppliedSchemaMigrations()
+		_, resp, err := c.GetAppliedSchemaMigrations(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})

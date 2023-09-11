@@ -1,32 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, FormEvent} from 'react';
-import {Link} from 'react-router-dom';
+import React from 'react';
+import type {ChangeEvent, FormEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
-import * as FileUtils from 'utils/file_utils';
+import type {Bot, BotPatch} from '@mattermost/types/bots';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import {General} from 'mattermost-redux/constants';
-
-import BotDefaultIcon from 'images/bot_default_icon.png';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import SpinnerButton from 'components/spinner_button';
-import FormError from 'components/form_error';
-
-import {getHistory} from 'utils/browser_history';
-import {AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
-import * as Utils from 'utils/utils';
-
-import {Team} from '@mattermost/types/teams';
-import {Bot, BotPatch} from '@mattermost/types/bots';
-import {UserProfile} from '@mattermost/types/users';
-import {ActionResult} from 'mattermost-redux/types/actions';
 import ExternalLink from 'components/external_link';
+import FormError from 'components/form_error';
+import OverlayTrigger from 'components/overlay_trigger';
+import SpinnerButton from 'components/spinner_button';
+import Tooltip from 'components/tooltip';
+
+import BotDefaultIcon from 'images/bot_default_icon.png';
+import {getHistory} from 'utils/browser_history';
+import {AcceptedProfileImageTypes, Constants, DeveloperLinks, ValidationErrors} from 'utils/constants';
+import * as FileUtils from 'utils/file_utils';
+import * as Utils from 'utils/utils';
 
 const roleOptionSystemAdmin = 'System Admin';
 const roleOptionMember = 'Member';
@@ -635,7 +634,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     values={{
                                         link: (msg: React.ReactNode) => (
                                             <ExternalLink
-                                                href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                                href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                                 location='add_bot'
                                             >
                                                 {msg}

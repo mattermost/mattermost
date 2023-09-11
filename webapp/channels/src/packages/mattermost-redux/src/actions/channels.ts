@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AnyAction} from 'redux';
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import {ServerError} from '@mattermost/types/errors';
-import {
+import type {
     Channel,
     ChannelNotifyProps,
     ChannelMembership,
@@ -14,15 +13,13 @@ import {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import {PreferenceType} from '@mattermost/types/preferences';
+import type {ServerError} from '@mattermost/types/errors';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {ChannelTypes, PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
-
 import {Client4} from 'mattermost-redux/client';
-
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {MarkUnread} from 'mattermost-redux/constants/channels';
-
 import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
 import {
     getChannel as getChannelSelector,
@@ -33,12 +30,8 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
+import type {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
-
-import {General, Preferences} from '../constants';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
 import {logError} from './errors';
@@ -46,6 +39,8 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {savePreferences} from './preferences';
 import {loadRolesIfNeeded} from './roles';
 import {getMissingProfilesByIds} from './users';
+
+import {General, Preferences} from '../constants';
 
 export function selectChannel(channelId: string) {
     return {
@@ -728,102 +723,39 @@ export function unarchiveChannel(channelId: string): ActionFunc {
     };
 }
 
-export function viewChannel(channelId: string, prevChannelId = ''): ActionFunc {
+export function updateApproximateViewTime(channelId: string): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const {currentUserId} = getState().entities.users;
 
         const {myPreferences} = getState().entities.preferences;
+
         const viewTimePref = myPreferences[`${Preferences.CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME}--${channelId}`];
         const viewTime = viewTimePref ? parseInt(viewTimePref.value!, 10) : 0;
-        const prevChanManuallyUnread = isManuallyUnread(getState(), prevChannelId);
-
         if (viewTime < new Date().getTime() - (3 * 60 * 60 * 1000)) {
             const preferences = [
                 {user_id: currentUserId, category: Preferences.CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME, name: channelId, value: new Date().getTime().toString()},
             ];
             savePreferences(currentUserId, preferences)(dispatch);
         }
-
-        try {
-            await Client4.viewMyChannel(channelId, prevChanManuallyUnread ? '' : prevChannelId);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-
-            return {error};
-        }
-
-        const actions: AnyAction[] = [];
-
-        const {myMembers} = getState().entities.channels;
-        const member = myMembers[channelId];
-        if (member) {
-            if (isManuallyUnread(getState(), channelId)) {
-                actions.push({
-                    type: ChannelTypes.REMOVE_MANUALLY_UNREAD,
-                    data: {channelId},
-                });
-            }
-            actions.push({
-                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
-                data: {...member, last_viewed_at: new Date().getTime()},
-            });
-            dispatch(loadRolesIfNeeded(member.roles.split(' ')));
-        }
-
-        const prevMember = myMembers[prevChannelId];
-        if (!prevChanManuallyUnread && prevMember) {
-            actions.push({
-                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
-                data: {...prevMember, last_viewed_at: new Date().getTime()},
-            });
-            dispatch(loadRolesIfNeeded(prevMember.roles.split(' ')));
-        }
-
-        dispatch(batchActions(actions));
-
         return {data: true};
     };
 }
 
-export function markChannelAsViewed(channelId: string, prevChannelId?: string): ActionFunc {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const actions = actionsToMarkChannelAsViewed(getState, channelId, prevChannelId);
-
-        return dispatch(batchActions(actions));
-    };
-}
-
-export function actionsToMarkChannelAsViewed(getState: GetStateFunc, channelId: string, prevChannelId = '') {
-    const actions: AnyAction[] = [];
-
-    const state = getState();
-    const {myMembers} = state.entities.channels;
-
-    const member = myMembers[channelId];
-    if (member) {
-        actions.push({
-            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
-            data: {...member, last_viewed_at: Date.now()},
-        });
-
-        if (isManuallyUnread(state, channelId)) {
-            actions.push({
-                type: ChannelTypes.REMOVE_MANUALLY_UNREAD,
-                data: {channelId},
-            });
+export function readMultipleChannels(channelIds: string[]): ActionFunc {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let response;
+        try {
+            response = await Client4.readMultipleChannels(channelIds);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
         }
-    }
 
-    const prevMember = myMembers[prevChannelId];
-    if (prevMember && !isManuallyUnread(state, prevChannelId)) {
-        actions.push({
-            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
-            data: {...prevMember, last_viewed_at: Date.now()},
-        });
-    }
+        dispatch(markMultipleChannelsAsRead(response.last_viewed_at_times));
 
-    return actions;
+        return {data: true};
+    };
 }
 
 export function getChannels(teamId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFunc {
@@ -1063,11 +995,11 @@ export function searchGroupChannels(term: string): ActionFunc {
     });
 }
 
-export function getChannelStats(channelId: string, excludeFilesCount?: boolean): ActionFunc {
+export function getChannelStats(channelId: string, includeFileCount?: boolean): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let stat;
         try {
-            stat = await Client4.getChannelStats(channelId, excludeFilesCount);
+            stat = await Client4.getChannelStats(channelId, includeFileCount);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1080,6 +1012,27 @@ export function getChannelStats(channelId: string, excludeFilesCount?: boolean):
         });
 
         return {data: stat};
+    };
+}
+
+export function getChannelsMemberCount(channelIds: string[]): ActionFunc {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let channelsMemberCount;
+
+        try {
+            channelsMemberCount = await Client4.getChannelsMemberCount(channelIds);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_CHANNELS_MEMBER_COUNT,
+            data: channelsMemberCount,
+        });
+
+        return {data: channelsMemberCount};
     };
 }
 
@@ -1196,38 +1149,27 @@ export function updateChannelPurpose(channelId: string, purpose: string): Action
     };
 }
 
-export function markChannelAsRead(channelId: string, prevChannelId?: string, updateLastViewedAt = true): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState();
-        const prevChanManuallyUnread = isManuallyUnread(state, prevChannelId);
+export function markChannelAsRead(channelId: string, skipUpdateViewTime = false): ActionFunc {
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        if (skipUpdateViewTime) {
+            dispatch(updateApproximateViewTime(channelId));
+        }
+        dispatch(markChannelAsViewedOnServer(channelId));
 
-        const actions = actionsToMarkChannelAsRead(getState, channelId, prevChannelId);
+        const actions = actionsToMarkChannelAsRead(getState, channelId);
+        if (actions.length > 0) {
+            dispatch(batchActions(actions));
+        }
 
-        // Send channel last viewed at to the server
-        if (updateLastViewedAt) {
-            dispatch(markChannelAsViewedOnServer(channelId, prevChanManuallyUnread ? '' : prevChannelId));
+        return {data: true};
+    };
+}
 
-            const now = Date.now();
-
-            // Don't use actionsToMarkChannelAsViewed here because that overwrites fields modified by
-            // actionsToMarkChannelAsRead
-            actions.push({
-                type: ChannelTypes.RECEIVED_LAST_VIEWED_AT,
-                data: {
-                    channel_id: channelId,
-                    last_viewed_at: now,
-                },
-            });
-
-            if (prevChannelId && !prevChanManuallyUnread) {
-                actions.push({
-                    type: ChannelTypes.RECEIVED_LAST_VIEWED_AT,
-                    data: {
-                        channel_id: prevChannelId,
-                        last_viewed_at: now,
-                    },
-                });
-            }
+export function markMultipleChannelsAsRead(channelTimes: Record<string, number>): ActionFunc {
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const actions: AnyAction[] = [];
+        for (const id of Object.keys(channelTimes)) {
+            actions.push(...actionsToMarkChannelAsRead(getState, id, channelTimes[id]));
         }
 
         if (actions.length > 0) {
@@ -1238,33 +1180,41 @@ export function markChannelAsRead(channelId: string, prevChannelId?: string, upd
     };
 }
 
-export function markChannelAsViewedOnServer(channelId: string, prevChannelId?: string): ActionFunc {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        Client4.viewMyChannel(channelId, prevChannelId).then().catch((error) => {
+export function markChannelAsViewedOnServer(channelId: string): ActionFunc {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        try {
+            await Client4.viewMyChannel(channelId);
+        } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
-        });
+        }
+
+        // const actions: AnyAction[] = [];
+        // for (const id of Object.keys(response.last_viewed_at_times)) {
+        //     actions.push({
+        //         type: ChannelTypes.RECEIVED_LAST_VIEWED_AT,
+        //         data: {
+        //             channel_id: channelId,
+        //             last_viewed_at: response.last_viewed_at_times[id],
+        //         },
+        //     });
+        // }
 
         return {data: true};
     };
 }
 
-export function actionsToMarkChannelAsRead(getState: GetStateFunc, channelId: string, prevChannelId?: string) {
+export function actionsToMarkChannelAsRead(getState: GetStateFunc, channelId: string, viewedAt = Date.now()) {
     const state = getState();
     const {channels, messageCounts, myMembers} = state.entities.channels;
-
-    const prevChanManuallyUnread = isManuallyUnread(state, prevChannelId);
 
     // Update channel member objects to set all mentions and posts as viewed
     const channel = channels[channelId];
     const messageCount = messageCounts[channelId];
-    const prevChannel = (!prevChanManuallyUnread && prevChannelId) ? channels[prevChannelId] : null; // May be null since prevChannelId is optional
-    const prevMessageCount = (!prevChanManuallyUnread && prevChannelId) ? messageCounts[prevChannelId] : null;
 
     // Update team member objects to set mentions and posts in channel as viewed
     const channelMember = myMembers[channelId];
-    const prevChannelMember = (!prevChanManuallyUnread && prevChannelId) ? myMembers[prevChannelId] : null; // May also be null
 
     const actions: AnyAction[] = [];
 
@@ -1289,6 +1239,14 @@ export function actionsToMarkChannelAsRead(getState: GetStateFunc, channelId: st
                 amountUrgent: channelMember.urgent_mention_count,
             },
         });
+
+        actions.push({
+            type: ChannelTypes.RECEIVED_LAST_VIEWED_AT,
+            data: {
+                channel_id: channelId,
+                last_viewed_at: viewedAt,
+            },
+        });
     }
 
     if (channel && isManuallyUnread(getState(), channelId)) {
@@ -1298,80 +1256,7 @@ export function actionsToMarkChannelAsRead(getState: GetStateFunc, channelId: st
         });
     }
 
-    if (prevChannel && prevChannelMember && prevMessageCount) {
-        actions.push({
-            type: ChannelTypes.DECREMENT_UNREAD_MSG_COUNT,
-            data: {
-                teamId: prevChannel.team_id,
-                channelId: prevChannelId,
-                amount: prevMessageCount.total - prevChannelMember.msg_count,
-                amountRoot: prevMessageCount.root - prevChannelMember.msg_count_root,
-            },
-        });
-
-        actions.push({
-            type: ChannelTypes.DECREMENT_UNREAD_MENTION_COUNT,
-            data: {
-                teamId: prevChannel.team_id,
-                channelId: prevChannelId,
-                amount: prevChannelMember.mention_count,
-                amountRoot: prevChannelMember.mention_count_root,
-                amountUrgent: prevChannelMember.urgent_mention_count,
-            },
-        });
-    }
-
     return actions;
-}
-
-// Increments the number of posts in the channel by 1 and marks it as unread if necessary
-export function markChannelAsUnread(teamId: string, channelId: string, mentions: string[], fetchedChannelMember = false, isRoot = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState();
-        const {myMembers} = state.entities.channels;
-        const {currentUserId} = state.entities.users;
-
-        const actions: AnyAction[] = [{
-            type: ChannelTypes.INCREMENT_UNREAD_MSG_COUNT,
-            data: {
-                teamId,
-                channelId,
-                amount: 1,
-                amountRoot: isRoot ? 1 : 0,
-                onlyMentions: myMembers[channelId] && myMembers[channelId].notify_props &&
-                    myMembers[channelId].notify_props.mark_unread === MarkUnread.MENTION,
-                fetchedChannelMember,
-            },
-        }];
-
-        if (!fetchedChannelMember) {
-            actions.push({
-                type: ChannelTypes.INCREMENT_TOTAL_MSG_COUNT,
-                data: {
-                    channelId,
-                    amountRoot: isRoot ? 1 : 0,
-                    amount: 1,
-                },
-            });
-        }
-
-        if (mentions && mentions.indexOf(currentUserId) !== -1) {
-            actions.push({
-                type: ChannelTypes.INCREMENT_UNREAD_MENTION_COUNT,
-                data: {
-                    teamId,
-                    channelId,
-                    amountRoot: isRoot ? 1 : 0,
-                    amount: 1,
-                    fetchedChannelMember,
-                },
-            });
-        }
-
-        dispatch(batchActions(actions));
-
-        return {data: true};
-    };
 }
 
 export function actionsToMarkChannelAsUnread(getState: GetStateFunc, teamId: string, channelId: string, mentions: string[], fetchedChannelMember = false, isRoot = false, priority = '') {
@@ -1588,8 +1473,6 @@ export default {
     joinChannel,
     deleteChannel,
     unarchiveChannel,
-    viewChannel,
-    markChannelAsViewed,
     getChannels,
     autocompleteChannels,
     autocompleteChannelsForSearch,
@@ -1601,7 +1484,6 @@ export default {
     updateChannelHeader,
     updateChannelPurpose,
     markChannelAsRead,
-    markChannelAsUnread,
     favoriteChannel,
     unfavoriteChannel,
     membersMinusGroupMembers,

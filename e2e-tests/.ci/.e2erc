@@ -1,0 +1,83 @@
+# Utility variables
+# NB: these assume you `source` them from the directory this file is in
+export MME2E_DC_SERVER="docker compose -p mmserver -f $(readlink -f ../../server/build/gitlab-dc.postgres.yml) -f $(readlink -f ./server.override.yml)"
+export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f $(readlink -f ./dashboard/docker/docker-compose.yml) -f $(readlink -f ./dashboard.override.yml)"
+export MME2E_UID=$(id -u)
+
+# Default the optional variables that are used in the docker-compose file
+export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --short=7 HEAD)"
+export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
+export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
+
+# Function definitions
+mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%Z)]" "$@"; }
+mme2e_get_current_shopt_arg () {
+  # This function lets you get the current value of shell options, e.g. pipefail or allexport, in the form
+  # of arguments to pass to the 'set' shell function, in order to restore its value later
+  SHOPT_ARG=${1:?}
+  case $(set -o | sed -n -E "s/^${SHOPT_ARG}[[:space:]]+(o..?)$/\1/p") in
+    on) echo -n "-o ${SHOPT_ARG}";;
+    off) echo -n "+o ${SHOPT_ARG}";;
+    *) exit 1;;
+  esac
+}
+mme2e_load_env_file () {
+  # This loads the ./env file. Variables are automatically exported
+  [ -f ./env ] || return 0
+  MME2E_PREVIOUS_ALLEXPORT=$(mme2e_get_current_shopt_arg allexport)
+  set -o allexport
+  mme2e_log "Loading env file"
+  . ./env
+  set ${MME2E_PREVIOUS_ALLEXPORT}
+}
+mme2e_generate_envfile_from_var_names () {
+  # Read var names from stdin, one per line
+  while read VARIABLE; do
+    [ -z "${!VARIABLE:-}" ] || echo "${VARIABLE}=${!VARIABLE}";
+  done
+}
+mme2e_wait_command_success () {
+  COMMAND=${1?}
+  RETRY_MESSAGE=${2?}
+  RETRIES_LEFT=${3:-1}
+  RETRIES_INTERVAL=${4:-10}
+  MME2E_PREVIOUS_PIPEFAIL=$(mme2e_get_current_shopt_arg pipefail)
+  set -o pipefail
+  until bash -c "${COMMAND}"; do
+    RETRIES_LEFT=$((RETRIES_LEFT - 1))
+    [ "$RETRIES_LEFT" -le "0" ] && break
+    mme2e_log "${RETRY_MESSAGE} ($RETRIES_LEFT retries left, sleeping $RETRIES_INTERVAL seconds)"
+    sleep $RETRIES_INTERVAL
+  done
+  set ${MME2E_PREVIOUS_PIPEFAIL}
+  if [ "$RETRIES_LEFT" = "0" ]; then
+    exit 1
+  fi
+}
+mme2e_wait_service_healthy () {
+  SERVICE_NAME=${1?}
+  RETRIES_LEFT=${2:-1}
+  RETRIES_INTERVAL=${3:-10}
+  mme2e_wait_command_success "${MME2E_DC_SERVER} ps ${SERVICE_NAME} | grep -q '\(healthy\)'" "Waiting for ${SERVICE_NAME} container to be healthy" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+}
+mme2e_wait_image () {
+  IMAGE_NAME=${1?}
+  RETRIES_LEFT=${2:-1}
+  RETRIES_INTERVAL=${3:-10}
+  mme2e_wait_command_success "docker pull $IMAGE_NAME" "Waiting for docker image ${IMAGE_NAME} to be available" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+}
+mme2e_legacy_setup () {
+  # These functions are needed until every pipeline depending on the `server/build/gitlab-dc.*.yml` files is adapted to not use external docker networking anymore
+  # After that is fixed, this function and the external network in the docker-compose files may be removed
+  export COMPOSE_PROJECT_NAME=mmserver_legacy
+  docker network inspect ${COMPOSE_PROJECT_NAME} >/dev/null 2>&1 || docker network create ${COMPOSE_PROJECT_NAME}
+}
+
+# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
+# NB: this won't work in the script
+alias docker-compose-mmserver="${MME2E_DC_SERVER}"
+alias docker-compose-mmdashboard="${MME2E_DC_DASHBOARD}"
+
+# Call prerequisite utility functions
+mme2e_load_env_file
+mme2e_legacy_setup # Temporary

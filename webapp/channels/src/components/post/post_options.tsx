@@ -1,25 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, useEffect, useRef, useState} from 'react';
-
+import classnames from 'classnames';
+import React, {useEffect, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {Emoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
-import {Locations} from 'utils/constants';
-import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 import ActionsMenu from 'components/actions_menu';
+import CommentIcon from 'components/common/comment_icon';
 import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
-import PostRecentReactions from 'components/post_view/post_recent_reactions';
 import PostReaction from 'components/post_view/post_reaction';
-import CommentIcon from 'components/common/comment_icon';
+import PostRecentReactions from 'components/post_view/post_recent_reactions';
 
-import {Emoji} from '@mattermost/types/emojis';
-import {Post} from '@mattermost/types/posts';
-import classnames from 'classnames';
+import {Locations, Constants} from 'utils/constants';
+import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
+
+import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     post: Post;
@@ -29,7 +32,6 @@ type Props = {
     enableEmojiPicker?: boolean;
     isReadOnly?: boolean;
     channelIsArchived?: boolean;
-    setActionsMenuInitialisationState: (initializationState: Record<string, boolean>) => void;
     handleCommentClick?: (e: React.MouseEvent) => void;
     handleJumpClick?: (e: React.MouseEvent) => void;
     handleDropdownOpened?: (e: boolean) => void;
@@ -42,7 +44,6 @@ type Props = {
     isMobileView: boolean;
     hasReplies?: boolean;
     isFirstReply?: boolean;
-    isSearchResultsItem?: boolean;
     canReply?: boolean;
     replyCount?: number;
     location: keyof typeof Locations;
@@ -51,6 +52,7 @@ type Props = {
     isPostHeaderVisible?: boolean | null;
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
+    pluginActions: PluginComponent[];
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -85,7 +87,9 @@ const PostOptions = (props: Props): JSX.Element => {
     const systemMessage = isSystemMessage(post);
     const isFromAutoResponder = fromAutoResponder(post);
 
-    const removePost = () => props.removePost(props.post);
+    function removePost() {
+        props.removePost(props.post);
+    }
 
     const toggleEmojiPicker = () => {
         setShowEmojiPicker(!showEmojiPicker);
@@ -127,13 +131,17 @@ const PostOptions = (props: Props): JSX.Element => {
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
+        const showMoreReactions = props.isExpanded ||
+            props.location === 'CENTER' ||
+            (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > Constants.SIDEBAR_MINIMUM_WIDTH;
+
         showRecentReactions = (
             <PostRecentReactions
                 channelId={post.channel_id}
                 postId={post.id}
                 teamId={props.teamId}
                 emojis={props.recentEmojis}
-                size={props.isExpanded || props.location === 'CENTER' ? 3 : 1}
+                size={showMoreReactions ? 3 : 1}
             />
         );
     }
@@ -175,6 +183,24 @@ const PostOptions = (props: Props): JSX.Element => {
             isMenuOpen={showActionsMenu}
         />
     );
+
+    let pluginItems: ReactNode = null;
+    if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal) {
+        pluginItems = props.pluginActions?.
+            map((item) => {
+                if (item.component) {
+                    const Component = item.component as any;
+                    return (
+                        <Component
+                            post={props.post}
+                            key={item.id}
+                        />
+                    );
+                }
+                return null;
+            }) || [];
+    }
+
     const dotMenu = (
         <DotMenu
             post={props.post}
@@ -243,6 +269,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {showRecentReactions}
                 {postReaction}
                 {flagIcon}
+                {pluginItems}
                 {actionsMenu}
                 {commentIcon}
                 {(collapsedThreadsEnabled || showRecentlyUsedReactions) && dotMenu}

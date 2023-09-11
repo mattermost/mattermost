@@ -3,13 +3,11 @@
 
 import React from 'react';
 
-import {act} from '@testing-library/react';
+import type {Channel, ChannelStats} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
-
-import {Channel, ChannelStats} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
+import {act, renderWithIntl} from 'tests/react_testing_utils';
 
 import ChannelInfoRHS from './channel_info_rhs';
 

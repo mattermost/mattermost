@@ -9,13 +9,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type Context struct {
@@ -59,10 +59,11 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 		EventName: event,
 		Status:    initialStatus,
 		Actor: audit.EventActor{
-			UserId:    c.AppContext.Session().UserId,
-			SessionId: c.AppContext.Session().Id,
-			Client:    c.AppContext.UserAgent(),
-			IpAddress: c.AppContext.IPAddress(),
+			UserId:        c.AppContext.Session().UserId,
+			SessionId:     c.AppContext.Session().Id,
+			Client:        c.AppContext.UserAgent(),
+			IpAddress:     c.AppContext.IPAddress(),
+			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
 		Meta: map[string]interface{}{
 			audit.KeyAPIPath:   c.AppContext.Path(),

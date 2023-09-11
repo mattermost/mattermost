@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
-import {fireEvent, screen} from '@testing-library/react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 import * as reactRedux from 'react-redux';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+
 import {trackEvent} from 'actions/telemetry_actions';
 import configureStore from 'store';
+
+import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import DeliquencyModal from './delinquency_modal';

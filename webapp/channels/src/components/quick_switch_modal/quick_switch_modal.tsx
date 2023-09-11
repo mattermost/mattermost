@@ -5,22 +5,24 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {RhsState} from 'types/store/rhs';
+import type {Channel} from '@mattermost/types/channels';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import SuggestionBox from 'components/suggestion/suggestion_box';
+import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import SuggestionList from 'components/suggestion/suggestion_list';
+import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
-import * as Utils from 'utils/utils';
 import * as UserAgent from 'utils/user_agent';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import SuggestionBox from 'components/suggestion/suggestion_box';
-import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import SuggestionList from 'components/suggestion/suggestion_list.jsx';
-import SwitchChannelProvider from 'components/suggestion/switch_channel_provider.jsx';
-import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
+import * as Utils from 'utils/utils';
+
+import type {RhsState} from 'types/store/rhs';
 
 const CHANNEL_MODE = 'channel';
 

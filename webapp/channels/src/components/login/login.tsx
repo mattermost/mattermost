@@ -1,60 +1,64 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef, useCallback} from 'react';
-import {useIntl} from 'react-intl';
-import {Link, useLocation, useHistory} from 'react-router-dom';
-import {useSelector, useDispatch} from 'react-redux';
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
+import type {FormEvent} from 'react';
+import {useIntl} from 'react-intl';
+import {useSelector, useDispatch} from 'react-redux';
+import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
+import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import {RequestStatus} from 'mattermost-redux/constants';
+import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getMyTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
-
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {RequestStatus} from 'mattermost-redux/constants';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
-
-import LocalStorageStore from 'stores/local_storage_store';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {login} from 'actions/views/login';
-import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
 import {trackEvent} from 'actions/telemetry_actions';
+import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
+import {login} from 'actions/views/login';
+import LocalStorageStore from 'stores/local_storage_store';
 
-import AlertBanner, {ModeType, AlertBannerProps} from 'components/alert_banner';
-import ExternalLoginButton, {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
+import AlertBanner from 'components/alert_banner';
+import type {ModeType, AlertBannerProps} from 'components/alert_banner';
+import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
+import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
+import DesktopAuthToken from 'components/desktop_auth_token';
+import ExternalLink from 'components/external_link';
+import ExternalLoginButton from 'components/external_login_button/external_login_button';
+import type {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
-import {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
+import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import LockIcon from 'components/widgets/icons/lock_icon';
-import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
+import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
 import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
-import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
-import {SubmitOptions} from 'components/claim/components/email_to_ldap';
-
-import {GlobalState} from 'types/store';
 
 import Constants from 'utils/constants';
-import {showNotification} from 'utils/notifications';
 import {t} from 'utils/i18n';
+import {showNotification} from 'utils/notifications';
+import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import LoginMfa from './login_mfa';
 
@@ -98,6 +102,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
+        ForgotPasswordLink,
+        PasswordEnableForgotLink,
     } = useSelector(getConfig);
     const {IsLicensed} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
@@ -145,6 +151,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const query = new URLSearchParams(search);
     const redirectTo = query.get('redirect_to');
 
+    const [desktopLoginLink, setDesktopLoginLink] = useState('');
+
     const getExternalLoginOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
 
@@ -153,53 +161,74 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         if (enableSignUpWithGitLab) {
+            const url = `${Client4.getOAuthRoute()}/gitlab/login${search}`;
             externalLoginOptions.push({
                 id: 'gitlab',
-                url: `${Client4.getOAuthRoute()}/gitlab/login${search}`,
+                url,
                 icon: <LoginGitlabIcon/>,
                 label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
                 style: {color: GitLabButtonColor, borderColor: GitLabButtonColor},
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (enableSignUpWithGoogle) {
+            const url = `${Client4.getOAuthRoute()}/google/login${search}`;
             externalLoginOptions.push({
                 id: 'google',
-                url: `${Client4.getOAuthRoute()}/google/login${search}`,
+                url,
                 icon: <LoginGoogleIcon/>,
                 label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (enableSignUpWithOffice365) {
+            const url = `${Client4.getOAuthRoute()}/office365/login${search}`;
             externalLoginOptions.push({
                 id: 'office365',
-                url: `${Client4.getOAuthRoute()}/office365/login${search}`,
+                url,
                 icon: <LoginOffice365Icon/>,
                 label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (enableSignUpWithOpenId) {
+            const url = `${Client4.getOAuthRoute()}/openid/login${search}`;
             externalLoginOptions.push({
                 id: 'openid',
-                url: `${Client4.getOAuthRoute()}/openid/login${search}`,
+                url,
                 icon: <LoginOpenIDIcon/>,
                 label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
                 style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (enableSignUpWithSaml) {
+            const url = `${Client4.getUrl()}/login/sso/saml${search}`;
             externalLoginOptions.push({
                 id: 'saml',
-                url: `${Client4.getUrl()}/login/sso/saml${search}`,
+                url,
                 icon: <LockIcon/>,
                 label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
+                onClick: desktopExternalAuth(url),
             });
         }
 
         return externalLoginOptions;
+    };
+
+    const desktopExternalAuth = (href: string) => {
+        return (event: React.MouseEvent) => {
+            if (isDesktopApp()) {
+                event.preventDefault();
+
+                setDesktopLoginLink(href);
+                history.push(`/login/desktop${search}`);
+            }
+        };
     };
 
     const dismissAlert = () => {
@@ -360,8 +389,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const onWindowFocus = useCallback(() => {
         if (extraParam === Constants.SIGNIN_VERIFIED && emailParam) {
             passwordInput.current?.focus();
-        } else {
-            loginIdInput.current?.focus();
         }
     }, [emailParam, extraParam]);
 
@@ -375,6 +402,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, [onCustomizeHeader, search, showMfa, isMobileView, getAlternateLink]);
 
     useEffect(() => {
+        // We don't want to redirect outside of this route if we're doing Desktop App auth
+        if (query.get('server_token')) {
+            return;
+        }
+
         if (currentUser) {
             if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
                 history.push(redirectTo);
@@ -593,6 +625,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
+        await postSubmit(userProfile);
+    };
+
+    const postSubmit = async (userProfile: UserProfile) => {
         if (graphQLEnabled) {
             await dispatch(loadMe());
         } else {
@@ -672,12 +708,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         setBrandImageError(true);
     };
 
-    const onEnterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === Constants.KeyCodes.ENTER[0]) {
-            preSubmit(e);
-        }
-    };
-
     const getCardTitle = () => {
         if (CustomDescriptionText) {
             return CustomDescriptionText;
@@ -709,6 +739,34 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         );
     };
 
+    const getResetPasswordLink = () => {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+            return null;
+        }
+
+        if (ForgotPasswordLink) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <ExternalLink href={ForgotPasswordLink}>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </ExternalLink>
+                </div>
+            );
+        }
+
+        if (enableSignInWithUsername || enableSignInWithEmail) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <Link to='/reset_password'>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </Link>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     const getContent = () => {
         if (showMfa) {
             return (
@@ -725,6 +783,20 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 <ColumnLayout
                     title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
                     message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
+                />
+            );
+        }
+
+        if (desktopLoginLink || query.get('server_token')) {
+            return (
+                <Route
+                    path={'/login/desktop'}
+                    render={() => (
+                        <DesktopAuthToken
+                            href={desktopLoginLink}
+                            onLogin={postSubmit}
+                        />
+                    )}
                 />
             );
         }
@@ -765,7 +837,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='login-body-card-content'
-                            onKeyDown={onEnterKeyDown}
                             tabIndex={0}
                         >
                             <p className='login-body-card-title'>
@@ -781,44 +852,44 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                 />
                             )}
                             {enableBaseLogin && (
-                                <div className='login-body-card-form'>
-                                    <Input
-                                        ref={loginIdInput}
-                                        name='loginId'
-                                        containerClassName='login-body-card-form-input'
-                                        type='text'
-                                        inputSize={SIZE.LARGE}
-                                        value={loginId}
-                                        onChange={handleInputOnChange}
-                                        hasError={hasError}
-                                        placeholder={getInputPlaceholder()}
-                                        disabled={isWaiting}
-                                        autoFocus={true}
-                                    />
-                                    <PasswordInput
-                                        ref={passwordInput}
-                                        className='login-body-card-form-password-input'
-                                        value={password}
-                                        inputSize={SIZE.LARGE}
-                                        onChange={handlePasswordInputOnChange}
-                                        hasError={hasError}
-                                        disabled={isWaiting}
-                                    />
-                                    {(enableSignInWithUsername || enableSignInWithEmail) && (
-                                        <div className='login-body-card-form-link'>
-                                            <Link to='/reset_password'>
-                                                {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
-                                            </Link>
-                                        </div>
-                                    )}
-                                    <SaveButton
-                                        extraClasses='login-body-card-form-button-submit large'
-                                        saving={isWaiting}
-                                        onClick={preSubmit}
-                                        defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
-                                        savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
-                                    />
-                                </div>
+                                <form
+                                    onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                                        preSubmit(event as unknown as React.MouseEvent);
+                                    }}
+                                >
+                                    <div className='login-body-card-form'>
+                                        <Input
+                                            ref={loginIdInput}
+                                            name='loginId'
+                                            containerClassName='login-body-card-form-input'
+                                            type='text'
+                                            inputSize={SIZE.LARGE}
+                                            value={loginId}
+                                            onChange={handleInputOnChange}
+                                            hasError={hasError}
+                                            placeholder={getInputPlaceholder()}
+                                            disabled={isWaiting}
+                                            autoFocus={true}
+                                        />
+                                        <PasswordInput
+                                            ref={passwordInput}
+                                            className='login-body-card-form-password-input'
+                                            value={password}
+                                            inputSize={SIZE.LARGE}
+                                            onChange={handlePasswordInputOnChange}
+                                            hasError={hasError}
+                                            disabled={isWaiting}
+                                        />
+                                        {getResetPasswordLink()}
+                                        <SaveButton
+                                            extraClasses='login-body-card-form-button-submit large'
+                                            saving={isWaiting}
+                                            onClick={preSubmit}
+                                            defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
+                                            savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
+                                        />
+                                    </div>
+                                </form>
                             )}
                             {enableBaseLogin && enableExternalSignup && (
                                 <div className='login-body-card-form-divider'>

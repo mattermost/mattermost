@@ -1,34 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
-
+import {useSelector} from 'react-redux';
 import {matchPath, useLocation} from 'react-router-dom';
 
-import moment from 'moment';
-
-import {trackEvent} from 'actions/telemetry_actions';
-
-import {ConsolePages, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {GenericModal} from '@mattermost/components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
+import {trackEvent} from 'actions/telemetry_actions';
 import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
 
-import Carousel from 'components/common/carousel/carousel';
-import GenericModal from 'components/generic_modal';
-import HandsSvg from 'components/common/svg_images_components/hands_svg';
-import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
-import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
-import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
-import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist';
 import BlockableLink from 'components/admin_console/blockable_link';
+import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
+import Carousel from 'components/common/carousel/carousel';
 import useOpenInvitePeopleModal from 'components/common/hooks/useOpenInvitePeopleModal';
+import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
+import HandsSvg from 'components/common/svg_images_components/hands_svg';
+import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
+import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist';
 
-import TrialBenefitsModalStep, {TrialBenefitsModalStepProps} from './trial_benefits_modal_step';
+import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+
+import TrialBenefitsModalStep from './trial_benefits_modal_step';
+import type {TrialBenefitsModalStepProps} from './trial_benefits_modal_step';
 
 import './trial_benefits_modal.scss';
 
@@ -84,7 +84,7 @@ const TrialBenefitsModal = ({
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/sso-saml.html',
+            pageURL: DocLinks.SETUP_SAML,
             buttonLabel,
         },
         {
@@ -98,7 +98,7 @@ const TrialBenefitsModal = ({
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/ad-ldap.html',
+            pageURL: DocLinks.SETUP_LDAP,
             buttonLabel,
         },
         {

@@ -3,12 +3,10 @@
 
 import React from 'react';
 
-import {TestHelper} from 'utils/test_helper';
-
 import FailedPostOptions from 'components/post_view/failed_post_options/failed_post_options';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import {screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+
+import {renderWithIntl, screen, userEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/FailedPostOptions', () => {
     const baseProps = {

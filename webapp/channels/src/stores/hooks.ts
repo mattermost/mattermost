@@ -4,15 +4,14 @@
 import {useCallback} from 'react';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {makeGetGlobalItem} from 'selectors/storage';
 import {setGlobalItem} from 'actions/storage';
+import {makeGetGlobalItem} from 'selectors/storage';
 
-export const currentUserAndTeamSuffix = createSelector('currentUserAndTeamSuffix', [
+const currentUserAndTeamSuffix = createSelector('currentUserAndTeamSuffix', [
     getCurrentUserId,
     getCurrentTeamId,
 ], (
@@ -20,14 +19,6 @@ export const currentUserAndTeamSuffix = createSelector('currentUserAndTeamSuffix
     teamId,
 ) => {
     return `:${userId}:${teamId}`;
-});
-
-export const currentUserSuffix = createSelector('currentUserSuffix', [
-    getCurrentUserId,
-], (
-    userId,
-) => {
-    return `:${userId}`;
 });
 
 /**
@@ -39,10 +30,12 @@ export const currentUserSuffix = createSelector('currentUserSuffix', [
 export function useGlobalState<TVal>(
     initialValue: TVal,
     name: string,
+    suffix?: string,
 ): [TVal, (value: TVal) => ReturnType<typeof setGlobalItem>] {
     const dispatch = useDispatch();
-    const suffix = useSelector(currentUserAndTeamSuffix);
-    const storedKey = `${name}${suffix}`;
+    const defaultSuffix = useSelector(currentUserAndTeamSuffix);
+    const suffixToUse = suffix || defaultSuffix;
+    const storedKey = `${name}${suffixToUse}`;
 
     const value = useSelector(makeGetGlobalItem(storedKey, initialValue), shallowEqual);
     const setValue = useCallback((newValue) => dispatch(setGlobalItem(storedKey, newValue)), [storedKey]);

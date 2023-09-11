@@ -6,13 +6,13 @@ package hosted_purchase_screening
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
 const schedFreq = 24 * time.Hour
 
-func MakeScheduler(jobServer *jobs.JobServer, license *model.License) model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer, license *model.License) *jobs.PeriodicScheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return model.BuildEnterpriseReady == "true" && license == nil
 	}

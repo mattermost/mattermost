@@ -5,28 +5,29 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
+import {GenericModal} from '@mattermost/components';
 
-import {ConsolePages, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-
-import Carousel from 'components/common/carousel/carousel';
-import GenericModal from 'components/generic_modal';
-import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
-import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
-import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
-import {BtnStyle} from 'components/common/carousel/carousel_button';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import ExternalLink from 'components/external_link';
-
-import {closeModal} from 'actions/views/modals';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal} from 'actions/views/modals';
+
+import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
+import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
+import Carousel from 'components/common/carousel/carousel';
+import {BtnStyle} from 'components/common/carousel/carousel_button';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
+import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
+import ExternalLink from 'components/external_link';
+
+import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+
+import LearnMoreTrialModalStep from './learn_more_trial_modal_step';
+import type {LearnMoreTrialModalStepProps} from './learn_more_trial_modal_step';
 import StartTrialBtn from './start_trial_btn';
-
-import LearnMoreTrialModalStep, {LearnMoreTrialModalStepProps} from './learn_more_trial_modal_step';
 
 import './learn_more_trial_modal.scss';
 
@@ -129,7 +130,7 @@ const LearnMoreTrialModal = (
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/sso-saml.html',
+            pageURL: DocLinks.SETUP_SAML,
             buttonLabel,
         },
         {
@@ -143,7 +144,7 @@ const LearnMoreTrialModal = (
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/ad-ldap.html',
+            pageURL: DocLinks.SETUP_LDAP,
             buttonLabel,
         },
         {

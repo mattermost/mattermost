@@ -1,27 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
-
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Job, JobType} from '@mattermost/types/jobs';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {Job, JobType} from '@mattermost/types/jobs';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {JobTypes} from 'utils/constants';
 
-import JobDownloadLink from './job_download_link';
-import JobStatus from './job_status';
-import JobRunLength from './job_run_length';
 import JobCancelButton from './job_cancel_button';
+import JobDownloadLink from './job_download_link';
 import JobFinishAt from './job_finish_at';
+import JobRunLength from './job_run_length';
+import JobStatus from './job_status';
 
 import './table.scss';
 
 export type Props = {
     jobs: Job[];
-    getExtraInfoText?: (job: Job) => string;
+    getExtraInfoText?: (job: Job) => React.ReactNode;
     disabled: boolean;
     createJobHelpText: React.ReactElement;
     jobType: JobType;

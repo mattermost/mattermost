@@ -1,23 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-
-import {ConnectedComponent} from 'react-redux';
-
+import React from 'react';
+import type {ReactNode} from 'react';
+import type {ConnectedComponent} from 'react-redux';
 import styled from 'styled-components';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 
-import ProfilePicture from 'components/profile_picture';
-import UserProfile from 'components/user_profile';
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import Nbsp from 'components/html_entities/nbsp';
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-
-import {UserProfile as UserProfileType} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {TeamMembership} from '@mattermost/types/teams';
+import ProfilePicture from 'components/profile_picture';
+import UserProfile from 'components/user_profile';
 
 import {createSafeId, displayFullAndNicknameForUser} from 'utils/utils';
 
@@ -153,6 +152,11 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                             userID={user.id}
                             emojiSize={16}
                             showTooltip={true}
+                            spanStyle={{
+                                display: 'flex',
+                                flex: '0 0 auto',
+                                alignItems: 'center',
+                            }}
                         />
                     </CustomStatus>
 

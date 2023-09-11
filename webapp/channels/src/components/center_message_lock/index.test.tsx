@@ -3,15 +3,14 @@
 
 import React from 'react';
 import {Provider} from 'react-redux';
-import {screen} from '@testing-library/react';
 
-import {makeEmptyUsage} from 'utils/limits_test';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import testConfigureStore from 'tests/test_store';
-import {adminUsersState, endUsersState} from 'tests/constants/users';
 import {emptyLimits} from 'tests/constants/cloud';
-import {TestHelper} from 'utils/test_helper';
 import {emptyTeams} from 'tests/constants/teams';
+import {adminUsersState, endUsersState} from 'tests/constants/users';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import testConfigureStore from 'tests/test_store';
+import {makeEmptyUsage} from 'utils/limits_test';
+import {TestHelper} from 'utils/test_helper';
 
 import CenterMessageLock from './';
 

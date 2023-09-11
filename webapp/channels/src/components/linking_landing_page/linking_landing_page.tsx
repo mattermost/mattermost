@@ -4,16 +4,17 @@
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import BrowserStore from 'stores/browser_store';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
+
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import BrowserStore from 'stores/browser_store';
 import {LandingPreferenceTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
-
 import * as UserAgent from 'utils/user_agent';
+import * as Utils from 'utils/utils';
 
 type Props = {
     defaultTheme: any;
@@ -77,6 +78,20 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     checkLandingPreferenceBrowser = () => {
         const landingPreference = BrowserStore.getLandingPreference(this.props.siteUrl);
         return landingPreference && landingPreference === LandingPreferenceTypes.BROWSER;
+    };
+
+    isEmbedded = () => {
+        // this cookie is set by any plugin that facilitates iframe embedding (e.g. mattermost-plugin-msteams-sync).
+        const cookieName = 'MMEMBED';
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(cookieName + '=')) {
+                const value = cookie.substring(cookieName.length + 1);
+                return decodeURIComponent(value) === '1';
+            }
+        }
+        return false;
     };
 
     checkLandingPreferenceApp = () => {
@@ -146,14 +161,14 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     renderGoNativeAppMessage = () => {
         return (
             <a
-                href={Utils.isMobile() ? '#' : this.state.nativeLocation}
+                href={UserAgent.isMobile() ? '#' : this.state.nativeLocation}
                 onMouseDown={() => {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                 }}
                 onClick={() => {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                     this.setState({redirectPage: true, navigating: true});
-                    if (Utils.isMobile()) {
+                    if (UserAgent.isMobile()) {
                         if (UserAgent.isAndroidWeb()) {
                             const timeout = setTimeout(() => {
                                 window.location.replace(this.getDownloadLink()!);
@@ -435,7 +450,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     render() {
         const isMobile = UserAgent.isMobile();
 
-        if (this.checkLandingPreferenceBrowser()) {
+        if (this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
             this.openInBrowser();
             return null;
         }

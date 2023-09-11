@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {Preferences} from 'mattermost-redux/constants';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
-import ActionButton from 'components/post_view/message_attachments/action_button/action_button';
-import {render, screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
+
+import ActionButton from './action_button';
 
 describe('components/post_view/message_attachments/action_button.jsx', () => {
     const baseProps = {

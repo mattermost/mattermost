@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -81,6 +81,7 @@ func init() {
 	GlobalRelayZipExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
+	BulkExportCmd.Flags().Bool("with-archived-channels", false, "Also exports archived channels.")
 	BulkExportCmd.Flags().Bool("attachments", false, "Also export file attachments.")
 	BulkExportCmd.Flags().Bool("archive", false, "Outputs a single archive file.")
 
@@ -137,7 +138,10 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 			defer cancel()
 		}
 
-		job, err := messageExportI.StartSynchronizeJob(ctx, startTime)
+		c := request.EmptyContext(a.Log())
+		c.SetContext(ctx)
+
+		job, err := messageExportI.StartSynchronizeJob(c, startTime)
 		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
 		} else {
@@ -226,6 +230,11 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "archive flag error")
 	}
 
+	withArchivedChannels, err := command.Flags().GetBool("with-archived-channels")
+	if err != nil {
+		return errors.Wrap(err, "with-archived-channels flag error")
+	}
+
 	fileWriter, err := os.Create(args[0])
 	if err != nil {
 		return err
@@ -240,6 +249,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	var opts model.BulkExportOpts
 	opts.IncludeAttachments = attachments
 	opts.CreateArchive = archive
+	opts.IncludeArchivedChannels = withArchivedChannels
 	if err := a.BulkExport(request.EmptyContext(a.Log()), fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err

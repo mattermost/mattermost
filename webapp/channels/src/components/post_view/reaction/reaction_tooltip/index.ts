@@ -3,17 +3,14 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import type {Reaction as ReactionType} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {getCurrentUserId, makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-
-import {Reaction as ReactionType} from '@mattermost/types/reactions';
-import {UserProfile} from '@mattermost/types/users';
-
+import {getCurrentUserId, makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
-
-import {GlobalState} from '@mattermost/types/store';
 
 import * as Utils from 'utils/utils';
 

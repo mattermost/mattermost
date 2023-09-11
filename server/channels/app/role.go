@@ -11,9 +11,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
+
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
@@ -187,13 +189,13 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 
 	builtInRolesMinusChannelRoles := append(utils.RemoveStringsFromSlice(model.BuiltInSchemeManagedRoleIDs, builtInChannelRoles...), model.NewSystemRoleIDs...)
 
-	if utils.StringInSlice(savedRole.Name, builtInRolesMinusChannelRoles) {
+	if pUtils.Contains(builtInRolesMinusChannelRoles, savedRole.Name) {
 		return savedRole, nil
 	}
 
 	var roleRetrievalFunc func() ([]*model.Role, *model.AppError)
 
-	if utils.StringInSlice(savedRole.Name, builtInChannelRoles) {
+	if pUtils.Contains(builtInChannelRoles, savedRole.Name) {
 		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
 			roles, nErr := a.Srv().Store().Role().AllChannelSchemeRoles()
 			if nErr != nil {

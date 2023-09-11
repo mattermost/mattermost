@@ -5,18 +5,19 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {recycleDatabaseConnection, ping} from 'actions/admin_actions';
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
 
 import ExternalLink from 'components/external_link';
 
+import {DocLinks} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
+
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
-import RequestButton from './request_button/request_button';
-import SettingsGroup from './settings_group.jsx';
-import TextSetting from './text_setting';
-
 import MigrationsTable from './database';
+import RequestButton from './request_button/request_button';
+import SettingsGroup from './settings_group';
+import TextSetting from './text_setting';
 
 export default class DatabaseSettings extends AdminSettings {
     constructor(props) {
@@ -353,7 +354,7 @@ export default class DatabaseSettings extends AdminSettings {
                                 link: (msg) => (
                                     <ExternalLink
                                         location='database_settings'
-                                        href='https://mattermost.com/pl/default-search-engine'
+                                        href={DocLinks.ELASTICSEARCH}
                                     >
                                         {msg}
                                     </ExternalLink>

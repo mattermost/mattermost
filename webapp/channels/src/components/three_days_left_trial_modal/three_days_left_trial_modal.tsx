@@ -2,28 +2,30 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
 import {useIntl} from 'react-intl';
+import {useSelector, useDispatch} from 'react-redux';
 
-import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
+import {GenericModal} from '@mattermost/components';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {closeModal} from 'actions/views/modals';
+import {isModalOpen} from 'selectors/views/modals';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
+import WorkspaceLimitsPanel from 'components/cloud_usage_modal/workspace_limits_panel';
+import useGetLimits from 'components/common/hooks/useGetLimits';
+import useGetUsage from 'components/common/hooks/useGetUsage';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
+import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 
 import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
-import GenericModal from 'components/generic_modal';
-import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
-import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
-import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import WorkspaceLimitsPanel from 'components/cloud_usage_modal/workspace_limits_panel';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useGetLimits from 'components/common/hooks/useGetLimits';
+import type {GlobalState} from 'types/store';
 
-import ThreeDaysLeftTrialCard, {ThreeDaysLeftTrialCardProps} from './three_days_left_trial_modal_card';
+import ThreeDaysLeftTrialCard from './three_days_left_trial_modal_card';
+import type {ThreeDaysLeftTrialCardProps} from './three_days_left_trial_modal_card';
 
 import './three_days_left_trial_modal.scss';
 
@@ -67,7 +69,7 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
                     height={90}
                 />
             ),
-            pageURL: DocLinks.ONBOARD_SSO,
+            pageURL: DocLinks.SETUP_SAML,
             buttonLabel,
         },
         {

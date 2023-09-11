@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
 import {NotificationLevels} from 'utils/constants';
 
@@ -31,6 +32,9 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
         selectedSound: 'Bing',
         isCollapsedThreadsEnabled: false,
         threads: NotificationLevels.ALL,
+        callsSelectedSound: 'Dynamic',
+        callsSound: 'false',
+        isCallsRingingEnabled: false,
     };
 
     test('should match snapshot, on max setting', () => {
@@ -43,6 +47,24 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
 
     test('should match snapshot, on max setting with sound enabled', () => {
         const props = {...baseProps, sound: 'true'};
+        const wrapper = shallow(
+            <DesktopNotificationSettings {...props}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, on max setting with Calls enabled', () => {
+        const props = {...baseProps, isCallsRingingEnabled: true};
+        const wrapper = shallow(
+            <DesktopNotificationSettings {...props}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, on max setting with Calls enabled, calls sound true', () => {
+        const props = {...baseProps, isCallsRingingEnabled: true, callsSound: 'true'};
         const wrapper = shallow(
             <DesktopNotificationSettings {...props}/>,
         );

@@ -4,16 +4,16 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
-
-import * as Utils from 'utils/utils';
+import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
+import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
+
 import {Constants} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 const LDAP_GROUPS_PAGE_SIZE = 200;
 
@@ -48,6 +48,7 @@ type FilterSearchMap = {
 type State = {
     checked?: any;
     loading: boolean;
+    fetchError: boolean;
     page: number;
     showFilters: boolean;
     searchString: string;
@@ -75,6 +76,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         super(props);
         this.state = {
             checked: {},
+            fetchError: false,
             loading: true,
             page: 0,
             showFilters: false,
@@ -91,9 +93,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     };
 
     public componentDidMount() {
-        this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE).then(() => {
-            this.setState({loading: false});
-        });
+        this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE).then(this.handleGetGroupsResponse);
     }
 
     public async previousPage(e: any): Promise<void> {
@@ -232,6 +232,16 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                 </div>
             );
         }
+        if (this.state.fetchError) {
+            return (
+                <div className='groups-list-empty'>
+                    <FormattedMessage
+                        id='admin.group_settings.groups_list.groups_list_error'
+                        defaultMessage='Failed to retrieve LDAP groups. Please check your logs for details.'
+                    />
+                </div>
+            );
+        }
         if (this.props.groups.length === 0) {
             return (
                 <div className='groups-list-empty'>
@@ -294,9 +304,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         newState.showFilters = false;
         this.setState(newState);
 
-        this.props.actions.getLdapGroups(page, LDAP_GROUPS_PAGE_SIZE, opts).then(() => {
-            this.setState({loading: false});
-        });
+        this.props.actions.getLdapGroups(page, LDAP_GROUPS_PAGE_SIZE, opts).then(this.handleGetGroupsResponse);
     }
 
     public handleGroupSearchKeyUp(e: any) {
@@ -434,9 +442,16 @@ export default class GroupsList extends React.PureComponent<Props, State> {
             filterIsUnlinked: false,
         };
         this.setState(newState as any);
-        this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE, {q: ''}).then(() => {
-            this.setState({loading: false});
-        });
+        this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE, {q: ''}).then(this.handleGetGroupsResponse);
+    };
+
+    handleGetGroupsResponse = (response: any) => {
+        if (response?.error) {
+            this.setState({fetchError: true});
+        } else {
+            this.setState({fetchError: false});
+        }
+        this.setState({loading: false});
     };
 
     public render(): JSX.Element {

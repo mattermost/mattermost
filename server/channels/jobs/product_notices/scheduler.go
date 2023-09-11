@@ -6,20 +6,20 @@ package product_notices
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
 type Scheduler struct {
 	*jobs.PeriodicScheduler
 }
 
-func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
+func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, _ time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
 	nextTime := time.Now().Add(time.Duration(*cfg.AnnouncementSettings.NoticesFetchFrequency) * time.Second)
 	return &nextTime
 }
 
-func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer) *Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
 	}

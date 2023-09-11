@@ -2,87 +2,82 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {Store} from 'redux';
 
-import {Store} from 'redux';
+import {DockWindowIcon} from '@mattermost/compass-icons/components';
+import type {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
 import globalStore from 'stores/redux_store';
 
-import * as UserAgent from 'utils/user_agent';
 import {Constants} from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 
-import Suggestion from '../suggestion';
-import Provider from '../provider';
-
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
 import {intlShim} from './app_command_parser/app_command_parser_dependencies';
-import {DockWindowIcon} from '@mattermost/compass-icons/components';
+
+import Provider from '../provider';
+import type {ResultsCallback} from '../provider';
+import {SuggestionContainer} from '../suggestion';
+import type {SuggestionProps} from '../suggestion';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const COMMAND_SUGGESTION_ERROR = Constants.Integrations.COMMAND_SUGGESTION_ERROR;
 
-export class CommandSuggestion extends Suggestion {
-    render() {
-        const {isSelection} = this.props;
-        const item = this.props.item as AutocompleteSuggestion;
+const CommandSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<AutocompleteSuggestion>>((props, ref) => {
+    const {item} = props;
 
-        let className = 'slash-command';
-        if (isSelection) {
-            className += ' suggestion--selected';
-        }
-        let symbolSpan = <span>{'/'}</span>;
-        switch (item.IconData) {
-        case EXECUTE_CURRENT_COMMAND_ITEM_ID:
-            symbolSpan = <span className='block mt-1'>{'↵'}</span>;
-            break;
-        case OPEN_COMMAND_IN_MODAL_ITEM_ID:
-            symbolSpan = (
-                <span className='block mt-1'>
-                    <DockWindowIcon size={28}/>
-                </span>
-            );
-            break;
-        case COMMAND_SUGGESTION_ERROR:
-            symbolSpan = <span>{'!'}</span>;
-            break;
-        }
-        let icon = <div className='slash-command__icon'>{symbolSpan}</div>;
-        if (item.IconData && ![EXECUTE_CURRENT_COMMAND_ITEM_ID, COMMAND_SUGGESTION_ERROR, OPEN_COMMAND_IN_MODAL_ITEM_ID].includes(item.IconData)) {
-            icon = (
-                <div
-                    className='slash-command__icon'
-                    style={{backgroundColor: 'transparent'}}
-                >
-                    <img src={item.IconData}/>
-                </div>);
-        }
-
-        return (
+    let symbolSpan = <span>{'/'}</span>;
+    switch (item.IconData) {
+    case EXECUTE_CURRENT_COMMAND_ITEM_ID:
+        symbolSpan = <span className='block mt-1'>{'↵'}</span>;
+        break;
+    case OPEN_COMMAND_IN_MODAL_ITEM_ID:
+        symbolSpan = (
+            <span className='block mt-1'>
+                <DockWindowIcon size={28}/>
+            </span>
+        );
+        break;
+    case COMMAND_SUGGESTION_ERROR:
+        symbolSpan = <span>{'!'}</span>;
+        break;
+    }
+    let icon = <div className='slash-command__icon'>{symbolSpan}</div>;
+    if (item.IconData && ![EXECUTE_CURRENT_COMMAND_ITEM_ID, COMMAND_SUGGESTION_ERROR, OPEN_COMMAND_IN_MODAL_ITEM_ID].includes(item.IconData)) {
+        icon = (
             <div
-                className={className}
-                onClick={this.handleClick}
-                onMouseMove={this.handleMouseMove}
-                {...Suggestion.baseProps}
+                className='slash-command__icon'
+                style={{backgroundColor: 'transparent'}}
             >
-                {icon}
-                <div className='slash-command__info'>
-                    <div className='slash-command__title'>
-                        {item.Suggestion.substring(1) + ' ' + item.Hint}
-                    </div>
-                    <div className='slash-command__desc'>
-                        {item.Description}
-                    </div>
+                <img src={item.IconData}/>
+            </div>);
+    }
+
+    return (
+        <SuggestionContainer
+            ref={ref}
+            {...props}
+        >
+            {icon}
+            <div className='slash-command__info'>
+                <div className='slash-command__title'>
+                    {item.Suggestion.substring(1) + ' ' + item.Hint}
+                </div>
+                <div className='slash-command__desc'>
+                    {item.Description}
                 </div>
             </div>
-        );
-    }
-}
+        </SuggestionContainer>
+    );
+});
+CommandSuggestion.displayName = 'CommandSuggestion';
+export {CommandSuggestion};
 
 type Props = {
     teamId: string;
@@ -90,19 +85,10 @@ type Props = {
     rootId?: string;
 };
 
-export type Results = {
-    matchedPretext: string;
-    terms: string[];
-    items: AutocompleteSuggestion[];
-    component: React.ElementType;
-}
-
-type ResultsCallback = (results: Results) => void;
-
 export default class CommandProvider extends Provider {
     private props: Props;
     private store: Store<GlobalState>;
-    private triggerCharacter: string;
+    public triggerCharacter: string;
     private appCommandParser: AppCommandParser;
 
     constructor(props: Props) {
@@ -119,7 +105,7 @@ export default class CommandProvider extends Provider {
         this.appCommandParser.setChannelContext(props.channelId, props.teamId, props.rootId);
     }
 
-    handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
         if (!pretext.startsWith(this.triggerCharacter)) {
             return false;
         }
@@ -156,7 +142,7 @@ export default class CommandProvider extends Provider {
         callback(term + ' ');
     }
 
-    handleMobile(pretext: string, resultCallback: ResultsCallback) {
+    handleMobile(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
         const {teamId} = this.props;
 
         const command = pretext.toLowerCase();
@@ -209,7 +195,7 @@ export default class CommandProvider extends Provider {
         );
     }
 
-    handleWebapp(pretext: string, resultCallback: ResultsCallback) {
+    handleWebapp(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
         const command = pretext.toLowerCase();
 
         const {teamId, channelId, rootId} = this.props;

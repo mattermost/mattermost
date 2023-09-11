@@ -4,19 +4,15 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-
-import BotTag from 'components/widgets/tag/bot_tag';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
-
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import {UserProfile} from '@mattermost/types/users';
-
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-
 import ProfilePicture from 'components/profile_picture';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {displayEntireNameForUser} from 'utils/utils';
 
@@ -76,6 +72,11 @@ export default function UserDetails(props: Props): JSX.Element {
                         userID={option.id}
                         showTooltip={true}
                         emojiSize={15}
+                        spanStyle={{
+                            display: 'flex',
+                            flex: '0 0 auto',
+                            alignItems: 'center',
+                        }}
                     />
                 </div>
                 {!isBot && (

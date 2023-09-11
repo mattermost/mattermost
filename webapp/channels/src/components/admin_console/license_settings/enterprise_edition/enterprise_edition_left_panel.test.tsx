@@ -1,26 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment-timezone';
 import React from 'react';
-import {screen} from '@testing-library/react';
-
 import {Provider} from 'react-redux';
 
-import moment from 'moment-timezone';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import {OverActiveUserLimits, SelfHostedProducts} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {GlobalState} from '@mattermost/types/store';
-import mockStore from 'tests/test_store';
 
 import * as useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
 
-import EnterpriseEditionLeftPanel, {EnterpriseEditionProps} from './enterprise_edition_left_panel';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import mockStore from 'tests/test_store';
+import {OverActiveUserLimits, SelfHostedProducts} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
+
+import EnterpriseEditionLeftPanel from './enterprise_edition_left_panel';
+import type {EnterpriseEditionProps} from './enterprise_edition_left_panel';
 
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom') as typeof import('react-router-dom'),

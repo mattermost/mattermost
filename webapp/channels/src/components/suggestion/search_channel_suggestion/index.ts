@@ -3,11 +3,12 @@
 
 import {connect} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {Channel} from '@mattermost/types/channels';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import SearchChannelSuggestion from './search_channel_suggestion';
 
@@ -16,9 +17,11 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
+    const teammate = getDirectTeammate(state, ownProps.item.id);
+
     return {
-        teammate: getDirectTeammate(state, ownProps.item.id),
-        currentUser: getCurrentUserId(state),
+        teammateIsBot: Boolean(teammate && teammate.is_bot),
+        currentUserId: getCurrentUserId(state),
     };
 };
 

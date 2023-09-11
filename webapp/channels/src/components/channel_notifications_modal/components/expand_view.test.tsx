@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import {NotificationLevels, NotificationSections} from 'utils/constants';
+import React from 'react';
 
 import ExpandView from 'components/channel_notifications_modal/components/expand_view';
+
+import {NotificationLevels, NotificationSections} from 'utils/constants';
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
@@ -24,6 +24,7 @@ describe('components/channel_notifications_modal/ExpandView', () => {
         onChangeThreads: jest.fn(),
         onCollapseSection: jest.fn(),
         onSubmit: jest.fn(),
+        onReset: jest.fn(),
     };
 
     test('should match snapshot, DESKTOP on expanded view', () => {

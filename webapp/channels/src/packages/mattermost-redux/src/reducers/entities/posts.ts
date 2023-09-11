@@ -1,31 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, InsightTypes, CloudTypes} from 'mattermost-redux/action_types';
-
-import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
-import {Posts} from 'mattermost-redux/constants';
-import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {
+import type {
     OpenGraphMetadata,
     Post,
     PostsState,
     PostOrderBlock,
     MessageHistory,
     PostAcknowledgement,
+    PostEmbed,
+    PostPreviewMetadata,
 } from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-import {Reaction} from '@mattermost/types/reactions';
-import {
+import type {Reaction} from '@mattermost/types/reactions';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
     RelationOneToOne,
     IDMappedObjects,
     RelationOneToMany,
 } from '@mattermost/types/utilities';
 
-import {TopThread} from '@mattermost/types/insights';
+import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {Posts} from 'mattermost-redux/constants';
+import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
@@ -200,10 +198,43 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
             },
         };
 
-        // Remove any of its comments
         for (const otherPost of Object.values(state)) {
+            // Remove any of its comments
             if (otherPost.root_id === post.id) {
                 Reflect.deleteProperty(nextState, otherPost.id);
+            }
+
+            // a deleted post may exist in some other post's
+            // embeds when its link is mentioned in the post message.
+            // We need to remove the deleted post from post embeds of all posts
+            // to ensure the deleted post's contents cannot be retrieved from the store.
+            if (otherPost.metadata && otherPost.metadata.embeds && otherPost.metadata.embeds.length > 0) {
+                // This will become the post's new embeds array.
+                // We'll add everything other than the deleted post's embed here.
+                const newEmbeds: PostEmbed[] = [];
+
+                for (const embed of otherPost.metadata.embeds) {
+                    if (embed.type === 'permalink' && embed.data && (embed.data as PostPreviewMetadata).post_id === post.id) {
+                        // skip if the embed is the deleted post
+                        continue;
+                    }
+
+                    // include everything else
+                    newEmbeds.push(embed);
+                }
+
+                // if newEmbeds changed, update post's embeds
+                if (newEmbeds.length !== otherPost.metadata.embeds.length) {
+                    // Since otherPost refers to the post from store, its frozen un immutable.
+                    // That's why cloning it and modifying required parts here.
+                    nextState[otherPost.id] = {
+                        ...nextState[otherPost.id],
+                        metadata: {
+                            ...nextState[otherPost.id].metadata,
+                            embeds: newEmbeds,
+                        },
+                    };
+                }
             }
         }
 
@@ -270,23 +301,6 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
                 is_following: following,
             },
         };
-    }
-
-    case InsightTypes.RECEIVED_TOP_THREADS:
-    case InsightTypes.RECEIVED_MY_TOP_THREADS: {
-        const topThreads = Object.values(action.data.items) as TopThread[];
-
-        if (topThreads.length === 0) {
-            return state;
-        }
-
-        const nextState = {...state};
-
-        for (const thread of topThreads) {
-            handlePostReceived(nextState, thread.post);
-        }
-
-        return nextState;
     }
 
     case UserTypes.LOGOUT_SUCCESS:
@@ -1341,13 +1355,6 @@ function storeAcknowledgementsForPost(state: any, post: Post) {
 
 export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: GenericAction) {
     switch (action.type) {
-    case PostTypes.RECEIVED_OPEN_GRAPH_METADATA: {
-        const nextState = {...state};
-        nextState[action.url] = action.data;
-
-        return nextState;
-    }
-
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
         const post = action.data;

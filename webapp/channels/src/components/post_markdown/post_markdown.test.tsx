@@ -3,25 +3,25 @@
 
 import React from 'react';
 
+import type {Post, PostType} from '@mattermost/types/posts';
+
 import {Posts} from 'mattermost-redux/constants';
 
-import PostMarkdown from 'components/post_markdown/post_markdown';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import {Post, PostType} from '@mattermost/types/posts';
-import {screen} from '@testing-library/react';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import PostMarkdown from './post_markdown';
 
 describe('components/PostMarkdown', () => {
     const baseProps = {
         imageProps: {},
-        isRHS: false,
         message: 'message',
         post: TestHelper.getPostMock(),
         mentionKeys: [{key: 'a'}, {key: 'b'}, {key: 'c'}],
         channelId: 'channel-id',
         channel: TestHelper.getChannelMock(),
         currentTeam: TestHelper.getTeamMock(),
+        hideGuestTags: false,
     };
 
     const state = {entities: {

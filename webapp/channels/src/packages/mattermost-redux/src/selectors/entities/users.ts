@@ -1,8 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
+    IDMappedObjects,
+    RelationOneToMany,
+    RelationOneToManyUnique,
+    RelationOneToOne,
+} from '@mattermost/types/utilities';
 
+import {General} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getCurrentChannelId,
     getCurrentUser,
@@ -14,7 +27,6 @@ import {
 } from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-
 import {
     displayUsername,
     filterProfilesStartingWithTerm,
@@ -26,21 +38,6 @@ import {
     isGuest,
     applyRolesFilters,
 } from 'mattermost-redux/utils/user_utils';
-
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {GlobalState} from '@mattermost/types/store';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {Group} from '@mattermost/types/groups';
-import {UserProfile} from '@mattermost/types/users';
-import {
-    IDMappedObjects,
-    RelationOneToMany,
-    RelationOneToManyUnique,
-    RelationOneToOne,
-} from '@mattermost/types/utilities';
-import {Reaction} from '@mattermost/types/reactions';
-
-import {General} from 'mattermost-redux/constants';
 
 export {getCurrentUser, getCurrentUserId, getUsers};
 

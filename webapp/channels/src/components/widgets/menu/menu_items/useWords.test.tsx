@@ -2,14 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
 import {Provider} from 'react-redux';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
+
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-
-import {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-
 import {FileSizes} from 'utils/file_utils';
 import {LimitTypes} from 'utils/limits';
 

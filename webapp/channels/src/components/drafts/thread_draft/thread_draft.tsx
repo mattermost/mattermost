@@ -4,24 +4,24 @@
 import React, {memo, useCallback, useMemo, useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import type {Post} from '@mattermost/types/posts';
-
-import type {PostDraft} from 'types/store/draft';
+import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getPost} from 'mattermost-redux/actions/posts';
 
-import {selectPost} from 'actions/views/rhs';
-import {removeDraft} from 'actions/views/drafts';
 import {makeOnSubmit} from 'actions/views/create_comment';
+import {removeDraft} from 'actions/views/drafts';
+import {selectPost} from 'actions/views/rhs';
 
-import DraftTitle from '../draft_title';
+import type {PostDraft} from 'types/store/draft';
+
 import DraftActions from '../draft_actions';
+import DraftTitle from '../draft_title';
 import Panel from '../panel/panel';
-import Header from '../panel/panel_header';
 import PanelBody from '../panel/panel_body';
+import Header from '../panel/panel_header';
 
 type Props = {
     channel: Channel;
@@ -33,7 +33,7 @@ type Props = {
     type: 'channel' | 'thread';
     user: UserProfile;
     value: PostDraft;
-    isRemote: boolean;
+    isRemote?: boolean;
 }
 
 function ThreadDraft({

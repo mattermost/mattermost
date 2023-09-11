@@ -3,11 +3,13 @@
 
 import React from 'react';
 
-import PostAttachmentContainer, {Props} from './post_attachment_container';
-import {screen} from '@testing-library/react';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+
+import PostAttachmentContainer from './post_attachment_container';
+import type {Props} from './post_attachment_container';
 
 describe('PostAttachmentContainer', () => {
     const baseProps: Props = {

@@ -5,15 +5,16 @@ import React, {memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {GenericModal} from '@mattermost/components';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {getPersistentNotificationIntervalMinutes, getPersistentNotificationMaxRecipients} from 'mattermost-redux/selectors/entities/posts';
 
-import {GlobalState} from 'types/store';
-import {makeGetUserOrGroupMentionCountFromMessage} from 'utils/post_utils';
 import Constants from 'utils/constants';
+import {makeGetUserOrGroupMentionCountFromMessage} from 'utils/post_utils';
 
-import GenericModal from 'components/generic_modal';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from 'types/store';
 
 import {HasNoMentions, HasSpecialMentions} from './post_priority/error_messages';
 

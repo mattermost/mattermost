@@ -3,14 +3,18 @@
 
 import React from 'react';
 
-import {AppBinding, AppCallResponse} from '@mattermost/types/apps';
+import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
 
-import {Post} from '@mattermost/types/posts';
+import {
+    renderWithIntlAndStore,
+    screen,
+    userEvent,
+    waitFor,
+} from 'tests/react_testing_utils';
 
 import ButtonBinding, {ButtonBinding as ButtonBindingUnwrapped} from './button_binding';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
-import {screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+
 describe('components/post_view/embedded_bindings/button_binding/', () => {
     const post = {
         id: 'some_post_id',

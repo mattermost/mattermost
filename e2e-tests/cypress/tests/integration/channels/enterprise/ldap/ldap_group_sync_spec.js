@@ -232,9 +232,9 @@ context('ldap', () => {
             cy.visit(`/${testTeam.name}`);
             cy.uiBrowseOrCreateChannel('Browse channels').click();
 
-            // * Search private channel name and make sure it isn't there in public channel directory
+            // * Search private channel name and make sure it is still visible
             cy.get('#searchChannelsTextbox').type(testChannel.display_name);
-            cy.get('#moreChannelsList').should('include.text', 'No more channels to join');
+            cy.get('#moreChannelsList').should('include.text', testChannel.display_name);
         });
 
         it('MM-T2629 - Private to public - More....', () => {
@@ -473,7 +473,7 @@ context('ldap', () => {
 
                 // * Search private channel name and make sure it isn't there in public channel directory
                 cy.get('#searchChannelsTextbox').type(publicChannel.display_name);
-                cy.get('#moreChannelsList').should('include.text', 'No more channels to join');
+                cy.get('#moreChannelsList').should('include.text', 'No results for');
             });
         });
 

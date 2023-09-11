@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {createSelector} from 'reselect';
+import type {TeamSearchOpts} from '@mattermost/types/teams';
 
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {TeamSearchOpts} from '@mattermost/types/teams';
 import {getTeams as fetchTeams, searchTeams} from 'mattermost-redux/actions/teams';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getTeams} from 'mattermost-redux/selectors/entities/teams';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import TeamFilterDropdown from './team_filter_dropdown';
 

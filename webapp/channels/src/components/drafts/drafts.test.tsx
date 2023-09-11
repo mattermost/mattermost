@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {Provider} from 'react-redux';
-
-import mockStore from 'tests/test_store';
 
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
-import {Draft} from 'selectors/drafts';
+import type {Draft} from 'selectors/drafts';
+
+import mockStore from 'tests/test_store';
 
 import Drafts from './drafts';
 
@@ -19,7 +19,6 @@ describe('components/drafts/drafts', () => {
         user: {} as UserProfile,
         displayName: 'display_name',
         status: {} as UserStatus['status'],
-        localDraftsAreEnabled: true,
         draftRemotes: {},
     };
 
@@ -41,7 +40,6 @@ describe('components/drafts/drafts', () => {
 
         const props = {
             ...baseProps,
-            localDraftsAreEnabled: false,
         };
 
         const wrapper = shallow(

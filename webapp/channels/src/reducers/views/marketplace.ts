@@ -3,8 +3,9 @@
 
 import {combineReducers} from 'redux';
 
-import {UserTypes} from 'mattermost-redux/action_types';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+
+import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes, ModalIdentifiers} from 'utils/constants';

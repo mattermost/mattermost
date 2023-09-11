@@ -1,34 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import semver from 'semver';
-
 import {logError} from 'mattermost-redux/actions/errors';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getTeammateNameDisplaySetting,
+    isCollapsedThreadsEnabled,
+} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {isThreadOpen} from 'selectors/views/threads';
 import {getChannelURL, getPermalinkURL} from 'selectors/urls';
+import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {stripMarkdown} from 'utils/markdown';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-import {stripMarkdown} from 'utils/markdown';
+
+import {runDesktopNotificationHooks} from './hooks';
 
 const NOTIFY_TEXT_MAX_LENGTH = 50;
 
 // windows notification length is based windows chrome which supports 128 characters and is the lowest length of windows browsers
 const WINDOWS_NOTIFY_TEXT_MAX_LENGTH = 120;
+
+const getSoundFromChannelMemberAndUser = (member, user) => {
+    if (member?.notify_props?.desktop_sound) {
+        return member.notify_props.desktop_sound === 'on';
+    }
+
+    return !user.notify_props || user.notify_props.desktop_sound === 'true';
+};
+
+const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
+    if (member?.notify_props?.desktop_notification_sound) {
+        return member.notify_props.desktop_notification_sound;
+    }
+
+    return user.notify_props?.desktop_notification_sound ? user.notify_props.desktop_notification_sound : 'Bing';
+};
 
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
@@ -161,7 +180,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         //Play a sound if explicitly set in settings
-        const sound = !user.notify_props || user.notify_props.desktop_sound === 'true';
+        const sound = getSoundFromChannelMemberAndUser(member, user);
 
         // Notify if you're not looking in the right channel or when
         // the window itself is not active
@@ -176,17 +195,28 @@ export function sendDesktopNotification(post, msgProps) {
         }
         notify = notify || !state.views.browser.focused;
 
-        const soundName = user.notify_props !== undefined && user.notify_props.desktop_notification_sound !== undefined ? user.notify_props.desktop_notification_sound : 'Bing';
+        let soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
+
+        const updatedState = getState();
+        let url = getChannelURL(updatedState, channel, teamId);
+
+        if (isCrtReply) {
+            url = getPermalinkURL(updatedState, teamId, post.id);
+        }
+
+        // Allow plugins to change the notification, or re-enable a notification
+        const args = {title, body, silent: !sound, soundName, url, notify};
+        const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+        if (hookResult.error) {
+            dispatch(logError(hookResult.error));
+            return;
+        }
+
+        let silent = false;
+        ({title, body, silent, soundName, url, notify} = hookResult.args);
 
         if (notify) {
-            const updatedState = getState();
-            let url = getChannelURL(updatedState, channel, teamId);
-
-            if (isCrtReply) {
-                url = getPermalinkURL(updatedState, teamId, post.id);
-            }
-
-            dispatch(notifyMe(title, body, channel, teamId, !sound, soundName, url));
+            dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
 
             //Don't add extra sounds on native desktop clients
             if (sound && !isDesktopApp() && !isMobileApp()) {
@@ -196,9 +226,9 @@ export function sendDesktopNotification(post, msgProps) {
     };
 }
 
-const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
-    // handle notifications in desktop app >= 4.3.0
-    if (isDesktopApp() && window.desktop && semver.gte(window.desktop.version, '4.3.0')) {
+export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
+    // handle notifications in desktop app
+    if (isDesktopApp()) {
         const msg = {
             title,
             body,
@@ -206,16 +236,8 @@ const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (disp
             teamId,
             silent,
         };
-
-        if (isDesktopApp() && window.desktop) {
-            if (semver.gte(window.desktop.version, '4.6.0')) {
-                msg.data = {soundName};
-            }
-
-            if (semver.gte(window.desktop.version, '4.7.2')) {
-                msg.url = url;
-            }
-        }
+        msg.data = {soundName};
+        msg.url = url;
 
         // get the desktop app to trigger the notification
         window.postMessage(

@@ -3,14 +3,18 @@
 
 import React from 'react';
 
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
+
 import NewMessageSeparator from './new_message_separator';
-import {screen} from '@testing-library/react';
-import {renderWithIntl} from 'tests/react_testing_utils';
 
 describe('components/post_view/new_message_separator', () => {
     test('should render new_message_separator', () => {
         renderWithIntl(
-            <NewMessageSeparator separatorId='1234'/>,
+            <NewMessageSeparator
+                separatorId='1234'
+                newMessagesSeparatorActions={[]}
+                lastViewedAt={0}
+            />,
         );
 
         const newMessage = screen.getByText('New Messages');

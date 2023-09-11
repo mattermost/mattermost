@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 func TestOAuthComplete_AccessDenied(t *testing.T) {
@@ -80,7 +80,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	}
 
 	// Test auth code flow
-	ruri, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	ruri, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 
 	require.NotEmpty(t, ruri, "redirect url should be set")
@@ -92,7 +92,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 
 	// Test implicit flow
 	authRequest.ResponseType = model.ImplicitResponseType
-	ruri, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	ruri, _, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 	require.False(t, ruri == "", "redirect url should be set")
 
@@ -105,36 +105,36 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 
 	oldToken := apiClient.AuthToken
 	apiClient.AuthToken = values.Get("access_token")
-	_, resp, err := apiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	apiClient.AuthToken = oldToken
 
 	authRequest.RedirectURI = ""
-	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.RedirectURI = "http://somewhereelse.com"
-	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.RedirectURI = rapp.CallbackUrls[0]
 	authRequest.ResponseType = ""
-	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.ResponseType = model.AuthCodeResponseType
 	authRequest.ClientId = ""
-	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	authRequest.ClientId = model.NewId()
-	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
+	_, resp, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -157,7 +157,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 		Scope:        "",
 		State:        "123",
 	}
-	uriResponse, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	uriResponse, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 	ru, _ = url.Parse(uriResponse)
 	require.NotEmpty(t, uriResponse, "redirect url should be set")
@@ -198,21 +198,21 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 		State:        "123",
 	}
 
-	_, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	_, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 
-	_, err = apiClient.DeauthorizeOAuthApp(rapp.Id)
+	_, err = apiClient.DeauthorizeOAuthApp(context.Background(), rapp.Id)
 	require.NoError(t, err)
 
-	resp, err := apiClient.DeauthorizeOAuthApp("junk")
+	resp, err := apiClient.DeauthorizeOAuthApp(context.Background(), "junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, err = apiClient.DeauthorizeOAuthApp(model.NewId())
+	_, err = apiClient.DeauthorizeOAuthApp(context.Background(), model.NewId())
 	require.NoError(t, err)
 
 	th.Logout(apiClient)
-	resp, err = apiClient.DeauthorizeOAuthApp(rapp.Id)
+	resp, err = apiClient.DeauthorizeOAuthApp(context.Background(), rapp.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -252,7 +252,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
-	_, _, err := apiClient.GetOAuthAccessToken(data)
+	_, _, err := apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - oauth providing turned off")
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -264,47 +264,47 @@ func TestOAuthAccessToken(t *testing.T) {
 		State:        "123",
 	}
 
-	redirect, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	redirect, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 	rurl, _ := url.Parse(redirect)
 
-	apiClient.Logout()
+	apiClient.Logout(context.Background())
 
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - bad grant type")
 
 	data.Set("grant_type", model.AccessTokenGrantType)
 	data.Set("client_id", "")
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - missing client id")
 
 	data.Set("client_id", "junk")
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - bad client id")
 
 	data.Set("client_id", oauthApp.Id)
 	data.Set("client_secret", "")
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - missing client secret")
 
 	data.Set("client_secret", "junk")
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - bad client secret")
 
 	data.Set("client_secret", oauthApp.ClientSecret)
 	data.Set("code", "")
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - missing code")
 
 	data.Set("code", "junk")
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - bad code")
 
 	data.Set("code", rurl.Query().Get("code"))
 	data.Set("redirect_uri", "junk")
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - non-matching redirect uri")
 
 	// reset data for successful request
@@ -316,29 +316,29 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	token := ""
 	refreshToken := ""
-	rsp, _, err := apiClient.GetOAuthAccessToken(data)
+	rsp, _, err := apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.NoError(t, err)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
 	token, refreshToken = rsp.AccessToken, rsp.RefreshToken
 	require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
 
-	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	_, err = apiClient.DoAPIGet(context.Background(), "/oauth_test", "")
 	require.NoError(t, err)
 
 	apiClient.SetOAuthToken("")
-	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	_, err = apiClient.DoAPIGet(context.Background(), "/oauth_test", "")
 	require.Error(t, err, "should have failed - no access token provided")
 
 	apiClient.SetOAuthToken("badtoken")
-	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	_, err = apiClient.DoAPIGet(context.Background(), "/oauth_test", "")
 	require.Error(t, err, "should have failed - bad token provided")
 
 	apiClient.SetOAuthToken(token)
-	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	_, err = apiClient.DoAPIGet(context.Background(), "/oauth_test", "")
 	require.NoError(t, err)
 
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - tried to reuse auth code")
 
 	data.Set("grant_type", model.RefreshTokenGrantType)
@@ -347,11 +347,11 @@ func TestOAuthAccessToken(t *testing.T) {
 	data.Set("refresh_token", "")
 	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
 	data.Del("code")
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "Should have failed - refresh token empty")
 
 	data.Set("refresh_token", refreshToken)
-	rsp, _, err = apiClient.GetOAuthAccessToken(data)
+	rsp, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.NoError(t, err)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
@@ -359,11 +359,11 @@ func TestOAuthAccessToken(t *testing.T) {
 	require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
 
 	apiClient.SetOAuthToken(rsp.AccessToken)
-	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	_, err = apiClient.DoAPIGet(context.Background(), "/oauth_test", "")
 	require.NoError(t, err)
 
 	data.Set("refresh_token", rsp.RefreshToken)
-	rsp, _, err = apiClient.GetOAuthAccessToken(data)
+	rsp, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.NoError(t, err)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
@@ -371,7 +371,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
 
 	apiClient.SetOAuthToken(rsp.AccessToken)
-	_, err = apiClient.DoAPIGet("/oauth_test", "")
+	_, err = apiClient.DoAPIGet(context.Background(), "/oauth_test", "")
 	require.NoError(t, err)
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
@@ -384,7 +384,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
 	data.Set("code", authData.Code)
 	data.Del("refresh_token")
-	_, _, err = apiClient.GetOAuthAccessToken(data)
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "Should have failed - code is expired")
 
 	apiClient.ClearOAuthToken()
@@ -529,7 +529,7 @@ func TestOAuthComplete(t *testing.T) {
 		State:        "123",
 	}
 
-	redirect, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	redirect, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 	rurl, _ := url.Parse(redirect)
 
@@ -547,7 +547,7 @@ func TestOAuthComplete(t *testing.T) {
 
 	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
-	redirect, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	redirect, _, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 	rurl, _ = url.Parse(redirect)
 
@@ -561,7 +561,7 @@ func TestOAuthComplete(t *testing.T) {
 		th.BasicUser.Id, model.ServiceGitlab, &th.BasicUser.Email, th.BasicUser.Email, true)
 	require.NoError(t, nErr)
 
-	redirect, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	redirect, _, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 	rurl, _ = url.Parse(redirect)
 
@@ -572,7 +572,7 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	redirect, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	redirect, _, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 	rurl, _ = url.Parse(redirect)
 
@@ -583,7 +583,7 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	redirect, _, err = apiClient.AuthorizeOAuthApp(authRequest)
+	redirect, _, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
 	rurl, _ = url.Parse(redirect)
 
@@ -608,8 +608,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 
 	translationFunc := i18n.GetUserTranslations("en")
 	c.AppContext.SetT(translationFunc)
-	c.Logger = mlog.CreateConsoleTestLogger(true, mlog.LvlDebug)
-	defer c.Logger.Shutdown()
+	c.Logger = mlog.CreateConsoleTestLogger(t)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	provider := &MattermostTestProvider{}

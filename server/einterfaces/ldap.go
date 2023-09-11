@@ -4,8 +4,8 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type LdapInterface interface {
@@ -16,7 +16,7 @@ type LdapInterface interface {
 	CheckPasswordAuthData(authData string, password string) *model.AppError
 	CheckProviderAttributes(LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string
 	SwitchToLdap(userID, ldapID, ldapPassword string) *model.AppError
-	StartSynchronizeJob(waitForJobToFinish bool, includeRemovedMembers bool) (*model.Job, *model.AppError)
+	StartSynchronizeJob(c *request.Context, waitForJobToFinish bool, includeRemovedMembers bool) (*model.Job, *model.AppError)
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	MigrateIDAttribute(toAttribute string) error

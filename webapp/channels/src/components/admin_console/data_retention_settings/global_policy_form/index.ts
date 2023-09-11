@@ -2,18 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
 
 import {
     updateConfig,
 } from 'mattermost-redux/actions/admin';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
-
-import {AdminConfig} from '@mattermost/types/config';
-import {ServerError} from '@mattermost/types/errors';
 
 import GlobalPolicyForm from './global_policy_form';
 

@@ -7,8 +7,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // Default polling interval for jobs termination.
@@ -67,7 +68,7 @@ func (watcher *Watcher) Stop() {
 }
 
 func (watcher *Watcher) PollAndNotify() {
-	jobs, err := watcher.srv.Store.Job().GetAllByStatus(model.JobStatusPending)
+	jobs, err := watcher.srv.Store.Job().GetAllByStatus(request.EmptyContext(watcher.srv.logger), model.JobStatusPending)
 	if err != nil {
 		mlog.Error("Error occurred getting all pending statuses.", mlog.Err(err))
 		return

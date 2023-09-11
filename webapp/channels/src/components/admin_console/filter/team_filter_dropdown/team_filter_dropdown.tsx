@@ -4,18 +4,19 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {createSelector} from 'reselect';
+import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 
-import {Team, TeamSearchOpts} from '@mattermost/types/teams';
 import {debounce} from 'mattermost-redux/actions/helpers';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
 import * as Utils from 'utils/utils';
 
-import {FilterOption, FilterValues} from '../filter';
-
 import TeamFilterCheckbox from './team_filter_checkbox';
+
+import type {FilterOption, FilterValues} from '../filter';
 
 import './team_filter_dropdown.scss';
 import '../filter.scss';

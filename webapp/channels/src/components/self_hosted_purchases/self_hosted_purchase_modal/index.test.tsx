@@ -3,19 +3,23 @@
 
 import React from 'react';
 
-import {screen, fireEvent, waitFor} from '@testing-library/react';
+import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
+import type {SelfHostedSignupForm} from '@mattermost/types/hosted_customer';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {GlobalState} from 'types/store';
-
-import {SelfHostedSignupForm, SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
-import {TestHelper as TH} from 'utils/test_helper';
+import {
+    fireEvent,
+    renderWithIntlAndStore,
+    screen,
+    waitFor,
+} from 'tests/react_testing_utils';
 import {SelfHostedProducts, ModalIdentifiers} from 'utils/constants';
+import {TestHelper as TH} from 'utils/test_helper';
 
-import {DeepPartial} from '@mattermost/types/utilities';
+import type {GlobalState} from 'types/store';
 
-import SelfHostedPurchaseModal, {makeInitialState, canSubmit, State} from '.';
+import SelfHostedPurchaseModal, {makeInitialState, canSubmit} from '.';
+import type {State} from '.';
 
 interface MockCardInputProps {
     onCardInputChange: (event: {complete: boolean}) => void;

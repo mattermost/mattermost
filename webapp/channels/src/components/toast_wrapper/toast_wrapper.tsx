@@ -2,22 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape, WrappedComponentProps} from 'react-intl';
-import {RouteComponentProps} from 'react-router-dom';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape, WrappedComponentProps} from 'react-intl';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import {Preferences} from 'mattermost-redux/constants';
 
+import {HintToast} from 'components/hint-toast/hint_toast';
+import {SearchShortcut} from 'components/search_shortcut';
+import Timestamp, {RelativeRanges} from 'components/timestamp';
+import Toast from 'components/toast/toast';
+
+import {getHistory} from 'utils/browser_history';
+import Constants from 'utils/constants';
+import {isToday} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {isIdNotPost, getNewMessageIndex} from 'utils/post_utils';
 import {localizeMessage} from 'utils/utils';
-import {isToday} from 'utils/datetime';
-import Constants from 'utils/constants';
-import {getHistory} from 'utils/browser_history';
-
-import Toast from 'components/toast/toast';
-import Timestamp, {RelativeRanges} from 'components/timestamp';
-import {SearchShortcut} from 'components/search_shortcut';
-import {HintToast} from 'components/hint-toast/hint_toast';
 
 const TOAST_TEXT_COLLAPSE_WIDTH = 500;
 
@@ -124,17 +125,17 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         }
 
         // show unread toast when a channel is marked as unread
-        if (props.channelMarkedAsUnread && !props.atBottom && !prevState.channelMarkedAsUnread && !prevState.showUnreadToast) {
+        if (props.channelMarkedAsUnread && (props.atBottom === false) && !prevState.channelMarkedAsUnread && !prevState.showUnreadToast) {
             showUnreadToast = true;
         }
 
         // show unread toast when a channel is remarked as unread using the change in lastViewedAt
         // lastViewedAt changes only if a channel is remarked as unread in channelMarkedAsUnread state
-        if (props.channelMarkedAsUnread && props.lastViewedAt !== prevState.lastViewedAt && !props.atBottom) {
+        if (props.channelMarkedAsUnread && props.lastViewedAt !== prevState.lastViewedAt && (props.atBottom === false)) {
             showUnreadToast = true;
         }
 
-        if (!showUnreadToast && unreadCount > 0 && !props.atBottom && props.latestPostTimeStamp && (props.lastViewedBottom < props.latestPostTimeStamp)) {
+        if (!showUnreadToast && unreadCount > 0 && (props.atBottom === false) && props.latestPostTimeStamp && (props.lastViewedBottom < props.latestPostTimeStamp)) {
             showNewMessagesToast = true;
         }
 
@@ -384,7 +385,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             onDismiss: this.hideUnreadToast,
             onClick: this.scrollToLatestMessages,
             onClickMessage: localizeMessage('postlist.toast.scrollToBottom', 'Jump to recents'),
-            showActions: !atLatestPost || (atLatestPost && !atBottom),
+            showActions: !atLatestPost || (atLatestPost && (atBottom === false)),
         };
 
         if (showUnreadToast && unreadCount > 0) {

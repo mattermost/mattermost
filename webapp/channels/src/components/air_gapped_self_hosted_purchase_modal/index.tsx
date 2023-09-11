@@ -4,10 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {LegacyGenericModal} from '@mattermost/components';
-import {CloudLinks} from 'utils/constants';
-import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
+import {GenericModal} from '@mattermost/components';
+
 import {useControlAirGappedSelfHostedPurchaseModal} from 'components/common/hooks/useControlModal';
+import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
+
+import {CloudLinks} from 'utils/constants';
 
 import './content.scss';
 
@@ -15,7 +17,7 @@ export default function AirGappedSelfHostedPurhcaseModal() {
     const {close} = useControlAirGappedSelfHostedPurchaseModal();
 
     return (
-        <LegacyGenericModal
+        <GenericModal
             onExited={close}
             show={true}
             className='air-gapped-purchase-modal'
@@ -39,6 +41,6 @@ export default function AirGappedSelfHostedPurhcaseModal() {
                 </span>
                 <a href={CloudLinks.SELF_HOSTED_PRICING}>{CloudLinks.SELF_HOSTED_PRICING}</a>
             </div>
-        </LegacyGenericModal>
+        </GenericModal>
     );
 }

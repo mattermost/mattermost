@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
-import classNames from 'classnames';
 
 type Props = {
 
@@ -25,11 +25,9 @@ const BackButton = ({url, className, onClick}: Props): JSX.Element => {
     const {formatMessage} = useIntl();
 
     return (
-        <div
-            id='back_button'
-            className={classNames('signup-header', className)}
-        >
+        <div className={classNames('signup-header', className)}>
             <Link
+                data-testid='back_button'
                 onClick={onClick}
                 to={url}
             >

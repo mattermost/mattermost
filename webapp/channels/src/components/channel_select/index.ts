@@ -3,13 +3,12 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import type {GlobalState} from '@mattermost/types/store';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
-
-import {GlobalState} from '@mattermost/types/store';
 
 import ChannelSelect from './channel_select';
 

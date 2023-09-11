@@ -1,14 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {mount} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import {mount} from 'enzyme';
-
 import configureStore from 'store';
-
-import * as preferences from 'mattermost-redux/selectors/entities/preferences';
 
 import {useTasksList} from './onboarding_tasks_manager';
 
@@ -96,54 +93,5 @@ describe('onboarding tasks manager', () => {
 
         // verify visit_system_console and start_trial were removed
         expect(wrapper.findWhere((node) => node.key() === 'invite_people')).toHaveLength(0);
-    });
-
-    describe('with ReduceOnBoardingTaskList feature flag true ', () => {
-        it('removes only the ReduceOnBoardingTaskList feature flag items when user is first admin or admin', () => {
-            const store = configureStore(initialState);
-
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            preferences.isReduceOnBoardingTaskList = jest.fn().mockReturnValue('true');
-
-            const wrapper = mount(
-                <Provider store={store}>
-                    <WrapperComponent/>
-                </Provider>,
-            );
-            expect(wrapper.find('li')).toHaveLength(3);
-        });
-
-        it('removes start_trial and ReduceOnBoardingTaskList feature flag items when user is end user', () => {
-            const endUserState = {...initialState, entities: {...initialState.entities, users: {...initialState.entities.users, currentUserId: user2}}};
-            const store = configureStore(endUserState);
-
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            preferences.isReduceOnBoardingTaskList = jest.fn().mockReturnValue('true');
-
-            const wrapper = mount(
-                <Provider store={store}>
-                    <WrapperComponent/>
-                </Provider>,
-            );
-            expect(wrapper.find('li')).toHaveLength(2);
-        });
-
-        it('removes start_trial and invite people and ReduceOnBoardingTaskList feature flag items when user is GUEST user', () => {
-            const endUserState = {...initialState, entities: {...initialState.entities, users: {...initialState.entities.users, currentUserId: user3}}};
-            const store = configureStore(endUserState);
-
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            preferences.isReduceOnBoardingTaskList = jest.fn().mockReturnValue('true');
-
-            const wrapper = mount(
-                <Provider store={store}>
-                    <WrapperComponent/>
-                </Provider>,
-            );
-            expect(wrapper.find('li')).toHaveLength(1);
-        });
     });
 });

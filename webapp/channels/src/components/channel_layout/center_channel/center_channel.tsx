@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
-import classNames from 'classnames';
 
-import LoadingScreen from 'components/loading_screen';
-import PermalinkView from 'components/permalink_view';
+import {makeAsyncComponent} from 'components/async_load';
 import ChannelIdentifierRouter from 'components/channel_layout/channel_identifier_router';
 import PlaybookRunner from 'components/channel_layout/playbook_runner';
-import {makeAsyncComponent} from 'components/async_load';
+import LoadingScreen from 'components/loading_screen';
+import PermalinkView from 'components/permalink_view';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
@@ -31,16 +31,6 @@ const LazyGlobalThreads = makeAsyncComponent(
 const LazyDrafts = makeAsyncComponent(
     'LazyDrafts',
     React.lazy(() => import('components/drafts')),
-    (
-        <div className='app__content'>
-            <LoadingScreen/>
-        </div>
-    ),
-);
-
-const LazyActivityAndInsights = makeAsyncComponent(
-    'LazyActivityAndInsights',
-    React.lazy(() => import('components/activity_and_insights/activity_and_insights')),
     (
         <div className='app__content'>
             <LoadingScreen/>
@@ -80,7 +70,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
     }
 
     render() {
-        const {lastChannelPath, isCollapsedThreadsEnabled, insightsAreEnabled, isMobileView} = this.props;
+        const {lastChannelPath, isCollapsedThreadsEnabled, isMobileView} = this.props;
         const url = this.props.match.url;
 
         return (
@@ -129,12 +119,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             path='/:team/drafts'
                             component={LazyDrafts}
                         />
-                        {insightsAreEnabled ? (
-                            <Route
-                                path='/:team/activity-and-insights'
-                                component={LazyActivityAndInsights}
-                            />
-                        ) : null}
+
                         <Redirect to={lastChannelPath}/>
                     </Switch>
                 </div>

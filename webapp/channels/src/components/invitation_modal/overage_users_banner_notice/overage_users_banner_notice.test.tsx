@@ -2,17 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act, fireEvent, screen} from '@testing-library/react';
 
-import {DeepPartial} from '@mattermost/types/utilities';
-import {GlobalState} from 'types/store';
-import {General} from 'mattermost-redux/constants';
-import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {General} from 'mattermost-redux/constants';
+
 import {trackEvent} from 'actions/telemetry_actions';
+
+import {
+    act,
+    fireEvent,
+    renderWithIntlAndStore,
+    screen,
+} from 'tests/react_testing_utils';
+import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import OverageUsersBannerNotice from './index';
 

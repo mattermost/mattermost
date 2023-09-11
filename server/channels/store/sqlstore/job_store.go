@@ -10,11 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -48,7 +51,70 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	}
 
 	if _, err = jss.GetMasterX().Exec(queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to save Preference")
+		return nil, errors.Wrap(err, "failed to save Job")
+	}
+
+	return job, nil
+}
+
+func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
+	jsonData, err := json.Marshal(job.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed marshalling job data")
+	}
+	if jss.IsBinaryParamEnabled() {
+		jsonData = AppendBinaryFlag(jsonData)
+	}
+
+	tx, err := jss.GetMasterX().BeginXWithIsolation(&sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	query, args, err := jss.getQueryBuilder().
+		Select("COUNT(*)").
+		From("Jobs").
+		Where(sq.Eq{
+			"Status": []string{model.JobStatusPending, model.JobStatusInProgress},
+			"Type":   job.Type,
+		}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "job_tosql")
+	}
+
+	var count int64
+	err = tx.Get(&count, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to count pending and in-progress jobs with type=%s", job.Type)
+	}
+
+	if count > 0 {
+		return nil, nil
+	}
+
+	query, args, err = jss.getQueryBuilder().
+		Insert("Jobs").
+		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data").
+		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate sqlquery")
+	}
+
+	if _, err = tx.Exec(query, args...); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "failed to save Job")
+	}
+
+	if err = tx.Commit(); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return job, nil
@@ -136,7 +202,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	return true, nil
 }
 
-func (jss SqlJobStore) Get(id string) (*model.Job, error) {
+func (jss SqlJobStore) Get(c *request.Context, id string) (*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -144,6 +210,7 @@ func (jss SqlJobStore) Get(id string) (*model.Job, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
 	}
+
 	var status model.Job
 	if err = jss.GetReplicaX().Get(&status, query, args...); err != nil {
 		if err == sql.ErrNoRows {
@@ -151,28 +218,13 @@ func (jss SqlJobStore) Get(id string) (*model.Job, error) {
 		}
 		return nil, errors.Wrapf(err, "failed to get Job with id=%s", id)
 	}
+
+	status.InitLogger(c.Logger())
+
 	return &status, nil
 }
 
-func (jss SqlJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
-		OrderBy("CreateAt DESC").
-		Limit(uint64(limit)).
-		Offset(uint64(offset)).ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "job_tosql")
-	}
-
-	statuses := []*model.Job{}
-	if err = jss.GetReplicaX().Select(&statuses, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Jobs")
-	}
-	return statuses, nil
-}
-
-func (jss SqlJobStore) GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -188,10 +240,14 @@ func (jss SqlJobStore) GetAllByTypesPage(jobTypes []string, offset int, limit in
 	if err = jss.GetReplicaX().Select(&jobs, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with types")
 	}
+	for _, j := range jobs {
+		j.InitLogger(c.Logger())
+	}
+
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByType(c *request.Context, jobType string) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -200,14 +256,19 @@ func (jss SqlJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
 	}
+
 	statuses := []*model.Job{}
 	if err = jss.GetReplicaX().Select(&statuses, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
 	}
+	for _, j := range statuses {
+		j.InitLogger(c.Logger())
+	}
+
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -216,14 +277,19 @@ func (jss SqlJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
 	}
+
 	jobs := []*model.Job{}
 	if err = jss.GetReplicaX().Select(&jobs, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
 	}
+	for _, j := range jobs {
+		j.InitLogger(c.Logger())
+	}
+
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -239,10 +305,14 @@ func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) (
 	if err = jss.GetReplicaX().Select(&statuses, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
 	}
+	for _, j := range statuses {
+		j.InitLogger(c.Logger())
+	}
+
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByStatus(c *request.Context, status string) ([]*model.Job, error) {
 	statuses := []*model.Job{}
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
@@ -256,6 +326,10 @@ func (jss SqlJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
 	if err = jss.GetReplicaX().Select(&statuses, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with status=%s", status)
 	}
+	for _, j := range statuses {
+		j.InitLogger(c.Logger())
+	}
+
 	return statuses, nil
 }
 
@@ -341,4 +415,25 @@ func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
 	}
 
 	return nil
+}
+
+const mySQLDeadlockCode = uint16(1213)
+
+// isRepeatableError is a bit of copied code from retrylayer.go.
+// A little copying is fine because we don't want to import another package
+// in the store layer
+func isRepeatableError(err error) bool {
+	var pqErr *pq.Error
+	var mysqlErr *mysql.MySQLError
+	switch {
+	case errors.As(err, &pqErr):
+		if pqErr.Code == "40001" || pqErr.Code == "40P01" {
+			return true
+		}
+	case errors.As(err, &mysqlErr):
+		if mysqlErr.Number == mySQLDeadlockCode {
+			return true
+		}
+	}
+	return false
 }

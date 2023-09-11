@@ -4,17 +4,21 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-import * as Utils from 'utils/utils';
+import type {Command} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import BackstageList from 'components/backstage/components/backstage_list';
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {Command} from '@mattermost/types/integrations';
+import {DeveloperLinks} from 'utils/constants';
+import * as Utils from 'utils/utils';
+
 import InstalledCommand, {matchesFilter} from '../installed_command';
-import ExternalLink from 'components/external_link';
 
 type Props = {
     team: Team;
@@ -115,7 +119,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                         values={{
                             buildYourOwn: (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                    href={DeveloperLinks.SETUP_CUSTOM_SLASH_COMMANDS}
                                     location='installed_commands'
                                 >
                                     <FormattedMessage

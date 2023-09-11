@@ -3,12 +3,12 @@
 
 import {shallow} from 'enzyme';
 
-import Constants from 'utils/constants';
+import AtMention from 'components/at_mention';
+import MarkdownImage from 'components/markdown_image';
 
+import Constants from 'utils/constants';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as TextFormatting from 'utils/text_formatting';
-import MarkdownImage from 'components/markdown_image';
-import AtMention from 'components/at_mention';
 
 describe('messageHtmlToComponent', () => {
     test('plain text', () => {
@@ -43,7 +43,7 @@ const myFunction = () => {
 `;
         const html = TextFormatting.formatText(input);
 
-        expect(messageHtmlToComponent(html, false, {postId: 'randompostid'})).toMatchSnapshot();
+        expect(messageHtmlToComponent(html, {postId: 'randompostid'})).toMatchSnapshot();
     });
 
     test('html', () => {
@@ -53,7 +53,7 @@ const myFunction = () => {
 `;
         const html = TextFormatting.formatText(input);
 
-        expect(messageHtmlToComponent(html, false, {postId: 'randompostid'})).toMatchSnapshot();
+        expect(messageHtmlToComponent(html, {postId: 'randompostid'})).toMatchSnapshot();
     });
 
     test('link without enabled tooltip plugins', () => {
@@ -67,14 +67,14 @@ const myFunction = () => {
         const input = 'lorem ipsum www.dolor.com sit amet';
         const html = TextFormatting.formatText(input);
 
-        expect(messageHtmlToComponent(html, false, {hasPluginTooltips: true})).toMatchSnapshot();
+        expect(messageHtmlToComponent(html, {hasPluginTooltips: true})).toMatchSnapshot();
     });
 
     test('Inline markdown image', () => {
         const options = {markdown: true};
         const html = TextFormatting.formatText('![Mattermost](/images/icon.png) and a [link](link)', options);
 
-        const component = messageHtmlToComponent(html, false, {
+        const component = messageHtmlToComponent(html, {
             hasPluginTooltips: false,
             postId: 'post_id',
             postType: Constants.PostTypes.HEADER_CHANGE,
@@ -87,7 +87,7 @@ const myFunction = () => {
         const options = {markdown: true};
         const html = TextFormatting.formatText('[![Mattermost](images/icon.png)](images/icon.png)', options);
 
-        const component = messageHtmlToComponent(html, false, {
+        const component = messageHtmlToComponent(html, {
             hasPluginTooltips: false,
             postId: 'post_id',
             postType: Constants.PostTypes.HEADER_CHANGE,
@@ -100,7 +100,7 @@ const myFunction = () => {
         const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
         let html = TextFormatting.formatText('@joram', options);
 
-        let component = messageHtmlToComponent(html, false, {mentionHighlight: true});
+        let component = messageHtmlToComponent(html, {mentionHighlight: true});
         expect(component).toMatchSnapshot();
         expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(false);
 
@@ -108,7 +108,7 @@ const myFunction = () => {
 
         html = TextFormatting.formatText('@joram', options);
 
-        component = messageHtmlToComponent(html, false, {mentionHighlight: false});
+        component = messageHtmlToComponent(html, {mentionHighlight: false});
         expect(component).toMatchSnapshot();
         expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(true);
     });
@@ -117,7 +117,7 @@ const myFunction = () => {
         const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
         let html = TextFormatting.formatText('@developers', options);
 
-        let component = messageHtmlToComponent(html, false, {disableGroupHighlight: false});
+        let component = messageHtmlToComponent(html, {disableGroupHighlight: false});
         expect(component).toMatchSnapshot();
         expect(shallow(component).find(AtMention).prop('disableGroupHighlight')).toBe(false);
 
@@ -125,7 +125,7 @@ const myFunction = () => {
 
         html = TextFormatting.formatText('@developers', options);
 
-        component = messageHtmlToComponent(html, false, {disableGroupHighlight: true});
+        component = messageHtmlToComponent(html, {disableGroupHighlight: true});
         expect(component).toMatchSnapshot();
         expect(shallow(component).find(AtMention).prop('disableGroupHighlight')).toBe(true);
     });

@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useState, useEffect} from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
 
@@ -179,6 +179,7 @@ const Input = React.forwardRef((
                         className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                         value={value}
                         placeholder={focused ? (label && placeholder) || label : label || placeholder}
+                        aria-label={label || placeholder}
                         name={name}
                         disabled={disabled}
                         {...otherProps}

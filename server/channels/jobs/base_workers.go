@@ -6,8 +6,9 @@ package jobs
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type SimpleWorker struct {
@@ -16,6 +17,7 @@ type SimpleWorker struct {
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *JobServer
+	logger    mlog.LoggerIFace
 	execute   func(job *model.Job) error
 	isEnabled func(cfg *model.Config) bool
 }
@@ -27,6 +29,7 @@ func NewSimpleWorker(name string, jobServer *JobServer, execute func(job *model.
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
+		logger:    jobServer.Logger().With(mlog.String("workername", name)),
 		execute:   execute,
 		isEnabled: isEnabled,
 	}
@@ -34,27 +37,29 @@ func NewSimpleWorker(name string, jobServer *JobServer, execute func(job *model.
 }
 
 func (worker *SimpleWorker) Run() {
-	mlog.Debug("Worker started", mlog.String("worker", worker.name))
+	worker.logger.Debug("Worker started")
 
 	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", worker.name))
+		worker.logger.Debug("Worker finished")
 		worker.stopped <- true
 	}()
 
 	for {
 		select {
 		case <-worker.stop:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", worker.name))
+			worker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-worker.jobs:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", worker.name))
+			job.Logger = job.Logger.With(mlog.String("workername", worker.name))
+
+			job.Logger.Debug("Worker received a new candidate job")
 			worker.DoJob(&job)
 		}
 	}
 }
 
 func (worker *SimpleWorker) Stop() {
-	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
+	worker.logger.Debug("Worker stopping")
 	worker.stop <- true
 	<-worker.stopped
 }
@@ -69,48 +74,47 @@ func (worker *SimpleWorker) IsEnabled(cfg *model.Config) bool {
 
 func (worker *SimpleWorker) DoJob(job *model.Job) {
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		mlog.Warn("SimpleWorker experienced an error while trying to claim job",
-			mlog.String("worker", worker.name),
-			mlog.String("job_id", job.Id),
-			mlog.Err(err))
+		job.Logger.Warn("SimpleWorker experienced an error while trying to claim job", mlog.Err(err))
 		return
 	} else if !claimed {
 		return
 	}
 
+	c := request.EmptyContext(worker.logger)
+
 	var appErr *model.AppError
 	// We get the job again because ClaimJob changes the job status.
-	job, appErr = worker.jobServer.GetJob(job.Id)
+	job, appErr = worker.jobServer.GetJob(c, job.Id)
 	if appErr != nil {
-		mlog.Error("SimpleWorker: job execution error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
+		job.Logger.Error("SimpleWorker: job execution error", mlog.Err(appErr))
 		worker.setJobError(job, appErr)
 	}
 
 	err := worker.execute(job)
 	if err != nil {
-		mlog.Error("SimpleWorker: job execution error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		job.Logger.Error("SimpleWorker: job execution error", mlog.Err(err))
 		worker.setJobError(job, model.NewAppError("DoJob", "app.job.error", nil, "", http.StatusInternalServerError).Wrap(err))
 		return
 	}
 
-	mlog.Info("SimpleWorker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
+	job.Logger.Info("SimpleWorker: Job is complete")
 	worker.setJobSuccess(job)
 }
 
 func (worker *SimpleWorker) setJobSuccess(job *model.Job) {
 	if err := worker.jobServer.SetJobProgress(job, 100); err != nil {
-		mlog.Error("Worker: Failed to update progress for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		job.Logger.Error("Worker: Failed to update progress for job", mlog.Err(err))
 		worker.setJobError(job, err)
 	}
 
 	if err := worker.jobServer.SetJobSuccess(job); err != nil {
-		mlog.Error("SimpleWorker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		job.Logger.Error("SimpleWorker: Failed to set success for job", mlog.Err(err))
 		worker.setJobError(job, err)
 	}
 }
 
 func (worker *SimpleWorker) setJobError(job *model.Job, appError *model.AppError) {
 	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		mlog.Error("SimpleWorker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		job.Logger.Error("SimpleWorker: Failed to set job error", mlog.Err(err))
 	}
 }

@@ -4,24 +4,25 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import Constants from 'utils/constants';
+
+import ConfirmModal from 'components/confirm_modal';
+import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import SaveButton from 'components/save_button';
+import SettingItemMax from 'components/setting_item_max';
+import SettingItemMin from 'components/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import WarningIcon from 'components/widgets/icons/fa_warning_icon';
+
+import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
-import ConfirmModal from 'components/confirm_modal';
-import SettingItemMin from 'components/setting_item_min';
-import SettingItemMax from 'components/setting_item_max';
-import SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
-import SaveButton from 'components/save_button';
-
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-
-import {UserProfile} from '@mattermost/types/users';
-import ExternalLink from 'components/external_link';
 
 const SECTION_TOKENS = 'tokens';
 const TOKEN_CREATING = 'creating';
@@ -460,7 +461,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         values={{
                             linkTokens: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                     location='user_access_token_section'
                                 >
                                     {msg}
@@ -487,7 +488,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         values={{
                             linkTokens: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                     location='user_access_token_section'
                                 >
                                     {msg}

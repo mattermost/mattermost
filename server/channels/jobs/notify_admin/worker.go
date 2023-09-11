@@ -4,8 +4,8 @@
 package notify_admin
 
 import (
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
 const (
@@ -18,7 +18,7 @@ type AppIface interface {
 	DoCheckForAdminNotifications(trial bool) *model.AppError
 }
 
-func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) *jobs.SimpleWorker {
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
@@ -36,7 +36,7 @@ func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, 
 	return worker
 }
 
-func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) *jobs.SimpleWorker {
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
@@ -54,7 +54,7 @@ func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, ap
 	return worker
 }
 
-func MakeInstallPluginNotifyWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeInstallPluginNotifyWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	isEnabled := func(_ *model.Config) bool {
 		return true
 	}

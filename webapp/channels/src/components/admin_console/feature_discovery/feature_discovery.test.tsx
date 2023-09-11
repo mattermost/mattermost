@@ -2,17 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Provider as ReduxProvider} from 'react-redux';
+
+import store from 'stores/redux_store';
 
 import FeatureDiscovery from 'components/admin_console/feature_discovery/feature_discovery';
 
-import {LicenseSkus} from 'utils/constants';
+import {
+    renderWithIntl,
+    screen,
+    userEvent,
+    waitFor,
+} from 'tests/react_testing_utils';
+import {AboutLinks, LicenseSkus} from 'utils/constants';
 
 import SamlSVG from './features/images/saml_svg';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import {screen, waitFor} from '@testing-library/react';
-import {Provider as ReduxProvider} from 'react-redux';
-import store from 'stores/redux_store';
-import userEvent from '@testing-library/user-event';
 
 describe('components/feature_discovery', () => {
     describe('FeatureDiscovery', () => {
@@ -66,7 +70,7 @@ describe('components/feature_discovery', () => {
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
             expect(featureLink).toHaveTextContent('Learn more');
             expect(screen.getByText('Mattermost Software and Services License Agreement')).toHaveAttribute('href', 'https://mattermost.com/pl/software-and-services-license-agreement?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
-            expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', 'https://mattermost.com/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
+            expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', AboutLinks.PRIVACY_POLICY + '?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
@@ -120,7 +124,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.getByTestId('featureDiscovery_secondaryCallToAction')).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
 
-            expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', 'https://mattermost.com/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
+            expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', 'https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
 

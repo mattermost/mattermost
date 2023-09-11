@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
 
-import {Constants} from 'utils/constants';
+import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Channel, ChannelStats} from '@mattermost/types/channels';
+import {Constants} from 'utils/constants';
 
 const MenuItemContainer = styled.div`
     padding: 8px 16px;
@@ -99,7 +99,7 @@ interface MenuProps {
         showChannelFiles: (channelId: string) => void;
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
-        getChannelStats: (channelId: string) => Promise<{data: ChannelStats}>;
+        getChannelStats: (channelId: string, includeFileCount: boolean) => Promise<{data: ChannelStats}>;
     };
 }
 
@@ -112,7 +112,7 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
 
     useEffect(() => {
-        actions.getChannelStats(channel.id).then(() => {
+        actions.getChannelStats(channel.id, true).then(() => {
             setLoadingStats(false);
         });
         return () => {

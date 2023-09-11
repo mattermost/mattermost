@@ -8,8 +8,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *model.ViewUsersRestrictions) (*model.Group, *model.AppError) {
@@ -213,6 +213,22 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 		}
 	}
 
+	count, err := a.Srv().Store().Group().GetMemberCount(groupID)
+	if err != nil {
+		return nil, model.NewAppError("DeleteGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	deletedGroup.MemberCount = model.NewInt(int(count))
+
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
+
+	groupJSON, err := json.Marshal(deletedGroup)
+	if err != nil {
+		return nil, model.NewAppError("DeleteGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	messageWs.Add("group", string(groupJSON))
+	a.Publish(messageWs)
+
 	return deletedGroup, nil
 }
 
@@ -227,6 +243,22 @@ func (a *App) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
 			return nil, model.NewAppError("RestoreGroup", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+
+	count, err := a.Srv().Store().Group().GetMemberCount(groupID)
+	if err != nil {
+		return nil, model.NewAppError("RestoreGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	restoredGroup.MemberCount = model.NewInt(int(count))
+
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
+
+	groupJSON, err := json.Marshal(restoredGroup)
+	if err != nil {
+		return nil, model.NewAppError("RestoreGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	messageWs.Add("group", string(groupJSON))
+	a.Publish(messageWs)
 
 	return restoredGroup, nil
 }

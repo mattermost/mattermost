@@ -2,10 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {render, screen, fireEvent} from '@testing-library/react';
+
 import {trackEvent} from 'actions/telemetry_actions';
-import InviteMembersLink from './invite_members_link';
+
 import {withIntl} from 'tests/helpers/intl-test-helper';
+import {fireEvent, render, screen} from 'tests/react_testing_utils';
+
+import InviteMembersLink from './invite_members_link';
 
 jest.mock('actions/telemetry_actions', () => ({
     trackEvent: jest.fn(),

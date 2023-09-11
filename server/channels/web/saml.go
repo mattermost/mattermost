@@ -9,11 +9,12 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 const maxSAMLResponseSize = 2 * 1024 * 1024 // 2MB
@@ -57,6 +58,11 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		relayProps["redirect_to"] = redirectURL
+	}
+
+	desktopToken := r.URL.Query().Get("desktop_token")
+	if desktopToken != "" {
+		relayProps["desktop_token"] = desktopToken
 	}
 
 	relayProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
@@ -184,6 +190,30 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	desktopToken := relayProps["desktop_token"]
+	if desktopToken != "" {
+		serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
+		if serverTokenErr != nil {
+			handleError(serverTokenErr)
+			return
+		}
+
+		queryString := map[string]string{
+			"client_token": desktopToken,
+			"server_token": *serverToken,
+		}
+		if val, ok := relayProps["redirect_to"]; ok {
+			queryString["redirect_to"] = val
+		}
+		if strings.HasPrefix(desktopToken, "dev-") {
+			queryString["isDesktopDev"] = "true"
+		}
+
+		redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+		return
+	}
 
 	if hasRedirectURL {
 		if isMobile {

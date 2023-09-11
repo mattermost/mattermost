@@ -1,23 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {randomUUID} from 'crypto';
 import nock from 'nock';
 
-import {randomUUID} from 'crypto';
-
-import {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
-import {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
-import {Bot} from '@mattermost/types/bots';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {Role} from '@mattermost/types/roles';
-import {Post, PostMetadata} from '@mattermost/types/posts';
-import {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
-import {Group} from '@mattermost/types/groups';
-import {UserProfile, UserNotifyProps} from '@mattermost/types/users';
-import {Scheme} from '@mattermost/types/schemes';
-import {FileInfo} from '@mattermost/types/files';
-
 import {Client4} from '@mattermost/client';
+import type {Bot} from '@mattermost/types/bots';
+import type {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
+import type {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Group} from '@mattermost/types/groups';
+import type {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
+import type {Post, PostMetadata} from '@mattermost/types/posts';
+import type {Role} from '@mattermost/types/roles';
+import type {Scheme} from '@mattermost/types/schemes';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile, UserNotifyProps} from '@mattermost/types/users';
 
 import General from 'mattermost-redux/constants/general';
 import {generateId} from 'mattermost-redux/utils/helpers';
@@ -100,6 +98,7 @@ class TestHelper {
                 comments: 'never',
                 desktop: 'default',
                 desktop_sound: 'false',
+                calls_desktop_sound: 'true',
                 email: 'false',
                 first_name: 'false',
                 mark_unread: 'mention',
@@ -140,6 +139,7 @@ class TestHelper {
                 comments: 'never',
                 desktop: 'default',
                 desktop_sound: 'false',
+                calls_desktop_sound: 'true',
                 email: 'false',
                 first_name: 'false',
                 mark_unread: 'mention',
@@ -449,6 +449,7 @@ class TestHelper {
     fakeChannelNotifyProps = (override: Partial<ChannelNotifyProps>): ChannelNotifyProps => {
         return {
             desktop: 'default',
+            desktop_sound: 'off',
             email: 'default',
             mark_unread: 'mention',
             push: 'default',
@@ -462,6 +463,7 @@ class TestHelper {
         return {
             desktop: 'default',
             desktop_sound: 'true',
+            calls_desktop_sound: 'true',
             email: 'true',
             mark_unread: 'all',
             push: 'default',

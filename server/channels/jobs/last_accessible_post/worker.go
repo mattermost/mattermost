@@ -4,19 +4,17 @@
 package last_accessible_post
 
 import (
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-)
-
-const (
-	JobName = "LastAccessiblePost"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
 type AppIface interface {
 	ComputeLastAccessiblePostTime() error
 }
 
-func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) *jobs.SimpleWorker {
+	const workerName = "LastAccessiblePost"
+
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
@@ -25,6 +23,6 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface)
 
 		return app.ComputeLastAccessiblePostTime()
 	}
-	worker := jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }
