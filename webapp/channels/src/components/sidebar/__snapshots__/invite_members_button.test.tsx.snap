@@ -38,7 +38,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
         teamId="team_id2sss"
       >
         <Connect(ToggleModalButton)
-          ariaLabel="Invite Users"
+          ariaLabel="Invite Members"
           className="intro-links color--link cursor--pointer"
           dialogType={
             Object {
@@ -48,7 +48,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
               "type": [Function],
             }
           }
-          id="introTextInvite"
+          id="inviteMembersButton"
           modalId="invitation"
           onClick={[Function]}
         >
@@ -58,7 +58,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
                 "openModal": [Function],
               }
             }
-            ariaLabel="Invite Users"
+            ariaLabel="Invite Members"
             className="intro-links color--link cursor--pointer"
             dialogType={
               Object {
@@ -68,17 +68,17 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
                 "type": [Function],
               }
             }
-            id="introTextInvite"
+            id="inviteMembersButton"
             modalId="invitation"
             onClick={[Function]}
           >
             <button
-              aria-label="Invite Users dialog"
+              aria-label="Invite Members dialog"
               className="style--none intro-links color--link cursor--pointer"
-              id="introTextInvite"
+              id="inviteMembersButton"
               onClick={[Function]}
             >
-              <li
+              <div
                 aria-label="Invite Members"
                 className="SidebarChannelNavigator__inviteMembersLhsButton"
               >
@@ -93,7 +93,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
                     Invite Members
                   </span>
                 </FormattedMessage>
-              </li>
+              </div>
             </button>
           </ToggleModalButton>
         </Connect(ToggleModalButton)>

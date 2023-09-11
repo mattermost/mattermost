@@ -159,25 +159,25 @@ func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	return r0, r1
 }
 
-// GetFilesBatchForIndexing provides a mock function with given fields: startTime, startFileID, limit
-func (_m *FileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error) {
-	ret := _m.Called(startTime, startFileID, limit)
+// GetFilesBatchForIndexing provides a mock function with given fields: startTime, startFileID, includeDeleted, limit
+func (_m *FileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error) {
+	ret := _m.Called(startTime, startFileID, includeDeleted, limit)
 
 	var r0 []*model.FileForIndexing
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, string, int) ([]*model.FileForIndexing, error)); ok {
-		return rf(startTime, startFileID, limit)
+	if rf, ok := ret.Get(0).(func(int64, string, bool, int) ([]*model.FileForIndexing, error)); ok {
+		return rf(startTime, startFileID, includeDeleted, limit)
 	}
-	if rf, ok := ret.Get(0).(func(int64, string, int) []*model.FileForIndexing); ok {
-		r0 = rf(startTime, startFileID, limit)
+	if rf, ok := ret.Get(0).(func(int64, string, bool, int) []*model.FileForIndexing); ok {
+		r0 = rf(startTime, startFileID, includeDeleted, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.FileForIndexing)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int64, string, int) error); ok {
-		r1 = rf(startTime, startFileID, limit)
+	if rf, ok := ret.Get(1).(func(int64, string, bool, int) error); ok {
+		r1 = rf(startTime, startFileID, includeDeleted, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

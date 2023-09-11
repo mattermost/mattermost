@@ -26,6 +26,11 @@ export default class ChannelsSidebarRight {
     }
 
     async postMessage(message: string) {
+        await this.writeMessage(message);
+        await this.sendMessage();
+    }
+
+    async writeMessage(message: string) {
         await this.input.fill(message);
     }
 

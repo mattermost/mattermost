@@ -3963,6 +3963,15 @@ func testCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(deletedUser.Id)) }()
 
+	// Remote User
+	remoteId := "remote-id"
+	remoteUser, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		RemoteId: &remoteId,
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(remoteUser.Id)) }()
+
 	// Bot
 	botUser, err := ss.User().Save(&model.User{
 		Email: MakeEmail(),
@@ -4061,6 +4070,71 @@ func testCount(t *testing.T, ss store.Store) {
 			"Include bot accounts and deleted accounts with existing team id and view restrictions not allowing current team",
 			model.UserCountOptions{
 				IncludeBotAccounts: true,
+				IncludeDeleted:     true,
+				TeamId:             teamId,
+				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
+			},
+			0,
+		},
+		{
+			"Include remote accounts no deleted accounts and no team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     false,
+				TeamId:             "",
+			},
+			5,
+		},
+		{
+			"Include delete accounts no remote accounts and no team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: false,
+				IncludeDeleted:     true,
+				TeamId:             "",
+			},
+			5,
+		},
+		{
+			"Include remote accounts and deleted accounts and no team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             "",
+			},
+			6,
+		},
+		{
+			"Include remote accounts and deleted accounts with existing team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             teamId,
+			},
+			4,
+		},
+		{
+			"Include remote accounts and deleted accounts with fake team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             model.NewId(),
+			},
+			0,
+		},
+		{
+			"Include remote accounts and deleted accounts with existing team id and view restrictions allowing team",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             teamId,
+				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{teamId}},
+			},
+			4,
+		},
+		{
+			"Include remote accounts and deleted accounts with existing team id and view restrictions not allowing current team",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
 				IncludeDeleted:     true,
 				TeamId:             teamId,
 				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},

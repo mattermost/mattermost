@@ -151,70 +151,6 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"Insights professional license",
-			&model.Config{
-				FeatureFlags: &model.FeatureFlags{
-					InsightsEnabled: true,
-				},
-			},
-			"",
-			&model.License{
-				Features:     &model.Features{},
-				SkuShortName: model.LicenseShortSkuProfessional,
-			},
-			map[string]string{
-				"InsightsEnabled": "true",
-			},
-		},
-		{
-			"Insights enterprise license",
-			&model.Config{
-				FeatureFlags: &model.FeatureFlags{
-					InsightsEnabled: true,
-				},
-			},
-			"",
-			&model.License{
-				Features:     &model.Features{},
-				SkuShortName: model.LicenseShortSkuEnterprise,
-			},
-			map[string]string{
-				"InsightsEnabled": "true",
-			},
-		},
-		{
-			"Insights other license",
-			&model.Config{
-				FeatureFlags: &model.FeatureFlags{
-					InsightsEnabled: true,
-				},
-			},
-			"",
-			&model.License{
-				Features:     &model.Features{},
-				SkuShortName: "other",
-			},
-			map[string]string{
-				"InsightsEnabled": "true",
-			},
-		},
-		{
-			"Insights professional license, feature flag disabled",
-			&model.Config{
-				FeatureFlags: &model.FeatureFlags{
-					InsightsEnabled: false,
-				},
-			},
-			"",
-			&model.License{
-				Features:     &model.Features{},
-				SkuShortName: model.LicenseShortSkuProfessional,
-			},
-			map[string]string{
-				"InsightsEnabled": "false",
-			},
-		},
-		{
 			"Custom groups professional license",
 			&model.Config{},
 			"",
@@ -240,11 +176,7 @@ func TestGetClientConfig(t *testing.T) {
 		},
 		{
 			"Custom groups other license",
-			&model.Config{
-				FeatureFlags: &model.FeatureFlags{
-					InsightsEnabled: true,
-				},
-			},
+			&model.Config{},
 			"",
 			&model.License{
 				Features:     &model.Features{},
@@ -337,6 +269,41 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"DisableAppBar": "true",
+			},
+		},
+		{
+			"default EnableJoinLeaveMessage",
+			&model.Config{},
+			"tag1",
+			nil,
+			map[string]string{
+				"EnableJoinLeaveMessageByDefault": "true",
+			},
+		},
+		{
+			"disable EnableJoinLeaveMessage",
+			&model.Config{
+				TeamSettings: model.TeamSettings{
+					EnableJoinLeaveMessageByDefault: model.NewBool(false),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"EnableJoinLeaveMessageByDefault": "false",
+			},
+		},
+		{
+			"test key for GiphySdkKey",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					GiphySdkKey: model.NewString(""),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"GiphySdkKey": model.ServiceSettingsDefaultGiphySdkKeyTest,
 			},
 		},
 	}

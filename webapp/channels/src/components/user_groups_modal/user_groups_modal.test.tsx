@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 
-import {shallow} from 'enzyme';
-
-import {Group} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
 
 import UserGroupsModal from './user_groups_modal';
 
@@ -14,6 +13,7 @@ describe('component/user_groups_modal', () => {
         onExited: jest.fn(),
         groups: [],
         myGroups: [],
+        archivedGroups: [],
         searchTerm: '',
         currentUserId: '',
         backButtonAction: jest.fn(),
@@ -69,53 +69,5 @@ describe('component/user_groups_modal', () => {
             />,
         );
         expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot with groups, myGroups selected', () => {
-        const groups = getGroups(3);
-        const myGroups = getGroups(1);
-
-        const wrapper = shallow(
-            <UserGroupsModal
-                {...baseProps}
-                groups={groups}
-                myGroups={myGroups}
-            />,
-        );
-
-        wrapper.setState({selectedFilter: 'my'});
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot with groups, search group1', () => {
-        const groups = getGroups(3);
-        const myGroups = getGroups(1);
-
-        const wrapper = shallow(
-            <UserGroupsModal
-                {...baseProps}
-                groups={groups}
-                myGroups={myGroups}
-                searchTerm='group1'
-            />,
-        );
-
-        const instance = wrapper.instance() as UserGroupsModal;
-
-        const e = {
-            target: {
-                value: '',
-            },
-        };
-        instance.handleSearch(e as React.ChangeEvent<HTMLInputElement>);
-        expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.setModalSearchTerm).toBeCalledWith('');
-
-        e.target.value = 'group1';
-        instance.handleSearch(e as React.ChangeEvent<HTMLInputElement>);
-        expect(wrapper.state('loading')).toEqual(true);
-        expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(2);
-        expect(baseProps.actions.setModalSearchTerm).toBeCalledWith(e.target.value);
     });
 });

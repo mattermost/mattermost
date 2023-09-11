@@ -4,22 +4,23 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AdminConfig} from '@mattermost/types/config';
+import type {AdminConfig} from '@mattermost/types/config';
 
 import {recycleDatabaseConnection, ping} from 'actions/admin_actions';
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
 
 import ExternalLink from 'components/external_link';
 
-import AdminSettings, {BaseState} from './admin_settings';
+import {DocLinks} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
+
+import type {BaseState} from './admin_settings';
+import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
+import MigrationsTable from './database';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
-
-import MigrationsTable from './database';
-import {DocLinks} from 'utils/constants';
 
 interface Props {
     license: {

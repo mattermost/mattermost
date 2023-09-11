@@ -15,6 +15,12 @@
   "env": {
     "cypress/globals": true
   },
+  "settings": {
+    "react": {
+        "pragma": "React",
+        "version": "detect"
+    }
+  },
   "rules": {
     "header/header": [
       2,

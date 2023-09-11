@@ -61,15 +61,9 @@ tags:
 
       * [Mattermost Golang Driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/client4.go)
 
-
       #### Community-built Drivers
 
-      * [PHP Driver](https://github.com/gnello/php-mattermost-driver) - built by [@gnello](https://github.com/gnello) and [@prixone](https://github.com/prixone)
-
-      * [Python Driver](https://github.com/Vaelor/python-mattermost-driver) - built by [@Vaelor](https://github.com/Vaelor)
-
-
-      For other community-built drivers and API wrappers, see [our app directory](https://mattermost.com/marketplace/).
+      For community-built drivers and API wrappers, see [our app directory](https://mattermost.com/marketplace/).
   - name: authentication
     description: >
       There are multiple ways to authenticate against the Mattermost API.
@@ -579,8 +573,6 @@ tags:
     description: Endpoints for interactive actions for use by integrations.
   - name: shared channels
     description: Endpoints for getting information about shared channels.
-  - name: insights
-    description: Endpoints for getting insights into teams and users.
   - name: terms of service
     description: Endpoints for getting and updating custom terms of service.
   - name: imports
@@ -635,7 +627,6 @@ x-tagGroups:
       - schemes
       - integration_actions
       - shared channels
-      - insights
       - terms of service
       - imports
       - permissions

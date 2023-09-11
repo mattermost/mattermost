@@ -20,7 +20,7 @@ export default class ChannelsPostCreate {
         this.sendMessageButton = container.getByTestId('SendMessageButton');
     }
 
-    async postMessage(message: string) {
+    async writeMessage(message: string) {
         await this.input.fill(message);
     }
 

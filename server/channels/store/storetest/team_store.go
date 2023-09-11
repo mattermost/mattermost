@@ -73,7 +73,6 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, ss) })
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, ss) })
 	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, ss) })
-	t.Run("GetNewTeamMembersSince", func(t *testing.T) { testGetNewTeamMembersSince(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -3618,18 +3617,4 @@ func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
 	countAfter, err := ss.Team().GroupSyncedTeamCount()
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, countAfter, count+1)
-}
-
-func testGetNewTeamMembersSince(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName:      NewTestId(),
-		Name:             NewTestId(),
-		Email:            MakeEmail(),
-		Type:             model.TeamInvite,
-		GroupConstrained: model.NewBool(true),
-	})
-	require.NoError(t, err)
-
-	_, _, err = ss.Team().GetNewTeamMembersSince(team.Id, 0, 0, 1000, false)
-	require.NoError(t, err)
 }

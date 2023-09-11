@@ -71,7 +71,6 @@ exports[`plugins/PostMessageView should match snapshot with no extended post typ
   text="this is some text"
 >
   <div
-    aria-readonly="true"
     className="post-message__text"
     dir="auto"
     id="postMessageText_post_id"
@@ -85,7 +84,6 @@ exports[`plugins/PostMessageView should match snapshot with no extended post typ
           "onImageLoaded": [Function],
         }
       }
-      isRHS={false}
       mentionKeys={Array []}
       message="this is some text"
       options={Object {}}

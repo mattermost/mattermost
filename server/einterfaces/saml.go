@@ -5,7 +5,7 @@ package einterfaces
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type SamlInterface interface {

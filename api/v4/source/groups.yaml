@@ -275,6 +275,43 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/restore":
+    post:
+      tags:
+        - groups
+      summary: Restore a previously deleted group.
+      description: >
+        Restores a previously deleted custom group, allowing it to be used normally.
+
+        May not be used with LDAP groups.
+
+        ##### Permissions
+        Must have `restore_custom_group` permission for the given group.
+
+        __Minimum server version__: 7.7
+      operationId: RestoreGroup
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Group restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/groups/{group_id}/teams/{team_id}/link":
     post:
       tags:

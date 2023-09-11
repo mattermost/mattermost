@@ -16,10 +16,8 @@ exports[`components/TextBox should match snapshot with additional, optional prop
         "render": [Function],
       }
     }
-    isRHS={true}
     listComponent={[Function]}
     listPosition="top"
-    listenForMentionKeyClick={true}
     onBlur={[Function]}
     onChange={[Function]}
     onComposition={[Function]}
@@ -109,7 +107,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "hideUtilities": true,
         }
       }
-      isRHS={true}
       mentionKeys={Array []}
       message="some test text"
     />
@@ -132,9 +129,7 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
         "render": [Function],
       }
     }
-    isRHS={false}
     listComponent={[Function]}
-    listenForMentionKeyClick={false}
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
@@ -225,9 +220,7 @@ exports[`components/TextBox should throw error when new property is too long 1`]
         "render": [Function],
       }
     }
-    isRHS={false}
     listComponent={[Function]}
-    listenForMentionKeyClick={false}
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
@@ -318,9 +311,7 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
         "render": [Function],
       }
     }
-    isRHS={false}
     listComponent={[Function]}
-    listenForMentionKeyClick={false}
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}

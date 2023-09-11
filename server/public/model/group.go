@@ -133,6 +133,12 @@ type GroupSearchOpts struct {
 
 	IncludeChannelMemberCount string
 	IncludeTimezones          bool
+
+	// Include archived groups
+	IncludeArchived bool
+
+	// Only return archived groups
+	FilterArchived bool
 }
 
 type GetGroupOpts struct {

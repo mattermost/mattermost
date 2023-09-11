@@ -41,15 +41,14 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     await lastPostByAdmin.postMenu.toBeVisible();
     await lastPostByAdmin.postMenu.reply();
 
-    // # Write a message as a user
+    // # Post a message as a user
     const sidebarRight = channelPage.sidebarRight;
     await sidebarRight.toBeVisible();
     await sidebarRight.postMessage('Replying to a thread');
-    await sidebarRight.sendMessage();
 
     // # Write a message in the reply thread but don't send it now so that it becomes a draft
     const draftMessageByUser = 'I should be in drafts by User';
-    await sidebarRight.postMessage(draftMessageByUser);
+    await sidebarRight.writeMessage(draftMessageByUser);
 
     // # Close the RHS for draft to be saved
     await sidebarRight.close();
@@ -92,7 +91,6 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
 
     // # Post a message in the channel
     await channelPage.postMessage('Message which will be deleted');
-    await channelPage.sendMessage();
 
     // # Start a thread by clicking on reply menuitem from post options menu
     const post = await channelPage.getLastPost();
@@ -103,12 +101,11 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     const sidebarRight = channelPage.sidebarRight;
     await sidebarRight.toBeVisible();
 
-    // # Write a message in the thread
+    // # Post a message in the thread
     await sidebarRight.postMessage('Replying to a thread');
-    await sidebarRight.sendMessage();
 
     // # Write a message in the reply thread but don't send it
-    await sidebarRight.postMessage('I should be in drafts');
+    await sidebarRight.writeMessage('I should be in drafts');
 
     // # Close the RHS for draft to be saved
     await sidebarRight.close();
@@ -121,7 +118,7 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     await post.postMenu.toBeVisible();
     await post.postMenu.openDotMenu();
     await channelPage.postDotMenu.toBeVisible();
-    await channelPage.postDotMenu.delete();
+    await channelPage.postDotMenu.deleteMenuItem.click();
 
     // # Confirm the delete from the modal
     await channelPage.deletePostModal.toBeVisible();

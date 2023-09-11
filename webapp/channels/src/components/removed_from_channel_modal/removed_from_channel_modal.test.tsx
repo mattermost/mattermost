@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 
-import {shallow} from 'enzyme';
+import RemovedFromChannelModal from 'components/removed_from_channel_modal/removed_from_channel_modal';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-
-import RemovedFromChannelModal from 'components/removed_from_channel_modal/removed_from_channel_modal';
 
 describe('components/RemoveFromChannelModal', () => {
     const baseProps = {

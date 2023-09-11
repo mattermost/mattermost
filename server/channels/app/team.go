@@ -21,9 +21,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
@@ -2057,21 +2057,21 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 	return nil
 }
 
-func (a *App) InvalidateAllEmailInvites() *model.AppError {
+func (a *App) InvalidateAllEmailInvites(c *request.Context) *model.AppError {
 	if err := a.Srv().Store().Token().RemoveAllTokensByType(TokenTypeTeamInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if err := a.Srv().Store().Token().RemoveAllTokensByType(TokenTypeGuestInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if err := a.InvalidateAllResendInviteEmailJobs(); err != nil {
+	if err := a.InvalidateAllResendInviteEmailJobs(c); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
 
-func (a *App) InvalidateAllResendInviteEmailJobs() *model.AppError {
-	jobs, appErr := a.Srv().Jobs.GetJobsByTypeAndStatus(model.JobTypeResendInvitationEmail, model.JobStatusPending)
+func (a *App) InvalidateAllResendInviteEmailJobs(c *request.Context) *model.AppError {
+	jobs, appErr := a.Srv().Jobs.GetJobsByTypeAndStatus(c, model.JobTypeResendInvitationEmail, model.JobStatusPending)
 	if appErr != nil {
 		return appErr
 	}
@@ -2115,18 +2115,4 @@ func (a *App) ClearTeamMembersCache(teamID string) error {
 		page++
 	}
 	return nil
-}
-
-func (a *App) GetNewTeamMembersSince(c request.CTX, teamID string, opts *model.InsightsOpts) (*model.NewTeamMembersList, int64, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, 0, model.NewAppError("GetNewTeamMembersSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	showFullName := *a.Config().PrivacySettings.ShowFullName || a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
-	ntms, count, err := a.Srv().Store().Team().GetNewTeamMembersSince(teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage, showFullName)
-	if err != nil {
-		return nil, 0, model.NewAppError("GetNewTeamMembersSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return ntms, count, nil
 }
