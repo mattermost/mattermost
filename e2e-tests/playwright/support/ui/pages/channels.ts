@@ -18,11 +18,10 @@ export default class ChannelsPage {
     readonly appBar;
 
     readonly findChannelsModal;
-    readonly header;
-    readonly headerMobile;
+    readonly deletePostModal;
+    
     readonly postDotMenu;
     readonly postReminderMenu;
-    readonly deletePostModal;
 
     constructor(page: Page) {
         this.page = page;
@@ -34,13 +33,21 @@ export default class ChannelsPage {
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
         this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
 
-        // Other components which opens in portal such as modals, popovers, etc
+        // Modals        
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
-        this.header = new components.ChannelsHeader(page.locator('.channel-header'));
-        this.headerMobile = new components.ChannelsHeaderMobile(page.locator('.navbar'));
+        this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
+
+        // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
-        this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
+    }
+
+    async toBeVisible() {
+        if (!isSmallScreen(this.page.viewportSize())) {
+            await this.globalHeader.toBeVisible(this.channels);
+        }
+
+        await this.centerView.toBeVisible();
     }
 
     async goto(teamName = '', channelName = '') {
@@ -54,15 +61,6 @@ export default class ChannelsPage {
 
         await this.page.goto(channelsUrl);
     }
-
-    async toBeVisible() {
-        if (!isSmallScreen(this.page.viewportSize())) {
-            await this.globalHeader.toBeVisible(this.channels);
-        }
-
-        await this.centerView.toBeVisible();
-    }
-
 }
 
 export {ChannelsPage};

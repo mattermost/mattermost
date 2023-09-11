@@ -10,11 +10,15 @@ import {duration} from '@e2e-support/util';
 export default class ChannelsCenterView {
     readonly container: Locator;
 
+    readonly header;
+    readonly headerMobile;
     readonly postCreate;
 
     constructor(container: Locator) {
         this.container = container;
 
+        this.header = new components.ChannelsHeader(this.container.locator('.channel-header'));
+        this.headerMobile = new components.ChannelsHeaderMobile(this.container.locator('.navbar'));
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('post-create'));
     }
 
