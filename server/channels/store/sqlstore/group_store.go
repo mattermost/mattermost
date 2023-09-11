@@ -304,17 +304,16 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 	groups := []*model.Group{}
 
-	query := `
-		SELECT
-			UserGroups.*
-		FROM
-			GroupMembers
-			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
-		WHERE
-			GroupMembers.DeleteAt = 0
-			AND UserId = ?`
+	builder := s.getQueryBuilder().
+		Select("UserGroups.*").
+		From("GroupMembers").
+		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Where(sq.Eq{
+			"GroupMembers.DeleteAt": 0,
+			"UserId":                userId,
+		})
 
-	if err := s.GetReplicaX().Select(&groups, query, userId); err != nil {
+	if err := s.GetReplicaX().SelectBuilder(&groups, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups with userId=%s", userId)
 	}
 
@@ -424,40 +423,33 @@ func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 }
 
 func (s *SqlGroupStore) GetMember(groupID, userID string) (*model.GroupMember, error) {
-	query, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Select("*").
 		From("GroupMembers").
 		Where(sq.Eq{"UserId": userID}).
 		Where(sq.Eq{"GroupId": groupID}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "get_member_query")
-	}
+		Where(sq.Eq{"DeleteAt": 0})
 	var groupMember model.GroupMember
-	err = s.GetReplicaX().Get(&groupMember, query, args...)
-	if err != nil {
+	if err := s.GetReplicaX().GetBuilder(&groupMember, builder); err != nil {
 		return nil, errors.Wrap(err, "GetMember")
 	}
-
 	return &groupMember, nil
 }
 
 func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := `
-		SELECT
-			Users.*
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0
-			AND GroupId = ?`
+	builder := s.getQueryBuilder().
+		Select("Users.*").
+		From("GroupMembers").
+		Join("Users ON Users.Id = GroupMembers.UserId").
+		Where(sq.Eq{
+			"GroupMembers.DeleteAt": 0,
+			"Users.DeleteAt":        0,
+			"GroupId":               groupID,
+		})
 
-	if err := s.GetReplicaX().Select(&groupMembers, query, groupID); err != nil {
+	if err := s.GetReplicaX().SelectBuilder(&groupMembers, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
@@ -529,11 +521,16 @@ func (s *SqlGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPa
 func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	if err := s.GetReplicaX().Get(&model.Group{}, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{"Id": groupID})
+
+	if err := s.GetReplicaX().GetBuilder(&model.Group{}, builder); err != nil {
 		return nil, errors.Wrap(err, "GetNonMemberUsersPage")
 	}
 
-	query := s.getQueryBuilder().
+	builder = s.getQueryBuilder().
 		Select("u.*").
 		From("Users u").
 		LeftJoin("GroupMembers ON (GroupMembers.UserId = u.Id AND GroupMembers.GroupId = ?)", groupID).
@@ -543,14 +540,9 @@ func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage 
 		Offset(uint64(page * perPage)).
 		OrderBy("u.Username ASC")
 
-	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+	builder = applyViewRestrictionsFilter(builder, viewRestrictions, true)
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "")
-	}
-
-	if err := s.GetReplicaX().Select(&groupMembers, queryString, args...); err != nil {
+	if err := s.GetReplicaX().SelectBuilder(&groupMembers, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
@@ -674,7 +666,10 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 }
 
 func (s *SqlGroupStore) PermanentDeleteMembersByUser(userId string) error {
-	if _, err := s.GetMasterX().Exec("DELETE FROM GroupMembers WHERE UserId = ?", userId); err != nil {
+	builder := s.getQueryBuilder().
+		Delete("GroupMembers").
+		Where(sq.Eq{"UserId": userId})
+	if _, err := s.GetMasterX().ExecBuilder(builder); err != nil {
 		return errors.Wrapf(err, "failed to permanent delete GroupMember with userId=%s", userId)
 	}
 	return nil
