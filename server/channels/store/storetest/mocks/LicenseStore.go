@@ -69,29 +69,17 @@ func (_m *LicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 }
 
 // Save provides a mock function with given fields: license
-func (_m *LicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
+func (_m *LicenseStore) Save(license *model.LicenseRecord) error {
 	ret := _m.Called(license)
 
-	var r0 *model.LicenseRecord
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.LicenseRecord) (*model.LicenseRecord, error)); ok {
-		return rf(license)
-	}
-	if rf, ok := ret.Get(0).(func(*model.LicenseRecord) *model.LicenseRecord); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.LicenseRecord) error); ok {
 		r0 = rf(license)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.LicenseRecord)
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.LicenseRecord) error); ok {
-		r1 = rf(license)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 type mockConstructorTestingTNewLicenseStore interface {

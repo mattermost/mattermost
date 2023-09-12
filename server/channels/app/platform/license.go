@@ -168,7 +168,7 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
 
-	_, nErr := ps.Store.License().Save(record)
+	nErr := ps.Store.License().Save(record)
 	if nErr != nil {
 		ps.RemoveLicense()
 		var appErr *model.AppError

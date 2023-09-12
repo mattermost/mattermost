@@ -25,40 +25,35 @@ func newSqlLicenseStore(sqlStore *SqlStore) store.LicenseStore {
 
 // Save validates and stores the license instance in the database. The Id
 // and Bytes fields are mandatory. The Bytes field is limited to a maximum
-// of 10000 bytes. If the license ID matches an existing license in the
-// database it returns the license stored in the database. If not, it saves the
-// new database and returns the created license with the CreateAt field
-// updated.
-func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
+// of 10000 bytes. Provided license is saved only if missing.
+func (ls SqlLicenseStore) Save(license *model.LicenseRecord) error {
 	license.PreSave()
 	if err := license.IsValid(); err != nil {
-		return nil, err
+		return err
 	}
+
 	query := ls.getQueryBuilder().
-		Select("Id, CreateAt, Bytes").
-		From("Licenses").
-		Where(sq.Eq{"Id": license.Id})
+		Insert("Licenses").
+		Columns("Id", "CreateAt", "Bytes").
+		Values(license.Id, license.CreateAt, license.Bytes)
+
+	if ls.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Id=Id"))
+	} else {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (Id) DO NOTHING"))
+	}
+
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "license_tosql")
+		return errors.Wrap(err, "license_tosql")
 	}
-	var storedLicense model.LicenseRecord
-	if err := ls.GetMasterX().Get(&storedLicense, queryString, args...); err != nil {
-		// Only insert if not exists
-		query, args, err := ls.getQueryBuilder().
-			Insert("Licenses").
-			Columns("Id", "CreateAt", "Bytes").
-			Values(license.Id, license.CreateAt, license.Bytes).
-			ToSql()
-		if err != nil {
-			return nil, errors.Wrap(err, "license_record_tosql")
-		}
-		if _, err := ls.GetMasterX().Exec(query, args...); err != nil {
-			return nil, errors.Wrapf(err, "failed to get License with licenseId=%s", license.Id)
-		}
-		return license, nil
+
+	if _, err := ls.GetMasterX().Exec(queryString, args...); err != nil {
+		return errors.Wrapf(err, "failed to insert License with licenseId=%s", license.Id)
 	}
-	return &storedLicense, nil
+
+	return nil
+
 }
 
 // Get obtains the license with the provided id parameter from the database.

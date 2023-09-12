@@ -5215,7 +5215,7 @@ func (s *OpenTracingLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) 
 	return result, err
 }
 
-func (s *OpenTracingLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
+func (s *OpenTracingLayerLicenseStore) Save(license *model.LicenseRecord) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "LicenseStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -5224,13 +5224,13 @@ func (s *OpenTracingLayerLicenseStore) Save(license *model.LicenseRecord) (*mode
 	}()
 
 	defer span.Finish()
-	result, err := s.LicenseStore.Save(license)
+	err := s.LicenseStore.Save(license)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return err
 }
 
 func (s *OpenTracingLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
