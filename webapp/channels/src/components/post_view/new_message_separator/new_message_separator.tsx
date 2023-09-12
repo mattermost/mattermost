@@ -3,9 +3,10 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {PluginComponent} from 'types/store/plugins';
 
 import NotificationSeparator from 'components/widgets/separator/notification-separator';
+
+import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     separatorId: string;

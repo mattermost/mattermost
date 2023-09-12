@@ -3,13 +3,12 @@
 
 import {combineReducers} from 'redux';
 
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {Team} from '@mattermost/types/teams';
+import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
+
 import {ChannelCategoryTypes, TeamTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {ChannelCategory} from '@mattermost/types/channel_categories';
-import {Team} from '@mattermost/types/teams';
-import {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
-
+import type {GenericAction} from 'mattermost-redux/types/actions';
 import {removeItem} from 'mattermost-redux/utils/array_utils';
 
 export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: GenericAction) {

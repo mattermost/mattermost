@@ -1,22 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import type {Props} from 'components/advanced_create_comment/advanced_create_comment';
+import AdvancedCreateComment from 'components/advanced_create_comment/advanced_create_comment';
+import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
 import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers.js';
-
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {execCommandInsertText} from 'utils/exec_commands';
-
-import AdvancedCreateComment, {Props} from 'components/advanced_create_comment/advanced_create_comment';
-import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {PostDraft} from 'types/store/draft';
-import {ServerError} from '@mattermost/types/errors';
 import {TestHelper} from 'utils/test_helper';
-import {FileInfo} from '@mattermost/types/files';
+
+import type {PostDraft} from 'types/store/draft';
+
 jest.mock('utils/exec_commands', () => ({
     execCommandInsertText: jest.fn(),
 }));

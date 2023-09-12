@@ -5,7 +5,7 @@ import React from 'react';
 import {Button, Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {LogObject} from '@mattermost/types/admin';
+import type {LogObject} from '@mattermost/types/admin';
 
 type Props = {
     log: LogObject | null;
@@ -100,18 +100,19 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                             defaultMessage='Log Event'
                         />
                     </Modal.Title>
-                    {this.state.copySuccess ?
+                    {this.state.copySuccess ? (
                         <FormattedMessage
                             id='admin.server_logs.DataCopied'
                             defaultMessage='Data copied'
-                        /> :
+                        />
+                    ) : (
                         <Button onClick={this.copyLog}>
                             <FormattedMessage
                                 id='admin.server_logs.CopyLog'
                                 defaultMessage='Copy log'
                             />
                         </Button>
-                    }
+                    )}
                 </Modal.Header>
                 <Modal.Body>
                     {this.renderContents()}
@@ -127,17 +128,19 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                             defaultMessage='Cancel'
                         />
                     </button>
-                    {this.state.exportSuccess ?
+                    {this.state.exportSuccess ? (
                         <FormattedMessage
                             id='admin.server_logs.Exported'
                             defaultMessage='Exported'
-                        /> :
+                        />
+                    ) : (
                         <Button onClick={this.exportToCsv}>
                             <FormattedMessage
                                 id='admin.server_logs.Export'
                                 defaultMessage='Export'
                             />
-                        </Button>}
+                        </Button>
+                    )}
                 </Modal.Footer>
             </Modal>
         );

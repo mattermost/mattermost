@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent, memo, useState, KeyboardEvent} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
 import classNames from 'classnames';
+import React, {memo, useState} from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {
     SortAlphabeticalAscendingIcon,
@@ -13,22 +15,20 @@ import {
     DotsVerticalIcon,
     ChevronRightIcon,
 } from '@mattermost/compass-icons/components';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import {CategorySorting} from '@mattermost/types/channel_categories';
 
-import {ChannelCategory, CategorySorting} from '@mattermost/types/channel_categories';
-
+import {setCategorySorting} from 'mattermost-redux/actions/channel_categories';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Preferences} from 'mattermost-redux/constants';
-
-import Constants from 'utils/constants';
+import {getVisibleDmGmLimit} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import * as Menu from 'components/menu';
 
-import {useDispatch, useSelector} from 'react-redux';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getVisibleDmGmLimit} from 'mattermost-redux/selectors/entities/preferences';
-import {setCategorySorting} from 'mattermost-redux/actions/channel_categories';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
+import Constants from 'utils/constants';
 
 type Props = {
     category: ChannelCategory;

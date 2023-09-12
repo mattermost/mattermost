@@ -8,10 +8,10 @@ import {GenericModal} from '@mattermost/components';
 
 import DateTimeInput, {getRoundedTime} from 'components/custom_status/date_time_input';
 
-import {isKeyPressed} from 'utils/keyboard';
-import {toUTCUnix} from 'utils/datetime';
-import {getCurrentMomentForTimezone} from 'utils/timezone';
 import Constants from 'utils/constants';
+import {toUTCUnix} from 'utils/datetime';
+import {isKeyPressed} from 'utils/keyboard';
+import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 import type {PropsFromRedux} from './index';
 import './post_reminder_custom_time_picker_modal.scss';

@@ -9,26 +9,27 @@ import {
     getTeammateNameDisplaySetting,
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
+import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {isThreadOpen} from 'selectors/views/threads';
 import {getChannelURL, getPermalinkURL} from 'selectors/urls';
+import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
-import * as NotificationSounds from 'utils/notification_sounds';
-import {showNotification} from 'utils/notifications';
-import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
-import {runDesktopNotificationHooks} from './hooks';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
-import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
+import * as NotificationSounds from 'utils/notification_sounds';
+import {showNotification} from 'utils/notifications';
 import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
+import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
+import * as Utils from 'utils/utils';
+
+import {runDesktopNotificationHooks} from './hooks';
 
 const NOTIFY_TEXT_MAX_LENGTH = 50;
 

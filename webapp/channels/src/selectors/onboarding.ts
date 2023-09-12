@@ -5,13 +5,13 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetCategory, getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
-
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {GlobalState} from 'types/store';
+import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
 import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 const getCategory = makeGetCategory();
 export const getABTestPreferences = (() => {

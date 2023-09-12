@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+
+import type {UsersState} from '@mattermost/types/users';
+
+import Permissions from 'mattermost-redux/constants/permissions';
+
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
-import {GlobalState} from 'types/store';
-import Permissions from 'mattermost-redux/constants/permissions';
-import {UsersState} from '@mattermost/types/users';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import type {GlobalState} from 'types/store';
 
 import AddChannelsCtaButton from './add_channels_cta_button';
 

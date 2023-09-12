@@ -2,14 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {selectChannel} from 'mattermost-redux/actions/channels';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
-import {LhsItemType} from 'types/store/lhs';
-import Constants, {ActionTypes} from 'utils/constants';
-import {getHistory} from 'utils/browser_history';
 import {SidebarSize} from 'components/resizable_sidebar/constants';
+
+import {getHistory} from 'utils/browser_history';
+import Constants, {ActionTypes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+import {LhsItemType} from 'types/store/lhs';
 
 export const setLhsSize = (sidebarSize?: SidebarSize) => {
     let newSidebarSize = sidebarSize;

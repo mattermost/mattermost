@@ -4,26 +4,25 @@
 import mockStore from 'tests/test_store';
 
 import {
-    Client4,
-    AppBinding,
-    checkForExecuteSuggestion,
-} from './tests/app_command_parser_test_dependencies';
-
-import {
-    AppCallResponseTypes,
-    AutocompleteSuggestion,
-} from './app_command_parser_dependencies';
-
-import {
     AppCommandParser,
     ParseState,
     ParsedCommand,
 } from './app_command_parser';
-
+import {
+    AppCallResponseTypes,
+} from './app_command_parser_dependencies';
+import type {
+    AutocompleteSuggestion} from './app_command_parser_dependencies';
 import {
     reduxTestState,
     testBindings,
 } from './tests/app_command_parser_test_data';
+import {
+    Client4,
+    checkForExecuteSuggestion,
+} from './tests/app_command_parser_test_dependencies';
+import type {
+    AppBinding} from './tests/app_command_parser_test_dependencies';
 
 const getOpenInModalOption = (command: string) => {
     return {

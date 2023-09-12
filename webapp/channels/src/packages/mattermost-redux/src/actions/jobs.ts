@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {JobType, Job} from '@mattermost/types/jobs';
+
 import {JobTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {General} from '../constants';
-
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {JobType, Job} from '@mattermost/types/jobs';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
+
+import {General} from '../constants';
+
 export function createJob(job: Job): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.createJob,

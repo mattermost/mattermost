@@ -1,35 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentType, useRef} from 'react';
-import {match, Route, Switch} from 'react-router-dom';
+import React, {useRef} from 'react';
+import type {ComponentType} from 'react';
+import {Route, Switch} from 'react-router-dom';
+import type {match} from 'react-router-dom';
 import {createGlobalStyle} from 'styled-components';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Team} from '@mattermost/types/teams';
-
-import Bots from 'components/integrations/bots';
-import AddBot from 'components/integrations/bots/add_bot';
-import Integrations from 'components/integrations';
 import Emoji from 'components/emoji';
 import AddEmoji from 'components/emoji/add_emoji';
-import InstalledIncomingWebhooks from 'components/integrations/installed_incoming_webhooks';
+import Integrations from 'components/integrations';
 import AddIncomingWehook from 'components/integrations/add_incoming_webhook';
-import EditIncomingWebhook from 'components/integrations/edit_incoming_webhook';
-import InstalledOutgoingWebhooks from 'components/integrations/installed_outgoing_webhooks';
-import AddOutgoingWebhook from 'components/integrations/add_outgoing_webhook';
-import EditOutgoingWebhook from 'components/integrations/edit_outgoing_webhook';
-import InstalledOauthApps from 'components/integrations/installed_oauth_apps';
 import AddOauthApp from 'components/integrations/add_oauth_app';
-import EditOauthApp from 'components/integrations/edit_oauth_app';
+import AddOutgoingWebhook from 'components/integrations/add_outgoing_webhook';
+import Bots from 'components/integrations/bots';
+import AddBot from 'components/integrations/bots/add_bot';
 import CommandsContainer from 'components/integrations/commands_container';
 import ConfirmIntegration from 'components/integrations/confirm_integration';
+import EditIncomingWebhook from 'components/integrations/edit_incoming_webhook';
+import EditOauthApp from 'components/integrations/edit_oauth_app';
+import EditOutgoingWebhook from 'components/integrations/edit_outgoing_webhook';
+import InstalledIncomingWebhooks from 'components/integrations/installed_incoming_webhooks';
+import InstalledOauthApps from 'components/integrations/installed_oauth_apps';
+import InstalledOutgoingWebhooks from 'components/integrations/installed_outgoing_webhooks';
 
 import Pluggable from 'plugins/pluggable';
 
-import BackstageSidebar from './components/backstage_sidebar';
 import BackstageNavbar from './components/backstage_navbar';
+import BackstageSidebar from './components/backstage_sidebar';
 
 type ExtraProps = Pick<Props, 'user' | 'team'> & {scrollToTop: () => void}
 

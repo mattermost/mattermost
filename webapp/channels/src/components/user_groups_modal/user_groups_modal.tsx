@@ -2,24 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-
 import {Modal} from 'react-bootstrap';
 
-import Constants from 'utils/constants';
-
-import * as Utils from 'utils/utils';
-import {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
+import type {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 
 import './user_groups_modal.scss';
-import Input from 'components/widgets/inputs/input/input';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import Input from 'components/widgets/inputs/input/input';
 
-import UserGroupsList from './user_groups_list';
-import UserGroupsFilter from './user_groups_filter/user_groups_filter';
-import UserGroupsModalHeader from './user_groups_modal_header';
+import Constants from 'utils/constants';
+import * as Utils from 'utils/utils';
+
 import ADLDAPUpsellBanner from './ad_ldap_upsell_banner';
 import {usePagingMeta} from './hooks';
+import UserGroupsFilter from './user_groups_filter/user_groups_filter';
+import UserGroupsList from './user_groups_list';
+import UserGroupsModalHeader from './user_groups_modal_header';
 
 const GROUPS_PER_PAGE = 60;
 
