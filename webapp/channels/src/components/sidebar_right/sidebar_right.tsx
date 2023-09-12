@@ -27,7 +27,7 @@ import {isMac} from 'utils/user_agent';
 
 import type {RhsState} from 'types/store/rhs';
 
-type Props = {
+export type Props = {
     isExpanded: boolean;
     isOpen: boolean;
     channel: Channel;
