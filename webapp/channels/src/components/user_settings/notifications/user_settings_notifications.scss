@@ -22,14 +22,17 @@
             }
 
             > i {
-                margin-top: -1px;
-                font-size: 16px;
+                font-size: 14.4px;
             }
 
             > span {
                 font-size: 12px;
                 font-weight: 600;
                 line-height: 16px;
+
+                &:hover {
+                    text-decoration: underline;
+                }
             }
         }
     }
