@@ -5430,7 +5430,7 @@
   "user.settings.notifications.never": "Never",
   "user.settings.notifications.off": "Off",
   "user.settings.notifications.on": "On",
-  "user.settings.notifications.onlyMentions": "Only for mentions and direct messages",
+  "user.settings.notifications.onlyMentions": "Only for mentions, direct messages, and group messages",
   "user.settings.notifications.push": "Mobile Push Notifications",
   "user.settings.notifications.push_notification.status": "Trigger push notifications when",
   "user.settings.notifications.push_threads": "When enabled, any reply to a thread you're following will send a mobile push notification.",
