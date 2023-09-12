@@ -82,12 +82,6 @@ func (m *MentionResults) addMention(userID string, mentionType MentionType) {
 	m.Mentions[userID] = mentionType
 }
 
-func (m *MentionResults) addMentions(userIDs []string, mentionType MentionType) {
-	for _, userID := range userIDs {
-		m.addMention(userID, mentionType)
-	}
-}
-
 func (m *MentionResults) removeMention(userID string) {
 	delete(m.Mentions, userID)
 }
