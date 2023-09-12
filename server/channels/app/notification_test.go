@@ -468,23 +468,23 @@ func TestGetExplicitMentions(t *testing.T) {
 		Attachments []*model.SlackAttachment
 		Keywords    map[string][]string
 		Groups      map[string]*model.Group
-		Expected    *ExplicitMentions
+		Expected    *MentionResults
 	}{
 		"Nobody": {
 			Message:  "this is a message",
 			Keywords: map[string][]string{},
-			Expected: &ExplicitMentions{},
+			Expected: &MentionResults{},
 		},
 		"NonexistentUser": {
 			Message: "this is a message for @user",
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				OtherPotentialMentions: []string{"user"},
 			},
 		},
 		"OnePerson": {
 			Message:  "this is a message for @user",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -493,7 +493,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonWithPeriodAtEndOfUsername": {
 			Message:  "this is a message for @user.name.",
 			Keywords: map[string][]string{"@user.name.": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -502,7 +502,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonWithPeriodAtEndOfUsernameButNotSimilarName": {
 			Message:  "this is a message for @user.name.",
 			Keywords: map[string][]string{"@user.name.": {id1}, "@user.name": {id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -511,7 +511,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonAtEndOfSentence": {
 			Message:  "this is a message for @user.",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -520,7 +520,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonWithoutAtMention": {
 			Message:  "this is a message for @user",
 			Keywords: map[string][]string{"this": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -530,7 +530,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonWithPeriodAfter": {
 			Message:  "this is a message for @user.",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -539,7 +539,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonWithPeriodBefore": {
 			Message:  "this is a message for .@user",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -548,7 +548,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonWithColonAfter": {
 			Message:  "this is a message for @user:",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -557,7 +557,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonWithColonBefore": {
 			Message:  "this is a message for :@user",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -566,7 +566,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonWithHyphenAfter": {
 			Message:  "this is a message for @user.",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -575,7 +575,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OnePersonWithHyphenBefore": {
 			Message:  "this is a message for -@user",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -584,7 +584,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"MultiplePeopleWithOneWord": {
 			Message:  "this is a message for @user",
 			Keywords: map[string][]string{"@user": {id1, id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 					id2: KeywordMention,
@@ -594,7 +594,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"OneOfMultiplePeople": {
 			Message:  "this is a message for @user",
 			Keywords: map[string][]string{"@user": {id1}, "@mention": {id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -603,7 +603,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"MultiplePeopleWithMultipleWords": {
 			Message:  "this is an @mention for @user",
 			Keywords: map[string][]string{"@user": {id1}, "@mention": {id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 					id2: KeywordMention,
@@ -613,7 +613,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"Channel": {
 			Message:  "this is an message for @channel",
 			Keywords: map[string][]string{"@channel": {id1, id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: ChannelMention,
 					id2: ChannelMention,
@@ -625,7 +625,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"ChannelWithColonAtEnd": {
 			Message:  "this is a message for @channel:",
 			Keywords: map[string][]string{"@channel": {id1, id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: ChannelMention,
 					id2: ChannelMention,
@@ -636,7 +636,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"CapitalizedChannel": {
 			Message:  "this is an message for @cHaNNeL",
 			Keywords: map[string][]string{"@channel": {id1, id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: ChannelMention,
 					id2: ChannelMention,
@@ -647,7 +647,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"All": {
 			Message:  "this is an message for @all",
 			Keywords: map[string][]string{"@all": {id1, id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: ChannelMention,
 					id2: ChannelMention,
@@ -658,7 +658,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"AllWithColonAtEnd": {
 			Message:  "this is a message for @all:",
 			Keywords: map[string][]string{"@all": {id1, id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: ChannelMention,
 					id2: ChannelMention,
@@ -669,7 +669,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"CapitalizedAll": {
 			Message:  "this is an message for @ALL",
 			Keywords: map[string][]string{"@all": {id1, id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: ChannelMention,
 					id2: ChannelMention,
@@ -680,7 +680,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"UserWithPeriod": {
 			Message:  "user.period doesn't complicate things at all by including periods in their username",
 			Keywords: map[string][]string{"user.period": {id1}, "user": {id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -689,7 +689,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"AtUserWithColonAtEnd": {
 			Message:  "this is a message for @user:",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -698,7 +698,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"AtUserWithPeriodAtEndOfSentence": {
 			Message:  "this is a message for @user.period.",
 			Keywords: map[string][]string{"@user.period": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -707,7 +707,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"UserWithPeriodAtEndOfSentence": {
 			Message:  "this is a message for user.period.",
 			Keywords: map[string][]string{"user.period": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -716,7 +716,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"UserWithColonAtEnd": {
 			Message:  "this is a message for user:",
 			Keywords: map[string][]string{"user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -725,7 +725,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"PotentialOutOfChannelUser": {
 			Message:  "this is an message for @potential and @user",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -734,24 +734,24 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"PotentialOutOfChannelUserWithPeriod": {
 			Message: "this is an message for @potential.user",
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				OtherPotentialMentions: []string{"potential.user"},
 			},
 		},
 		"InlineCode": {
 			Message:  "`this shouldn't mention @channel at all`",
 			Keywords: map[string][]string{},
-			Expected: &ExplicitMentions{},
+			Expected: &MentionResults{},
 		},
 		"FencedCodeBlock": {
 			Message:  "```\nthis shouldn't mention @channel at all\n```",
 			Keywords: map[string][]string{},
-			Expected: &ExplicitMentions{},
+			Expected: &MentionResults{},
 		},
 		"Emphasis": {
 			Message:  "*@aaa @bbb @ccc*",
 			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 					id2: KeywordMention,
@@ -762,7 +762,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"StrongEmphasis": {
 			Message:  "**@aaa @bbb @ccc**",
 			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 					id2: KeywordMention,
@@ -773,7 +773,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"Strikethrough": {
 			Message:  "~~@aaa @bbb @ccc~~",
 			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 					id2: KeywordMention,
@@ -784,7 +784,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"Heading": {
 			Message:  "### @aaa",
 			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -793,7 +793,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"BlockQuote": {
 			Message:  "> @aaa",
 			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -802,12 +802,12 @@ func TestGetExplicitMentions(t *testing.T) {
 		"Emoji": {
 			Message:  ":smile:",
 			Keywords: map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}},
-			Expected: &ExplicitMentions{},
+			Expected: &MentionResults{},
 		},
 		"NotEmoji": {
 			Message:  "smile",
 			Keywords: map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -816,7 +816,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"UnclosedEmoji": {
 			Message:  ":smile",
 			Keywords: map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -825,7 +825,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"UnopenedEmoji": {
 			Message:  "smile:",
 			Keywords: map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -834,24 +834,24 @@ func TestGetExplicitMentions(t *testing.T) {
 		"IndentedCodeBlock": {
 			Message:  "    this shouldn't mention @channel at all",
 			Keywords: map[string][]string{},
-			Expected: &ExplicitMentions{},
+			Expected: &MentionResults{},
 		},
 		"LinkTitle": {
 			Message:  `[foo](this "shouldn't mention @channel at all")`,
 			Keywords: map[string][]string{},
-			Expected: &ExplicitMentions{},
+			Expected: &MentionResults{},
 		},
 		"MalformedInlineCode": {
 			Message:  "`this should mention @channel``",
 			Keywords: map[string][]string{},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				ChannelMentioned: true,
 			},
 		},
 		"MultibyteCharacter": {
 			Message:  "My name is 萌",
 			Keywords: map[string][]string{"萌": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -860,7 +860,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"MultibyteCharacterAtBeginningOfSentence": {
 			Message:  "이메일을 보내다.",
 			Keywords: map[string][]string{"이메일": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -869,7 +869,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"MultibyteCharacterInPartOfSentence": {
 			Message:  "我爱吃番茄炒饭",
 			Keywords: map[string][]string{"番茄": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -878,7 +878,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"MultibyteCharacterAtEndOfSentence": {
 			Message:  "こんにちは、世界",
 			Keywords: map[string][]string{"世界": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -887,7 +887,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"MultibyteCharacterTwiceInSentence": {
 			Message:  "石橋さんが石橋を渡る",
 			Keywords: map[string][]string{"石橋": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -899,7 +899,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"Don't include potential mention that's part of an actual mention (without trailing period)": {
 			Message:  "this is an message for @user.name",
 			Keywords: map[string][]string{"@user.name": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -908,7 +908,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"Don't include potential mention that's part of an actual mention (with trailing period)": {
 			Message:  "this is an message for @user.name.",
 			Keywords: map[string][]string{"@user.name": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -917,7 +917,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"Don't include potential mention that's part of an actual mention (with multiple trailing periods)": {
 			Message:  "this is an message for @user.name...",
 			Keywords: map[string][]string{"@user.name": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -926,7 +926,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"Don't include potential mention that's part of an actual mention (containing and followed by multiple periods)": {
 			Message:  "this is an message for @user...name...",
 			Keywords: map[string][]string{"@user...name": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -941,7 +941,7 @@ func TestGetExplicitMentions(t *testing.T) {
 				},
 			},
 			Keywords: map[string][]string{"@user1": {id1}, "@user2": {id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 					id2: KeywordMention,
@@ -952,21 +952,21 @@ func TestGetExplicitMentions(t *testing.T) {
 		"Name on keywords is a prefix of a mention": {
 			Message:  "@other @test-two",
 			Keywords: map[string][]string{"@test": {model.NewId()}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				OtherPotentialMentions: []string{"other", "test-two"},
 			},
 		},
 		"Name on mentions is a prefix of other mention": {
 			Message:  "@other-one @other @other-two",
 			Keywords: nil,
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				OtherPotentialMentions: []string{"other-one", "other", "other-two"},
 			},
 		},
 		"No groups": {
 			Message: "@nothing",
 			Groups:  map[string]*model.Group{},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions:               nil,
 				OtherPotentialMentions: []string{"nothing"},
 			},
@@ -974,7 +974,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"No matching groups": {
 			Message: "@nothing",
 			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
 				OtherPotentialMentions: []string{"nothing"},
@@ -983,7 +983,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"matching group with no @": {
 			Message: "engineering",
 			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
 				OtherPotentialMentions: nil,
@@ -992,7 +992,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"matching group with preceding @": {
 			Message: "@engineering",
 			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: nil,
 				GroupMentions: map[string]*model.Group{
 					"engineering": {Name: model.NewString("engineering")},
@@ -1003,7 +1003,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"matching upper case group with preceding @": {
 			Message: "@Engineering",
 			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: nil,
 				GroupMentions: map[string]*model.Group{
 					"engineering": {Name: model.NewString("engineering")},
@@ -2005,12 +2005,12 @@ func TestIsKeywordMultibyte(t *testing.T) {
 		Attachments []*model.SlackAttachment
 		Keywords    map[string][]string
 		Groups      map[string]*model.Group
-		Expected    *ExplicitMentions
+		Expected    *MentionResults
 	}{
 		"MultibyteCharacter": {
 			Message:  "My name is 萌",
 			Keywords: map[string][]string{"萌": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2019,14 +2019,14 @@ func TestIsKeywordMultibyte(t *testing.T) {
 		"MultibyteCharacterWithNoUser": {
 			Message:  "My name is 萌",
 			Keywords: map[string][]string{"萌": {}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: nil,
 			},
 		},
 		"MultibyteCharacterAtBeginningOfSentence": {
 			Message:  "이메일을 보내다.",
 			Keywords: map[string][]string{"이메일": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2035,14 +2035,14 @@ func TestIsKeywordMultibyte(t *testing.T) {
 		"MultibyteCharacterAtBeginningOfSentenceWithNoUser": {
 			Message:  "이메일을 보내다.",
 			Keywords: map[string][]string{"이메일": {}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: nil,
 			},
 		},
 		"MultibyteCharacterInPartOfSentence": {
 			Message:  "我爱吃番茄炒饭",
 			Keywords: map[string][]string{"番茄": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2051,14 +2051,14 @@ func TestIsKeywordMultibyte(t *testing.T) {
 		"MultibyteCharacterInPartOfSentenceWithNoUser": {
 			Message:  "我爱吃番茄炒饭",
 			Keywords: map[string][]string{"番茄": {}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: nil,
 			},
 		},
 		"MultibyteCharacterAtEndOfSentence": {
 			Message:  "こんにちは、世界",
 			Keywords: map[string][]string{"世界": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2067,14 +2067,14 @@ func TestIsKeywordMultibyte(t *testing.T) {
 		"MultibyteCharacterAtEndOfSentenceWithNoUser": {
 			Message:  "こんにちは、世界",
 			Keywords: map[string][]string{"世界": {}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: nil,
 			},
 		},
 		"MultibyteCharacterTwiceInSentence": {
 			Message:  "石橋さんが石橋を渡る",
 			Keywords: map[string][]string{"石橋": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2083,7 +2083,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 		"MultibyteCharacterTwiceInSentenceWithNoUser": {
 			Message:  "石橋さんが石橋を渡る",
 			Keywords: map[string][]string{"石橋": {}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: nil,
 			},
 		},
@@ -2102,59 +2102,6 @@ func TestIsKeywordMultibyte(t *testing.T) {
 	}
 }
 
-func TestAddMention(t *testing.T) {
-	t.Run("should initialize Mentions and store new mentions", func(t *testing.T) {
-		m := &ExplicitMentions{}
-
-		userID1 := model.NewId()
-		userID2 := model.NewId()
-
-		m.addMention(userID1, KeywordMention)
-		m.addMention(userID2, CommentMention)
-
-		assert.Equal(t, map[string]MentionType{
-			userID1: KeywordMention,
-			userID2: CommentMention,
-		}, m.Mentions)
-	})
-
-	t.Run("should replace existing mentions with higher priority ones", func(t *testing.T) {
-		m := &ExplicitMentions{}
-
-		userID1 := model.NewId()
-		userID2 := model.NewId()
-
-		m.addMention(userID1, ThreadMention)
-		m.addMention(userID2, DMMention)
-
-		m.addMention(userID1, ChannelMention)
-		m.addMention(userID2, KeywordMention)
-
-		assert.Equal(t, map[string]MentionType{
-			userID1: ChannelMention,
-			userID2: KeywordMention,
-		}, m.Mentions)
-	})
-
-	t.Run("should not replace high priority mentions with low priority ones", func(t *testing.T) {
-		m := &ExplicitMentions{}
-
-		userID1 := model.NewId()
-		userID2 := model.NewId()
-
-		m.addMention(userID1, KeywordMention)
-		m.addMention(userID2, CommentMention)
-
-		m.addMention(userID1, DMMention)
-		m.addMention(userID2, ThreadMention)
-
-		assert.Equal(t, map[string]MentionType{
-			userID1: KeywordMention,
-			userID2: CommentMention,
-		}, m.Mentions)
-	})
-}
-
 func TestCheckForMentionUsers(t *testing.T) {
 	id1 := model.NewId()
 	id2 := model.NewId()
@@ -2163,17 +2110,17 @@ func TestCheckForMentionUsers(t *testing.T) {
 		Word        string
 		Attachments []*model.SlackAttachment
 		Keywords    map[string][]string
-		Expected    *ExplicitMentions
+		Expected    *MentionResults
 	}{
 		"Nobody": {
 			Word:     "nothing",
 			Keywords: map[string][]string{},
-			Expected: &ExplicitMentions{},
+			Expected: &MentionResults{},
 		},
 		"UppercaseUser1": {
 			Word:     "@User",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2182,7 +2129,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 		"LowercaseUser1": {
 			Word:     "@user",
 			Keywords: map[string][]string{"@user": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2191,7 +2138,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 		"LowercaseUser2": {
 			Word:     "@user2",
 			Keywords: map[string][]string{"@user2": {id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id2: KeywordMention,
 				},
@@ -2200,7 +2147,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 		"UppercaseUser2": {
 			Word:     "@UsEr2",
 			Keywords: map[string][]string{"@user2": {id2}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id2: KeywordMention,
 				},
@@ -2208,52 +2155,52 @@ func TestCheckForMentionUsers(t *testing.T) {
 		},
 		"HereMention": {
 			Word: "@here",
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				HereMentioned: true,
 			},
 		},
 		"ChannelMention": {
 			Word: "@channel",
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				ChannelMentioned: true,
 			},
 		},
 		"AllMention": {
 			Word: "@all",
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				AllMentioned: true,
 			},
 		},
 		"UppercaseHere": {
 			Word: "@HeRe",
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				HereMentioned: true,
 			},
 		},
 		"UppercaseChannel": {
 			Word: "@ChaNNel",
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				ChannelMentioned: true,
 			},
 		},
 		"UppercaseAll": {
 			Word: "@ALL",
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				AllMentioned: true,
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 
-			e := &ExplicitMentions{}
-			e.checkForMention(tc.Word, tc.Keywords, nil)
+			mr := &MentionResults{}
+			checkForMention(mr, tc.Word, tc.Keywords, nil)
 
-			assert.EqualValues(t, tc.Expected, e)
+			assert.EqualValues(t, tc.Expected, mr)
 		})
 	}
 }
 
-func TestAddGroupMention(t *testing.T) {
+func TestCheckForGroupMention(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Word     string
 		Groups   map[string]*model.Group
@@ -2286,11 +2233,11 @@ func TestAddGroupMention(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			e := &ExplicitMentions{}
-			groupFound := e.addGroupMention(tc.Word, tc.Groups)
+			mr := &MentionResults{}
+			groupFound := checkForGroupMention(mr, tc.Word, tc.Groups)
 
 			if groupFound {
-				require.Equal(t, len(e.GroupMentions), 1)
+				require.Equal(t, len(mr.GroupMentions), 1)
 			}
 
 			require.Equal(t, tc.Expected, groupFound)
@@ -2305,13 +2252,13 @@ func TestProcessText(t *testing.T) {
 		Text     string
 		Keywords map[string][]string
 		Groups   map[string]*model.Group
-		Expected *ExplicitMentions
+		Expected *MentionResults
 	}{
 		"Mention user in text": {
 			Text:     "hello user @user1",
 			Keywords: map[string][]string{"@user1": {id1}},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2321,7 +2268,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello user.@user1",
 			Keywords: map[string][]string{"@user1": {id1}},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2330,7 +2277,7 @@ func TestProcessText(t *testing.T) {
 		"Mention user after hyphen": {
 			Text:     "hello user-@user1",
 			Keywords: map[string][]string{"@user1": {id1}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2340,7 +2287,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello user:@user1",
 			Keywords: map[string][]string{"@user1": {id1}},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2350,7 +2297,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello all:@here",
 			Keywords: map[string][]string{},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				HereMentioned: true,
 			},
 		},
@@ -2358,7 +2305,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello all-@all",
 			Keywords: map[string][]string{},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				AllMentioned: true,
 			},
 		},
@@ -2366,7 +2313,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello channel.@channel",
 			Keywords: map[string][]string{},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				ChannelMentioned: true,
 			},
 		},
@@ -2374,7 +2321,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello @potentialuser and @otherpotentialuser",
 			Keywords: map[string][]string{},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				OtherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
 			},
 		},
@@ -2382,7 +2329,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "@user1, you can use @systembot to get help",
 			Keywords: map[string][]string{"@user1": {id1}},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2393,7 +2340,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "@engineering",
 			Keywords: map[string][]string{"@user1": {id1}},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				GroupMentions:          map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
 				OtherPotentialMentions: []string{"engineering"},
 			},
@@ -2402,7 +2349,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "@engineering @user1, you can use @systembot to get help from",
 			Keywords: map[string][]string{"@user1": {id1}},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
+			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
@@ -2412,10 +2359,10 @@ func TestProcessText(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			e := &ExplicitMentions{}
-			e.processText(tc.Text, tc.Keywords, tc.Groups)
+			mr := &MentionResults{}
+			processText(mr, tc.Text, tc.Keywords, tc.Groups)
 
-			assert.EqualValues(t, tc.Expected, e)
+			assert.EqualValues(t, tc.Expected, mr)
 		})
 	}
 }
@@ -2589,7 +2536,7 @@ func TestInsertGroupMentions(t *testing.T) {
 	profileMap := map[string]*model.User{groupChannelMember.Id: groupChannelMember, nonGroupChannelMember.Id: nonGroupChannelMember}
 
 	t.Run("should add expected mentions for users part of the mentioned group", func(t *testing.T) {
-		mentions := &ExplicitMentions{}
+		mentions := &MentionResults{}
 		usersMentioned, err := th.App.insertGroupMentions(group, channel, profileMap, mentions)
 		require.Nil(t, err)
 		require.Equal(t, usersMentioned, true)
@@ -2605,7 +2552,7 @@ func TestInsertGroupMentions(t *testing.T) {
 	})
 
 	t.Run("should add no expected or potential mentions if the group has no users ", func(t *testing.T) {
-		mentions := &ExplicitMentions{}
+		mentions := &MentionResults{}
 		usersMentioned, err := th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
 		require.Nil(t, err)
 		require.Equal(t, usersMentioned, false)
@@ -2616,7 +2563,7 @@ func TestInsertGroupMentions(t *testing.T) {
 	})
 
 	t.Run("should keep existing mentions", func(t *testing.T) {
-		mentions := &ExplicitMentions{}
+		mentions := &MentionResults{}
 		th.App.insertGroupMentions(group, channel, profileMap, mentions)
 		th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
 
@@ -2626,7 +2573,7 @@ func TestInsertGroupMentions(t *testing.T) {
 	})
 
 	t.Run("should return true if no members mentioned while in group or direct message channel", func(t *testing.T) {
-		mentions := &ExplicitMentions{}
+		mentions := &MentionResults{}
 		emptyProfileMap := make(map[string]*model.User)
 
 		groupChannel := &model.Channel{Type: model.ChannelTypeGroup}
@@ -2646,7 +2593,7 @@ func TestInsertGroupMentions(t *testing.T) {
 		groupChannel, err := th.App.CreateGroupChannel(th.Context, []string{groupChannelMember.Id, nonGroupChannelMember.Id, th.BasicUser.Id}, groupChannelMember.Id)
 		require.Nil(t, err)
 
-		mentions := &ExplicitMentions{}
+		mentions := &MentionResults{}
 		th.App.insertGroupMentions(group, groupChannel, profileMap, mentions)
 
 		require.Equal(t, len(mentions.Mentions), 1)
