@@ -2465,14 +2465,6 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 	mockChannelStore := mocks.ChannelStore{}
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockChannelStore.On("Get", "gm_channel_id", true).Return(&model.Channel{Type: model.ChannelTypeGroup}, nil)
-	mockChannelStore.On("GetMembers", "gm_channel_id", 0, 8).Return(
-		model.ChannelMembers{
-			{UserId: "user_id_1"},
-			{UserId: "user_id_2"},
-			{UserId: "user_id_3"},
-		},
-		nil,
-	)
 
 	mockTeamStore := mocks.TeamStore{}
 	mockStore.On("Team").Return(&mockTeamStore)
@@ -2488,6 +2480,27 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 		},
 		nil,
 	)
+
+	mockUserStore := mocks.UserStore{}
+	mockStore.On("User").Return(&mockUserStore)
+	options := &model.UserGetOptions{
+		PerPage:     model.ChannelGroupMaxUsers,
+		Page:        0,
+		InChannelId: "gm_channel_id",
+		Inactive:    false,
+		Active:      true,
+	}
+	mockUserStore.On("GetProfilesInChannel", options).Return([]*model.User{
+		{
+			Id: "user_id_1",
+		},
+		{
+			Id: "user_id_2",
+		},
+		{
+			Id: "user_id_3",
+		},
+	}, nil)
 
 	var err error
 	th.App.ch.srv.teamService, err = teams.New(teams.ServiceConfig{
@@ -2535,14 +2548,6 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockChannelStore.On("InvalidatePinnedPostCount", "channelidchannelidchanneli")
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "channelidchannelidchanneli", true).Return(map[string]model.StringMap{}, nil)
 	mockChannelStore.On("IncrementMentionCount", "", []string{}, true, false).Return(nil)
-	mockChannelStore.On("GetMembers", "channelidchannelidchanneli", 0, 8).Return(
-		model.ChannelMembers{
-			{UserId: "user_id_1"},
-			{UserId: "user_id_2"},
-			{UserId: "user_id_3"},
-		},
-		nil,
-	)
 
 	mockTeamStore := mocks.TeamStore{}
 	mockStore.On("Team").Return(&mockTeamStore)
@@ -2561,10 +2566,9 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockUserStore.On("Get", context.Background(), "user_id_1").Return(&model.User{Username: "username_1"}, nil)
 	mockUserStore.On("GetProfilesInChannel", mock.AnythingOfType("*model.UserGetOptions")).Return([]*model.User{
-		{Username: "user_id_1"},
-		{Username: "user_id_2"},
-		{Username: "user_id_3"},
-		{Username: "user_id_4"},
+		{Id: "user_id_1", Username: "user_id_1"},
+		{Id: "user_id_2", Username: "user_id_2"},
+		{Id: "user_id_3", Username: "user_id_3"},
 	}, nil)
 	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(map[string]*model.User{}, nil)
 

@@ -4760,6 +4760,14 @@
     "translation": "Channel does not exist."
   },
   {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Channel is not a group message."
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Couldn't fetch common teams."
+  },
+  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
   },

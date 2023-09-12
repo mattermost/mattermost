@@ -2266,6 +2266,7 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "channel_id", gmConversionRequest.ChannelID)
 	audit.AddEventParameter(auditRec, "team_id", gmConversionRequest.TeamID)
+	audit.AddEventParameter(auditRec, "user_id", user.Id)
 
 	updatedChannel, appErr := c.App.ConvertGroupMessageToChannel(c.AppContext, c.AppContext.Session().UserId, gmConversionRequest)
 	if appErr != nil {

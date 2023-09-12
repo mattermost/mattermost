@@ -3487,22 +3487,25 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 	}
 
 	if channel.Type != model.ChannelTypeGroup {
-		return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
+		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.incorrect_channel_type", nil, "", http.StatusBadRequest)
 	}
 
-	members, appErr := a.GetChannelMembersPage(c, channelID, 0, model.ChannelGroupMaxUsers)
-	if appErr != nil {
-		return nil, appErr
-	}
+	users, appErr := a.GetUsersInChannel(&model.UserGetOptions{
+		PerPage:     model.ChannelGroupMaxUsers,
+		Page:        0,
+		InChannelId: channelID,
+		Inactive:    false,
+		Active:      true,
+	})
 
-	var userIDs = make([]string, len(members))
-	for i := 0; i < len(members); i++ {
-		userIDs[i] = members[i].UserId
+	var userIDs = make([]string, len(users))
+	for i := 0; i < len(users); i++ {
+		userIDs[i] = users[i].Id
 	}
 
 	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
 	if err != nil {
-		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_gm_common_teams.store_error", map[string]any{"channelID": channelID}, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.store_get_common_teams_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	teams := []*model.Team{}

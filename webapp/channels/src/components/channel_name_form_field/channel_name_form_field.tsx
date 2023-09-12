@@ -50,7 +50,8 @@ function validateDisplayName(displayNameParam: string) {
 const ChannelNameFormField = (props: Props): JSX.Element => {
     const intl = useIntl();
     const {formatMessage} = intl;
-    const [displayNameModified, setDisplayNameModified] = useState<boolean>(false);
+
+    const displayNameModified = useRef<boolean>(false);
     const [displayNameError, setDisplayNameError] = useState<string>('');
     const [displayName, setDisplayName] = useState<string>('');
     const urlModified = useRef<boolean>(false);
@@ -62,18 +63,18 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
     const handleOnDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
-        const {target: {value: displayName}} = e;
+        const {target: {value: updatedDisplayName}} = e;
 
-        const displayNameErrors = validateDisplayName(displayName);
+        const displayNameErrors = validateDisplayName(updatedDisplayName);
 
         // set error if any, else clear it
         setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
-        setDisplayName(displayName);
-        props.onDisplayNameChange(displayName);
+        setDisplayName(updatedDisplayName);
+        props.onDisplayNameChange(updatedDisplayName);
 
         if (!urlModified.current) {
             // if URL isn't explicitly modified, it's derived from the display name
-            const cleanURL = cleanUpUrlable(displayName);
+            const cleanURL = cleanUpUrlable(updatedDisplayName);
             setURL(cleanURL);
             setURLError('');
             props.onURLChange(cleanURL);
@@ -86,9 +87,9 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             setURL(url);
             props.onURLChange(url);
         }
-        if (!displayNameModified) {
-            setDisplayNameModified(true);
-            setInputCustomMessage(displayNameModified ? {type: ItemStatus.ERROR, value: displayNameError} : null);
+        if (!displayNameModified.current) {
+            displayNameModified.current = true;
+            setInputCustomMessage(displayNameModified.current ? {type: ItemStatus.ERROR, value: displayNameError} : null);
         }
     }, [props.onURLChange]);
 
