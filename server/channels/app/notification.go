@@ -124,14 +124,16 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	var allActivityPushUserIds []string
 	if channel.Type != model.ChannelTypeDirect {
 		// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
-		for _, group := range mentions.GroupMentions {
+		for groupID := range mentions.GroupMentions {
+			group := groups[groupID]
+
 			anyUsersMentionedByGroup, err := a.insertGroupMentions(group, channel, profileMap, mentions)
 			if err != nil {
 				return nil, err
 			}
 
 			if !anyUsersMentionedByGroup {
-				a.sendNoUsersNotifiedByGroupInChannel(c, sender, post, channel, group)
+				a.sendNoUsersNotifiedByGroupInChannel(c, sender, post, channel, groups[groupID])
 			}
 		}
 
@@ -674,9 +676,9 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 		mentions, _ := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, nil)
 
 		userIDs := []string{}
-		for _, group := range mentions.GroupMentions {
+		for groupID := range mentions.GroupMentions {
 			for page := 0; ; page++ {
-				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(group.Id, page, 100, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
+				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(groupID, page, 100, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
 				if appErr != nil {
 					return appErr
 				}
@@ -1150,7 +1152,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 		}
 		for _, group := range groups {
 			if group.Group.Name != nil {
-				groupsMap[*group.Group.Name] = &group.Group
+				groupsMap[group.Id] = &group.Group
 			}
 		}
 		return groupsMap, nil
@@ -1162,7 +1164,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 	}
 	for _, group := range groups {
 		if group.Name != nil {
-			groupsMap[*group.Name] = group
+			groupsMap[group.Id] = group
 		}
 	}
 

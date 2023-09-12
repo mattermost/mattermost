@@ -181,7 +181,8 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		} else {
 			keywords := channelKeywords[channel.Id]
 			mentions = getExplicitMentions(post, keywords, channelGroupMap[channel.Id])
-			for _, group := range mentions.GroupMentions {
+			for groupID := range mentions.GroupMentions {
+				group := channelGroupMap[channel.Id][groupID]
 				_, err := a.insertGroupMentions(group, channel, profileMap, mentions)
 				if err != nil {
 					return errors.Wrapf(err, "failed to include mentions from group - %s for channel - %s", group.Id, channel.Id)
@@ -210,8 +211,8 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
 			}
 			channelGroupMap[c.Id] = make(map[string]*model.Group, len(groups))
-			for k, v := range groups {
-				channelGroupMap[c.Id][k] = v
+			for groupID, group := range groups {
+				channelGroupMap[c.Id][groupID] = group
 			}
 			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(c.Id, true)
 			if err != nil {

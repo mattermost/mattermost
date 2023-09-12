@@ -1,9 +1,5 @@
 package app
 
-import (
-	"github.com/mattermost/mattermost/server/public/model"
-)
-
 const (
 	// Different types of mentions ordered by their priority from lowest to highest
 
@@ -35,11 +31,11 @@ const (
 type MentionType int
 
 type MentionResults struct {
-	// Mentions contains the ID of each user that was mentioned and how they were mentioned.
+	// Mentions maps the ID of each user that was mentioned to how they were mentioned.
 	Mentions map[string]MentionType
 
-	// Contains a map of groups that were mentioned
-	GroupMentions map[string]*model.Group
+	// Contains maps the ID of each group that was mentioned to how it was mentioned.
+	GroupMentions map[string]MentionType
 
 	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
 	// a corresponding keyword.

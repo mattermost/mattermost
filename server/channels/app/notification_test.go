@@ -973,7 +973,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"No matching groups": {
 			Message: "@nothing",
-			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
+			Groups:  map[string]*model.Group{"engineering": {Id: "engineering"}},
 			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -982,7 +982,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with no @": {
 			Message: "engineering",
-			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
+			Groups:  map[string]*model.Group{"engineering": {Id: "engineering"}},
 			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -991,22 +991,22 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with preceding @": {
 			Message: "@engineering",
-			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
+			Groups:  map[string]*model.Group{"engineering": {Id: "engineering"}},
 			Expected: &MentionResults{
 				Mentions: nil,
-				GroupMentions: map[string]*model.Group{
-					"engineering": {Name: model.NewString("engineering")},
+				GroupMentions: map[string]MentionType{
+					"engineering": GroupMention,
 				},
 				OtherPotentialMentions: []string{"engineering"},
 			},
 		},
 		"matching upper case group with preceding @": {
 			Message: "@Engineering",
-			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
+			Groups:  map[string]*model.Group{"engineering": {Id: "engineering"}},
 			Expected: &MentionResults{
 				Mentions: nil,
-				GroupMentions: map[string]*model.Group{
-					"engineering": {Name: model.NewString("engineering")},
+				GroupMentions: map[string]MentionType{
+					"engineering": GroupMention,
 				},
 				OtherPotentialMentions: []string{"Engineering"},
 			},
@@ -2269,8 +2269,8 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 1)
-		require.Nil(t, groupsMap[*group2.Name])
-		require.Equal(t, groupsMap[*group1.Name], group1)
+		require.Nil(t, groupsMap[group2.Id])
+		require.Equal(t, groupsMap[group1.Id], group1)
 	})
 
 	group2.AllowReference = true
@@ -2293,8 +2293,8 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 1)
-		require.Nil(t, groupsMap[*group2.Name])
-		require.Equal(t, groupsMap[*group1.Name], group1)
+		require.Nil(t, groupsMap[group2.Id])
+		require.Equal(t, groupsMap[group1.Id], group1)
 	})
 
 	// Create a third group not synced with a team or channel
@@ -2318,18 +2318,18 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 2)
-		require.Nil(t, groupsMap[*group3.Name])
-		require.Equal(t, groupsMap[*group2.Name], group2)
-		require.Equal(t, groupsMap[*group1.Name], group1)
+		require.Nil(t, groupsMap[group3.Id])
+		require.Equal(t, groupsMap[group2.Id], group2)
+		require.Equal(t, groupsMap[group1.Id], group1)
 	})
 
 	t.Run("should return only subset of groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 1)
-		require.Nil(t, groupsMap[*group3.Name])
-		require.Nil(t, groupsMap[*group2.Name])
-		require.Equal(t, groupsMap[*group1.Name], group1)
+		require.Nil(t, groupsMap[group3.Id])
+		require.Nil(t, groupsMap[group2.Id])
+		require.Equal(t, groupsMap[group1.Id], group1)
 	})
 
 	team.GroupConstrained = model.NewBool(false)
@@ -2340,9 +2340,9 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 3)
-		require.Equal(t, groupsMap[*group1.Name], group1)
-		require.Equal(t, groupsMap[*group2.Name], group2)
-		require.Equal(t, groupsMap[*group3.Name], group3)
+		require.Equal(t, groupsMap[group1.Id], group1)
+		require.Equal(t, groupsMap[group2.Id], group2)
+		require.Equal(t, groupsMap[group3.Id], group3)
 	})
 }
 

@@ -139,23 +139,30 @@ func (p *StandardMentionParser) addMentions(ids []MentionableID, mentionType Men
 		if userID, ok := id.AsUserID(); ok {
 			p.results.addMention(userID, mentionType)
 		} else if groupID, ok := id.AsGroupID(); ok {
-			// TODO is faking this fine
-			p.results.GroupMentions[groupID] = &model.Group{}
-		} else {
-			// This case shouldn't be hit in practice
+			p.results.GroupMentions[groupID] = mentionType
 		}
 	}
 }
 
 func checkForGroupMention(m *MentionResults, word string, groups map[string]*model.Group) bool {
-	if strings.HasPrefix(word, "@") {
-		word = word[1:]
-	} else {
+	if !strings.HasPrefix(word, "@") {
 		// Only allow group mentions when mentioned directly with @group-name
 		return false
 	}
 
-	group, groupFound := groups[word]
+	word = word[1:]
+
+	findGroup := func() (*model.Group, bool) {
+		for _, group := range groups {
+			if group.Name != nil && *group.Name == word {
+				return group, true
+			}
+		}
+
+		return nil, false
+	}
+
+	group, groupFound := findGroup()
 	if !groupFound {
 		group = groups[strings.ToLower(word)]
 	}
@@ -165,12 +172,10 @@ func checkForGroupMention(m *MentionResults, word string, groups map[string]*mod
 	}
 
 	if m.GroupMentions == nil {
-		m.GroupMentions = make(map[string]*model.Group)
+		m.GroupMentions = make(map[string]MentionType)
 	}
 
-	if group.Name != nil {
-		m.GroupMentions[*group.Name] = group
-	}
+	m.GroupMentions[group.Id] = GroupMention
 
 	return true
 }
