@@ -326,7 +326,9 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
                 onClick={[Function]}
                 type="button"
               >
-                <i className="icon icon-archive-arrow-up-outline"/>
+                <i
+                  className="icon icon-archive-arrow-up-outline"
+                />
                 <FormattedMessage
                   defaultMessage="Unarchive Team"
                   id="admin.team_settings.team_details.unarchiveTeam"
