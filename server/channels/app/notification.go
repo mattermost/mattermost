@@ -165,7 +165,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	membershipsMutex := &sync.Mutex{}
 	followersMutex := &sync.Mutex{}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		var rootMentions *ExplicitMentions
+		var rootMentions *MentionResults
 		if parentPostList != nil {
 			rootPost := parentPostList.Posts[parentPostList.Order[0]]
 			if rootPost.GetProp("from_webhook") != "true" {
@@ -752,8 +752,8 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 	return nil
 }
 
-func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*ExplicitMentions, map[string][]string) {
-	mentions := &ExplicitMentions{}
+func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*MentionResults, map[string][]string) {
+	mentions := &MentionResults{}
 	var allowChannelMentions bool
 	var keywords map[string][]string
 
@@ -1045,123 +1045,10 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 	return
 }
 
-type ExplicitMentions struct {
-	// Mentions contains the ID of each user that was mentioned and how they were mentioned.
-	Mentions map[string]MentionType
-
-	// Contains a map of groups that were mentioned
-	GroupMentions map[string]*model.Group
-
-	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
-	// a corresponding keyword.
-	OtherPotentialMentions []string
-
-	// HereMentioned is true if the message contained @here.
-	HereMentioned bool
-
-	// AllMentioned is true if the message contained @all.
-	AllMentioned bool
-
-	// ChannelMentioned is true if the message contained @channel.
-	ChannelMentioned bool
-}
-
-type MentionType int
-
-const (
-	// Different types of mentions ordered by their priority from lowest to highest
-
-	// A placeholder that should never be used in practice
-	NoMention MentionType = iota
-
-	// The post is in a GM
-	GMMention
-
-	// The post is in a thread that the user has commented on
-	ThreadMention
-
-	// The post is a comment on a thread started by the user
-	CommentMention
-
-	// The post contains an at-channel, at-all, or at-here
-	ChannelMention
-
-	// The post is a DM
-	DMMention
-
-	// The post contains an at-mention for the user
-	KeywordMention
-
-	// The post contains a group mention for the user
-	GroupMention
-)
-
-func (m *ExplicitMentions) isUserMentioned(userID string) bool {
-	if _, ok := m.Mentions[userID]; ok {
-		return true
-	}
-
-	if _, ok := m.GroupMentions[userID]; ok {
-		return true
-	}
-
-	return m.HereMentioned || m.AllMentioned || m.ChannelMentioned
-}
-
-func (m *ExplicitMentions) addMention(userID string, mentionType MentionType) {
-	if m.Mentions == nil {
-		m.Mentions = make(map[string]MentionType)
-	}
-
-	if currentType, ok := m.Mentions[userID]; ok && currentType >= mentionType {
-		return
-	}
-
-	m.Mentions[userID] = mentionType
-}
-
-func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model.Group) bool {
-	if strings.HasPrefix(word, "@") {
-		word = word[1:]
-	} else {
-		// Only allow group mentions when mentioned directly with @group-name
-		return false
-	}
-
-	group, groupFound := groups[word]
-	if !groupFound {
-		group = groups[strings.ToLower(word)]
-	}
-
-	if group == nil {
-		return false
-	}
-
-	if m.GroupMentions == nil {
-		m.GroupMentions = make(map[string]*model.Group)
-	}
-
-	if group.Name != nil {
-		m.GroupMentions[*group.Name] = group
-	}
-
-	return true
-}
-
-func (m *ExplicitMentions) addMentions(userIDs []string, mentionType MentionType) {
-	for _, userID := range userIDs {
-		m.addMention(userID, mentionType)
-	}
-}
-
-func (m *ExplicitMentions) removeMention(userID string) {
-	delete(m.Mentions, userID)
-}
-
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(post *model.Post, keywords map[string][]string, groups map[string]*model.Group) *ExplicitMentions {
-	ret := &ExplicitMentions{}
+func getExplicitMentions(post *model.Post, keywords map[string][]string, groups map[string]*model.Group) *MentionResults {
+	ret := &MentionResults{}
 
 	buf := ""
 	mentionsEnabledFields := getMentionsEnabledFields(post)
@@ -1169,7 +1056,7 @@ func getExplicitMentions(post *model.Post, keywords map[string][]string, groups 
 		markdown.Inspect(message, func(node any) bool {
 			text, ok := node.(*markdown.Text)
 			if !ok {
-				ret.processText(buf, keywords, groups)
+				processText(ret, buf, keywords, groups)
 				buf = ""
 				return true
 			}
@@ -1177,7 +1064,7 @@ func getExplicitMentions(post *model.Post, keywords map[string][]string, groups 
 			return false
 		})
 	}
-	ret.processText(buf, keywords, groups)
+	processText(ret, buf, keywords, groups)
 
 	return ret
 }
@@ -1290,7 +1177,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 
 // insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
 // returns false if no group members present in the team that the channel belongs to
-func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *ExplicitMentions) (bool, *model.AppError) {
+func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *MentionResults) (bool, *model.AppError) {
 	var err error
 	var groupMembers []*model.User
 	outOfChannelGroupMembers := []*model.User{}
@@ -1419,7 +1306,7 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 }
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
-func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string, groups map[string]*model.Group) bool {
+func checkForMention(m *MentionResults, word string, keywords map[string][]string, groups map[string]*model.Group) bool {
 	var mentionType MentionType
 
 	switch strings.ToLower(word) {
@@ -1436,7 +1323,7 @@ func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]st
 		mentionType = KeywordMention
 	}
 
-	m.addGroupMention(word, groups)
+	checkForGroupMention(m, word, groups)
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
 		m.addMentions(ids, mentionType)
@@ -1450,6 +1337,34 @@ func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]st
 	}
 
 	return false
+}
+
+func checkForGroupMention(m *MentionResults, word string, groups map[string]*model.Group) bool {
+	if strings.HasPrefix(word, "@") {
+		word = word[1:]
+	} else {
+		// Only allow group mentions when mentioned directly with @group-name
+		return false
+	}
+
+	group, groupFound := groups[word]
+	if !groupFound {
+		group = groups[strings.ToLower(word)]
+	}
+
+	if group == nil {
+		return false
+	}
+
+	if m.GroupMentions == nil {
+		m.GroupMentions = make(map[string]*model.Group)
+	}
+
+	if group.Name != nil {
+		m.GroupMentions[*group.Name] = group
+	}
+
+	return true
 }
 
 // isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword
@@ -1474,7 +1389,7 @@ func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bo
 }
 
 // Processes text to filter mentioned users and other potential mentions
-func (m *ExplicitMentions) processText(text string, keywords map[string][]string, groups map[string]*model.Group) {
+func processText(m *MentionResults, text string, keywords map[string][]string, groups map[string]*model.Group) {
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
@@ -1488,7 +1403,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 
 		word = strings.TrimLeft(word, ":.-_")
 
-		if m.checkForMention(word, keywords, groups) {
+		if checkForMention(m, word, keywords, groups) {
 			continue
 		}
 
@@ -1498,7 +1413,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 		for wordWithoutSuffix != "" && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
-			if m.checkForMention(wordWithoutSuffix, keywords, groups) {
+			if checkForMention(m, wordWithoutSuffix, keywords, groups) {
 				foundWithoutSuffix = true
 				break
 			}
@@ -1524,7 +1439,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 			})
 
 			for _, splitWord := range splitWords {
-				if m.checkForMention(splitWord, keywords, groups) {
+				if checkForMention(m, splitWord, keywords, groups) {
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
@@ -1563,7 +1478,7 @@ type CRTNotifiers struct {
 	Push model.StringArray
 }
 
-func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *ExplicitMentions, channelMemberNotificationProps model.StringMap, channel *model.Channel) {
+func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *MentionResults, channelMemberNotificationProps model.StringMap, channel *model.Channel) {
 	_, userWasMentioned := mentions.Mentions[user.Id]
 	notifyDesktop, notifyPush, notifyEmail := shouldUserNotifyCRT(user, userWasMentioned)
 	notifyChannelDesktop, notifyChannelPush := shouldChannelMemberNotifyCRT(channelMemberNotificationProps, userWasMentioned)
