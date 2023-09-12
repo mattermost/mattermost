@@ -12,13 +12,13 @@ import (
 var _ MentionParser = &StandardMentionParser{}
 
 type StandardMentionParser struct {
-	keywords map[string][]string
+	keywords MentionKeywords
 	groups   map[string]*model.Group
 
 	results *MentionResults
 }
 
-func makeStandardMentionParser(keywords map[string][]string, groups map[string]*model.Group) *StandardMentionParser {
+func makeStandardMentionParser(keywords MentionKeywords, groups map[string]*model.Group) *StandardMentionParser {
 	return &StandardMentionParser{
 		keywords: keywords,
 		groups:   groups,
@@ -28,15 +28,14 @@ func makeStandardMentionParser(keywords map[string][]string, groups map[string]*
 }
 
 func (p *StandardMentionParser) ProcessText(text string) {
-	processText(p.results, text, p.keywords, p.groups)
+	p.processText(text, p.keywords, p.groups)
 }
 
 func (p *StandardMentionParser) Results() *MentionResults {
 	return p.results
 }
 
-// Processes text to filter mentioned users and other potential mentions
-func processText(m *MentionResults, text string, keywords map[string][]string, groups map[string]*model.Group) {
+func (p *StandardMentionParser) processText(text string, keywords MentionKeywords, groups map[string]*model.Group) {
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
@@ -50,7 +49,7 @@ func processText(m *MentionResults, text string, keywords map[string][]string, g
 
 		word = strings.TrimLeft(word, ":.-_")
 
-		if checkForMention(m, word, keywords, groups) {
+		if p.checkForMention(word, keywords, groups) {
 			continue
 		}
 
@@ -60,7 +59,7 @@ func processText(m *MentionResults, text string, keywords map[string][]string, g
 		for wordWithoutSuffix != "" && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
-			if checkForMention(m, wordWithoutSuffix, keywords, groups) {
+			if p.checkForMention(wordWithoutSuffix, keywords, groups) {
 				foundWithoutSuffix = true
 				break
 			}
@@ -78,7 +77,7 @@ func processText(m *MentionResults, text string, keywords map[string][]string, g
 			case '.', '-', ':':
 				word = word[:len(word)-1]
 			}
-			m.OtherPotentialMentions = append(m.OtherPotentialMentions, word[1:])
+			p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, word[1:])
 		} else if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
@@ -86,53 +85,66 @@ func processText(m *MentionResults, text string, keywords map[string][]string, g
 			})
 
 			for _, splitWord := range splitWords {
-				if checkForMention(m, splitWord, keywords, groups) {
+				if p.checkForMention(splitWord, keywords, groups) {
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-					m.OtherPotentialMentions = append(m.OtherPotentialMentions, splitWord[1:])
+					p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, splitWord[1:])
 				}
 			}
 		}
 
 		if ids, match := isKeywordMultibyte(keywords, word); match {
-			m.addMentions(ids, KeywordMention)
+			p.addMentions(ids, KeywordMention)
 		}
 	}
 }
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
-func checkForMention(m *MentionResults, word string, keywords map[string][]string, groups map[string]*model.Group) bool {
+func (p *StandardMentionParser) checkForMention(word string, keywords MentionKeywords, groups map[string]*model.Group) bool {
 	var mentionType MentionType
 
 	switch strings.ToLower(word) {
 	case "@here":
-		m.HereMentioned = true
+		p.results.HereMentioned = true
 		mentionType = ChannelMention
 	case "@channel":
-		m.ChannelMentioned = true
+		p.results.ChannelMentioned = true
 		mentionType = ChannelMention
 	case "@all":
-		m.AllMentioned = true
+		p.results.AllMentioned = true
 		mentionType = ChannelMention
 	default:
 		mentionType = KeywordMention
 	}
 
-	checkForGroupMention(m, word, groups)
+	checkForGroupMention(p.results, word, groups)
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
-		m.addMentions(ids, mentionType)
+		p.addMentions(ids, mentionType)
 		return true
 	}
 
 	// Case-sensitive check for first name
 	if ids, match := keywords[word]; match {
-		m.addMentions(ids, mentionType)
+		p.addMentions(ids, mentionType)
 		return true
 	}
 
 	return false
+}
+
+func (p *StandardMentionParser) addMentions(ids []MentionableID, mentionType MentionType) {
+	for _, id := range ids {
+		if userID, ok := id.AsUserID(); ok {
+			p.results.addMention(userID, mentionType)
+		} else if groupID, ok := id.AsGroupID(); ok {
+			// TODO is faking this fine
+			p.results.GroupMentions[groupID] = &model.Group{}
+		} else {
+			// This case shouldn't be hit in practice
+		}
+	}
 }
 
 func checkForGroupMention(m *MentionResults, word string, groups map[string]*model.Group) bool {
@@ -164,8 +176,8 @@ func checkForGroupMention(m *MentionResults, word string, groups map[string]*mod
 }
 
 // isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword
-func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bool) {
-	ids := []string{}
+func isKeywordMultibyte(keywords MentionKeywords, word string) ([]MentionableID, bool) {
+	ids := []MentionableID{}
 	match := false
 	var multibyteKeywords []string
 	for keyword := range keywords {

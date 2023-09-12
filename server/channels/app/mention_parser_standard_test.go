@@ -107,7 +107,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 				},
 			}
 
-			m := getExplicitMentions(post, tc.Keywords, tc.Groups)
+			m := getExplicitMentions(post, mapToUserKeywords(tc.Keywords), tc.Groups)
 			assert.EqualValues(t, tc.Expected, m)
 		})
 	}
@@ -202,9 +202,10 @@ func TestCheckForMentionUsers(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			p := makeStandardMentionParser(mapToUserKeywords(tc.Keywords), nil)
+			p.checkForMention(tc.Word, p.keywords, nil)
 
-			mr := &MentionResults{}
-			checkForMention(mr, tc.Word, tc.Keywords, nil)
+			mr := p.Results()
 
 			assert.EqualValues(t, tc.Expected, mr)
 		})
@@ -370,8 +371,10 @@ func TestProcessText(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			mr := &MentionResults{}
-			processText(mr, tc.Text, tc.Keywords, tc.Groups)
+			p := makeStandardMentionParser(mapToUserKeywords(tc.Keywords), tc.Groups)
+			p.ProcessText(tc.Text)
+
+			mr := p.Results()
 
 			assert.EqualValues(t, tc.Expected, mr)
 		})
