@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import type {ComponentProps} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -43,13 +43,9 @@ const ConvertGmToChannelModal = (props: Props) => {
     const {formatMessage} = intl;
 
     const [channelName, setChannelName] = useState<string>('');
-    const handleChannelNameChange = useCallback((newName: string) => {
-        setChannelName(newName);
-    }, []);
-
-    const [channelURL, setChannelChannelURL] = useState<string>('');
+    const channelURL = useRef<string>('');
     const handleChannelURLChange = useCallback((newURL: string) => {
-        setChannelChannelURL(newURL);
+        channelURL.current = newURL;
     }, []);
 
     const [channelMemberNames, setChannelMemberNames] = useState<string[]>([]);
@@ -69,11 +65,15 @@ const ConvertGmToChannelModal = (props: Props) => {
     const [nameError, setNameError] = useState<boolean>(false);
     const [conversionError, setConversionError] = useState<string>();
 
-    const handleTeamChange = useCallback((teamId: string) => {
-        setSelectedTeamId(teamId);
-    }, []);
-
     const dispatch = useDispatch();
+
+    const mounted = useRef(false);
+    useEffect(() => {
+        mounted.current = true;
+        return (() => {
+            mounted.current = false;
+        });
+    }, []);
 
     useEffect(() => {
         const work = async () => {
@@ -87,8 +87,11 @@ const ConvertGmToChannelModal = (props: Props) => {
             teams.forEach((team) => {
                 teamsById[team.id] = team;
             });
-            setCommonTeamsById(teamsById);
-            setCommonTeamsFetched(true);
+
+            if (mounted) {
+                setCommonTeamsById(teamsById);
+                setCommonTeamsFetched(true);
+            }
 
             // if there is only common team, selected it.
             if (teams.length === 1) {
@@ -98,14 +101,14 @@ const ConvertGmToChannelModal = (props: Props) => {
 
         work();
         setTimeout(() => setLoadingAnimationTimeout(true), 1200);
-    }, []);
+    }, [mounted]);
 
-    const handleConfirm = async () => {
+    const handleConfirm = useCallback(async () => {
         if (!selectedTeamId) {
             return;
         }
 
-        const {error} = await props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.trim());
+        const {error} = await props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.current.trim());
 
         if (error) {
             setConversionError(error.message);
@@ -118,14 +121,10 @@ const ConvertGmToChannelModal = (props: Props) => {
         }
         trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
         props.onExited();
-    };
+    }, [selectedTeamId, props.channel.id, channelName, channelURL.current, props.channelsCategoryId, props.actions.moveChannelsInSidebar]);
 
     const showLoader = !commonTeamsFetched || !loadingAnimationTimeout;
-
-    const canCreate = (): boolean => {
-        return selectedTeamId !== undefined && channelName !== '' && !nameError;
-    };
-
+    const canCreate = selectedTeamId !== undefined && channelName !== '' && !nameError;
     const modalProps: Partial<ComponentProps<typeof GenericModal>> = {};
     let modalBody;
 
@@ -143,7 +142,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         modalProps.isDeleteModal = true;
         modalProps.cancelButtonText = formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'});
         modalProps.confirmButtonText = formatMessage({id: 'sidebar_left.sidebar_channel_modal.confirmation_text', defaultMessage: 'Convert to private channel'});
-        modalProps.isConfirmDisabled = !canCreate();
+        modalProps.isConfirmDisabled = !canCreate;
 
         let subBody;
         if (showLoader) {
@@ -161,7 +160,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                         Object.keys(commonTeamsById).length > 1 &&
                         <TeamSelector
                             teamsById={commonTeamsById}
-                            onChange={handleTeamChange}
+                            onChange={setSelectedTeamId}
                         />
                     }
 
@@ -170,7 +169,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                         name='convert-gm-to-channel-modal-channel-name'
                         placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.channel_name_placeholder', defaultMessage: 'Enter a name for the channel'})}
                         autoFocus={false}
-                        onDisplayNameChange={handleChannelNameChange}
+                        onDisplayNameChange={setChannelName}
                         onURLChange={handleChannelURLChange}
                         onErrorStateChange={setNameError}
                     />

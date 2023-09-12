@@ -11,11 +11,9 @@ import type {CustomMessageInputType} from 'components/widgets/inputs/input/input
 import Input from 'components/widgets/inputs/input/input';
 import URLInput from 'components/widgets/inputs/url_input/url_input';
 
-import Constants, {ItemStatus} from 'utils/constants';
+import Constants from 'utils/constants';
 import {cleanUpUrlable, getSiteURL, validateChannelUrl} from 'utils/url';
 import {generateSlug, localizeMessage} from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
 
 export type Props = {
     value: string;
@@ -53,13 +51,13 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
     const displayNameModified = useRef<boolean>(false);
     const [displayNameError, setDisplayNameError] = useState<string>('');
-    const [displayName, setDisplayName] = useState<string>('');
+    const displayName = useRef<string>('');
     const urlModified = useRef<boolean>(false);
     const [url, setURL] = useState<string>('');
     const [urlError, setURLError] = useState<string>('');
     const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
 
-    const {name: currentTeamName} = useSelector((state: GlobalState) => getCurrentTeam(state));
+    const {name: currentTeamName} = useSelector(getCurrentTeam);
 
     const handleOnDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -69,7 +67,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
         // set error if any, else clear it
         setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
-        setDisplayName(updatedDisplayName);
+        displayName.current = updatedDisplayName;
         props.onDisplayNameChange(updatedDisplayName);
 
         if (!urlModified.current) {
@@ -79,19 +77,19 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             setURLError('');
             props.onURLChange(cleanURL);
         }
-    }, [props.onDisplayNameChange, props.onURLChange]);
+    }, [props.onDisplayNameChange, props.onURLChange, urlModified.current]);
 
     const handleOnDisplayNameBlur = useCallback(() => {
-        if (displayName && !url) {
+        if (displayName.current && !url) {
             const url = generateSlug();
             setURL(url);
             props.onURLChange(url);
         }
         if (!displayNameModified.current) {
             displayNameModified.current = true;
-            setInputCustomMessage(displayNameModified.current ? {type: ItemStatus.ERROR, value: displayNameError} : null);
+            setInputCustomMessage(null);
         }
-    }, [props.onURLChange]);
+    }, [props.onURLChange, displayName.current, url, displayNameModified, displayNameError]);
 
     const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -126,7 +124,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 placeholder={props.placeholder}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
                 value={props.value}
-                customMessage={inputCustomMessage as CustomMessageInputType}
+                customMessage={inputCustomMessage}
                 onChange={handleOnDisplayNameChange}
                 onBlur={handleOnDisplayNameBlur}
             />
@@ -141,7 +139,6 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 onChange={handleOnURLChange}
             />
         </React.Fragment>
-
     );
 };
 

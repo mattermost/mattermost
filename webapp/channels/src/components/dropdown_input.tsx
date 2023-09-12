@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
@@ -97,14 +97,14 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
 
     const {formatMessage} = useIntl();
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
-    const [ownValue, setOwnValue] = useState<T>();
+    const ownValue = useRef<T>();
 
     const ownOnChange = (value: T, action: ActionMeta<T>) => {
-        setOwnValue(value);
+        ownValue.current = value;
         onChange(value, action);
     };
     const validateInput = () => {
-        if (!props.required || (ownValue !== null && ownValue)) {
+        if (!props.required || (ownValue.current !== null && ownValue.current)) {
             setCustomInputLabel(null);
             return;
         }
