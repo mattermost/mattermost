@@ -8,11 +8,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
-const (
-	JobName = "ExpiryNotify"
-)
+func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() error) *jobs.SimpleWorker {
+	const workerName = "ExpiryNotify"
 
-func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() error) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ServiceSettings.ExtendSessionLengthWithActivity
 	}
@@ -21,5 +19,5 @@ func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() error) m
 
 		return notifySessionsExpired()
 	}
-	return jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
+	return jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 }
