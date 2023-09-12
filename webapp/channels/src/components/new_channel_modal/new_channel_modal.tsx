@@ -60,7 +60,7 @@ const NewChannelModal = () => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
-    const {id: currentTeamId} = useSelector((state: GlobalState) => getCurrentTeam(state));
+    const {id: currentTeamId} = useSelector(getCurrentTeam);
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL) : false));
     const canCreatePrivateChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL) : false));
@@ -243,10 +243,6 @@ const NewChannelModal = () => {
         </OverlayTrigger>
     );
 
-    const onChannelDisplayNameChanged = useCallback((newName: string) => {
-        setDisplayName(newName);
-    }, []);
-
     return (
         <GenericModal
             id='new-channel-modal'
@@ -268,7 +264,7 @@ const NewChannelModal = () => {
                     value={displayName}
                     name='new-channel-modal-name'
                     placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
-                    onDisplayNameChange={onChannelDisplayNameChanged}
+                    onDisplayNameChange={setDisplayName}
                     onURLChange={setURL}
                     onErrorStateChange={setChannelInputError}
                 />

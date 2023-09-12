@@ -4760,14 +4760,6 @@
     "translation": "Channel does not exist."
   },
   {
-    "id": "app.channel.get_common_teams.incorrect_channel_type",
-    "translation": "Channel is not a group message."
-  },
-  {
-    "id": "app.channel.get_common_teams.store_get_common_teams_error",
-    "translation": "Couldn't fetch common teams."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
   },
@@ -4812,6 +4804,14 @@
     "translation": "Unable to check unreads and mentions"
   },
   {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Channel is not a group message."
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Couldn't fetch common teams."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -4826,10 +4826,6 @@
   {
     "id": "app.channel.get_for_post.app_error",
     "translation": "Unable to get the channel for the given post."
-  },
-  {
-    "id": "app.channel.get_gm_common_teams.store_error",
-    "translation": "Unable to get common teams for group message members."
   },
   {
     "id": "app.channel.get_member.app_error",
