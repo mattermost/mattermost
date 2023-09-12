@@ -64,6 +64,43 @@ button {
             background-color: rgba(var(--button-bg-rgb), 0.08);
             color: rgba(var(--button-bg-rgb), 1);
         }
+
+        i {
+            font-size: inherit;
+        }
+
+        &.btn-xs {
+            width: 24px;
+            height: 24px;
+            font-size: 14.4px;
+
+            &.btn-compact {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        &.btn-sm {
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+
+            &.btn-compact {
+                width: 28px;
+                height: 28px;
+            }
+        }
+
+        &.btn-lg {
+            width: 48px;
+            height: 48px;
+            font-size: 31.2px;
+
+            &.btn-compact {
+                width: 36px;
+                height: 36px;
+            }
+        }
     }
 
     &:not(.a11y--active) {
@@ -89,16 +126,10 @@ button {
         align-items: center;
         justify-content: center;
         margin-right: 0;
-        font-size: 18px;
     }
 
     &.btn-xs {
         height: 28px;
-
-        &.btn-icon {
-            width: 28px;
-            padding: 0;
-        }
     }
 
     &.btn-sm {
@@ -106,11 +137,6 @@ button {
         padding: 0 16px;
         font-size: 12px;
         gap: 6px;
-
-        &.btn-icon {
-            width: 32px;
-            padding: 0;
-        }
     }
 
     &.btn-lg {
@@ -118,11 +144,6 @@ button {
         padding: 0 24px;
         font-size: 16px;
         gap: 10px;
-
-        &.btn-icon {
-            width: 48px;
-            padding: 0;
-        }
 
         .i {
             width: 20px;
