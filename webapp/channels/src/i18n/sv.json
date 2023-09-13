@@ -3160,7 +3160,7 @@
   "combined_system_message.removed_from_team.one": "{firstUser} **togs bort från kanalen**.",
   "combined_system_message.removed_from_team.one_you": "Du **togs bort från teamet**.",
   "combined_system_message.removed_from_team.two": "{firstUser} och {secondUser} **togs bort från teamet**.",
-  "combined_system_message.you": "Du",
+  "combined_system_message.you": "dig",
   "commercial_support.description": "Om du upplever problem, [skapa ett supportärende.](!{supportLink})\n \n**Ladda ner Systemdetaljer**\n \nVi rekommenderar att du laddar ner systemdetaljer om din Mattermostmiljö som stöd i felsökningen. När du laddat ner informationen, bifoga det till ditt ärende för att ge kundsupportteamet tillgång till informationen.",
   "commercial_support.download_support_packet": "Ladda ner Systemdetaljer",
   "commercial_support.title": "Kommersiell support",
