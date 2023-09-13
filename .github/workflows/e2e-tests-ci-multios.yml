@@ -34,7 +34,7 @@ jobs:
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/windows-envdump
         if: runner.os == 'windows'
-        run: env
+        run: docker system info
         shell: bash
       - name: ci/e2e-smoketests
         if: runner.os == 'macos'
