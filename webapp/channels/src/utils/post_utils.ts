@@ -276,13 +276,19 @@ function canAutomaticallyCloseBackticks(message: string) {
     return {allowSending: true};
 }
 
+export function isWithinCodeBlock(message: string, caretPosition: number): boolean {
+    const match = message.substring(0, caretPosition).match(Constants.REGEX_CODE_BLOCK_OPTIONAL_LANGUAGE_TAG);
+  
+    return Boolean(match && match.length % 2 !== 0);
+}
+
 function sendOnCtrlEnter(message: string, ctrlOrMetaKeyPressed: boolean, isSendMessageOnCtrlEnter: boolean, caretPosition: number) {
-    const match = message.substring(0, caretPosition).match(Constants.TRIPLE_BACK_TICKS);
-    if (isSendMessageOnCtrlEnter && ctrlOrMetaKeyPressed && (!match || match.length % 2 === 0)) {
+    const inCodeBlock = isWithinCodeBlock(message, caretPosition);
+    if (isSendMessageOnCtrlEnter && ctrlOrMetaKeyPressed && !inCodeBlock) {
         return {allowSending: true};
-    } else if (!isSendMessageOnCtrlEnter && (!match || match.length % 2 === 0)) {
+    } else if (!isSendMessageOnCtrlEnter && !inCodeBlock) {
         return {allowSending: true};
-    } else if (ctrlOrMetaKeyPressed && match && match.length % 2 !== 0) {
+    } else if (ctrlOrMetaKeyPressed && inCodeBlock) {
         return canAutomaticallyCloseBackticks(message);
     }
 
