@@ -688,7 +688,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err = a.FillInPostProps(c, post, nil); err != nil {
+	if err = a.FillInPostProps(c, newPost, nil); err != nil {
 		return nil, err
 	}
 
@@ -700,7 +700,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	pluginContext := pluginContext(c)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
-		return post != nil
+		return newPost != nil
 	}, plugin.MessageWillBeUpdatedID)
 	if newPost == nil {
 		return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)

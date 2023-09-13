@@ -404,6 +404,80 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestUpdatePostPluginHooks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("", func(t *testing.T) {
+		setupMultiPluginAPITest(t, []string{
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					return nil, "rejected"
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					if (newPost == nil) {
+						return nil, "nil post"
+					}
+					newPost.Message = newPost.Message + "fromplugin"
+					return newPost, ""
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+		}, []string{
+			`{"id": "testrejectfirstpost", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testupdatepost", "server": {"executable": "backend.exe"}}`,
+		}, []string{
+			"testrejectfirstpost", "testupdatepost",
+		}, true, th.App, th.Context)
+
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "", true)
+		require.Nil(t, err)
+
+		post.Message = "new message"
+		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
+		require.Nil(t, updatedPost)
+		require.NotNil(t, err)
+		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
+	})
+}
+
 func TestPostChannelMentions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -418,7 +492,15 @@ func TestPostChannelMentions(t *testing.T) {
 		TeamId:      th.BasicTeam.Id,
 	}, false)
 	require.Nil(t, err)
+	channelToMention2, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Mention Test2",
+		Name:        "mention-test2",
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(th.Context, channelToMention)
+	defer th.App.PermanentDeleteChannel(th.Context, channelToMention2)
 
 	_, err = th.App.AddUserToChannel(th.Context, user, channel, false)
 	require.Nil(t, err)
@@ -440,15 +522,20 @@ func TestPostChannelMentions(t *testing.T) {
 		},
 	}, post.GetProp("channel_mentions"))
 
-	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
+	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention2.Name)
 	result, err := th.App.UpdatePost(th.Context, post, false)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
-		"mention-test": map[string]any{
-			"display_name": "Mention Test",
+		"mention-test2": map[string]any{
+			"display_name": "Mention Test2",
 			"team_name":    th.BasicTeam.Name,
 		},
 	}, result.GetProp("channel_mentions"))
+
+	result.Message = "no more mentions!"
+	result, err = th.App.UpdatePost(th.Context, result, false)
+	require.Nil(t, err)
+	assert.Nil(t, result.GetProp("channel_mentions"))
 }
 
 func TestImageProxy(t *testing.T) {
