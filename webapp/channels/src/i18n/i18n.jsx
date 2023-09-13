@@ -9,6 +9,7 @@ import es from './es.json';
 import fa from './fa.json';
 import fr from './fr.json';
 import hu from './hu.json';
+import cz from './cz.json';
 import it from './it.json';
 import ja from './ja.json';
 import ko from './ko.json';
@@ -71,88 +72,94 @@ const languages = {
         order: 6,
         url: hu,
     },
+    cz: {
+        value: 'cz',
+        name: 'Čeština (Alpha)',
+        order: 7,
+        url: cz,
+    },
     nl: {
         value: 'nl',
         name: 'Nederlands',
-        order: 7,
+        order: 8,
         url: nl,
     },
     pl: {
         value: 'pl',
         name: 'Polski',
-        order: 8,
+        order: 9,
         url: pl,
     },
     'pt-BR': {
         value: 'pt-BR',
         name: 'Português (Brasil) (Alpha)',
-        order: 9,
+        order: 10,
         url: ptBR,
     },
     ro: {
         value: 'ro',
         name: 'Română (Alpha)',
-        order: 10,
+        order: 11,
         url: ro,
     },
     sv: {
         value: 'sv',
         name: 'Svenska',
-        order: 11,
+        order: 12,
         url: sv,
     },
     tr: {
         value: 'tr',
         name: 'Türkçe',
-        order: 12,
+        order: 13,
         url: tr,
     },
     bg: {
         value: 'bg',
         name: 'Български (Alpha)',
-        order: 13,
+        order: 14,
         url: bg,
     },
     ru: {
         value: 'ru',
         name: 'Pусский',
-        order: 14,
+        order: 15,
         url: ru,
     },
     uk: {
         value: 'uk',
         name: 'Yкраїнська (Alpha)',
-        order: 15,
+        order: 16,
         url: uk,
     },
     fa: {
         value: 'fa',
         name: 'فارسی (Alpha)',
-        order: 16,
+        order: 17,
         url: fa,
     },
     ko: {
         value: 'ko',
         name: '한국어 (Alpha)',
-        order: 17,
+        order: 18,
         url: ko,
     },
     'zh-CN': {
         value: 'zh-CN',
         name: '中文 (简体) (Alpha)',
-        order: 18,
+        order: 19,
         url: zhCN,
     },
     'zh-TW': {
         value: 'zh-TW',
         name: '中文 (繁體)',
-        order: 19,
+        order: 20,
         url: zhTW,
     },
     ja: {
         value: 'ja',
         name: '日本語',
-        order: 20,
+        order: 21,
         url: ja,
     },
 };
