@@ -15,6 +15,7 @@ import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ExternalLink from 'components/external_link';
 import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -1085,15 +1086,29 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     ref={this.wrapperRef}
                     className='user-settings'
                 >
-                    <h3
-                        id='notificationSettingsTitle'
-                        className='tab-header'
-                    >
+                    <div className='notificationSettingsModalHeader'>
+                        <h3
+                            id='notificationSettingsTitle'
+                            className='tab-header'
+                        >
+                            <FormattedMessage
+                                id='user.settings.notifications.header'
+                                defaultMessage='Notifications'
+                            />
+                        </h3>
                         <FormattedMessage
-                            id='user.settings.notifications.header'
-                            defaultMessage='Notifications'
+                            id='user.settings.notifications.learnMore'
+                            defaultMessage='<a>Learn more about notifications</a>'
+                            values={{
+                                a: (chunks: string) => ((
+                                    <ExternalLink href='https://mattermost.com/pl/about-notifications'>
+                                        <i className='icon icon-help-circle-outline'/>
+                                        <span>{chunks}</span>
+                                    </ExternalLink>
+                                )),
+                            }}
                         />
-                    </h3>
+                    </div>
                     <div className='divider-dark first'/>
                     <DesktopNotificationSettings
                         activity={this.state.desktopActivity}
