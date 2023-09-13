@@ -37,24 +37,21 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
   >
     <AlertBanner
       footerMessage={
-        <Memo(Connect(Markdown))
-          message="@user-0 and @user-1 are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel."
-          options={
-            Object {
-              "atMentions": true,
-              "mentionHighlight": false,
-              "mentionKeys": Array [
-                Object {
-                  "key": "@user-0",
-                },
-                Object {
-                  "key": "@user-1",
-                },
-              ],
-              "singleline": true,
+        Array [
+          <FormattedList
+            value={
+              Array [
+                <Memo(Connect(AtMention))
+                  mentionName="user-0"
+                />,
+                <Memo(Connect(AtMention))
+                  mentionName="user-1"
+                />,
+              ]
             }
-          }
-        />
+          />,
+          " are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.",
+        ]
       }
       id="teamWarningBanner"
       message={false}
@@ -122,129 +119,56 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <div
             className="AlertBanner__footerMessage"
           >
-            <Connect(Markdown)
-              message="@user-0 and @user-1 are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel."
-              options={
-                Object {
-                  "atMentions": true,
-                  "mentionHighlight": false,
-                  "mentionKeys": Array [
-                    Object {
-                      "key": "@user-0",
-                    },
-                    Object {
-                      "key": "@user-1",
-                    },
-                  ],
-                  "singleline": true,
-                }
+            <FormattedList
+              key=".0"
+              value={
+                Array [
+                  <Memo(Connect(AtMention))
+                    mentionName="user-0"
+                  />,
+                  <Memo(Connect(AtMention))
+                    mentionName="user-1"
+                  />,
+                ]
               }
             >
-              <Markdown
-                autolinkedUrlSchemes={
-                  Array [
-                    "http",
-                    "https",
-                    "ftp",
-                    "mailto",
-                    "tel",
-                    "mattermost",
-                  ]
-                }
-                channelNamesMap={Object {}}
-                dispatch={[Function]}
-                editedAt={0}
-                emojiMap={
-                  EmojiMap {
-                    "customEmojis": Map {},
-                    "customEmojisArray": Array [],
-                  }
-                }
-                enableFormatting={true}
-                hasImageProxy={false}
-                imagesMetadata={Object {}}
-                managedResourcePaths={Array []}
-                mentionKeys={Array []}
-                message="@user-0 and @user-1 are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel."
-                minimumHashtagLength={NaN}
-                options={
-                  Object {
-                    "atMentions": true,
-                    "mentionHighlight": false,
-                    "mentionKeys": Array [
-                      Object {
-                        "key": "@user-0",
-                      },
-                      Object {
-                        "key": "@user-1",
-                      },
-                    ],
-                    "singleline": true,
-                  }
-                }
-                postId=""
-                proxyImages={true}
-                siteURL="http://localhost:8065"
-              >
-                <p
-                  className="markdown__paragraph-inline"
-                  key="0"
+              <span>
+                <Connect(AtMention)
+                  key="user-0"
+                  mentionName="user-0"
                 >
-                  <span
-                    data-mention="user-0"
-                    key="0"
-                  >
-                    <Connect(AtMention)
-                      disableGroupHighlight={false}
-                      disableHighlight={true}
-                      hasMention={true}
-                      mentionName="user-0"
-                    >
-                      <AtMention
-                        currentUserId="admin1"
-                        disableGroupHighlight={false}
-                        disableHighlight={true}
-                        dispatch={[Function]}
-                        groupsByName={Object {}}
-                        hasMention={true}
-                        mentionName="user-0"
-                        teammateNameDisplay="username"
-                        usersByUsername={Object {}}
-                      >
-                        @user-0
-                      </AtMention>
-                    </Connect(AtMention)>
-                  </span>
-                   and 
-                  <span
-                    data-mention="user-1"
-                    key="2"
-                  >
-                    <Connect(AtMention)
-                      disableGroupHighlight={false}
-                      disableHighlight={true}
-                      hasMention={true}
-                      mentionName="user-1"
-                    >
-                      <AtMention
-                        currentUserId="admin1"
-                        disableGroupHighlight={false}
-                        disableHighlight={true}
-                        dispatch={[Function]}
-                        groupsByName={Object {}}
-                        hasMention={true}
-                        mentionName="user-1"
-                        teammateNameDisplay="username"
-                        usersByUsername={Object {}}
-                      >
-                        @user-1
-                      </AtMention>
-                    </Connect(AtMention)>
-                  </span>
-                   are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.
-                </p>
-              </Markdown>
-            </Connect(Markdown)>
+                  <AtMention
+                    currentUserId="admin1"
+                    disableGroupHighlight={false}
+                    disableHighlight={false}
+                    dispatch={[Function]}
+                    groupsByName={Object {}}
+                    hasMention={false}
+                    mentionName="user-0"
+                    teammateNameDisplay="username"
+                    usersByUsername={Object {}}
+                  />
+                </Connect(AtMention)>
+                 and 
+                <Connect(AtMention)
+                  key="user-1"
+                  mentionName="user-1"
+                >
+                  <AtMention
+                    currentUserId="admin1"
+                    disableGroupHighlight={false}
+                    disableHighlight={false}
+                    dispatch={[Function]}
+                    groupsByName={Object {}}
+                    hasMention={false}
+                    mentionName="user-1"
+                    teammateNameDisplay="username"
+                    usersByUsername={Object {}}
+                  />
+                </Connect(AtMention)>
+              </span>
+            </FormattedList>
+             are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.
           </div>
         </div>
       </div>
@@ -292,24 +216,26 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       footerMessage={false}
       id="teamWarningBanner"
       message={
-        <Memo(Connect(Markdown))
-          message="You can add @user-0 and @user-1 to this channel once they are members of the **** team."
-          options={
-            Object {
-              "atMentions": true,
-              "mentionHighlight": false,
-              "mentionKeys": Array [
-                Object {
-                  "key": "@user-0",
-                },
-                Object {
-                  "key": "@user-1",
-                },
-              ],
-              "singleline": true,
+        Array [
+          "You can add ",
+          <FormattedList
+            value={
+              Array [
+                <Memo(Connect(AtMention))
+                  mentionName="user-0"
+                />,
+                <Memo(Connect(AtMention))
+                  mentionName="user-1"
+                />,
+              ]
             }
-          }
-        />
+          />,
+          " to this channel once they are members of the ",
+          <strong>
+            Team Name Display
+          </strong>,
+          " team.",
+        ]
       }
       mode="warning"
       title={
@@ -375,130 +301,63 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <div
             className="AlertBanner__message"
           >
-            <Connect(Markdown)
-              message="You can add @user-0 and @user-1 to this channel once they are members of the **** team."
-              options={
-                Object {
-                  "atMentions": true,
-                  "mentionHighlight": false,
-                  "mentionKeys": Array [
-                    Object {
-                      "key": "@user-0",
-                    },
-                    Object {
-                      "key": "@user-1",
-                    },
-                  ],
-                  "singleline": true,
-                }
+            You can add 
+            <FormattedList
+              key=".1"
+              value={
+                Array [
+                  <Memo(Connect(AtMention))
+                    mentionName="user-0"
+                  />,
+                  <Memo(Connect(AtMention))
+                    mentionName="user-1"
+                  />,
+                ]
               }
             >
-              <Markdown
-                autolinkedUrlSchemes={
-                  Array [
-                    "http",
-                    "https",
-                    "ftp",
-                    "mailto",
-                    "tel",
-                    "mattermost",
-                  ]
-                }
-                channelNamesMap={Object {}}
-                dispatch={[Function]}
-                editedAt={0}
-                emojiMap={
-                  EmojiMap {
-                    "customEmojis": Map {},
-                    "customEmojisArray": Array [],
-                  }
-                }
-                enableFormatting={true}
-                hasImageProxy={false}
-                imagesMetadata={Object {}}
-                managedResourcePaths={Array []}
-                mentionKeys={Array []}
-                message="You can add @user-0 and @user-1 to this channel once they are members of the **** team."
-                minimumHashtagLength={NaN}
-                options={
-                  Object {
-                    "atMentions": true,
-                    "mentionHighlight": false,
-                    "mentionKeys": Array [
-                      Object {
-                        "key": "@user-0",
-                      },
-                      Object {
-                        "key": "@user-1",
-                      },
-                    ],
-                    "singleline": true,
-                  }
-                }
-                postId=""
-                proxyImages={true}
-                siteURL="http://localhost:8065"
-              >
-                <p
-                  className="markdown__paragraph-inline"
-                  key="0"
+              <span>
+                <Connect(AtMention)
+                  key="user-0"
+                  mentionName="user-0"
                 >
-                  You can add 
-                  <span
-                    data-mention="user-0"
-                    key="1"
-                  >
-                    <Connect(AtMention)
-                      disableGroupHighlight={false}
-                      disableHighlight={true}
-                      hasMention={true}
-                      mentionName="user-0"
-                    >
-                      <AtMention
-                        currentUserId="admin1"
-                        disableGroupHighlight={false}
-                        disableHighlight={true}
-                        dispatch={[Function]}
-                        groupsByName={Object {}}
-                        hasMention={true}
-                        mentionName="user-0"
-                        teammateNameDisplay="username"
-                        usersByUsername={Object {}}
-                      >
-                        @user-0
-                      </AtMention>
-                    </Connect(AtMention)>
-                  </span>
-                   and 
-                  <span
-                    data-mention="user-1"
-                    key="3"
-                  >
-                    <Connect(AtMention)
-                      disableGroupHighlight={false}
-                      disableHighlight={true}
-                      hasMention={true}
-                      mentionName="user-1"
-                    >
-                      <AtMention
-                        currentUserId="admin1"
-                        disableGroupHighlight={false}
-                        disableHighlight={true}
-                        dispatch={[Function]}
-                        groupsByName={Object {}}
-                        hasMention={true}
-                        mentionName="user-1"
-                        teammateNameDisplay="username"
-                        usersByUsername={Object {}}
-                      >
-                        @user-1
-                      </AtMention>
-                    </Connect(AtMention)>
-                  </span>
-                   to this channel once they are members of the **** team.
-                </p>
-              </Markdown>
-            </Connect(Markdown)>
+                  <AtMention
+                    currentUserId="admin1"
+                    disableGroupHighlight={false}
+                    disableHighlight={false}
+                    dispatch={[Function]}
+                    groupsByName={Object {}}
+                    hasMention={false}
+                    mentionName="user-0"
+                    teammateNameDisplay="username"
+                    usersByUsername={Object {}}
+                  />
+                </Connect(AtMention)>
+                 and 
+                <Connect(AtMention)
+                  key="user-1"
+                  mentionName="user-1"
+                >
+                  <AtMention
+                    currentUserId="admin1"
+                    disableGroupHighlight={false}
+                    disableHighlight={false}
+                    dispatch={[Function]}
+                    groupsByName={Object {}}
+                    hasMention={false}
+                    mentionName="user-1"
+                    teammateNameDisplay="username"
+                    usersByUsername={Object {}}
+                  />
+                </Connect(AtMention)>
+              </span>
+            </FormattedList>
+             to this channel once they are members of the 
+            <strong
+              key=".3"
+            >
+              Team Name Display
+            </strong>
+             team.
           </div>
         </div>
       </div>
@@ -608,50 +467,8 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
     <AlertBanner
       footerMessage={
         Array [
-          <Memo(Connect(Markdown))
-            message="@user-0"
-            options={
-              Object {
-                "atMentions": true,
-                "mentionHighlight": false,
-                "mentionKeys": Array [
-                  Object {
-                    "key": "@user-0",
-                  },
-                  Object {
-                    "key": "@user-1",
-                  },
-                  Object {
-                    "key": "@user-2",
-                  },
-                  Object {
-                    "key": "@user-3",
-                  },
-                  Object {
-                    "key": "@user-4",
-                  },
-                  Object {
-                    "key": "@user-5",
-                  },
-                  Object {
-                    "key": "@user-6",
-                  },
-                  Object {
-                    "key": "@user-7",
-                  },
-                  Object {
-                    "key": "@user-8",
-                  },
-                  Object {
-                    "key": "@user-9",
-                  },
-                  Object {
-                    "key": "@user-10",
-                  },
-                ],
-                "singleline": true,
-              }
-            }
+          <Memo(Connect(AtMention))
+            mentionName="user-0"
           />,
           " and ",
           <SimpleTooltip
@@ -741,157 +558,22 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <div
             className="AlertBanner__footerMessage"
           >
-            <Connect(Markdown)
-              key=".0"
-              message="@user-0"
-              options={
-                Object {
-                  "atMentions": true,
-                  "mentionHighlight": false,
-                  "mentionKeys": Array [
-                    Object {
-                      "key": "@user-0",
-                    },
-                    Object {
-                      "key": "@user-1",
-                    },
-                    Object {
-                      "key": "@user-2",
-                    },
-                    Object {
-                      "key": "@user-3",
-                    },
-                    Object {
-                      "key": "@user-4",
-                    },
-                    Object {
-                      "key": "@user-5",
-                    },
-                    Object {
-                      "key": "@user-6",
-                    },
-                    Object {
-                      "key": "@user-7",
-                    },
-                    Object {
-                      "key": "@user-8",
-                    },
-                    Object {
-                      "key": "@user-9",
-                    },
-                    Object {
-                      "key": "@user-10",
-                    },
-                  ],
-                  "singleline": true,
-                }
-              }
+            <Connect(AtMention)
+              key=".$user-0"
+              mentionName="user-0"
             >
-              <Markdown
-                autolinkedUrlSchemes={
-                  Array [
-                    "http",
-                    "https",
-                    "ftp",
-                    "mailto",
-                    "tel",
-                    "mattermost",
-                  ]
-                }
-                channelNamesMap={Object {}}
+              <AtMention
+                currentUserId="admin1"
+                disableGroupHighlight={false}
+                disableHighlight={false}
                 dispatch={[Function]}
-                editedAt={0}
-                emojiMap={
-                  EmojiMap {
-                    "customEmojis": Map {},
-                    "customEmojisArray": Array [],
-                  }
-                }
-                enableFormatting={true}
-                hasImageProxy={false}
-                imagesMetadata={Object {}}
-                managedResourcePaths={Array []}
-                mentionKeys={Array []}
-                message="@user-0"
-                minimumHashtagLength={NaN}
-                options={
-                  Object {
-                    "atMentions": true,
-                    "mentionHighlight": false,
-                    "mentionKeys": Array [
-                      Object {
-                        "key": "@user-0",
-                      },
-                      Object {
-                        "key": "@user-1",
-                      },
-                      Object {
-                        "key": "@user-2",
-                      },
-                      Object {
-                        "key": "@user-3",
-                      },
-                      Object {
-                        "key": "@user-4",
-                      },
-                      Object {
-                        "key": "@user-5",
-                      },
-                      Object {
-                        "key": "@user-6",
-                      },
-                      Object {
-                        "key": "@user-7",
-                      },
-                      Object {
-                        "key": "@user-8",
-                      },
-                      Object {
-                        "key": "@user-9",
-                      },
-                      Object {
-                        "key": "@user-10",
-                      },
-                    ],
-                    "singleline": true,
-                  }
-                }
-                postId=""
-                proxyImages={true}
-                siteURL="http://localhost:8065"
-              >
-                <p
-                  className="markdown__paragraph-inline"
-                  key="0"
-                >
-                  <span
-                    data-mention="user-0"
-                    key="0"
-                  >
-                    <Connect(AtMention)
-                      disableGroupHighlight={false}
-                      disableHighlight={true}
-                      hasMention={true}
-                      mentionName="user-0"
-                    >
-                      <AtMention
-                        currentUserId="admin1"
-                        disableGroupHighlight={false}
-                        disableHighlight={true}
-                        dispatch={[Function]}
-                        groupsByName={Object {}}
-                        hasMention={true}
-                        mentionName="user-0"
-                        teammateNameDisplay="username"
-                        usersByUsername={Object {}}
-                      >
-                        @user-0
-                      </AtMention>
-                    </Connect(AtMention)>
-                  </span>
-                </p>
-              </Markdown>
-            </Connect(Markdown)>
+                groupsByName={Object {}}
+                hasMention={false}
+                mentionName="user-0"
+                teammateNameDisplay="username"
+                usersByUsername={Object {}}
+              />
+            </Connect(AtMention)>
              and 
             <SimpleTooltip
               content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
@@ -1115,50 +797,8 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       message={
         Array [
           "You can add ",
-          <Memo(Connect(Markdown))
-            message="@user-0"
-            options={
-              Object {
-                "atMentions": true,
-                "mentionHighlight": false,
-                "mentionKeys": Array [
-                  Object {
-                    "key": "@user-0",
-                  },
-                  Object {
-                    "key": "@user-1",
-                  },
-                  Object {
-                    "key": "@user-2",
-                  },
-                  Object {
-                    "key": "@user-3",
-                  },
-                  Object {
-                    "key": "@user-4",
-                  },
-                  Object {
-                    "key": "@user-5",
-                  },
-                  Object {
-                    "key": "@user-6",
-                  },
-                  Object {
-                    "key": "@user-7",
-                  },
-                  Object {
-                    "key": "@user-8",
-                  },
-                  Object {
-                    "key": "@user-9",
-                  },
-                  Object {
-                    "key": "@user-10",
-                  },
-                ],
-                "singleline": true,
-              }
-            }
+          <Memo(Connect(AtMention))
+            mentionName="user-0"
           />,
           " and ",
           <SimpleTooltip
@@ -1179,7 +819,11 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               />
             </span>
           </SimpleTooltip>,
-          " to this channel once they are members of the **** team.",
+          " to this channel once they are members of the ",
+          <strong>
+            Team Name Display
+          </strong>,
+          " team.",
         ]
       }
       mode="warning"
@@ -1247,157 +891,22 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             className="AlertBanner__message"
           >
             You can add 
-            <Connect(Markdown)
-              key=".1"
-              message="@user-0"
-              options={
-                Object {
-                  "atMentions": true,
-                  "mentionHighlight": false,
-                  "mentionKeys": Array [
-                    Object {
-                      "key": "@user-0",
-                    },
-                    Object {
-                      "key": "@user-1",
-                    },
-                    Object {
-                      "key": "@user-2",
-                    },
-                    Object {
-                      "key": "@user-3",
-                    },
-                    Object {
-                      "key": "@user-4",
-                    },
-                    Object {
-                      "key": "@user-5",
-                    },
-                    Object {
-                      "key": "@user-6",
-                    },
-                    Object {
-                      "key": "@user-7",
-                    },
-                    Object {
-                      "key": "@user-8",
-                    },
-                    Object {
-                      "key": "@user-9",
-                    },
-                    Object {
-                      "key": "@user-10",
-                    },
-                  ],
-                  "singleline": true,
-                }
-              }
+            <Connect(AtMention)
+              key=".$user-0"
+              mentionName="user-0"
             >
-              <Markdown
-                autolinkedUrlSchemes={
-                  Array [
-                    "http",
-                    "https",
-                    "ftp",
-                    "mailto",
-                    "tel",
-                    "mattermost",
-                  ]
-                }
-                channelNamesMap={Object {}}
+              <AtMention
+                currentUserId="admin1"
+                disableGroupHighlight={false}
+                disableHighlight={false}
                 dispatch={[Function]}
-                editedAt={0}
-                emojiMap={
-                  EmojiMap {
-                    "customEmojis": Map {},
-                    "customEmojisArray": Array [],
-                  }
-                }
-                enableFormatting={true}
-                hasImageProxy={false}
-                imagesMetadata={Object {}}
-                managedResourcePaths={Array []}
-                mentionKeys={Array []}
-                message="@user-0"
-                minimumHashtagLength={NaN}
-                options={
-                  Object {
-                    "atMentions": true,
-                    "mentionHighlight": false,
-                    "mentionKeys": Array [
-                      Object {
-                        "key": "@user-0",
-                      },
-                      Object {
-                        "key": "@user-1",
-                      },
-                      Object {
-                        "key": "@user-2",
-                      },
-                      Object {
-                        "key": "@user-3",
-                      },
-                      Object {
-                        "key": "@user-4",
-                      },
-                      Object {
-                        "key": "@user-5",
-                      },
-                      Object {
-                        "key": "@user-6",
-                      },
-                      Object {
-                        "key": "@user-7",
-                      },
-                      Object {
-                        "key": "@user-8",
-                      },
-                      Object {
-                        "key": "@user-9",
-                      },
-                      Object {
-                        "key": "@user-10",
-                      },
-                    ],
-                    "singleline": true,
-                  }
-                }
-                postId=""
-                proxyImages={true}
-                siteURL="http://localhost:8065"
-              >
-                <p
-                  className="markdown__paragraph-inline"
-                  key="0"
-                >
-                  <span
-                    data-mention="user-0"
-                    key="0"
-                  >
-                    <Connect(AtMention)
-                      disableGroupHighlight={false}
-                      disableHighlight={true}
-                      hasMention={true}
-                      mentionName="user-0"
-                    >
-                      <AtMention
-                        currentUserId="admin1"
-                        disableGroupHighlight={false}
-                        disableHighlight={true}
-                        dispatch={[Function]}
-                        groupsByName={Object {}}
-                        hasMention={true}
-                        mentionName="user-0"
-                        teammateNameDisplay="username"
-                        usersByUsername={Object {}}
-                      >
-                        @user-0
-                      </AtMention>
-                    </Connect(AtMention)>
-                  </span>
-                </p>
-              </Markdown>
-            </Connect(Markdown)>
+                groupsByName={Object {}}
+                hasMention={false}
+                mentionName="user-0"
+                teammateNameDisplay="username"
+                usersByUsername={Object {}}
+              />
+            </Connect(AtMention)>
              and 
             <SimpleTooltip
               content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
@@ -1508,7 +1017,13 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                 </OverlayTrigger>
               </OverlayTrigger>
             </SimpleTooltip>
-             to this channel once they are members of the **** team.
+             to this channel once they are members of the 
+            <strong
+              key=".5"
+            >
+              Team Name Display
+            </strong>
+             team.
           </div>
         </div>
       </div>

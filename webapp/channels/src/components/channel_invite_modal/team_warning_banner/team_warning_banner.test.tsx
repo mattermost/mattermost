@@ -47,8 +47,8 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
                 current: {id: 'team1'},
                 teams: {
                     team1: {
-                        Id: 'team1',
-                        Title: 'Team Name',
+                        id: 'team1',
+                        display_name: 'Team Name Display',
                     },
                 },
             },
