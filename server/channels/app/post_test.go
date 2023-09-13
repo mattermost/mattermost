@@ -522,10 +522,10 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 				}
 			`,
 		}, []string{
-			`{"id": "testrejectfirstpost", "server": {"executable": "backend.exe"}}`,
-			`{"id": "testupdatepost", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testaddone", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testaddtwo", "server": {"executable": "backend.exe"}}`,
 		}, []string{
-			"testrejectfirstpost", "testupdatepost",
+			"testaddone", "testaddtwo",
 		}, true, th.App, th.Context)
 
 		pendingPostId := model.NewId()
