@@ -17,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type PluginAPI struct {
@@ -766,6 +766,10 @@ func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppErr
 	return api.app.GetFileInfo(fileID)
 }
 
+func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	return api.app.SetFileSearchableContent(fileID, content)
+}
+
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfos(page, perPage, opt)
 }
@@ -1267,30 +1271,7 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 	return fi, nil
 }
 
-func (api *PluginAPI) SendPluginPushNotification(notification *model.PluginPushNotification) error {
-	var profiles map[string]*model.User
-	var err error
-	if notification.Channel.Type == model.ChannelTypeGroup {
-		if profiles, err = api.app.Srv().Store().User().GetAllProfilesInChannel(api.ctx.Context(), notification.Channel.Id, true); err != nil {
-			return err
-		}
-	}
-
-	sender, appErr := api.app.GetUser(notification.Post.UserId)
-	if appErr != nil {
-		return appErr
-	}
-	user, appErr := api.app.GetUser(notification.UserID)
-	if appErr != nil {
-		return appErr
-	}
-
-	postNotification := &PostNotification{
-		Post:       notification.Post,
-		Channel:    notification.Channel,
-		ProfileMap: profiles,
-		Sender:     sender,
-	}
-	api.app.sendPushNotification(postNotification, user, notification.ExplicitMention, notification.ChannelWideMention, notification.ReplyToThreadType)
-	return nil
+func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	// Ignoring skipSessionId because it's only used internally to clear push notifications
+	return api.app.sendPushNotificationToAllSessions(notification, userID, "")
 }

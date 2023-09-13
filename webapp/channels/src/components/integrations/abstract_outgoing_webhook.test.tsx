@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
+import type {Team} from '@mattermost/types/teams';
+
 import ChannelSelect from 'components/channel_select';
-import {Team} from '@mattermost/types/teams';
+import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
 
 describe('components/integrations/AbstractOutgoingWebhook', () => {
     const team: Team = {

@@ -12,8 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -59,10 +59,11 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 		EventName: event,
 		Status:    initialStatus,
 		Actor: audit.EventActor{
-			UserId:    c.AppContext.Session().UserId,
-			SessionId: c.AppContext.Session().Id,
-			Client:    c.AppContext.UserAgent(),
-			IpAddress: c.AppContext.IPAddress(),
+			UserId:        c.AppContext.Session().UserId,
+			SessionId:     c.AppContext.Session().Id,
+			Client:        c.AppContext.UserAgent(),
+			IpAddress:     c.AppContext.IPAddress(),
+			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
 		Meta: map[string]interface{}{
 			audit.KeyAPIPath:   c.AppContext.Path(),

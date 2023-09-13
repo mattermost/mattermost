@@ -3,20 +3,16 @@
 
 /* eslint-disable max-lines */
 
+import {DynamicSizeList} from 'dynamic-virtualized-list';
+import type {OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import {DynamicSizeList, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 
-import {isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
+import {isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import type {CanLoadMorePosts} from 'actions/views/channel';
-
-import Constants, {PostListRowListIds, EventTypes, PostRequestTypes} from 'utils/constants';
-import DelayedAction from 'utils/delayed_action';
-import {getPreviousPostId, getLatestPostId, getNewMessageIndex} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import PostListRow from 'components/post_view/post_list_row';
@@ -24,6 +20,10 @@ import ScrollToBottomArrows from 'components/post_view/scroll_to_bottom_arrows';
 import ToastWrapper from 'components/toast_wrapper';
 
 import Pluggable from 'plugins/pluggable';
+import Constants, {PostListRowListIds, EventTypes, PostRequestTypes} from 'utils/constants';
+import DelayedAction from 'utils/delayed_action';
+import {getPreviousPostId, getLatestPostId, getNewMessageIndex} from 'utils/post_utils';
+import * as Utils from 'utils/utils';
 
 import LatestPostReader from './latest_post_reader';
 
@@ -111,11 +111,6 @@ type Props = {
          * Function used for autoLoad of posts incase screen is not filled with posts
          */
         canLoadMorePosts: (type: CanLoadMorePosts) => Promise<void>;
-
-        /*
-         * Function to check and set if app is in mobile view
-         */
-        checkAndSetMobileView: () => void;
 
         /*
          * Function to change the post selected for postList
@@ -208,7 +203,6 @@ export default class PostList extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.mounted = true;
-        this.props.actions.checkAndSetMobileView();
 
         window.addEventListener('resize', this.handleWindowResize);
         EventEmitter.addListener(EventTypes.POST_LIST_SCROLL_TO_BOTTOM, this.scrollToLatestMessages);
@@ -318,7 +312,6 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     handleWindowResize = () => {
-        this.props.actions.checkAndSetMobileView();
         this.showSearchHintThreshold = this.getShowSearchHintThreshold();
     };
 
@@ -380,6 +373,8 @@ export default class PostList extends React.PureComponent<Props, State> {
                     isLastPost={isLastPost}
                     loadingNewerPosts={this.props.loadingNewerPosts}
                     loadingOlderPosts={this.props.loadingOlderPosts}
+                    lastViewedAt={this.props.lastViewedAt}
+                    channelId={this.props.channelId}
                 />
             </div>
         );

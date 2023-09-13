@@ -2,20 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {withRouter, RouteComponentProps} from 'react-router-dom';
+import {withRouter} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
-import {Channel} from '@mattermost/types/channels';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getUnreadScrollPositionPreference} from 'mattermost-redux/selectors/entities/preferences';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {getTeamByName, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {Constants} from 'utils/constants';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import PostView from './post_view';
 

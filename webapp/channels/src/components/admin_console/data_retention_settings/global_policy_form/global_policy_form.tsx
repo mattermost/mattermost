@@ -4,19 +4,19 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AdminConfig} from '@mattermost/types/config';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {ServerError} from '@mattermost/types/errors';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import * as Utils from 'utils/utils';
-import {getHistory} from 'utils/browser_history';
-
-import Card from 'components/card/card';
 import BlockableLink from 'components/admin_console/blockable_link';
-import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS, DAYS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
+import Card from 'components/card/card';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
+
+import {getHistory} from 'utils/browser_history';
+import * as Utils from 'utils/utils';
 
 import './global_policy_form.scss';
 

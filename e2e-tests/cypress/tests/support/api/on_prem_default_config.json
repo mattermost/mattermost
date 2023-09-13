@@ -52,8 +52,6 @@
         "EnableCustomEmoji": false,
         "EnableEmojiPicker": true,
         "EnableGifPicker": false,
-        "GfycatAPIKey": "2_KtH_W5",
-        "GfycatAPISecret": "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof",
         "PostEditTimeLimit": -1,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,

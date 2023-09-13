@@ -9,8 +9,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -48,6 +48,10 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool, options ..
 	}
 
 	a := app.New(app.ServerConnector(s.Channels()))
+
+	if model.BuildEnterpriseReady == "true" {
+		a.Srv().LoadLicense()
+	}
 
 	return a, nil
 }

@@ -2550,7 +2550,6 @@
   "globalThreads.threadList.noUnreadThreads": "읽지 않은 글타래 없음",
   "group_list_modal.addGroupButton": "그룹 추가하기",
   "group_list_modal.removeGroupButton": "그룹 제거",
-  "insights.topBoards.myTitle": "내 보드 평가",
   "installed_command.header": "슬래시 명령어",
   "installed_commands.add": "슬래시 명령어 추가",
   "installed_commands.empty": "명령어가 없습니다.",

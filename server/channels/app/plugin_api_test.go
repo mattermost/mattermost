@@ -31,7 +31,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -193,7 +193,6 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
-	t.Skip("MM-47612")
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -208,7 +207,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, 2, len(preferences))
 
 	err = api.DeletePreferencesForUser(user1.Id, preferences)
 	require.Nil(t, err)
@@ -235,15 +234,17 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 4, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
 	require.Nil(t, err)
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
 	assert.Equal(t, 2, len(preferences))
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.ElementsMatch(t,
+		[]string{model.PreferenceRecommendedNextSteps, model.PreferenceCategoryTutorialSteps},
+		[]string{preferences[0].Category, preferences[1].Category},
+	)
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
@@ -2266,13 +2267,22 @@ func TestSendPushNotification(t *testing.T) {
 			defer wg.Done()
 			post := th.CreatePost(th.BasicChannel)
 			post.Message = "started a conversation"
-			notification := &model.PluginPushNotification{
-				Post:    post,
-				Channel: th.BasicChannel,
-				UserID:  user.Id,
+			notification := &model.PushNotification{
+				Category:    model.CategoryCanReply,
+				Version:     model.PushMessageV2,
+				Type:        model.PushTypeMessage,
+				TeamId:      th.BasicChannel.TeamId,
+				ChannelId:   th.BasicChannel.Id,
+				PostId:      post.Id,
+				RootId:      post.RootId,
+				SenderId:    post.UserId,
+				SenderName:  "Sender Name",
+				PostType:    post.Type,
+				ChannelType: th.BasicChannel.Type,
+				Message:     "Custom message",
 			}
-			appErr := api.SendPluginPushNotification(notification)
-			require.NoError(t, appErr)
+			appErr := api.SendPushNotification(notification, user.Id)
+			require.Nil(t, appErr)
 		}(*data.user)
 	}
 	wg.Wait()
@@ -2286,7 +2296,7 @@ func TestSendPushNotification(t *testing.T) {
 		case model.PushTypeMessage:
 			numMessages++
 			assert.Equal(t, th.BasicChannel.Id, n.ChannelId)
-			assert.Equal(t, fmt.Sprintf("@%s: started a conversation", th.BasicUser.GetDisplayName(model.ShowUsername)), n.Message)
+			assert.Equal(t, "Custom message", n.Message)
 		default:
 			assert.Fail(t, "should not receive any other push notification types")
 		}

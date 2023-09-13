@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -25,12 +26,12 @@ func MakeMigrationsList() []string {
 	}
 }
 
-func GetMigrationState(migration string, store store.Store) (string, *model.Job, *model.AppError) {
+func GetMigrationState(c *request.Context, migration string, store store.Store) (string, *model.Job, *model.AppError) {
 	if _, err := store.System().GetByName(migration); err == nil {
 		return MigrationStateCompleted, nil, nil
 	}
 
-	jobs, err := store.Job().GetAllByType(model.JobTypeMigrations)
+	jobs, err := store.Job().GetAllByType(c, model.JobTypeMigrations)
 	if err != nil {
 		return "", nil, model.NewAppError("GetMigrationState", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
