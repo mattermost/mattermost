@@ -9881,5 +9881,13 @@
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
     "translation": "Berichten met een blijvende meldingen moeten minimaal {{.MaxRecipients}} 1 ontvanger hebben."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Ongelezen berichten en vermeldingen kunnen niet worden gecontroleerd"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Kan niet alle draadjes markeren als gelezen door kanaal"
   }
 ]
