@@ -64,6 +64,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/v8/platform/services/ip_filtering"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
@@ -122,11 +123,12 @@ type Server struct {
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
-	platform         *platform.PlatformService
-	platformOptions  []platform.Option
-	telemetryService *telemetry.TelemetryService
-	userService      *users.UserService
-	teamService      *teams.TeamService
+	platform           *platform.PlatformService
+	platformOptions    []platform.Option
+	telemetryService   *telemetry.TelemetryService
+	userService        *users.UserService
+	teamService        *teams.TeamService
+	ipFilteringService *ip_filtering.IPFilterProvider
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -250,6 +252,11 @@ func NewServer(options ...Option) (*Server, error) {
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
+	var ipFilteringService ip_filtering.IPFilterProvider
+	if s.License().IsCloud() {
+		ipFilteringService = ip_filtering.NewIPFilteringProvider(s.Cloud)
+	}
+
 	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
 		ServerKey:                  s,
@@ -268,6 +275,7 @@ func NewServer(options ...Option) (*Server, error) {
 		product.SessionKey:         app,
 		product.FrontendKey:        app,
 		product.CommandKey:         app,
+		product.IPFilteringKey:     ipFilteringService,
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -1481,6 +1489,10 @@ func (s *Server) FileBackend() filestore.FileBackend {
 
 func (s *Server) ExportFileBackend() filestore.FileBackend {
 	return s.platform.ExportFileBackend()
+}
+
+func (s *Server) IPFilteringService() *ip_filtering.IPFilterProvider {
+	return s.ipFilteringService
 }
 
 func (s *Server) TotalWebsocketConnections() int {

@@ -138,6 +138,8 @@ type Routes struct {
 	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
 
 	Drafts *mux.Router // 'api/v4/drafts'
+
+	IPFiltering *mux.Router // 'api/v4/ip_filtering'
 }
 
 type API struct {
@@ -263,6 +265,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Drafts = api.BaseRoutes.APIRoot.PathPrefix("/drafts").Subrouter()
 
+	api.BaseRoutes.IPFiltering = api.BaseRoutes.APIRoot.PathPrefix("/ip_filtering").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -306,6 +310,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitUsage()
 	api.InitHostedCustomer()
 	api.InitDrafts()
+	api.InitIPFiltering()
 	if err := api.InitGraphQL(); err != nil {
 		return nil, err
 	}

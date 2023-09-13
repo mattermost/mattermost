@@ -30,4 +30,5 @@ const (
 	FrontendKey        ServiceKey = "frontendkey"
 	CommandKey         ServiceKey = "commandkey"
 	ThreadsKey         ServiceKey = "threadskey"
+	IPFilteringKey     ServiceKey = "ipfilteringkey"
 )
