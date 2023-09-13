@@ -47,10 +47,12 @@ func TestSendNotifications(t *testing.T) {
 	}, true, true)
 	require.Nil(t, appErr)
 
-	mentions, err := th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
-	require.NoError(t, err)
-	require.NotNil(t, mentions)
-	require.True(t, pUtils.Contains(mentions, th.BasicUser2.Id), "mentions", mentions)
+	t.Run("Basic channel", func(t *testing.T) {
+		mentions, err := th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		require.NoError(t, err)
+		require.NotNil(t, mentions)
+		require.True(t, pUtils.Contains(mentions, th.BasicUser2.Id), "mentions", mentions)
+	})
 
 	t.Run("license is required for group mention", func(t *testing.T) {
 		group := th.CreateGroup()
@@ -70,7 +72,7 @@ func TestSendNotifications(t *testing.T) {
 		groupMentionPost, createPostErr := th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, false, true)
 		require.Nil(t, createPostErr)
 
-		mentions, err = th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		mentions, err := th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 		require.Len(t, mentions, 0)
@@ -94,7 +96,7 @@ func TestSendNotifications(t *testing.T) {
 		}, true, true)
 		require.Nil(t, appErr)
 
-		mentions, err = th.App.SendNotifications(th.Context, post2, th.BasicTeam, dm, th.BasicUser, nil, true)
+		mentions, err := th.App.SendNotifications(th.Context, post2, th.BasicTeam, dm, th.BasicUser, nil, true)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 
@@ -135,7 +137,7 @@ func TestSendNotifications(t *testing.T) {
 		}, true, true)
 		require.Nil(t, appErr)
 
-		mentions, err = th.App.SendNotifications(th.Context, post2, th.BasicTeam, channel, users[0], nil, true)
+		mentions, err := th.App.SendNotifications(th.Context, post2, th.BasicTeam, channel, users[0], nil, true)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 
@@ -188,7 +190,7 @@ func TestSendNotifications(t *testing.T) {
 				Order: []string{rootPost.Id, childPost.Id},
 				Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
 			}
-			mentions, err = th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+			mentions, err := th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
 			require.NoError(t, err)
 			require.False(t, pUtils.Contains(mentions, user.Id))
 		}
