@@ -10,7 +10,8 @@ jobs:
   smoketests:
     strategy:
       matrix:
-        os: [windows-2022, macos-12]
+        #os: [windows-2022, macos-12]
+        os: [macos-12]
     runs-on: "${{ matrix.os }}"
     defaults:
       run:
@@ -18,6 +19,7 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      # NB: only macos-12 is supported as of today
       - name: Setup docker (missing on MacOS)
         if: runner.os == 'macos'
         run: |
@@ -25,6 +27,8 @@ jobs:
           colima start
           mkdir -p ~/.docker/cli-plugins
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+          # https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#cannot-connect-to-the-docker-daemon-at-unixvarrundockersock-is-the-docker-daemon-running
+          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/e2e-smoketests
         env:
           SERVER_IMAGE: mattermost/mattermost-team-edition:8.1.2
