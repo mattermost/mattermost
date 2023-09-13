@@ -583,7 +583,7 @@ function createNotificationPreferencesButton(channel: Channel, currentUser?: Use
             <BellRingOutlineIcon size={16}/>
             <FormattedMessage
                 id='intro_messages.notificationPreferences'
-                defaultMessage='NotificationPreferences'
+                defaultMessage='Notification Preferences'
             />
         </ToggleModalButton>
     );

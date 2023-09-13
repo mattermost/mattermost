@@ -7,16 +7,7 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
   <div
     className="system-notice__logo"
   >
-    <type
-      0="p"
-      1="r"
-      2="o"
-      3="p"
-      4="s"
-      key="key"
-    >
-      rendered
-    </type>
+    <MattermostLogo />
   </div>
   <div
     className="system-notice__body"
@@ -79,16 +70,7 @@ exports[`components/SystemNotice should match snapshot for admin, regular notice
   <div
     className="system-notice__logo"
   >
-    <type
-      0="p"
-      1="r"
-      2="o"
-      3="p"
-      4="s"
-      key="key"
-    >
-      rendered
-    </type>
+    <MattermostLogo />
   </div>
   <div
     className="system-notice__body"
@@ -134,16 +116,7 @@ exports[`components/SystemNotice should match snapshot for regular user, admin a
   <div
     className="system-notice__logo"
   >
-    <type
-      0="p"
-      1="r"
-      2="o"
-      3="p"
-      4="s"
-      key="key"
-    >
-      rendered
-    </type>
+    <MattermostLogo />
   </div>
   <div
     className="system-notice__body"
@@ -197,16 +170,7 @@ exports[`components/SystemNotice should match snapshot for regular user, regular
   <div
     className="system-notice__logo"
   >
-    <type
-      0="p"
-      1="r"
-      2="o"
-      3="p"
-      4="s"
-      key="key"
-    >
-      rendered
-    </type>
+    <MattermostLogo />
   </div>
   <div
     className="system-notice__body"
@@ -254,16 +218,7 @@ exports[`components/SystemNotice should match snapshot for show function returni
   <div
     className="system-notice__logo"
   >
-    <type
-      0="p"
-      1="r"
-      2="o"
-      3="p"
-      4="s"
-      key="key"
-    >
-      rendered
-    </type>
+    <MattermostLogo />
   </div>
   <div
     className="system-notice__body"
@@ -309,16 +264,7 @@ exports[`components/SystemNotice should match snapshot for with allowForget equa
   <div
     className="system-notice__logo"
   >
-    <type
-      0="p"
-      1="r"
-      2="o"
-      3="p"
-      4="s"
-      key="key"
-    >
-      rendered
-    </type>
+    <MattermostLogo />
   </div>
   <div
     className="system-notice__body"
@@ -340,6 +286,54 @@ exports[`components/SystemNotice should match snapshot for with allowForget equa
         <MemoizedFormattedMessage
           defaultMessage="Remind Me Later"
           id="system_notice.remind_me"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/SystemNotice should match snapshot when a custom icon is passed 1`] = `
+<div
+  className="system-notice bg--white shadow--2"
+>
+  <div
+    className="system-notice__logo"
+  >
+    <span>
+      icon
+    </span>
+  </div>
+  <div
+    className="system-notice__body"
+  >
+    <div
+      className="system-notice__title"
+    >
+      some title
+    </div>
+    some body
+    <div
+      className="system-notice__footer"
+    >
+      <button
+        className="btn btn-primary"
+        id="systemnotice_remindme"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Remind Me Later"
+          id="system_notice.remind_me"
+        />
+      </button>
+      <button
+        className="btn"
+        id="systemnotice_dontshow"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Don't Show Again"
+          id="system_notice.dont_show"
         />
       </button>
     </div>
