@@ -73,6 +73,7 @@ mme2e_legacy_setup () {
   export COMPOSE_PROJECT_NAME=mmserver_legacy
   case $MME2E_OSTYPE in
     windows )
+      # https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies
       DOCKER_NETWORK_DRIVER="nat" ;;
     * )
       DOCKER_NETWORK_DRIVER="bridge" ;;

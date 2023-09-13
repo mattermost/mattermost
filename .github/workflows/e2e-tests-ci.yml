@@ -8,10 +8,6 @@ on:
         type: string
         required: false
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   update-initial-status:
     runs-on: ubuntu-22.04
@@ -94,6 +90,7 @@ jobs:
       - playwright-check
     defaults:
       run:
+        shell: bash
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
@@ -109,13 +106,6 @@ jobs:
           mkdir -p ~/.docker/cli-plugins
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
-      - name: ci/setup-path-windows
-        if: runner.os == 'windows'
-        # https://github.com/actions/runner-images/issues/7253
-        # https://www.gnu.org/software/make/manual/html_node/Choosing-the-Shell.html
-        # https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
-        run: |
-          echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
       - name: ci/e2e-smoketests
         run: |
           make
