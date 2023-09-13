@@ -219,17 +219,27 @@ export const getCurrentUserMentionKeys: (state: GlobalState) => UserMentionKey[]
             keys.push({key: usernameKey});
         }
 
-        // Add the only highlight without notification keyword
-        if (user.notify_props.highlight_keys) {
-            keys = keys.concat(user.notify_props.highlight_keys.split(',').map((key) => {
-                return {
-                    key,
-                    caseSensitive: true,
-                };
-            }));
+        return keys;
+    },
+);
+
+export type HighlightWithoutNotificationKey = {
+    key: string;
+}
+
+export const getHighlightWithoutNotificationKeys: (state: GlobalState) => HighlightWithoutNotificationKey[] = createSelector(
+    'getHighlightWithoutNotificationKeys',
+    getCurrentUser,
+    (user: UserProfile) => {
+        const highlightKeys: HighlightWithoutNotificationKey[] = [];
+
+        if (user?.notify_props?.highlight_keys?.length > 0) {
+            user.notify_props.highlight_keys.split(',').forEach((key) => {
+                highlightKeys.push({key});
+            });
         }
 
-        return keys;
+        return highlightKeys;
     },
 );
 

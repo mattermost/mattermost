@@ -34,4 +34,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connect(mapStateToProps, mapDispatchToProps)(UserSettingsNotifications);
+export default connector(UserSettingsNotifications);

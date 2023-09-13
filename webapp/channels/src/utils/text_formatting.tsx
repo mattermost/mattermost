@@ -6,6 +6,8 @@ import type {Renderer} from 'marked';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
 
+import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
+
 import {formatWithRenderer} from 'utils/markdown';
 
 import Constants from './constants';
@@ -87,6 +89,11 @@ interface TextFormattingOptionsBase {
      * A list of mention keys for the current user to highlight.
      */
     mentionKeys: MentionKey[];
+
+    /**
+     * A list of highlight keys for the current user to highlight without notification.
+     */
+    highlightKeys: HighlightWithoutNotificationKey[];
 
     /**
      * Specifies whether or not to remove newlines.
@@ -358,6 +365,10 @@ export function doFormatText(text: string, options: TextFormattingOptions, emoji
 
     if (!('mentionHighlight' in options) || options.mentionHighlight) {
         output = highlightCurrentMentions(output, tokens, options.mentionKeys);
+    }
+
+    if (options.highlightKeys && options.highlightKeys.length > 0) {
+        output = highlightWithoutNotificationKeywords(output, tokens, options.highlightKeys);
     }
 
     if (!('emoticons' in options) || options.emoticons) {
@@ -700,6 +711,53 @@ export function highlightCurrentMentions(
         }
         output = output.replace(pattern, replaceCurrentMentionWithToken);
     }
+
+    return output;
+}
+
+// Improve this function because this is very old
+export function highlightWithoutNotificationKeywords(
+    text: string,
+    tokens: Tokens,
+    highlightKeys: HighlightWithoutNotificationKey[] = [],
+) {
+    let output = text;
+
+    function replaceHighlightKeywordsWithToken(
+        _: string,
+        prefix: string,
+        highlightKey: string,
+        suffix = '',
+    ) {
+        const index = tokens.size;
+        const alias = `$MM_HIGHLIGHTKEYWORD${index}$`;
+
+        // Set the token map with the replacement value so that it can be replaced back later
+        tokens.set(alias, {
+            value: `<span class="non-notification-highlight">${highlightKey}</span>`,
+            originalText: highlightKey,
+        });
+
+        return prefix + alias + suffix;
+    }
+
+    highlightKeys.forEach(({key}) => {
+        if (!key) {
+            return;
+        }
+
+        let pattern;
+        if (cjkrPattern.test(key)) {
+            // If the key contains Chinese, Japanese, or Korean characters, don't mark word boundaries
+            pattern = new RegExp(`()(${escapeRegex(key)})()`, 'gi');
+        } else {
+            // If the key contains only English characters, mark word boundaries
+            pattern = new RegExp(`(^|\\W)(${escapeRegex(key)})(\\b|_+\\b)`, 'gi');
+        }
+
+        // Replace the key with the token for each occurrence of the key
+        output = output.replace(pattern, replaceHighlightKeywordsWithToken);
+    });
 
     return output;
 }

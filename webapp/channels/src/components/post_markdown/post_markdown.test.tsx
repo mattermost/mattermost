@@ -10,6 +10,8 @@ import {Posts} from 'mattermost-redux/constants';
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
+import type {PluginComponent} from 'types/store/plugins';
+
 import PostMarkdown from './post_markdown';
 
 describe('components/PostMarkdown', () => {
@@ -22,6 +24,12 @@ describe('components/PostMarkdown', () => {
         channel: TestHelper.getChannelMock(),
         currentTeam: TestHelper.getTeamMock(),
         hideGuestTags: false,
+        isMilitaryTime: false,
+        timezone: '',
+        highlightKeys: [],
+        hasPluginTooltips: false,
+        isUserCanManageMembers: false,
+        dispatch: jest.fn(),
     };
 
     const state = {entities: {
@@ -224,7 +232,7 @@ describe('components/PostMarkdown', () => {
                         return updatedMessage + '!';
                     },
                 },
-            ],
+            ] as PluginComponent[],
         };
         renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
@@ -258,7 +266,7 @@ describe('components/PostMarkdown', () => {
                         return post.message + '!';
                     },
                 },
-            ],
+            ] as PluginComponent[],
         };
         renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();

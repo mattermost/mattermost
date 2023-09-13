@@ -4,72 +4,27 @@
 import React from 'react';
 
 import type {PostImage, PostType} from '@mattermost/types/posts';
-import type {Team} from '@mattermost/types/teams';
+
+import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
 
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
-import type EmojiMap from 'utils/emoji_map';
 import messageHtmlToComponent from 'utils/message_html_to_component';
+import type {ChannelNamesMap, MentionKey, TextFormattingOptions} from 'utils/text_formatting';
 import {formatText} from 'utils/text_formatting';
-import type {ChannelNamesMap, TextFormattingOptions, MentionKey} from 'utils/text_formatting';
 
-type Props = {
+import {type PropsFromRedux} from './index';
 
-    /*
-     * An object mapping channel names to channels for the current team
-     */
+export type OwnProps = {
     channelNamesMap?: ChannelNamesMap;
-
-    /*
-     * An array of URL schemes that should be turned into links. Anything that looks
-     * like a link will be turned into a link if this is not provided.
-     */
-    autolinkedUrlSchemes?: string[];
-
-    /*
-     * Whether or not to do Markdown rendering
-     */
-    enableFormatting?: boolean;
-
-    /*
-     * An array of paths on the server that are managed by another server
-     */
-    managedResourcePaths?: string[];
-
-    /*
-     * An array of words that can be used to mention a user
-     */
     mentionKeys?: MentionKey[];
-
-    /*
-     * The text to be rendered
-     */
-    message: string;
+    highlightKeys?: HighlightWithoutNotificationKey[];
+    postId?: string;
 
     /*
      * Any additional text formatting options to be used
      */
     options: Partial<TextFormattingOptions>;
-
-    /*
-     * The root Site URL for the page
-     */
-    siteURL?: string;
-
-    /*
-     * The current team
-     */
-    team?: Team;
-
-    /**
-     * If an image proxy is enabled.
-     */
-    hasImageProxy?: boolean;
-
-    /**
-     * Minimum number of characters in a hashtag.
-     */
-    minimumHashtagLength?: number;
 
     /**
      * Whether or not to proxy image URLs
@@ -77,14 +32,14 @@ type Props = {
     proxyImages?: boolean;
 
     /**
-     * Any extra props that should be passed into the image component
-     */
-    imageProps?: object;
-
-    /**
      * prop for passed down to image component for dimensions
      */
     imagesMetadata?: Record<string, PostImage>;
+
+    /**
+     * Any extra props that should be passed into the image component
+     */
+    imageProps?: object;
 
     /**
      * Whether or not to place the LinkTooltip component inside links
@@ -94,20 +49,7 @@ type Props = {
     /**
      * Post id prop passed down to markdown image
      */
-    postId?: string;
-
-    /**
-     * When the post is edited this is the timestamp it happened at
-     */
-    editedAt?: number;
-
-    channelId?: string;
-
-    /**
-     * Post id prop passed down to markdown image
-     */
     postType?: PostType;
-    emojiMap: EmojiMap;
 
     /**
      * Some components processed by messageHtmlToComponent e.g. AtSumOfMembersMention require to have a list of userIds
@@ -115,10 +57,22 @@ type Props = {
     userIds?: string[];
 
     /**
+     * When the post is edited this is the timestamp it happened at
+     */
+    editedAt?: number;
+
+    /**
      * Some additional data to pass down to rendered component to aid in rendering decisions
      */
     messageMetadata?: Record<string, string>;
+
+    /*
+     * The text to be rendered
+     */
+    message: string;
 }
+
+type Props = PropsFromRedux & OwnProps;
 
 export default class Markdown extends React.PureComponent<Props> {
     static defaultProps: Partial<Props> = {
@@ -147,6 +101,7 @@ export default class Markdown extends React.PureComponent<Props> {
             autolinkedUrlSchemes: this.props.autolinkedUrlSchemes,
             siteURL: this.props.siteURL,
             mentionKeys: this.props.mentionKeys,
+            highlightKeys: this.props.highlightKeys,
             atMentions: true,
             channelNamesMap: this.props.channelNamesMap,
             proxyImages: this.props.hasImageProxy && this.props.proxyImages,
