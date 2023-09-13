@@ -9869,5 +9869,13 @@
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
     "translation": "Endast rot-meddelanden tillåts ha prioritering."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Kunde inte kontrollera olästa meddelanden och omnämnanden"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Kunde inte markera alla trådar som lästa i kanalen"
   }
 ]
