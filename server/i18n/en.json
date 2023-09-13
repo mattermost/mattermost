@@ -931,7 +931,7 @@
     "translation": "An error occurred while joining the channel."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
+    "id": "api.command_invite.channel_constrained_user_denied",
     "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {

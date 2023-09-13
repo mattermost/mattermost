@@ -73,7 +73,7 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 	// track errors returned for various users.
 	differentChannels := make([]string, 0, 1)
 	nonTeamUsers := make([]string, 0, 1)
-	teamConstrained := make([]*model.User, 0, 1)
+	channelConstrained := make([]*model.User, 0, 1)
 	usersInChannel := make([]string, 0, 1)
 	errorUsers := make([]*model.User, 0, 1)
 
@@ -87,7 +87,7 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 			} else if userError == UserNotInTeam {
 				nonTeamUsers = append(nonTeamUsers, targetUser.Username)
 			} else if userError == IsConstrained {
-				teamConstrained = append(teamConstrained, targetUser)
+				channelConstrained = append(channelConstrained, targetUser)
 			} else if userError == UserInChannel {
 				usersInChannel = append(usersInChannel, targetUser.Username)
 			} else {
@@ -154,9 +154,9 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 		}
 	}
 
-	if len(teamConstrained) > 0 {
+	if len(channelConstrained) > 0 {
 		*resps = append(*resps,
-			args.T("api.command_invite.group_constrained_user_denied"),
+			args.T("api.command_invite.channel_constrained_user_denied"),
 		)
 	}
 
@@ -178,7 +178,7 @@ func (i *InviteProvider) getUsersFromMentionName(a *app.App, mentionName string)
 		return []*model.User{userProfile}
 	}
 
-	group, appErr := a.GetGroupByName(mentionName, model.GroupSearchOpts{})
+	group, appErr := a.GetGroupByName(mentionName, model.GroupSearchOpts{FilterAllowReference: true})
 	if appErr != nil || group == nil {
 		return nil
 	}
