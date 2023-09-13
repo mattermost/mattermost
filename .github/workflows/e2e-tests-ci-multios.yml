@@ -1,3 +1,5 @@
+# TODO move these modifications to the normal smoketests job, and comment out the extra OSes
+#      Put here only for iterating faster, using a static image
 name: E2E Tests MultiOS
 on:
   push:
@@ -10,17 +12,18 @@ jobs:
   smoketests:
     strategy:
       matrix:
-        #os: [windows-2022, macos-12]
-        os: [macos-12]
+        # NB: only macos-12 is supported as of today
+        os: [windows-2022, macos-12]
     runs-on: "${{ matrix.os }}"
     defaults:
       run:
         working-directory: e2e-tests
+    env:
+      SERVER_IMAGE: mattermost/mattermost-team-edition:8.1.2
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      # NB: only macos-12 is supported as of today
-      - name: Setup docker (missing on MacOS)
+      - name: ci/setup-macos-docker
         if: runner.os == 'macos'
         run: |
           brew install docker docker-compose
@@ -29,11 +32,14 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           # https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#cannot-connect-to-the-docker-daemon-at-unixvarrundockersock-is-the-docker-daemon-running
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
+      - name: ci/windows-envdump
+        if: runner.os == 'windows'
+        run: env
+        shell: bash.exe
       - name: ci/e2e-smoketests
-        env:
-          SERVER_IMAGE: mattermost/mattermost-team-edition:8.1.2
         run: |
           make
+        shell: bash${{ runner.os == 'windows' && '.exe' || '' }}
       - name: ci/e2e-smoketests-store-results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
