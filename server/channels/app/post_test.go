@@ -408,7 +408,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("", func(t *testing.T) {
+	t.Run("Should stop processing at first reject", func(t *testing.T) {
 		setupMultiPluginAPITest(t, []string{
 			`
 				package main
@@ -475,6 +475,73 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		require.Nil(t, updatedPost)
 		require.NotNil(t, err)
 		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
+	})
+
+	t.Run("Should stop processing at first reject", func(t *testing.T) {
+		setupMultiPluginAPITest(t, []string{
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					newPost.Message = newPost.Message + " 1"
+					return newPost, ""
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					newPost.Message = newPost.Message + " 2"
+					return newPost, ""
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+		}, []string{
+			`{"id": "testrejectfirstpost", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testupdatepost", "server": {"executable": "backend.exe"}}`,
+		}, []string{
+			"testrejectfirstpost", "testupdatepost",
+		}, true, th.App, th.Context)
+
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "", true)
+		require.Nil(t, err)
+
+		post.Message = "new message"
+		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
+		require.Nil(t, updatedPost)
+		require.NotNil(t, err)
+		require.Equal(t, "new message 1 2", err.Id)
 	})
 }
 
