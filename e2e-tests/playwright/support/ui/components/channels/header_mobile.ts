@@ -10,12 +10,12 @@ export default class ChannelsHeaderMobile {
         this.container = container;
     }
 
-    async toggleSidebar() {
-        await this.container.getByRole('button', {name: 'Toggle sidebar Menu Icon'}).click();
-    }
-
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async toggleSidebar() {
+        await this.container.getByRole('button', {name: 'Toggle sidebar Menu Icon'}).click();
     }
 }
 

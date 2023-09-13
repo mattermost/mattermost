@@ -12,7 +12,7 @@ import (
 
 const schedFreq = 1 * time.Hour
 
-func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer) *jobs.PeriodicScheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}

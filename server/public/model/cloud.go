@@ -266,10 +266,11 @@ type CloudWorkspaceOwner struct {
 }
 
 type SubscriptionChange struct {
-	ProductID       string    `json:"product_id"`
-	Seats           int       `json:"seats"`
-	Feedback        *Feedback `json:"downgrade_feedback"`
-	ShippingAddress *Address  `json:"shipping_address"`
+	ProductID       string             `json:"product_id"`
+	Seats           int                `json:"seats"`
+	Feedback        *Feedback          `json:"downgrade_feedback"`
+	ShippingAddress *Address           `json:"shipping_address"`
+	Customer        *CloudCustomerInfo `json:"customer"`
 }
 
 type FilesLimits struct {

@@ -1953,7 +1953,7 @@ func (a *App) importEmoji(c request.CTX, data *imports.EmojiImportData, dryRun b
 
 	var emoji *model.Emoji
 
-	emoji, err := a.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, err := a.Srv().Store().Emoji().GetByName(c, *data.Name, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
