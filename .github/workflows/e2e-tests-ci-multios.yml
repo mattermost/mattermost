@@ -25,6 +25,7 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: ci/setup-macos-docker
         if: runner.os == 'macos'
+        # https://github.com/actions/runner-images/issues/17#issuecomment-1537238473
         run: |
           brew install docker docker-compose
           colima start
