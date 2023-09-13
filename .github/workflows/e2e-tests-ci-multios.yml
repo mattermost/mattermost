@@ -37,9 +37,15 @@ jobs:
         run: env
         shell: bash.exe
       - name: ci/e2e-smoketests
+        if: runner.os == 'macos'
         run: |
           make
-        shell: bash${{ runner.os == 'windows' && '.exe' || '' }}
+        shell: bash
+      - name: ci/e2e-smoketests
+        if: runner.os == 'windows'
+        run: |
+          make
+        shell: bash.exe
       - name: ci/e2e-smoketests-store-results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
