@@ -13,29 +13,38 @@ var _ MentionParser = &StandardMentionParser{}
 
 type StandardMentionParser struct {
 	keywords MentionKeywords
-	groups   map[string]*model.Group
 
 	results *MentionResults
 }
 
 func makeStandardMentionParser(keywords MentionKeywords, groups map[string]*model.Group) *StandardMentionParser {
+	// TODO add groups to keywords before this
+	copiedKeywords := make(MentionKeywords)
+	for keyword, ids := range keywords {
+		copiedKeywords[keyword] = ids
+	}
+	for _, group := range groups {
+		if group.Name != nil {
+			copiedKeywords["@"+*group.Name] = append(copiedKeywords["@"+*group.Name], MentionableGroupID(group.Id))
+		}
+	}
+
 	return &StandardMentionParser{
-		keywords: keywords,
-		groups:   groups,
+		keywords: copiedKeywords,
 
 		results: &MentionResults{},
 	}
 }
 
 func (p *StandardMentionParser) ProcessText(text string) {
-	p.processText(text, p.keywords, p.groups)
+	p.processText(text, p.keywords)
 }
 
 func (p *StandardMentionParser) Results() *MentionResults {
 	return p.results
 }
 
-func (p *StandardMentionParser) processText(text string, keywords MentionKeywords, groups map[string]*model.Group) {
+func (p *StandardMentionParser) processText(text string, keywords MentionKeywords) {
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
@@ -49,7 +58,7 @@ func (p *StandardMentionParser) processText(text string, keywords MentionKeyword
 
 		word = strings.TrimLeft(word, ":.-_")
 
-		if p.checkForMention(word, keywords, groups) {
+		if p.checkForMention(word, keywords) {
 			continue
 		}
 
@@ -59,7 +68,7 @@ func (p *StandardMentionParser) processText(text string, keywords MentionKeyword
 		for wordWithoutSuffix != "" && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
-			if p.checkForMention(wordWithoutSuffix, keywords, groups) {
+			if p.checkForMention(wordWithoutSuffix, keywords) {
 				foundWithoutSuffix = true
 				break
 			}
@@ -85,7 +94,7 @@ func (p *StandardMentionParser) processText(text string, keywords MentionKeyword
 			})
 
 			for _, splitWord := range splitWords {
-				if p.checkForMention(splitWord, keywords, groups) {
+				if p.checkForMention(splitWord, keywords) {
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
@@ -101,7 +110,7 @@ func (p *StandardMentionParser) processText(text string, keywords MentionKeyword
 }
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
-func (p *StandardMentionParser) checkForMention(word string, keywords MentionKeywords, groups map[string]*model.Group) bool {
+func (p *StandardMentionParser) checkForMention(word string, keywords MentionKeywords) bool {
 	var mentionType MentionType
 
 	switch strings.ToLower(word) {
@@ -117,8 +126,6 @@ func (p *StandardMentionParser) checkForMention(word string, keywords MentionKey
 	default:
 		mentionType = KeywordMention
 	}
-
-	checkForGroupMention(p.results, word, groups)
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
 		p.addMentions(ids, mentionType)
@@ -139,45 +146,9 @@ func (p *StandardMentionParser) addMentions(ids []MentionableID, mentionType Men
 		if userID, ok := id.AsUserID(); ok {
 			p.results.addMention(userID, mentionType)
 		} else if groupID, ok := id.AsGroupID(); ok {
-			p.results.GroupMentions[groupID] = mentionType
+			p.results.addGroupMention(groupID)
 		}
 	}
-}
-
-func checkForGroupMention(m *MentionResults, word string, groups map[string]*model.Group) bool {
-	if !strings.HasPrefix(word, "@") {
-		// Only allow group mentions when mentioned directly with @group-name
-		return false
-	}
-
-	word = word[1:]
-
-	findGroup := func() (*model.Group, bool) {
-		for _, group := range groups {
-			if group.Name != nil && *group.Name == word {
-				return group, true
-			}
-		}
-
-		return nil, false
-	}
-
-	group, groupFound := findGroup()
-	if !groupFound {
-		group = groups[strings.ToLower(word)]
-	}
-
-	if group == nil {
-		return false
-	}
-
-	if m.GroupMentions == nil {
-		m.GroupMentions = make(map[string]MentionType)
-	}
-
-	m.GroupMentions[group.Id] = GroupMention
-
-	return true
 }
 
 // isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword

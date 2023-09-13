@@ -463,6 +463,8 @@ func TestGetExplicitMentions(t *testing.T) {
 	id2 := model.NewId()
 	id3 := model.NewId()
 
+	groupID1 := model.NewId()
+
 	for name, tc := range map[string]struct {
 		Message     string
 		Attachments []*model.SlackAttachment
@@ -973,7 +975,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"No matching groups": {
 			Message: "@nothing",
-			Groups:  map[string]*model.Group{"engineering": {Id: "engineering"}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewString("engineering")}},
 			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -982,7 +984,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with no @": {
 			Message: "engineering",
-			Groups:  map[string]*model.Group{"engineering": {Id: "engineering"}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewString("engineering")}},
 			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -991,24 +993,22 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with preceding @": {
 			Message: "@engineering",
-			Groups:  map[string]*model.Group{"engineering": {Id: "engineering"}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewString("engineering")}},
 			Expected: &MentionResults{
 				Mentions: nil,
 				GroupMentions: map[string]MentionType{
-					"engineering": GroupMention,
+					groupID1: GroupMention,
 				},
-				OtherPotentialMentions: []string{"engineering"},
 			},
 		},
 		"matching upper case group with preceding @": {
 			Message: "@Engineering",
-			Groups:  map[string]*model.Group{"engineering": {Id: "engineering"}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewString("engineering")}},
 			Expected: &MentionResults{
 				Mentions: nil,
 				GroupMentions: map[string]MentionType{
-					"engineering": GroupMention,
+					groupID1: GroupMention,
 				},
-				OtherPotentialMentions: []string{"Engineering"},
 			},
 		},
 	} {
@@ -1020,7 +1020,7 @@ func TestGetExplicitMentions(t *testing.T) {
 				},
 			}
 
-			m := getExplicitMentions(post, mapToUserKeywords(tc.Keywords), tc.Groups)
+			m := getExplicitMentions(post, mapsToMentionKeywords(tc.Keywords, tc.Groups), tc.Groups)
 
 			assert.EqualValues(t, tc.Expected, m)
 		})
@@ -1083,7 +1083,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		id := model.NewId()
 		m := getExplicitMentions(
 			&model.Post{Message: "@here @user @potential"},
-			mapToUserKeywords(map[string][]string{"@user": {id}}),
+			mapsToMentionKeywords(map[string][]string{"@user": {id}}, nil),
 			nil,
 		)
 		require.True(t, m.HereMentioned, "should've mentioned @here with \"@here @user\"")
@@ -1097,7 +1097,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		id := model.NewId()
 		m := getExplicitMentions(
 			&model.Post{Message: "@potential. test"},
-			mapToUserKeywords(map[string][]string{"@user": {id}}),
+			mapsToMentionKeywords(map[string][]string{"@user": {id}}, nil),
 			nil,
 		)
 		require.Equal(t, len(m.OtherPotentialMentions), 1, "should've potential mentions for @potential")

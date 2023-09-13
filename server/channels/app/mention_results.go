@@ -78,3 +78,11 @@ func (m *MentionResults) addMention(userID string, mentionType MentionType) {
 func (m *MentionResults) removeMention(userID string) {
 	delete(m.Mentions, userID)
 }
+
+func (m *MentionResults) addGroupMention(groupID string) {
+	if m.GroupMentions == nil {
+		m.GroupMentions = make(map[string]MentionType)
+	}
+
+	m.GroupMentions[groupID] = GroupMention
+}
