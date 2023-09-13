@@ -42,7 +42,6 @@ mme2e_log "Creating E2E containers and generating server config"
 ${MME2E_DC_SERVER} create
 ${MME2E_DC_SERVER} up -d -- utils
 ${MME2E_DC_SERVER} exec -T -w /opt/mattermost-server/server -- utils bash <<EOF
-apt update && apt install -y jq
 OUTPUT_CONFIG=/tmp/config_generated.json go run scripts/config_generator/main.go
 jq "
   .ServiceSettings.SiteURL=\"http://server:8065\"
