@@ -7,20 +7,20 @@ stop: stop-server stop-dashboard clean-env-placeholders
 
 .PHONY: start-server prepare-server run-cypress stop-server restart-server
 start-server:
-	bash ./.ci/server.start.sh
+	./.ci/server.start.sh
 prepare-server:
-	bash ./.ci/server.prepare.sh
+	./.ci/server.prepare.sh
 run-cypress:
-	bash ./.ci/server.run_cypress.sh
+	./.ci/server.run_cypress.sh
 stop-server:
-	bash ./.ci/server.stop.sh
+	./.ci/server.stop.sh
 restart-server: stop-server start-server
 
 .PHONY: start-dashboard stop-dashboard
 start-dashboard:
-	bash ./.ci/dashboard.start.sh
+	./.ci/dashboard.start.sh
 stop-dashboard:
-	bash ./.ci/dashboard.stop.sh
+	./.ci/dashboard.stop.sh
 
 .PHONY: print-env-placeholders clean-env-placeholders
 print-env-placeholders:

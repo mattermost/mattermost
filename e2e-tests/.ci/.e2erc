@@ -73,7 +73,7 @@ mme2e_legacy_setup () {
   export COMPOSE_PROJECT_NAME=mmserver_legacy
   case $MME2E_OSTYPE in
     windows )
-      DOCKER_NETWORK_DRIVER="transparent" ;;
+      DOCKER_NETWORK_DRIVER="nat" ;;
     * )
       DOCKER_NETWORK_DRIVER="bridge" ;;
   esac
