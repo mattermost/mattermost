@@ -19,6 +19,7 @@ import {PostDotMenu} from './channels/post_dot_menu';
 import {PostReminderMenu} from './channels/post_reminder_menu';
 import {PostMenu} from './channels/post_menu';
 import {ThreadFooter} from './channels/thread_footer';
+import {EmojiGifPicker} from './channels/emoji_gif_picker';
 
 const components = {
     BoardsSidebar,
@@ -39,6 +40,7 @@ const components = {
     Footer,
     MainHeader,
     PostReminderMenu,
+    EmojiGifPicker,
 };
 
 export {

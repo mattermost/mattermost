@@ -23,6 +23,8 @@ export default class ChannelsPage {
     readonly postDotMenu;
     readonly postReminderMenu;
 
+    readonly emojiGifPickerPopup;
+
     constructor(page: Page) {
         this.page = page;
 
@@ -40,6 +42,9 @@ export default class ChannelsPage {
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
+
+        // Popovers
+        this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
     }
 
     async toBeVisible() {
