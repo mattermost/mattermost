@@ -38,14 +38,14 @@ func TestSendNotifications(t *testing.T) {
 
 	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 
-	post1, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+	post1, createPostErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
 		Type:      model.PostTypeAddToChannel,
 		Props:     map[string]any{model.PostPropsAddedUserId: "junk"},
 	}, true, true)
-	require.Nil(t, appErr)
+	require.Nil(t, createPostErr)
 
 	t.Run("Basic channel", func(t *testing.T) {
 		mentions, err := th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
@@ -174,7 +174,7 @@ func TestSendNotifications(t *testing.T) {
 				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
 			}
 
-			rootPost, appErr = th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
+			rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
 			require.Nil(t, appErr)
 
 			childPost := &model.Post{
@@ -195,6 +195,7 @@ func TestSendNotifications(t *testing.T) {
 			require.False(t, pUtils.Contains(mentions, user.Id))
 		}
 
+		var appErr *model.AppError
 		th.BasicUser.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 		th.BasicUser, appErr = th.App.UpdateUser(th.Context, th.BasicUser, false)
 		require.Nil(t, appErr)
