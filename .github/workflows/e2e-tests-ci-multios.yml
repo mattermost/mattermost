@@ -33,10 +33,6 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           # https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#cannot-connect-to-the-docker-daemon-at-unixvarrundockersock-is-the-docker-daemon-running
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
-      - name: ci/windows-envdump
-        if: runner.os == 'windows'
-        run: docker system info
-        shell: bash
       - name: ci/e2e-smoketests
         if: runner.os == 'macos'
         run: |
@@ -46,7 +42,7 @@ jobs:
         if: runner.os == 'windows'
         run: |
           make SHELL='C:/Program Files/Git/usr/bin/bash'
-        shell: bash.exe
+        shell: bash
       - name: ci/e2e-smoketests-store-results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
