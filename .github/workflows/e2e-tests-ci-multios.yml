@@ -10,7 +10,7 @@ jobs:
   smoketests:
     strategy:
       matrix:
-        os: [windows-2022, macos-13]
+        os: [windows-2022, macos-12]
     runs-on: "${{ matrix.os }}"
     defaults:
       run:
