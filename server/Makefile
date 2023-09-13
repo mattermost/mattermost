@@ -425,6 +425,8 @@ setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: ## Sets up your go.work file
 ifneq ($(IGNORE_GO_WORK_IF_EXISTS),true)
 	@echo "Creating a go.work file"
+	rm -f go.work
+	go work init
 	go work use .
 	go work use ./public
 ifeq ($(BUILD_ENTERPRISE_READY),true)
