@@ -35,7 +35,7 @@ jobs:
       - name: ci/windows-envdump
         if: runner.os == 'windows'
         run: env
-        shell: bash.exe
+        shell: bash
       - name: ci/e2e-smoketests
         if: runner.os == 'macos'
         run: |
@@ -44,7 +44,7 @@ jobs:
       - name: ci/e2e-smoketests
         if: runner.os == 'windows'
         run: |
-          make
+          make SHELL='C:/Program Files/Git/usr/bin/bash'
         shell: bash.exe
       - name: ci/e2e-smoketests-store-results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
