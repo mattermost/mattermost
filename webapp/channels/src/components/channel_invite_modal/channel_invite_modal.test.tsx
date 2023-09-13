@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 
-import {Value} from 'components/multiselect/multiselect';
 import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_modal';
-
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-import {RelationOneToOne} from '@mattermost/types/utilities';
+import type {Value} from 'components/multiselect/multiselect';
 
 type UserProfileValue = Value & UserProfile;
 

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {ActivityEntry, Post} from '@mattermost/types/posts';
+import type {ActivityEntry, Post} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
+
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-import {Posts, Preferences} from '../constants';
-import TestHelper from '../../test/test_helper';
 
 import {
     COMBINED_USER_ACTIVITY,
@@ -26,6 +25,9 @@ import {
     START_OF_NEW_MESSAGES,
     shouldShowJoinLeaveMessages,
 } from './post_list';
+
+import TestHelper from '../../test/test_helper';
+import {Posts, Preferences} from '../constants';
 
 describe('makeFilterPostsAndAddSeparators', () => {
     it('filter join/leave posts', () => {

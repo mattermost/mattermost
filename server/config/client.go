@@ -79,8 +79,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableEmojiPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableEmojiPicker)
 	props["EnableGifPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableGifPicker)
-	props["GfycatApiKey"] = *c.ServiceSettings.GfycatAPIKey
-	props["GfycatApiSecret"] = *c.ServiceSettings.GfycatAPISecret
 	props["GiphySdkKey"] = getGiphySdkKey(c.ServiceSettings)
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
 

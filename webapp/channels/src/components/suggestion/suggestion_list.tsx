@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {cloneDeep} from 'lodash';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
-import {cloneDeep} from 'lodash';
 
-import {Constants} from 'utils/constants';
-
-import {isEmptyObject} from 'utils/utils';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
+import {Constants} from 'utils/constants';
+import {isEmptyObject} from 'utils/utils';
 
 interface Props {
     ariaLiveRef?: React.RefObject<HTMLDivElement>;

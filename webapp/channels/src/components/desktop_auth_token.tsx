@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import crypto from 'crypto';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
-import crypto from 'crypto';
-import classNames from 'classnames';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {UserProfile} from '@mattermost/types/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {loginWithDesktopToken} from 'actions/views/login';
 
@@ -85,13 +85,12 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
 
     const forwardToDesktopApp = () => {
         const url = new URL(window.location.href);
+        let protocol = 'mattermost';
         if (url.searchParams.get('isDesktopDev')) {
-            url.protocol = 'mattermost-dev';
-        } else {
-            url.protocol = 'mattermost';
+            protocol = 'mattermost-dev';
         }
 
-        window.location.href = url.toString();
+        window.location.href = url.toString().replace(url.protocol, `${protocol}:`);
     };
 
     useEffect(() => {

@@ -1,32 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {GroupChannel} from '@mattermost/types/groups';
-import {FileInfo} from '@mattermost/types/files';
+import type {FileInfo} from '@mattermost/types/files';
+import type {GroupChannel} from '@mattermost/types/groups';
+import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
-import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import * as ThreadActions from 'mattermost-redux/actions/threads';
 import * as PostActions from 'mattermost-redux/actions/posts';
+import * as ThreadActions from 'mattermost-redux/actions/threads';
+import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
 import * as StorageActions from 'actions/storage';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions';
+import {removeDraft} from 'actions/views/drafts';
 import * as RhsActions from 'actions/views/rhs';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
-import {removeDraft} from 'actions/views/drafts';
 import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
 import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
 import {getGlobalItem} from 'selectors/storage';
-import {GlobalState} from 'types/store';
+
 import {
     ActionTypes,
     Constants,
@@ -36,7 +36,10 @@ import {
 import {matchEmoticons} from 'utils/emoticons';
 import * as UserAgent from 'utils/user_agent';
 
-import {completePostReceive, NewPostMessageProps} from './new_post';
+import type {GlobalState} from 'types/store';
+
+import {completePostReceive} from './new_post';
+import type {NewPostMessageProps} from './new_post';
 
 export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

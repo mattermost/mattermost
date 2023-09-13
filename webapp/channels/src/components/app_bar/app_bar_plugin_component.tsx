@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
-import {useSelector} from 'react-redux';
 import classNames from 'classnames';
-
+import React, {useState, useEffect} from 'react';
 import {Tooltip} from 'react-bootstrap';
+import {useSelector} from 'react-redux';
 
 import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 
 import {getActiveRhsComponent} from 'selectors/rhs';
 
-import {PluginComponent, AppBarComponent} from 'types/store/plugins';
-import Constants, {suitePluginIds} from 'utils/constants';
-
 import OverlayTrigger from 'components/overlay_trigger';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
+
+import Constants, {suitePluginIds} from 'utils/constants';
+
+import type {PluginComponent, AppBarComponent} from 'types/store/plugins';
 
 import NewChannelWithBoardTourTip from './new_channel_with_board_tour_tip';
 

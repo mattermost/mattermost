@@ -4,13 +4,16 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {OAuthApp} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import ConfirmModal from 'components/confirm_modal';
+import LoadingScreen from 'components/loading_screen';
 
 import {getHistory} from 'utils/browser_history';
-import LoadingScreen from 'components/loading_screen';
-import ConfirmModal from 'components/confirm_modal';
+
 import AbstractOAuthApp from '../abstract_oauth_app.jsx';
 
 const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};

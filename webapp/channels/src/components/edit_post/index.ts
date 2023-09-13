@@ -2,29 +2,33 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Preferences, Permissions} from 'mattermost-redux/constants';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
+import {runMessageWillBeUpdatedHooks} from 'actions/hooks';
 import {unsetEditingPost} from 'actions/post_actions';
-import {openModal} from 'actions/views/modals';
+import {setGlobalItem} from 'actions/storage';
 import {scrollPostListToBottom} from 'actions/views/channel';
+import {openModal} from 'actions/views/modals';
 import {editPost} from 'actions/views/posts';
 import {getEditingPost} from 'selectors/posts';
-import {GlobalState} from 'types/store';
-import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
-import {setGlobalItem} from '../../actions/storage';
-import {getIsRhsOpen, getPostDraft, getRhsState} from '../../selectors/rhs';
-import {runMessageWillBeUpdatedHooks} from 'actions/hooks';
+import {getIsRhsOpen, getPostDraft, getRhsState} from 'selectors/rhs';
 
-import EditPost, {Actions} from './edit_post';
+import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+
+import EditPost from './edit_post';
+import type {Actions} from './edit_post';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

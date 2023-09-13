@@ -2,13 +2,19 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {MouseEventHandler, RefObject, useEffect, useRef, useState} from 'react';
-import styled, {createGlobalStyle, css} from 'styled-components';
-import {CssVarKeyForResizable, ResizeDirection} from './constants';
-import {useGlobalState} from 'stores/hooks';
-import {isSizeLessThanSnapSize, isSnapableSpeed, shouldSnapWhenSizeGrown, shouldSnapWhenSizeShrunk} from './utils';
+import type {MouseEventHandler, RefObject} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
+import styled, {createGlobalStyle, css} from 'styled-components';
+
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import {getIsMobileView} from 'selectors/views/browser';
+import {useGlobalState} from 'stores/hooks';
+
+import type {CssVarKeyForResizable} from './constants';
+import {ResizeDirection} from './constants';
+import {isSizeLessThanSnapSize, isSnapableSpeed, shouldSnapWhenSizeGrown, shouldSnapWhenSizeShrunk} from './utils';
 
 type Props = {
     id?: string;
@@ -29,19 +35,15 @@ const Divider = styled.div<{isActive: boolean}>`
     position: absolute;
     z-index: 50;
     top: 0;
-    width: 16px;
+    width: 12px;
     height: 100%;
     cursor: col-resize;
     &.left {
-        right: -8px;
+        right: -12px;
     }
 
-    &.right {
-        left: -8px;
-    }
     &::after {
         position: absolute;
-        left: 6px;
         width: 4px;
         height: 100%;
         background-color: ${({isActive}) => (isActive ? 'var(--sidebar-text-active-border)' : 'transparent')};
@@ -98,6 +100,7 @@ function ResizableDivider({
     const cssVarKey = `--${props.globalCssVar}`;
 
     const currentUserID = useSelector(getCurrentUserId);
+    const isMobileView = useSelector(getIsMobileView);
 
     const [isActive, setIsActive] = useState(false);
     const [width, setWidth] = useGlobalState<number | null>(null, `resizable_${name}:`, currentUserID);
@@ -237,7 +240,7 @@ function ResizableDivider({
         setWidth(null);
     };
 
-    if (disabled) {
+    if (disabled || isMobileView) {
         return null;
     }
 

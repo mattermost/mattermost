@@ -11,10 +11,11 @@ import {
 } from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import type {RhsState} from 'types/store/rhs';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates} from 'utils/constants';
-import {SidebarSize} from 'components/resizable_sidebar/constants';
+
+import type {RhsState} from 'types/store/rhs';
 
 function selectedPostId(state = '', action: GenericAction) {
     switch (action.type) {

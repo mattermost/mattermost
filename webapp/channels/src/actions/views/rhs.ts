@@ -2,10 +2,15 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import {AnyAction} from 'redux';
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {SearchTypes} from 'mattermost-redux/action_types';
+import {getChannel} from 'mattermost-redux/actions/channels';
+import * as PostActions from 'mattermost-redux/actions/posts';
+import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
     getFlaggedPosts,
@@ -13,31 +18,28 @@ import {
     searchPostsWithParams,
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
-import * as PostActions from 'mattermost-redux/actions/posts';
-import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {Action, ActionResult, DispatchFunc, GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
+import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import type {Action, ActionResult, DispatchFunc, GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
-import {ActionTypes, RHSStates, Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
-import {RhsState} from 'types/store/rhs';
-import {GlobalState} from 'types/store';
-import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 
-import {getChannel} from 'mattermost-redux/actions/channels';
 import {SidebarSize} from 'components/resizable_sidebar/constants';
+
+import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
+
+import type {GlobalState} from 'types/store';
+import type {RhsState} from 'types/store/rhs';
 
 function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const postRootId = Utils.getRootId(post);
+        const postRootId = post.root_id || post.id;
         await dispatch(PostActions.getPostThread(postRootId));
         const state = getState() as GlobalState;
 

@@ -4,17 +4,16 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
-import {AnalyticsRow} from '@mattermost/types/admin';
-
-import {PreferenceType} from '@mattermost/types/preferences';
+import LocalizedIcon from 'components/localized_icon';
+import type {Notice} from 'components/system_notice/types';
+import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 import {Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
-import LocalizedIcon from 'components/localized_icon';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
-import {Notice} from 'components/system_notice/types';
 
 type Props = {
     currentUserId: string;

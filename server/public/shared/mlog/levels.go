@@ -32,9 +32,6 @@ var (
 	LvlAuditPerms   = Level{ID: 102, Name: "audit-permissions"}
 	LvlAuditCLI     = Level{ID: 103, Name: "audit-cli"}
 
-	// used by the TCP log target
-	LvlTCPLogTarget = Level{ID: 120, Name: "TcpLogTarget"}
-
 	// used by Remote Cluster Service
 	LvlRemoteClusterServiceDebug = Level{ID: 130, Name: "RemoteClusterServiceDebug"}
 	LvlRemoteClusterServiceError = Level{ID: 131, Name: "RemoteClusterServiceError"}
@@ -46,10 +43,6 @@ var (
 	LvlSharedChannelServiceWarn             = Level{ID: 202, Name: "SharedChannelServiceWarn"}
 	LvlSharedChannelServiceMessagesInbound  = Level{ID: 203, Name: "SharedChannelServiceMsgInbound"}
 	LvlSharedChannelServiceMessagesOutbound = Level{ID: 204, Name: "SharedChannelServiceMsgOutbound"}
-
-	// Focalboard
-	LvlFBTelemetry = Level{ID: 9000, Name: "telemetry"}
-	LvlFBMetrics   = Level{ID: 9001, Name: "metrics"}
 )
 
 // Combinations for LogM (log multi).

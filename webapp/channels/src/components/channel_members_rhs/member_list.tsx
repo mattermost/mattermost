@@ -3,14 +3,16 @@
 
 import React, {memo, useEffect, useRef, useState} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import {VariableSizeList, ListChildComponentProps} from 'react-window';
+import {VariableSizeList} from 'react-window';
+import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
+import {ListItemType} from './channel_members_rhs';
+import type {ChannelMember, ListItem} from './channel_members_rhs';
 import Member from './member';
-import {ChannelMember, ListItem, ListItemType} from './channel_members_rhs';
 
 export interface Props {
     channel: Channel;

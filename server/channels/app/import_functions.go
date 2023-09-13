@@ -19,8 +19,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -1953,7 +1953,7 @@ func (a *App) importEmoji(c request.CTX, data *imports.EmojiImportData, dryRun b
 
 	var emoji *model.Emoji
 
-	emoji, err := a.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, err := a.Srv().Store().Emoji().GetByName(c, *data.Name, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {

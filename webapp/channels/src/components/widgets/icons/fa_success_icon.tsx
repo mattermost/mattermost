@@ -4,6 +4,7 @@
 import React from 'react';
 
 import LocalizedIcon from 'components/localized_icon';
+
 import {t} from 'utils/i18n';
 
 export default function SuccessIcon() {

@@ -2,21 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 
 import {getDataRetentionCustomPolicyChannels, searchDataRetentionCustomPolicyChannels as searchChannels} from 'mattermost-redux/actions/admin';
-import {filterChannelList, getChannelsInPolicy, searchChannelsInPolicy} from 'mattermost-redux/selectors/entities/channels';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
+import {filterChannelList, getChannelsInPolicy, searchChannelsInPolicy} from 'mattermost-redux/selectors/entities/channels';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 import {filterChannelsMatchingTerm, channelListToMap} from 'mattermost-redux/utils/channel_utils';
 
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
-
-import {GlobalState} from 'types/store';
-
 import {setChannelListSearch, setChannelListFilters} from 'actions/views/search';
-import {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelList from './channel_list';
 

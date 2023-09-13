@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {GifsResult} from '@giphy/js-fetch-api';
+import type {EmojiVariationsListProps} from '@giphy/react-components';
+import {Grid} from '@giphy/react-components';
 import React, {memo, useCallback} from 'react';
 import {useSelector} from 'react-redux';
-import {EmojiVariationsListProps, Grid} from '@giphy/react-components';
-import {GifsResult} from '@giphy/js-fetch-api';
 
 import {getGiphyFetchInstance} from 'mattermost-redux/selectors/entities/general';
 
