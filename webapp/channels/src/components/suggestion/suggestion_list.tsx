@@ -105,7 +105,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     announceLabel() {
         const suggestionReadOut = this.props.ariaLiveRef?.current;
         if (suggestionReadOut) {
-            suggestionReadOut.textContent = this.currentLabel as string;
+            suggestionReadOut.textContent = this.currentLabel;
         }
     }
 
