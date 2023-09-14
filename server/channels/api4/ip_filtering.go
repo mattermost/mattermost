@@ -8,6 +8,8 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/platform/services/ip_filtering"
 )
 
@@ -53,6 +55,9 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("applyIPFilters", audit.Fail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+
 	ipFilterService := *c.App.Srv().IPFilteringService()
 
 	var allowedRanges *ip_filtering.AllowedIPRanges
@@ -61,10 +66,14 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	audit.AddEventParameterAuditable(auditRec, "IPFilter", allowedRanges)
+
 	if err := ipFilterService.ApplyIPFilters(allowedRanges); err != nil {
 		c.Err = model.NewAppError("applyIPFilters", "api.context.ip_filtering.apply_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
 

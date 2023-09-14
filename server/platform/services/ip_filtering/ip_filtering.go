@@ -20,3 +20,9 @@ type AllowedIPRange struct {
 	Enabled     bool
 	OwnerID     string
 }
+
+func (air *AllowedIPRanges) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"AllowedIPRanges": air,
+	}
+}
