@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, CSSProperties} from 'react';
-import {FormattedMessage, MessageDescriptor} from 'react-intl';
 import classNames from 'classnames';
-
-import {t} from 'utils/i18n';
+import React from 'react';
+import type {ReactNode, CSSProperties} from 'react';
+import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import FlagIcon from 'components/widgets/icons/flag_icon';
 import MentionsIcon from 'components/widgets/icons/mentions_icon';
 import PinIcon from 'components/widgets/icons/pin_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
+
+import {t} from 'utils/i18n';
 
 import {NoResultsVariant, NoResultsLayout} from './types';
 
@@ -37,6 +39,7 @@ const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
     [NoResultsVariant.ChannelFilesFiltered]: <i className='icon icon-file-text-outline no-results__icon'/>,
     [NoResultsVariant.UserGroups]: <i className='icon icon-account-multiple-outline no-results__icon'/>,
     [NoResultsVariant.UserGroupMembers]: <i className='icon icon-account-outline no-results__icon'/>,
+    [NoResultsVariant.UserGroupsArchived]: <i className='icon icon-account-multiple-outline no-results__icon'/>,
 };
 
 const titleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
@@ -64,6 +67,9 @@ const titleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
     [NoResultsVariant.UserGroupMembers]: {
         id: t('no_results.user_group_members.title'),
     },
+    [NoResultsVariant.UserGroupsArchived]: {
+        id: t('no_results.user_groups.archived.title'),
+    },
 };
 
 const subtitleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
@@ -90,6 +96,9 @@ const subtitleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
     },
     [NoResultsVariant.UserGroupMembers]: {
         id: t('no_results.user_group_members.subtitle'),
+    },
+    [NoResultsVariant.UserGroupsArchived]: {
+        id: t('no_results.user_groups.archived.subtitle'),
     },
 };
 

@@ -83,6 +83,7 @@ type Params struct {
 	IncludeTotalCount         bool
 	IncludeDeleted            bool
 	FilterAllowReference      bool
+	FilterArchived            bool
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
@@ -208,6 +209,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.NotAssociatedToTeam = query.Get("not_associated_to_team")
 	params.NotAssociatedToChannel = query.Get("not_associated_to_channel")
 	params.FilterAllowReference, _ = strconv.ParseBool(query.Get("filter_allow_reference"))
+	params.FilterArchived, _ = strconv.ParseBool(query.Get("filter_archived"))
 	params.FilterParentTeamPermitted, _ = strconv.ParseBool(query.Get("filter_parent_team_permitted"))
 	params.IncludeChannelMemberCount = query.Get("include_channel_member_count")
 

@@ -3,8 +3,8 @@
 
 /* eslint-disable no-console */
 
-import Adapter from 'enzyme-adapter-react-17-updated';
 import {configure} from 'enzyme';
+import Adapter from 'enzyme-adapter-react-17-updated';
 
 import '@testing-library/jest-dom';
 

@@ -19,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	pUtils "github.com/mattermost/mattermost/server/public/utils"
@@ -362,7 +361,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !utils.StringInSlice(user, users) {
+			if !pUtils.Contains(users, user) {
 				users = append(users, user)
 			}
 		}
@@ -377,7 +376,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !utils.StringInSlice(user, users) {
+			if !pUtils.Contains(users, user) {
 				users = append(users, user)
 			}
 		}

@@ -36,31 +36,27 @@ type MergeConfig struct {
 //	    retTS := ret.(testStruct)
 //	    return &retTS, nil
 //	}
-func Merge(base any, patch any, mergeConfig *MergeConfig) (any, error) {
-	if reflect.TypeOf(base) != reflect.TypeOf(patch) {
-		return nil, fmt.Errorf(
-			"cannot merge different types. base type: %s, patch type: %s",
-			reflect.TypeOf(base),
-			reflect.TypeOf(patch),
-		)
-	}
-
+func Merge[T any](base T, patch T, mergeConfig *MergeConfig) (T, error) {
 	commonType := reflect.TypeOf(base)
 	baseVal := reflect.ValueOf(base)
 	patchVal := reflect.ValueOf(patch)
-	if commonType.Kind() == reflect.Ptr {
-		commonType = commonType.Elem()
-		baseVal = baseVal.Elem()
-		patchVal = patchVal.Elem()
-	}
-
 	ret := reflect.New(commonType)
 
 	val, ok := merge(baseVal, patchVal, mergeConfig)
 	if ok {
 		ret.Elem().Set(val)
 	}
-	return ret.Elem().Interface(), nil
+
+	r, ok := ret.Elem().Interface().(T)
+	if !ok {
+		return r, fmt.Errorf(
+			"Unexpected type of return element, expected %s, is %s",
+			commonType,
+			reflect.TypeOf(r),
+		)
+	}
+
+	return r, nil
 }
 
 // merge recursively merges patch into base and returns the new struct, ptr, slice/map, or value

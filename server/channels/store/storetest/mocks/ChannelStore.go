@@ -674,6 +674,32 @@ func (_m *ChannelStore) GetByNames(team_id string, names []string, allowFromCach
 	return r0, r1
 }
 
+// GetByNamesIncludeDeleted provides a mock function with given fields: team_id, names, allowFromCache
+func (_m *ChannelStore) GetByNamesIncludeDeleted(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error) {
+	ret := _m.Called(team_id, names, allowFromCache)
+
+	var r0 []*model.Channel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string, bool) ([]*model.Channel, error)); ok {
+		return rf(team_id, names, allowFromCache)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string, bool) []*model.Channel); ok {
+		r0 = rf(team_id, names, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string, bool) error); ok {
+		r1 = rf(team_id, names, allowFromCache)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelCounts provides a mock function with given fields: teamID, userID
 func (_m *ChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 	ret := _m.Called(teamID, userID)
@@ -700,25 +726,25 @@ func (_m *ChannelStore) GetChannelCounts(teamID string, userID string) (*model.C
 	return r0, r1
 }
 
-// GetChannelMembersForExport provides a mock function with given fields: userID, teamID
-func (_m *ChannelStore) GetChannelMembersForExport(userID string, teamID string) ([]*model.ChannelMemberForExport, error) {
-	ret := _m.Called(userID, teamID)
+// GetChannelMembersForExport provides a mock function with given fields: userID, teamID, includeArchivedChannel
+func (_m *ChannelStore) GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error) {
+	ret := _m.Called(userID, teamID, includeArchivedChannel)
 
 	var r0 []*model.ChannelMemberForExport
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) ([]*model.ChannelMemberForExport, error)); ok {
-		return rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) ([]*model.ChannelMemberForExport, error)); ok {
+		return rf(userID, teamID, includeArchivedChannel)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) []*model.ChannelMemberForExport); ok {
-		r0 = rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) []*model.ChannelMemberForExport); ok {
+		r0 = rf(userID, teamID, includeArchivedChannel)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelMemberForExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, teamID)
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(userID, teamID, includeArchivedChannel)
 	} else {
 		r1 = ret.Error(1)
 	}

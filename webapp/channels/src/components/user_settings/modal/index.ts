@@ -2,15 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {GlobalState} from 'types/store';
-import {Action} from 'mattermost-redux/types/actions';
+import type {Action} from 'mattermost-redux/types/actions';
 
-import UserSettingsModal, {Props} from './user_settings_modal';
+import type {GlobalState} from 'types/store';
+
+import UserSettingsModal from './user_settings_modal';
+import type {Props} from './user_settings_modal';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

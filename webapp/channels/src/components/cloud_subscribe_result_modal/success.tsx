@@ -3,21 +3,20 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 
+import {closeModal} from 'actions/views/modals';
+import {isModalOpen} from 'selectors/views/modals';
+
 import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
-
 import IconMessage from 'components/purchase_modal/icon_message';
-
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
-import {closeModal} from 'actions/views/modals';
 import {ModalIdentifiers} from 'utils/constants';
-import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 import './style.scss';
 
