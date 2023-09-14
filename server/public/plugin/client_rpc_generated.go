@@ -291,6 +291,40 @@ func (s *hooksRPCServer) MessageHasBeenUpdated(args *Z_MessageHasBeenUpdatedArgs
 }
 
 func init() {
+	hookNameToId["MessageHasBeenDeleted"] = MessageHasBeenDeletedID
+}
+
+type Z_MessageHasBeenDeletedArgs struct {
+	A *Context
+	B *model.Post
+}
+
+type Z_MessageHasBeenDeletedReturns struct {
+}
+
+func (g *hooksRPCClient) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	_args := &Z_MessageHasBeenDeletedArgs{c, post}
+	_returns := &Z_MessageHasBeenDeletedReturns{}
+	if g.implemented[MessageHasBeenDeletedID] {
+		if err := g.client.Call("Plugin.MessageHasBeenDeleted", _args, _returns); err != nil {
+			g.log.Error("RPC call MessageHasBeenDeleted to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) MessageHasBeenDeleted(args *Z_MessageHasBeenDeletedArgs, returns *Z_MessageHasBeenDeletedReturns) error {
+	if hook, ok := s.impl.(interface {
+		MessageHasBeenDeleted(c *Context, post *model.Post)
+	}); ok {
+		hook.MessageHasBeenDeleted(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook MessageHasBeenDeleted called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["ChannelHasBeenCreated"] = ChannelHasBeenCreatedID
 }
 
