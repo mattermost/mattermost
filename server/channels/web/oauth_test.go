@@ -404,7 +404,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	var siteURL = "http://localhost:8065"
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = siteURL
-		cfg.NativeAppSettings.AppCustomURLSchemes = []string{"mmauth://"}
+		cfg.NativeAppSettings.AppCustomURLSchemes = append(cfg.NativeAppSettings.AppCustomURLSchemes, "mmauth://")
 	})
 
 	translationFunc := i18n.GetUserTranslations("en")
