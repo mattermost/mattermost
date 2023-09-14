@@ -50,13 +50,6 @@ func TestStringSliceDiff(t *testing.T) {
 	assert.Equal(t, expected, StringSliceDiff(a, b))
 }
 
-func TestSliceContainsString(t *testing.T) {
-	a := []string{"one", "two", "three", "four", "five", "six"}
-
-	assert.Equal(t, true, SliceContainsString(a, "two"))
-	assert.Equal(t, false, SliceContainsString(a, "nine"))
-}
-
 func TestGetIPAddress(t *testing.T) {
 	t.Run("Single IP in the X-Forwarded-For", func(t *testing.T) {
 		httpRequest1 := http.Request{
