@@ -5857,11 +5857,11 @@ func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 
 }
 
-func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
+func (s *RetryLayerLicenseStore) Get(ctx context.Context, id string) (*model.LicenseRecord, error) {
 
 	tries := 0
 	for {
-		result, err := s.LicenseStore.Get(id)
+		result, err := s.LicenseStore.Get(ctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -5899,21 +5899,21 @@ func (s *RetryLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 
 }
 
-func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
+func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) error {
 
 	tries := 0
 	for {
-		result, err := s.LicenseStore.Save(license)
+		err := s.LicenseStore.Save(license)
 		if err == nil {
-			return result, nil
+			return nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

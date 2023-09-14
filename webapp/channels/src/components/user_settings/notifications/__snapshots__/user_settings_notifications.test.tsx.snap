@@ -40,12 +40,28 @@ Object {
         <div
           class="user-settings"
         >
-          <h3
-            class="tab-header"
-            id="notificationSettingsTitle"
+          <div
+            class="notificationSettingsModalHeader"
           >
-            Notifications
-          </h3>
+            <h3
+              class="tab-header"
+              id="notificationSettingsTitle"
+            >
+              Notifications
+            </h3>
+            <a
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <i
+                class="icon icon-help-circle-outline"
+              />
+              <span>
+                Learn more about notifications
+              </span>
+            </a>
+          </div>
           <div
             class="divider-dark first"
           />
@@ -248,12 +264,28 @@ Object {
       <div
         class="user-settings"
       >
-        <h3
-          class="tab-header"
-          id="notificationSettingsTitle"
+        <div
+          class="notificationSettingsModalHeader"
         >
-          Notifications
-        </h3>
+          <h3
+            class="tab-header"
+            id="notificationSettingsTitle"
+          >
+            Notifications
+          </h3>
+          <a
+            href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <i
+              class="icon icon-help-circle-outline"
+            />
+            <span>
+              Learn more about notifications
+            </span>
+          </a>
+        </div>
         <div
           class="divider-dark first"
         />
