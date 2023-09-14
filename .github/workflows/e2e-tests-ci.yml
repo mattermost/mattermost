@@ -85,7 +85,8 @@ jobs:
         ### Smoketests should be run only on ubuntu, for QA goals
         ### But it's useful to be able to run and debug the smoketests for different OSes
         #os: [ubuntu-latest-8-cores, windows-2022, macos-12]
-        os: [ubuntu-latest-8-cores]
+        #os: [ubuntu-latest-8-cores]
+        os: [ubuntu-latest-8-cores, macos-12]
     runs-on: "${{ matrix.os }}"
     needs:
       - cypress-check
