@@ -31,18 +31,21 @@ type ResendInvitationEmailWorker struct {
 	stopped          chan bool
 	jobs             chan model.Job
 	jobServer        *jobs.JobServer
+	logger           mlog.LoggerIFace
 	app              AppIface
 	store            store.Store
 	telemetryService *telemetry.TelemetryService
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, telemetryService *telemetry.TelemetryService) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, telemetryService *telemetry.TelemetryService) *ResendInvitationEmailWorker {
+	const workerName = "ResendInvitationEmail"
 	worker := ResendInvitationEmailWorker{
-		name:             model.JobTypeResendInvitationEmail,
+		name:             workerName,
 		stop:             make(chan bool, 1),
 		stopped:          make(chan bool, 1),
 		jobs:             make(chan model.Job),
 		jobServer:        jobServer,
+		logger:           jobServer.Logger().With(mlog.String("workername", workerName)),
 		app:              app,
 		store:            store,
 		telemetryService: telemetryService,
@@ -51,20 +54,20 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, tele
 }
 
 func (rseworker *ResendInvitationEmailWorker) Run() {
-	mlog.Debug("Worker started", mlog.String("worker", rseworker.name))
+	rseworker.logger.Debug("Worker started")
 
 	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", rseworker.name))
+		rseworker.logger.Debug("Worker finished")
 		rseworker.stopped <- true
 	}()
 
 	for {
 		select {
 		case <-rseworker.stop:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", rseworker.name))
+			rseworker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-rseworker.jobs:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", rseworker.name))
+			job.Logger.Debug("Worker received a new candidate job")
 			rseworker.DoJob(&job)
 		}
 	}
@@ -75,7 +78,7 @@ func (rseworker *ResendInvitationEmailWorker) IsEnabled(cfg *model.Config) bool 
 }
 
 func (rseworker *ResendInvitationEmailWorker) Stop() {
-	mlog.Debug("Worker stopping", mlog.String("worker", rseworker.name))
+	rseworker.logger.Debug("Worker stopping")
 	rseworker.stop <- true
 	<-rseworker.stopped
 }
@@ -96,14 +99,14 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 
 func (rseworker *ResendInvitationEmailWorker) setJobSuccess(job *model.Job) {
 	if err := rseworker.jobServer.SetJobSuccess(job); err != nil {
-		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set success for job", mlog.Err(err))
 		rseworker.setJobError(job, err)
 	}
 }
 
 func (rseworker *ResendInvitationEmailWorker) setJobError(job *model.Job, appError *model.AppError) {
 	if err := rseworker.jobServer.SetJobError(job, appError); err != nil {
-		mlog.Error("Worker: Failed to set job error", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set job error", mlog.Err(err))
 	}
 }
 
@@ -179,14 +182,14 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 	emailList, err := rseworker.cleanEmailData(emailListData)
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		mlog.Error("Worker: Failed to clean emails string data", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
+		job.Logger.Error("Worker: Failed to clean emails string data", mlog.Err(appErr))
 		rseworker.setJobError(job, appErr)
 	}
 
 	channelList, err := rseworker.cleanChannelsData(channelListData)
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		mlog.Error("Worker: Failed to clean channel string data", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
+		job.Logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
 		rseworker.setJobError(job, appErr)
 	}
 
@@ -202,7 +205,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 
 	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(&memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
-		mlog.Error("Worker: Failed to send emails", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
+		job.Logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
 		rseworker.setJobError(job, appErr)
 	}
 	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]any{interval: interval})

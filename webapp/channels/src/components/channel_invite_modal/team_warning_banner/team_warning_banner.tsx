@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, FormattedList, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -11,12 +11,11 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import AlertBanner from 'components/alert_banner';
-import Markdown from 'components/markdown';
+import AtMention from 'components/at_mention';
 import type {Value} from 'components/multiselect/multiselect';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
 import {t} from 'utils/i18n';
-import type {MentionKey} from 'utils/text_formatting';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -37,14 +36,6 @@ const TeamWarningBanner = (props: Props) => {
 
     const team = useSelector((state: GlobalState) => getTeam(state, teamId));
 
-    const getMentionKeys = useCallback((users: Array<UserProfileValue | UserProfile>) => {
-        const mentionKeys: MentionKey[] = [];
-        for (const user of users) {
-            mentionKeys.push({key: `@${user.username}`});
-        }
-        return mentionKeys;
-    }, []);
-
     const getCommaSeparatedUsernames = useCallback((users: Array<UserProfileValue | UserProfile>) => {
         return users.map((user) => {
             return `@${user.username}`;
@@ -56,10 +47,8 @@ const TeamWarningBanner = (props: Props) => {
             return null;
         }
 
-        const mentionKeys = getMentionKeys(guests);
         const commaSeparatedUsernames = getCommaSeparatedUsernames(guests);
         const firstName = guests[0].username;
-        const lastName = guests[guests.length - 1].username;
         if (guests.length > 10) {
             return (
                 formatMessage(
@@ -69,14 +58,9 @@ const TeamWarningBanner = (props: Props) => {
                     },
                     {
                         firstUser: (
-                            <Markdown
-                                message={`@${firstName}`}
-                                options={{
-                                    atMentions: true,
-                                    mentionKeys,
-                                    mentionHighlight: false,
-                                    singleline: true,
-                                }}
+                            <AtMention
+                                key={firstName}
+                                mentionName={firstName}
                             />
                         ),
                         others: (
@@ -102,55 +86,51 @@ const TeamWarningBanner = (props: Props) => {
             );
         }
 
-        const message: string = formatMessage(
-            {
-                id: t('channel_invite.invite_team_members.guests.message'),
-                defaultMessage: '{count, plural, =1 {{firstUser} is a guest user and needs} other {{users} and {lastUser} are guest users and need}} to first be invited to the team before you can add them to the channel. Once they\'ve joined the team, you can add them to this channel.',
-            },
-            {
-                count: guests.length,
-                users: commaSeparatedUsernames.replace(`, @${lastName}`, ''),
-                firstUser: `@${firstName}`,
-                lastUser: `@${lastName}`,
-                team: team.display_name,
-            },
-        );
+        const guestsList = guests.map((user) => {
+            return (
+                <AtMention
+                    key={user.username}
+                    mentionName={user.username}
+                />
+            );
+        });
 
         return (
-            <Markdown
-                message={message}
-                options={{
-                    atMentions: true,
-                    mentionKeys,
-                    mentionHighlight: false,
-                    singleline: true,
-                }}
-            />
+            formatMessage(
+                {
+                    id: t('channel_invite.invite_team_members.guests.message'),
+                    defaultMessage: '{count, plural, =1 {{firstUser} is a guest user and needs} other {{users} are guest users and need}} to first be invited to the team before you can add them to the channel. Once they\'ve joined the team, you can add them to this channel.',
+                },
+                {
+                    count: guests.length,
+                    users: (<FormattedList value={guestsList}/>),
+                    firstUser: (
+                        <AtMention
+                            key={firstName}
+                            mentionName={firstName}
+                        />
+                    ),
+                    team: (<strong>{team.display_name}</strong>),
+                },
+            )
         );
-    }, [guests, formatMessage, getCommaSeparatedUsernames, getMentionKeys, team.display_name]);
+    }, [guests, formatMessage, getCommaSeparatedUsernames, team.display_name]);
 
     const getMessage = useCallback(() => {
-        const mentionKeys = getMentionKeys(users);
         const commaSeparatedUsernames = getCommaSeparatedUsernames(users);
         const firstName = users[0].username;
-        const lastName = users[users.length - 1].username;
 
         if (users.length > 10) {
             return formatMessage(
                 {
                     id: t('channel_invite.invite_team_members.messageOverflow'),
-                    defaultMessage: 'You can add {firstUser} and {others} to this channel once they are members of the **{team}** team.',
+                    defaultMessage: 'You can add {firstUser} and {others} to this channel once they are members of the {team} team.',
                 },
                 {
                     firstUser: (
-                        <Markdown
-                            message={`@${firstName}`}
-                            options={{
-                                atMentions: true,
-                                mentionKeys,
-                                mentionHighlight: false,
-                                singleline: true,
-                            }}
+                        <AtMention
+                            key={firstName}
+                            mentionName={firstName}
                         />
                     ),
                     others: (
@@ -171,39 +151,40 @@ const TeamWarningBanner = (props: Props) => {
                             </span>
                         </SimpleTooltip>
                     ),
-                    team: team.display_name,
+                    team: (<strong>{team.display_name}</strong>),
                 },
             );
         }
 
-        const formattedMessage = {
-            id: t('channel_invite.invite_team_members.message'),
-            defaultMessage: 'You can add {count, plural, =1 {{firstUser}} other {{users} and {lastUser}}} to this channel once they are members of the **{team}** team.',
-        };
-
-        const message: string = formatMessage(
-            formattedMessage,
-            {
-                count: users.length,
-                users: commaSeparatedUsernames.replace(`, @${lastName}`, ''),
-                firstUser: `@${firstName}`,
-                lastUser: `@${lastName}`,
-                team: team.display_name,
-            },
-        );
+        const usersList = users.map((user) => {
+            return (
+                <AtMention
+                    key={user.username}
+                    mentionName={user.username}
+                />
+            );
+        });
 
         return (
-            <Markdown
-                message={message}
-                options={{
-                    atMentions: true,
-                    mentionKeys,
-                    mentionHighlight: false,
-                    singleline: true,
-                }}
-            />
+            formatMessage(
+                {
+                    id: t('channel_invite.invite_team_members.message'),
+                    defaultMessage: 'You can add {count, plural, =1 {{firstUser}} other {{users}}} to this channel once they are members of the {team} team.',
+                },
+                {
+                    count: users.length,
+                    users: (<FormattedList value={usersList}/>),
+                    firstUser: (
+                        <AtMention
+                            key={firstName}
+                            mentionName={firstName}
+                        />
+                    ),
+                    team: (<strong>{team.display_name}</strong>),
+                },
+            )
         );
-    }, [users, getMentionKeys, getCommaSeparatedUsernames, team, formatMessage]);
+    }, [users, getCommaSeparatedUsernames, team, formatMessage]);
 
     return (
         <>

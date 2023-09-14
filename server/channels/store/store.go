@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
@@ -637,8 +638,8 @@ type PreferenceStore interface {
 }
 
 type LicenseStore interface {
-	Save(license *model.LicenseRecord) (*model.LicenseRecord, error)
-	Get(id string) (*model.LicenseRecord, error)
+	Save(license *model.LicenseRecord) error
+	Get(ctx context.Context, id string) (*model.LicenseRecord, error)
 	GetAll() ([]*model.LicenseRecord, error)
 }
 
@@ -661,9 +662,9 @@ type DesktopTokensStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
-	Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error)
-	GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error)
-	GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error)
+	Get(ctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error)
+	GetByName(ctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error)
+	GetMultipleByName(ctx request.CTX, names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
@@ -734,13 +735,12 @@ type JobStore interface {
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
-	Get(id string) (*model.Job, error)
-	GetAllPage(offset int, limit int) ([]*model.Job, error)
-	GetAllByType(jobType string) ([]*model.Job, error)
-	GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error)
-	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error)
-	GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error)
-	GetAllByStatus(status string) ([]*model.Job, error)
+	Get(c *request.Context, id string) (*model.Job, error)
+	GetAllByType(c *request.Context, jobType string) ([]*model.Job, error)
+	GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error)
+	GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error)
+	GetAllByStatus(c *request.Context, status string) ([]*model.Job, error)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)
