@@ -919,6 +919,10 @@
     "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
+  },
+  {
     "id": "api.command_invite.desc",
     "translation": "Invite a user to a channel"
   },
@@ -929,10 +933,6 @@
   {
     "id": "api.command_invite.fail.app_error",
     "translation": "An error occurred while joining the channel."
-  },
-  {
-    "id": "api.command_invite.channel_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {
     "id": "api.command_invite.hint",
