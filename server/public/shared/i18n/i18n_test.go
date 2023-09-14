@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/go-i18n/i18n/language"
 	"github.com/mattermost/go-i18n/i18n/translation"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -75,7 +74,7 @@ func TestEscapeForHTML(t *testing.T) {
 }
 
 func TestInitTranslationsWithDir(t *testing.T) {
-	i18nDir, found := fileutils.FindDir("server/i18n")
+	i18nDir, found := utils.FindDir("server/i18n")
 	require.True(t, found, "unable to find i18n dir")
 
 	setup := func(t *testing.T, localesToCopy map[string]string) string {
@@ -147,7 +146,7 @@ func TestInitTranslationsWithDir(t *testing.T) {
 }
 
 func TestGetTranslationFuncForDir(t *testing.T) {
-	i18nDir, found := fileutils.FindDir("server/i18n")
+	i18nDir, found := utils.FindDir("server/i18n")
 	require.True(t, found, "unable to find i18n dir")
 
 	setup := func(t *testing.T, localesToCopy map[string]string) string {
