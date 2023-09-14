@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-
-import {GlobalState} from 'types/store';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import EmojiPage from 'components/emoji/emoji_page';
+
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const team = getCurrentTeam(state) || {};

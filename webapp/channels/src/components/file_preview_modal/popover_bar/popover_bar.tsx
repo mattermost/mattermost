@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
 import {Constants, ZoomSettings} from 'utils/constants';
 
 export interface Props {

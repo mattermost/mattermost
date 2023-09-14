@@ -2,36 +2,32 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl, IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
-import * as UserAgent from 'utils/user_agent';
-import {Constants} from 'utils/constants';
+import {basicUnreadMeta} from 'mattermost-redux/selectors/entities/channels';
+import type {BasicUnreadStatus} from 'mattermost-redux/selectors/entities/channels';
 
-import {basicUnreadMeta, BasicUnreadStatus} from 'mattermost-redux/selectors/entities/channels';
-
-// default favicons
 import faviconDefault16x16 from 'images/favicon/favicon-default-16x16.png';
 import faviconDefault24x24 from 'images/favicon/favicon-default-24x24.png';
 import faviconDefault32x32 from 'images/favicon/favicon-default-32x32.png';
 import faviconDefault64x64 from 'images/favicon/favicon-default-64x64.png';
 import faviconDefault96x96 from 'images/favicon/favicon-default-96x96.png';
-
-// mention favicons
 import faviconMention16x16 from 'images/favicon/favicon-mentions-16x16.png';
 import faviconMention24x24 from 'images/favicon/favicon-mentions-24x24.png';
 import faviconMention32x32 from 'images/favicon/favicon-mentions-32x32.png';
 import faviconMention64x64 from 'images/favicon/favicon-mentions-64x64.png';
 import faviconMention96x96 from 'images/favicon/favicon-mentions-96x96.png';
-
-// unread favicons
 import faviconUnread16x16 from 'images/favicon/favicon-unread-16x16.png';
 import faviconUnread24x24 from 'images/favicon/favicon-unread-24x24.png';
 import faviconUnread32x32 from 'images/favicon/favicon-unread-32x32.png';
 import faviconUnread64x64 from 'images/favicon/favicon-unread-64x64.png';
 import faviconUnread96x96 from 'images/favicon/favicon-unread-96x96.png';
+import {Constants} from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 
 enum BadgeStatus {
     Mention = 'Mention',

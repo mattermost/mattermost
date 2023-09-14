@@ -5,23 +5,26 @@ import React, {memo, useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
-import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
-import {openModal} from 'actions/views/modals';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post, PostMetadata} from '@mattermost/types/posts';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
 import {createPost} from 'actions/post_actions';
 import {removeDraft} from 'actions/views/drafts';
-import {PostDraft} from 'types/store/draft';
-import {hasRequestedPersistentNotifications, specialMentionsInText} from 'utils/post_utils';
+import {openModal} from 'actions/views/modals';
+
+import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
+
 import {ModalIdentifiers} from 'utils/constants';
+import {hasRequestedPersistentNotifications, specialMentionsInText} from 'utils/post_utils';
 
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
-import {Post, PostMetadata} from '@mattermost/types/posts';
+import type {PostDraft} from 'types/store/draft';
 
-import DraftTitle from '../draft_title';
 import DraftActions from '../draft_actions';
+import DraftTitle from '../draft_title';
 import Panel from '../panel/panel';
-import Header from '../panel/panel_header';
 import PanelBody from '../panel/panel_body';
+import Header from '../panel/panel_header';
 
 type Props = {
     channel: Channel;
