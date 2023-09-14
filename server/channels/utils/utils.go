@@ -87,6 +87,15 @@ func StringSliceDiff(a, b []string) []string {
 	return result
 }
 
+func SliceContainsString(s []string, elem string) bool {
+	for _, a := range s {
+		if a == elem {
+			return true
+		}
+	}
+	return false
+}
+
 func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	address := ""
 

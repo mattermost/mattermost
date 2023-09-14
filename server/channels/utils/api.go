@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -114,7 +113,7 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
 	var link = template.HTMLEscapeString(redirectURL)
 	u, redirectErr := url.Parse(redirectURL)
-	if redirectErr != nil || !slices.Contains(config.NativeAppSettings.AppCustomURLSchemes, u.Scheme) {
+	if redirectErr != nil || !SliceContainsString(config.NativeAppSettings.AppCustomURLSchemes, u.Scheme) {
 		link = *config.ServiceSettings.SiteURL
 	}
 	RenderMobileMessage(w, `
