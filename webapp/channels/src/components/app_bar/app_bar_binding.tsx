@@ -2,22 +2,24 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+
+import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {AppBinding, AppCallResponse} from '@mattermost/types/apps';
 
 import {handleBindingClick, openAppsModal, postEphemeralCallResponseForContext} from 'actions/apps';
 
+import OverlayTrigger from 'components/overlay_trigger';
+
 import {createCallContext} from 'utils/apps';
 import Constants from 'utils/constants';
-import {DoAppCallResult} from 'types/apps';
 
-import OverlayTrigger from 'components/overlay_trigger';
+import type {DoAppCallResult} from 'types/apps';
 
 export const isAppBinding = (x: Record<string, any> | undefined): x is AppBinding => {
     return Boolean(x?.app_id);

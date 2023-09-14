@@ -879,6 +879,40 @@ func (s *hooksRPCServer) NotificationWillBePushed(args *Z_NotificationWillBePush
 	return nil
 }
 
+func init() {
+	hookNameToId["UserHasBeenDeactivated"] = UserHasBeenDeactivatedID
+}
+
+type Z_UserHasBeenDeactivatedArgs struct {
+	A *Context
+	B *model.User
+}
+
+type Z_UserHasBeenDeactivatedReturns struct {
+}
+
+func (g *hooksRPCClient) UserHasBeenDeactivated(c *Context, user *model.User) {
+	_args := &Z_UserHasBeenDeactivatedArgs{c, user}
+	_returns := &Z_UserHasBeenDeactivatedReturns{}
+	if g.implemented[UserHasBeenDeactivatedID] {
+		if err := g.client.Call("Plugin.UserHasBeenDeactivated", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasBeenDeactivated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) UserHasBeenDeactivated(args *Z_UserHasBeenDeactivatedArgs, returns *Z_UserHasBeenDeactivatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasBeenDeactivated(c *Context, user *model.User)
+	}); ok {
+		hook.UserHasBeenDeactivated(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserHasBeenDeactivated called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -4307,6 +4341,35 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 		returns.A, returns.B = hook.GetFileInfo(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetFileInfo called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SetFileSearchableContentArgs struct {
+	A string
+	B string
+}
+
+type Z_SetFileSearchableContentReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	_args := &Z_SetFileSearchableContentArgs{fileID, content}
+	_returns := &Z_SetFileSearchableContentReturns{}
+	if err := g.client.Call("Plugin.SetFileSearchableContent", _args, _returns); err != nil {
+		log.Printf("RPC call to SetFileSearchableContent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetFileSearchableContent(args *Z_SetFileSearchableContentArgs, returns *Z_SetFileSearchableContentReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetFileSearchableContent(fileID string, content string) *model.AppError
+	}); ok {
+		returns.A = hook.SetFileSearchableContent(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SetFileSearchableContent called but not implemented."))
 	}
 	return nil
 }

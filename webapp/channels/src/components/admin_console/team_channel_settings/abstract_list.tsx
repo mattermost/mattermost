@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import type {MouseEvent} from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import {Group} from '@mattermost/types/groups';
-import {Team} from '@mattermost/types/teams';
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import {TeamWithMembership} from '../system_user_detail/team_list/types';
+
+import type {TeamWithMembership} from '../system_user_detail/team_list/types';
 
 export const PAGE_SIZE = 10;
 

@@ -9647,10 +9647,6 @@
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
   {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Fout bij het uitvoeren van een werksjabloon."
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Ongeldige auth service: {{.AuthService}}"
   },
@@ -9685,14 +9681,6 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
-  },
-  {
-    "id": "app.user.new_run.run_name",
-    "translation": "Naam van de uitvoering"
-  },
-  {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "Verliep {{.Count}} dagen geleden"
   },
   {
     "id": "app.plugin.skip_installation.app_error",

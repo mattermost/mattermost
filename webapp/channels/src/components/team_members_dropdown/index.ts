@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getChannelStats} from 'mattermost-redux/actions/channels';
 import {
@@ -13,13 +16,10 @@ import {
     updateTeamMemberSchemeRoles,
 } from 'mattermost-redux/actions/teams';
 import {getUser, updateUserActive} from 'mattermost-redux/actions/users';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {GlobalState} from '@mattermost/types/store';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
+import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {removeUserFromTeamAndGetStats} from 'actions/team_actions';
 

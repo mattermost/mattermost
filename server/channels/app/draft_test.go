@@ -6,6 +6,7 @@ package app
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -246,7 +247,6 @@ func TestGetDraftsForUser(t *testing.T) {
 
 	draft1 := &model.Draft{
 		CreateAt:  00001,
-		UpdateAt:  00001,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",
@@ -254,7 +254,6 @@ func TestGetDraftsForUser(t *testing.T) {
 
 	draft2 := &model.Draft{
 		CreateAt:  00005,
-		UpdateAt:  00005,
 		UserId:    user.Id,
 		ChannelId: channel2.Id,
 		Message:   "draft2",
@@ -263,11 +262,13 @@ func TestGetDraftsForUser(t *testing.T) {
 	_, createDraftErr1 := th.App.UpsertDraft(th.Context, draft1, "")
 	assert.Nil(t, createDraftErr1)
 
+	// Wait a bit so the second draft gets a newer UpdateAt
+	time.Sleep(100 * time.Millisecond)
+
 	_, createDraftErr2 := th.App.UpsertDraft(th.Context, draft2, "")
 	assert.Nil(t, createDraftErr2)
 
 	t.Run("get drafts", func(t *testing.T) {
-		t.Skip("MM-52088")
 		draftResp, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
 		assert.Nil(t, err)
 

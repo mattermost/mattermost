@@ -3,13 +3,14 @@
 
 import {connect} from 'react-redux';
 
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
+import type {Post} from '@mattermost/types/posts';
 
-import {Post} from '@mattermost/types/posts';
+import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {getSelectedChannel, getSelectedPost} from 'selectors/rhs';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 import RhsThread from './rhs_thread';
 

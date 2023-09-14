@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
+import type {ChangeEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
+import ReactSelect from 'react-select';
+import type {ValueType} from 'react-select';
 
-import ReactSelect, {ValueType} from 'react-select';
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
 
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
-
 import SettingItemMax from 'components/setting_item_max';
 
-import {ChannelNotifyProps} from '@mattermost/types/channels';
-
+import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
 import {notificationSounds} from 'utils/notification_sounds';
 
 import Describe from './describe';

@@ -3,30 +3,29 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {AdminTypes} from 'mattermost-redux/action_types';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {Client4} from 'mattermost-redux/client';
-
-import {General} from '../constants';
-
-import {Compliance} from '@mattermost/types/compliance';
-import {GroupSearchOpts} from '@mattermost/types/groups';
-import {
-    CreateDataRetentionCustomPolicy,
-} from '@mattermost/types/data_retention';
-import {
-    TeamSearchOpts,
-} from '@mattermost/types/teams';
-import {
+import type {LogFilter} from '@mattermost/types/admin';
+import type {
     ChannelSearchOpts,
 } from '@mattermost/types/channels';
+import type {Compliance} from '@mattermost/types/compliance';
+import type {
+    CreateDataRetentionCustomPolicy,
+} from '@mattermost/types/data_retention';
+import type {ServerError} from '@mattermost/types/errors';
+import type {GroupSearchOpts} from '@mattermost/types/groups';
+import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
+import type {
+    TeamSearchOpts,
+} from '@mattermost/types/teams';
 
-import {CompleteOnboardingRequest} from '@mattermost/types/setup';
-import {LogFilter} from '@mattermost/types/admin';
-import {ServerError} from '@mattermost/types/errors';
+import {AdminTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
-import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {logError} from './errors';
+import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+
+import {General} from '../constants';
 
 export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter): ActionFunc {
     const logFilter = {

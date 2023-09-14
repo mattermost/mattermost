@@ -373,6 +373,16 @@
     }
 }
 
+@keyframes emphasis-sidebar-resize-line {
+    50% {
+        transform: scaleX(1.5);
+    }
+
+    100% {
+        transform: scaleX(1);
+    }
+}
+
 @mixin simple-in-and-out($classPrefix, $transition_time: 300ms) {
     @include simple-in-and-out-before($classPrefix, $transition_time);
     @include simple-in-and-out-after($classPrefix, $transition_time);

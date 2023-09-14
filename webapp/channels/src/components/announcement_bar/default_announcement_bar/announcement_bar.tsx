@@ -2,21 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import {WarnMetricStatus} from '@mattermost/types/config';
+import type {WarnMetricStatus} from '@mattermost/types/config';
 
-import {Constants, AnnouncementBarTypes, ModalIdentifiers} from 'utils/constants';
-import {isStringContainingUrl} from 'utils/url';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import OverlayTrigger from 'components/overlay_trigger';
+import ToggleModalButton from 'components/toggle_modal_button';
 import Tooltip from 'components/tooltip';
 import WarnMetricAckModal from 'components/warn_metric_ack_modal';
-import ToggleModalButton from 'components/toggle_modal_button';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {Constants, AnnouncementBarTypes, ModalIdentifiers} from 'utils/constants';
+import {isStringContainingUrl} from 'utils/url';
 
 type Props = {
     id?: string;
