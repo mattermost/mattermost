@@ -55,6 +55,7 @@ export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
                 page: 0,
                 per_page: 60,
                 include_member_count: true,
+                include_member_ids: true,
                 include_archived: false,
             };
             const myGroupsParams: GetGroupsForUserParams = {

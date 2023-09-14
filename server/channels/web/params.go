@@ -75,6 +75,7 @@ type Params struct {
 	NotAssociatedToChannel    string
 	Paginate                  *bool
 	IncludeMemberCount        bool
+	IncludeMemberIDs          bool
 	NotAssociatedToGroup      string
 	ExcludeDefaultChannels    bool
 	LimitAfter                int
@@ -218,6 +219,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.IncludeMemberCount, _ = strconv.ParseBool(query.Get("include_member_count"))
+	params.IncludeMemberIDs, _ = strconv.ParseBool(query.Get("include_member_ids"))
 	params.NotAssociatedToGroup = query.Get("not_associated_to_group")
 	params.ExcludeDefaultChannels, _ = strconv.ParseBool(query.Get("exclude_default_channels"))
 	params.GroupIDs = query.Get("group_ids")
