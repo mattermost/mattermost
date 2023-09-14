@@ -429,6 +429,50 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestHookMessageHasBeenDeleted(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "message").Return(nil).Times(1)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+			p.API.LogDebug(post.Message)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+	_, err = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+}
+
 func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
 		th := Setup(t).InitBasic()
