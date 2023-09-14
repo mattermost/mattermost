@@ -1260,7 +1260,6 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
                     </div>
                     <Overlay
                         show={this.state.errorTooltip}
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
                         target={this.errorMessageRef.current || undefined}
                     >

@@ -723,7 +723,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}

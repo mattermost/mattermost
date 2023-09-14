@@ -227,7 +227,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}
@@ -296,7 +295,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}
@@ -536,7 +534,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}
