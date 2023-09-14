@@ -9,6 +9,13 @@ export BUILD_ID_DEFAULT=$(date +%s)
 export BUILD_ID=${BUILD_ID:-$BUILD_ID_DEFAULT}
 export CI_BASE_URL="${CI_BASE_URL:-localhost}"
 
+if [[ "$(uname)/$(uname -m)" == 'Darwin/arm64' ]]
+  then
+    export BROWSER="electron"
+  else
+    export BROWSER="chrome"
+fi
+
 # Cleanup old containers, if any
 mme2e_log "Stopping leftover E2E containers, if any are running"
 ${MME2E_DC_SERVER} down -v
@@ -31,6 +38,7 @@ BUILD_ID
 CI_BASE_URL
 AUTOMATION_DASHBOARD_URL
 AUTOMATION_DASHBOARD_TOKEN
+BROWSER
 EOF
 
 # Wait for the required server image
