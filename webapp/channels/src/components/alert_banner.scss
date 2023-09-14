@@ -8,6 +8,19 @@
     padding: 14px;
     border: 1px solid;
     border-radius: 4px;
+
+    &__message {
+        margin-top: 8px;
+    }
+
+    &__footerMessage {
+        margin-top: 16px;
+    }
+
+    &__message,
+    &__footerMessage {
+        line-height: 20px;
+    }
 }
 
 .AlertBanner__icon {
@@ -66,11 +79,6 @@
         border-radius: 4px;
         color: #1c58d9;
     }
-}
-
-.AlertBanner__message {
-    margin-top: 8px;
-    line-height: 20px;
 }
 
 .AlertBanner__closeButton {

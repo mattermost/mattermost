@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,15 +23,15 @@ func testLicenseStoreSave(t *testing.T, ss store.Store) {
 	l1.Id = model.NewId()
 	l1.Bytes = "junk"
 
-	_, err := ss.License().Save(&l1)
+	err := ss.License().Save(&l1)
 	require.NoError(t, err, "couldn't save license record")
 
-	_, err = ss.License().Save(&l1)
+	err = ss.License().Save(&l1)
 	require.NoError(t, err, "shouldn't fail on trying to save existing license record")
 
 	l1.Id = ""
 
-	_, err = ss.License().Save(&l1)
+	err = ss.License().Save(&l1)
 	require.Error(t, err, "should fail on invalid license")
 }
 
@@ -39,14 +40,14 @@ func testLicenseStoreGet(t *testing.T, ss store.Store) {
 	l1.Id = model.NewId()
 	l1.Bytes = "junk"
 
-	_, err := ss.License().Save(&l1)
+	err := ss.License().Save(&l1)
 	require.NoError(t, err)
 
-	record, err := ss.License().Get(l1.Id)
+	record, err := ss.License().Get(context.Background(), l1.Id)
 	require.NoError(t, err, "couldn't get license")
 
 	require.Equal(t, record.Bytes, l1.Bytes, "license bytes didn't match")
 
-	_, err = ss.License().Get("missing")
+	_, err = ss.License().Get(context.Background(), "missing")
 	require.Error(t, err, "should fail on get license")
 }
