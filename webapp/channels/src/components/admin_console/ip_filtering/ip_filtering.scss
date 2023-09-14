@@ -1,0 +1,172 @@
+.SectionContent {
+    width: 920px;
+    height: 192px;
+    padding: 16px 20px;
+    background: white;
+    border-radius: 4px 4px 0 0;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+
+    .Table {
+        align-self: stretch;
+        height: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+
+        .HeaderRow {
+            background-color: #f5f5f5;
+            display: flex;
+            padding: 10px 12px;
+            align-items: center;
+            gap: 10px;
+            align-self: stretch;
+            font-family: 'Open Sans';
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            border-bottom: 1px solid var(--center-channel-color-16, rgba(63, 67, 80, 0.16));
+
+            .FilterName,
+            .IpAddressRange {
+                color: #3f4350;
+                font-size: 14px;
+                font-family: 'Open Sans';
+                line-height: 20px;
+                word-wrap: break-word;
+            }
+
+            .FilterName {
+                width: 291px;
+                font-weight: 600;
+            }
+
+            .IpAddressRange {
+                flex: 1 1 0;
+            }
+        }
+
+        .Row {
+            background: #fff;
+            align-self: stretch;
+            padding: 10px 12px;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+            display: inline-flex;
+            border-bottom: 1px solid var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+
+            .FilterName,
+            .IpAddressRange {
+                color: #3f4350;
+                font-size: 14px;
+                font-family: 'Open Sans';
+                line-height: 20px;
+                word-wrap: break-word;
+            }
+
+            .FilterName {
+                width: 291px;
+            }
+
+            .IpAddressRange {
+                flex: 1 1 0;
+            }
+        }
+    }
+}
+
+.SectionHeaderContent {
+    width: 920px;
+    height: 92px;
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(63, 67, 80, 0.12);
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 24px;
+
+    .Frame1281 {
+        align-self: stretch;
+        display: inline-flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 32px;
+
+        .TitleSubtitle {
+            flex: 1 1 0;
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 24px;
+
+            .Frame1286 {
+                align-self: stretch;
+                height: 44px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: flex-start;
+
+                .Title {
+                    color: #3F4350;
+                    font-size: 16px;
+                    font-family: Metropolis;
+                    font-weight: 600;
+                    line-height: 24px;
+                    word-wrap: break-word;
+                }
+
+                .Subtitle {
+                    align-self: stretch;
+                    color: #3F4350;
+                    font-size: 14px;
+                    font-family: 'Open Sans';
+                    font-weight: 400;
+                    line-height: 20px;
+                    word-wrap: break-word;
+                }
+            }
+        }
+
+        .Frame1282 {
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-end;
+            gap: 16px;
+
+            .SwitchSelector {
+                width: 32px;
+                height: 20px;
+                position: relative;
+
+                .Track {
+                    width: 32px;
+                    height: 20px;
+                    left: 0;
+                    top: 0;
+                    position: absolute;
+                    background: #1C58D9;
+                    border-radius: 10px;
+                }
+
+                .Knob {
+                    width: 16px;
+                    height: 16px;
+                    left: 14px;
+                    top: 2px;
+                    position: absolute;
+                    background: white;
+                    box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.08);
+                    border-radius: 9999px;
+                }
+            }
+        }
+    }
+}

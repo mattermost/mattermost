@@ -89,6 +89,7 @@ import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
+import IPFiltering from './ip_filtering';
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -3229,6 +3230,21 @@ const AdminDefinition = {
                     },
                 ],
             },
+        },
+        ip_filtering: {
+            url: 'site_config/ip_filtering',
+            title: t('admin.sidebar.ip_filtering'),
+            title_default: 'IP Filtering',
+            isHidden: it.not(it.licensedForFeature('Cloud')),
+            searchableStrings: [
+                'admin.sidebar.ip_filtering',
+            ],
+            schema: {
+                id: 'IPFiltering',
+                component: IPFiltering,
+            },
+            // TODO: Permissions
+            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE)),
         },
     },
     authentication: {

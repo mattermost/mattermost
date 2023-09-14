@@ -954,3 +954,13 @@ export enum ServiceEnvironment {
     TEST = 'test',
     DEV = 'dev',
 }
+
+
+export type AllowedIPRange = {
+    CIDRBlock: string;
+    Description: string;
+    Enabled: boolean;
+    OwnerID: string;
+}
+
+export type AllowedIPRanges = AllowedIPRange[];
