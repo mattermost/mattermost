@@ -40,7 +40,7 @@ export const inviteUserByEmail = (email) => {
         typeWithForce(email).
         wait(TIMEOUTS.HALF_SEC).
         typeWithForce('{enter}');
-    cy.get('#inviteMembersButton').click();
+    cy.findByTestId('inviteButton').click();
 
     // # Wait for a while to ensure that email notification is sent
     cy.wait(TIMEOUTS.TWO_SEC);

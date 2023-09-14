@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
 
 import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store/index';
-
-import {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {GlobalState} from 'types/store/index';
 
 import ChannelNotificationsModal from './channel_notifications_modal';
 

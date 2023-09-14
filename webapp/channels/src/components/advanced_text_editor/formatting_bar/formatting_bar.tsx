@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useFloating, offset} from '@floating-ui/react-dom';
 import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import styled from 'styled-components';
-import {useFloating, offset} from '@floating-ui/react-dom';
 import {CSSTransition} from 'react-transition-group';
+import styled from 'styled-components';
+
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
-import {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
-
 import {useFormattingBarControls, useGetLatest} from './hooks';
 
 export const Separator = styled.div`
@@ -129,6 +129,8 @@ interface FormattingBarProps {
     additionalControls?: React.ReactNodeArray;
 }
 
+const DEFAULT_MIN_MODE_X_COORD = 55;
+
 const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     const {
         applyMarkdown,
@@ -224,10 +226,12 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         }
     }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, toggleHiddenControls, disableControls]);
 
+    const leftPosition = wideMode === 'min' ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
+
     const hiddenControlsContainerStyles: React.CSSProperties = {
         position: strategy,
         top: y ?? 0,
-        left: x ?? 0,
+        left: leftPosition,
     };
 
     const showSeparators = wideMode === 'wide';

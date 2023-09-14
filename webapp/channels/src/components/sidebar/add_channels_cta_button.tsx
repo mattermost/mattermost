@@ -2,33 +2,30 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-
 import {useIntl} from 'react-intl';
-
 import {useSelector, useDispatch} from 'react-redux';
 
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import BrowseChannels from 'components/browse_channels';
-import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
-
-import {isAddChannelCtaDropdownOpen} from 'selectors/views/add_channel_dropdown';
-
-import {GlobalState} from 'types/store';
-
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import Permissions from 'mattermost-redux/constants/permissions';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import Permissions from 'mattermost-redux/constants/permissions';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
+import {trackEvent} from 'actions/telemetry_actions';
 import {setAddChannelCtaDropdown} from 'actions/views/add_channel_dropdown';
 import {openModal} from 'actions/views/modals';
-import {trackEvent} from 'actions/telemetry_actions';
+import {isAddChannelCtaDropdownOpen} from 'selectors/views/add_channel_dropdown';
+
+import BrowseChannels from 'components/browse_channels';
+import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 const AddChannelsCtaButton = (): JSX.Element | null => {
     const dispatch = useDispatch<DispatchFunc>();
@@ -60,7 +57,6 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
         dispatch(openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
             dialogType: BrowseChannels,
-            dialogProps: {morePublicChannelsModalType: 'public'},
         }));
         trackEvent('ui', 'browse_channels_button_is_clicked');
     };
@@ -117,14 +113,14 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
                 onClick={handleClick}
             >
-                <li
+                <div
                     aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.addChannelsCta', defaultMessage: 'Add channels'})}
                 >
                     <i className='icon-plus-box'/>
                     <span>
                         {intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'})}
                     </span>
-                </li>
+                </div>
             </button>
         );
     };

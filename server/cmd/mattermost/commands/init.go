@@ -9,8 +9,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -64,5 +64,5 @@ func initStoreCommandContextCobra(command *cobra.Command) (store.Store, error) {
 	}
 
 	config := cfgStore.Get()
-	return sqlstore.New(config.SqlSettings, nil), nil
+	return sqlstore.New(config.SqlSettings, nil)
 }

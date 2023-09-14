@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Value} from 'components/multiselect/multiselect';
+import type {Value} from 'components/multiselect/multiselect';
 
 // Not to be confused with the GroupChannel type used for LDAP groups
 export type GroupChannel = Channel & {

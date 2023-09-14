@@ -4044,10 +4044,6 @@
     "translation": "creator Id inválido."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Não foi possível decodificar o gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Valor inválido para create_at."
   },
