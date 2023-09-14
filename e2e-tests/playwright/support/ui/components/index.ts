@@ -7,6 +7,7 @@ import {ChannelsHeaderMobile} from './channels/header_mobile';
 import {ChannelsAppBar} from './channels/app_bar';
 import {ChannelsPostCreate} from './channels/post_create';
 import {ChannelsPost} from './channels/post';
+import {ChannelsCenterView} from './channels/center_view'
 import {ChannelsSidebarLeft} from './channels/sidebar_left';
 import {ChannelsSidebarRight} from './channels/sidebar_right';
 import {DeletePostModal} from './channels/delete_post_modal';
@@ -21,38 +22,40 @@ import {ThreadFooter} from './channels/thread_footer';
 
 const components = {
     BoardsSidebar,
+    GlobalHeader,
+    ChannelsCenterView,
+    ChannelsSidebarLeft,
+    ChannelsSidebarRight,
     ChannelsAppBar,
     ChannelsHeader,
     ChannelsHeaderMobile,
     ChannelsPostCreate,
     ChannelsPost,
-    ChannelsSidebarLeft,
-    ChannelsSidebarRight,
-    DeletePostModal,
     FindChannelsModal,
-    Footer,
-    GlobalHeader,
-    MainHeader,
+    DeletePostModal,
     PostDotMenu,
-    PostReminderMenu,
     PostMenu,
     ThreadFooter,
+    Footer,
+    MainHeader,
+    PostReminderMenu,
 };
 
 export {
     components,
     BoardsSidebar,
+    GlobalHeader,
+    ChannelsCenterView,
+    ChannelsSidebarLeft,
+    ChannelsSidebarRight,
     ChannelsAppBar,
     ChannelsHeader,
     ChannelsHeaderMobile,
     ChannelsPostCreate,
     ChannelsPost,
-    ChannelsSidebarLeft,
-    ChannelsSidebarRight,
     FindChannelsModal,
-    GlobalHeader,
-    PostDotMenu,
     DeletePostModal,
+    PostDotMenu,
     PostMenu,
     ThreadFooter,
 };
