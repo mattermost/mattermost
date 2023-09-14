@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import * as EmojiUtils from 'mattermost-redux/utils/emoji_utils';
+
 import TestHelper from '../../test/test_helper';
 
 describe('EmojiUtils', () => {

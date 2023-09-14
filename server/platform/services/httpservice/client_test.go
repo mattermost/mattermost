@@ -89,7 +89,7 @@ func TestHTTPClient(t *testing.T) {
 					require.NoError(t, err)
 				} else {
 					require.IsType(t, &url.Error{}, err)
-					require.Equal(t, AddressForbidden, err.(*url.Error).Err)
+					require.Equal(t, ErrAddressForbidden, err.(*url.Error).Err)
 				}
 			})
 		}
@@ -154,7 +154,7 @@ func TestDialContextFilter(t *testing.T) {
 			require.True(t, didDial)
 		} else {
 			require.Error(t, err)
-			require.Equal(t, err, AddressForbidden)
+			require.Equal(t, err, ErrAddressForbidden)
 			require.False(t, didDial)
 		}
 	}

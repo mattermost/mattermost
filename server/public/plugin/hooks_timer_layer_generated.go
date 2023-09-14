@@ -218,3 +218,16 @@ func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*m
 	hooks.recordTime(startTime, "ConfigurationWillBeSaved", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.NotificationWillBePushed(pushNotification, userID)
+	hooks.recordTime(startTime, "NotificationWillBePushed", true)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) UserHasBeenDeactivated(c *Context, user *model.User) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.UserHasBeenDeactivated(c, user)
+	hooks.recordTime(startTime, "UserHasBeenDeactivated", true)
+}

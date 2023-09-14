@@ -2,21 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useEffect, useRef, useState} from 'react';
-import {useDispatch} from 'react-redux';
-import {useIntl} from 'react-intl';
 import Scrollbars from 'react-custom-scrollbars';
+import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
-import {Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getPostEditHistory} from 'mattermost-redux/actions/posts';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
-import SearchResultsHeader from 'components/search_results_header';
-import LoadingScreen from 'components/loading_screen';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
+import LoadingScreen from 'components/loading_screen';
+import SearchResultsHeader from 'components/search_results_header';
+
+import EditedPostItem from './edited_post_item';
 
 import type {PropsFromRedux} from './index';
-import EditedPostItem from './edited_post_item';
 import './post_edit_history.scss';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
@@ -107,7 +108,7 @@ const PostEditHistory = ({
         return (
             <div
                 id='rhsContainer'
-                className='sidebar-right__body'
+                className='sidebar-right__body sidebar-right__edit-post-history'
             >
                 <LoadingScreen
                     style={{
@@ -138,7 +139,7 @@ const PostEditHistory = ({
     return (
         <div
             id='rhsContainer'
-            className='sidebar-right__body'
+            className='sidebar-right__body sidebar-right__edit-post-history'
         >
             <Scrollbars
                 ref={scrollbars}

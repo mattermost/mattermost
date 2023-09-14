@@ -3,44 +3,41 @@
 
 import React from 'react';
 
-import {Permissions} from 'mattermost-redux/constants';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import {Permissions} from 'mattermost-redux/constants';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
-
-import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
-import ChannelNotificationsModal from 'components/channel_notifications_modal';
-import ChannelInviteModal from 'components/channel_invite_modal';
-import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
-import RenameChannelModal from 'components/rename_channel_modal';
-import ConvertChannelModal from 'components/convert_channel_modal';
-import DeleteChannelModal from 'components/delete_channel_modal';
-import UnarchiveChannelModal from 'components/unarchive_channel_modal';
-import MoreDirectChannels from 'components/more_direct_channels';
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ChannelGroupsManageModal from 'components/channel_groups_manage_modal';
-
+import ChannelInviteModal from 'components/channel_invite_modal';
+import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
+import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import ConvertChannelModal from 'components/convert_channel_modal';
+import DeleteChannelModal from 'components/delete_channel_modal';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
+import MoreDirectChannels from 'components/more_direct_channels';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-
+import RenameChannelModal from 'components/rename_channel_modal';
+import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 import Menu from 'components/widgets/menu/menu';
 
-import {PluginComponent} from 'types/store/plugins';
+import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
+import type {PluginComponent} from 'types/store/plugins';
 
-import MenuItemLeaveChannel from './menu_items/leave_channel';
 import MenuItemCloseChannel from './menu_items/close_channel';
 import MenuItemCloseMessage from './menu_items/close_message';
-import MenuItemToggleMuteChannel from './menu_items/toggle_mute_channel';
-import MenuItemToggleFavoriteChannel from './menu_items/toggle_favorite_channel';
-import MenuItemViewPinnedPosts from './menu_items/view_pinned_posts';
-import MenuItemToggleInfo from './menu_items/toggle_info';
+import MenuItemLeaveChannel from './menu_items/leave_channel';
 import MenuItemOpenMembersRHS from './menu_items/open_members_rhs';
+import MenuItemToggleFavoriteChannel from './menu_items/toggle_favorite_channel';
+import MenuItemToggleInfo from './menu_items/toggle_info';
+import MenuItemToggleMuteChannel from './menu_items/toggle_mute_channel';
+import MenuItemViewPinnedPosts from './menu_items/view_pinned_posts';
 
 export type Props = {
     user: UserProfile;

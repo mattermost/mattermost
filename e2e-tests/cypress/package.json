@@ -75,6 +75,11 @@
     "uuid": "9.0.0",
     "yargs": "17.7.2"
   },
+  "overrides": {
+    "@mattermost/types": {
+      "typescript": "^5.0.4"
+    }
+  },
   "scripts": {
     "postinstall": "patch-package",
     "check-types": "tsc -b",

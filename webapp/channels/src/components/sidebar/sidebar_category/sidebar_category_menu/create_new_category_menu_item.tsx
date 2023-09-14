@@ -2,16 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import * as Menu from 'components/menu';
+import {FormattedMessage} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {FolderPlusOutlineIcon} from '@mattermost/compass-icons/components';
-import {FormattedMessage} from 'react-intl';
+
 import {trackEvent} from 'actions/telemetry_actions';
-import {ModalIdentifiers} from 'utils/constants';
+import {openModal} from 'actions/views/modals';
 
 import EditCategoryModal from 'components/edit_category_modal';
-import {useDispatch} from 'react-redux';
-import {openModal} from 'actions/views/modals';
+import * as Menu from 'components/menu';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     id: string;
@@ -19,6 +21,7 @@ type Props = {
 
 const CreateNewCategoryMenuItem = ({
     id,
+    ...otherProps
 }: Props) => {
     const dispatch = useDispatch();
     const handleCreateCategory = useCallback(() => {
@@ -41,6 +44,7 @@ const CreateNewCategoryMenuItem = ({
                     defaultMessage='Create New Category'
                 />
             )}
+            {...otherProps}
         />
     );
 };

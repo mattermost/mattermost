@@ -5,7 +5,8 @@ import React from 'react';
 
 import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 
-import {GatherIntentModal, GatherIntentModalProps} from './gather_intent_modal';
+import {GatherIntentModal} from './gather_intent_modal';
+import type {GatherIntentModalProps} from './gather_intent_modal';
 
 describe('components/gather_intent/gather_intent_modal.tsx', () => {
     const renderComponent = (props: Partial<GatherIntentModalProps> | undefined = {}) => {

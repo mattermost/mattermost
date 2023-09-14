@@ -89,10 +89,11 @@ func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record 
 			audit.KeyClusterID: a.GetClusterId(),
 		},
 		Actor: audit.EventActor{
-			UserId:    userID,
-			SessionId: "",
-			Client:    fmt.Sprintf("server %s-%s", model.BuildNumber, model.BuildHash),
-			IpAddress: "",
+			UserId:        userID,
+			SessionId:     "",
+			Client:        fmt.Sprintf("server %s-%s", model.BuildNumber, model.BuildHash),
+			IpAddress:     "",
+			XForwardedFor: "",
 		},
 		EventData: audit.EventData{
 			Parameters:  map[string]interface{}{},

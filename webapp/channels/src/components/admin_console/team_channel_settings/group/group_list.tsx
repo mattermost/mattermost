@@ -4,9 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Group} from '@mattermost/types/groups';
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
 
 import AbstractList from 'components/admin_console/team_channel_settings/abstract_list';
 

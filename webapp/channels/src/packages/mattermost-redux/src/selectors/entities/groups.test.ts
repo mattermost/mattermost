@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
-import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 import * as Selectors from 'mattermost-redux/selectors/entities/groups';
+import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
+
 import TestHelper from '../../../test/test_helper';
 
 describe('Selectors.Groups', () => {
@@ -208,13 +209,14 @@ describe('Selectors.Groups', () => {
         expect(Selectors.getGroupsAssociatedToChannelForReference(testState, channelID)).toEqual(expected);
     });
 
-    it('getAllAssociatedGroupsForReference', () => {
+    it('makeGetAllAssociatedGroupsForReference', () => {
         const expected = [
             group1,
             group4,
             group5,
         ];
-        expect(Selectors.getAllAssociatedGroupsForReference(testState)).toEqual(expected);
+        const getAllAssociatedGroupsForReference = Selectors.makeGetAllAssociatedGroupsForReference();
+        expect(getAllAssociatedGroupsForReference(testState, false)).toEqual(expected);
     });
 
     it('getMyGroupMentionKeys', () => {
@@ -226,7 +228,7 @@ describe('Selectors.Groups', () => {
                 key: `@${group4.name}`,
             },
         ];
-        expect(Selectors.getMyGroupMentionKeys(testState)).toEqual(expected);
+        expect(Selectors.getMyGroupMentionKeys(testState, false)).toEqual(expected);
     });
 
     it('getMyGroupMentionKeysForChannel', () => {

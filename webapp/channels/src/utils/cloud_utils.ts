@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Product, CloudCustomer, Limits} from '@mattermost/types/cloud';
+import type {Product, CloudCustomer, Limits} from '@mattermost/types/cloud';
+
 import {trackEvent} from 'actions/telemetry_actions';
+
 import {CloudProducts, CloudLinks} from 'utils/constants';
 import {hasSomeLimits} from 'utils/limits';
 

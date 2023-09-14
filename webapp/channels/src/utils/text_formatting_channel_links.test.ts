@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TextFormatting from 'utils/text_formatting';
-import {TestHelper as TH} from 'utils/test_helper';
 import EmojiMap from 'utils/emoji_map';
+import {TestHelper as TH} from 'utils/test_helper';
+import * as TextFormatting from 'utils/text_formatting';
 const emojiMap = new EmojiMap(new Map());
 
 describe('TextFormatting.ChannelLinks', () => {

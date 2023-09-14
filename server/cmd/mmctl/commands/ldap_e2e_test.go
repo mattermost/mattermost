@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/spf13/cobra"
@@ -51,6 +52,7 @@ func configForLdap(th *api4.TestHelper) {
 func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 	configForLdap(s.th)
+	ctx := request.EmptyContext(s.th.App.Log())
 
 	s.Run("MM-T3971 Should not allow regular user to sync LDAP groups", func() {
 		printer.Clean()
@@ -64,7 +66,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 	s.RunForSystemAdminAndLocal("MM-T2529 Should sync LDAP groups", func(c client.Client) {
 		printer.Clean()
 
-		jobs, appErr := s.th.App.GetJobsByTypePage(model.JobTypeLdapSync, 0, 100)
+		jobs, appErr := s.th.App.GetJobsByTypePage(ctx, model.JobTypeLdapSync, 0, 100)
 		s.Require().Nil(appErr)
 		initialNumJobs := len(jobs)
 
@@ -78,7 +80,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 		// we need to wait a bit for job creation
 		time.Sleep(time.Second)
 
-		jobs, appErr = s.th.App.GetJobsByTypePage(model.JobTypeLdapSync, 0, 100)
+		jobs, appErr = s.th.App.GetJobsByTypePage(ctx, model.JobTypeLdapSync, 0, 100)
 		s.Require().Nil(appErr)
 		s.Require().NotEmpty(jobs)
 		s.Assert().Equal(initialNumJobs+1, len(jobs))
