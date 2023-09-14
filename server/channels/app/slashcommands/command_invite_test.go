@@ -149,7 +149,7 @@ func TestInviteProvider(t *testing.T) {
 		groupChannel, _ = th.App.UpdateChannel(th.Context, groupChannel)
 
 		msg := "@" + th.BasicUser2.Username + " ~" + groupChannel.Name
-		runCmd(msg, "api.command_invite.group_constrained_user_denied")
+		runCmd(msg, "api.command_invite.channel_constrained_user_denied")
 		checkIsNotMember(groupChannel.Id, th.BasicUser2.Id)
 	})
 
@@ -273,10 +273,11 @@ func TestUserGroups(t *testing.T) {
 
 	id := model.NewId()
 	teamGroup, err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
-		Source:      model.GroupSourceCustom,
-		Description: "description_" + id,
+		DisplayName:    "dn_" + id,
+		Name:           model.NewString("name" + id),
+		Source:         model.GroupSourceCustom,
+		Description:    "description_" + id,
+		AllowReference: true,
 		// MemberIDs:   []string{th.BasicUser2.Id},
 	})
 	assert.Nil(t, err)
@@ -291,10 +292,11 @@ func TestUserGroups(t *testing.T) {
 	basicUser4 := th.createUser()
 	id2 := model.NewId()
 	nonTeamGroup, err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + id2,
-		Name:        model.NewString("name" + id2),
-		Source:      model.GroupSourceCustom,
-		Description: "description_" + id2,
+		DisplayName:    "dn_" + id2,
+		Name:           model.NewString("name" + id2),
+		Source:         model.GroupSourceCustom,
+		Description:    "description_" + id2,
+		AllowReference: true,
 		// MemberIDs:   []string{basicUser3.Id, basicUser4.Id},
 	})
 	assert.Nil(t, err)
