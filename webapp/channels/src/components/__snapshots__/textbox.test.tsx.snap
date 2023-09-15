@@ -18,7 +18,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "hideUtilities": true,
         }
       }
-      mentionKeys={Array []}
       message="some test text"
     />
   </div>
