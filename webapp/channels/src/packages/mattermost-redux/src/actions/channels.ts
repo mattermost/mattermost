@@ -1050,7 +1050,7 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
         Client4.trackEvent('action', 'action_channels_add_member', {channel_id: channelId});
 
         const membersInChannel = getState().entities.channels.membersInChannel[channelId];
-        if (!membersInChannel || !(userId in membersInChannel)) {
+        if (!(membersInChannel && userId in membersInChannel)) {
             dispatch(batchActions([
                 {
                     type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
