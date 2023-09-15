@@ -546,7 +546,6 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             </label>
                         </div>
                         <SaveButton
-                            btnClass='btn-primary'
                             savingMessage={
                                 <FormattedMessage
                                     id='user.settings.tokens.save'
