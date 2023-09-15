@@ -715,7 +715,6 @@ export function highlightCurrentMentions(
     return output;
 }
 
-// Improve this function because this is very old
 export function highlightWithoutNotificationKeywords(
     text: string,
     tokens: Tokens,
@@ -748,7 +747,7 @@ export function highlightWithoutNotificationKeywords(
 
         let pattern;
         if (cjkrPattern.test(key)) {
-            // If the key contains Chinese, Japanese, or Korean characters, don't mark word boundaries
+            // If the key contains Chinese, Japanese, Korean or Russian characters, don't mark word boundaries
             pattern = new RegExp(`()(${escapeRegex(key)})()`, 'gi');
         } else {
             // If the key contains only English characters, mark word boundaries
