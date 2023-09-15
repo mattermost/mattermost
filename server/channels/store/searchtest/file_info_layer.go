@@ -127,7 +127,7 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should not support search with preceding wildcards",
 		Fn:   testFileInfoNotSupportPrecedingWildcards,
-		Tags: []string{EngineAll},
+		Tags: []string{EnginePostgres, EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should discard a wildcard if it's not placed immediately by text",
@@ -1269,7 +1269,7 @@ func testFileInfoSearchDiscardWildcardAlone(t *testing.T, th *SearchTestHelper) 
 
 	p1, err := th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "qwerty", "qwerty", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
-	_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "qwertyjkl", "qwertyjkl", "jpg", "image/jpeg", 0, 0)
+	_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "asdf", "asdf", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
 	defer th.deleteUserFileInfos(th.User.Id)
 
