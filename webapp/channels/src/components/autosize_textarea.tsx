@@ -6,6 +6,7 @@ import type {ChangeEvent, FormEvent, CSSProperties} from 'react';
 
 type Props = {
     id?: string;
+    className?: string;
     disabled?: boolean;
     value?: string;
     defaultValue?: string;
@@ -21,8 +22,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
     private height: number;
 
     private textarea?: HTMLTextAreaElement;
-    private referenceRef: React.RefObject<HTMLTextAreaElement>;
-    private measuringRef: React.RefObject<HTMLDivElement>;
+    private referenceRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
         super(props);
@@ -30,7 +30,6 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         this.height = 0;
 
         this.referenceRef = React.createRef();
-        this.measuringRef = React.createRef();
     }
 
     componentDidMount() {
@@ -41,7 +40,6 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
     componentDidUpdate() {
         this.recalculateHeight();
         this.recalculateWidth();
-        this.recalculatePadding();
     }
 
     private recalculateHeight = () => {
@@ -64,25 +62,12 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         }
     };
 
-    private recalculatePadding = () => {
-        if (!this.referenceRef.current || !this.textarea) {
-            return;
-        }
-
-        const textarea = this.textarea;
-        const {paddingRight} = getComputedStyle(textarea);
-
-        if (paddingRight && paddingRight !== this.referenceRef.current.style.paddingRight) {
-            this.referenceRef.current.style.paddingRight = paddingRight;
-        }
-    };
-
     private recalculateWidth = () => {
-        if (!this.measuringRef) {
+        if (!this.referenceRef) {
             return;
         }
 
-        const width = this.measuringRef.current?.offsetWidth || -1;
+        const width = this.referenceRef.current?.offsetWidth || -1;
         if (width >= 0) {
             window.requestAnimationFrame(() => {
                 this.props.onWidthChange?.(width);
@@ -154,6 +139,18 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             );
         }
 
+        let referenceValue = value || defaultValue;
+        if (referenceValue?.endsWith('\n')) {
+            // In a div, the browser doesn't always count characters at the end of a line when measuring the dimensions
+            // of text. In the spec, they refer to those characters as "hanging". No matter what value we set for the
+            // `white-space` of a div, a single newline at the end of the div will always hang.
+            //
+            // The textarea doesn't have that behaviour, so we need to trick the reference div into measuring that
+            // newline, and it seems like the best way to do that is by adding a second newline because only the final
+            // one hangs.
+            referenceValue += '\n';
+        }
+
         return (
             <div>
                 {textareaPlaceholder}
@@ -173,23 +170,16 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
                     defaultValue={defaultValue}
                 />
                 <div style={styles.container}>
-                    <textarea
+                    <div
                         ref={this.referenceRef}
                         id={id + '-reference'}
+                        className={otherProps.className}
                         style={styles.reference}
                         dir='auto'
                         disabled={true}
-                        rows={1}
-                        {...otherProps}
-                        value={value || defaultValue}
                         aria-hidden={true}
-                    />
-                    <div
-                        ref={this.measuringRef}
-                        id={id + '-measuring'}
-                        style={styles.measuring}
                     >
-                        {value || defaultValue}
+                        {referenceValue}
                     </div>
                 </div>
             </div>
@@ -199,9 +189,8 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
 
 const styles: { [Key: string]: CSSProperties} = {
     container: {height: 0, overflow: 'hidden'},
-    reference: {height: 'auto', width: '100%'},
+    reference: {display: 'inline-block', height: 'auto', width: 'auto'},
     placeholder: {overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.5, pointerEvents: 'none', position: 'absolute', whiteSpace: 'nowrap', background: 'none', borderColor: 'transparent'},
-    measuring: {width: 'auto', display: 'inline-block'},
 };
 
 const forwarded = React.forwardRef<HTMLTextAreaElement>((props, ref) => (

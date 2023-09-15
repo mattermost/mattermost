@@ -552,7 +552,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
 	plugins := map[string]*model.MarketplacePlugin{}
 
-	if *a.Config().PluginSettings.EnableRemoteMarketplace && !a.Config().FeatureFlags.StreamlinedMarketplace && !filter.LocalOnly {
+	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
 		p, appErr := a.getRemotePlugins()
 		if appErr != nil {
 			return nil, appErr
