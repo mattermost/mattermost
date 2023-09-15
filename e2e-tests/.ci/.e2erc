@@ -3,12 +3,24 @@
 export MME2E_DC_SERVER="docker compose -p mmserver -f $(readlink -f ../../server/build/gitlab-dc.postgres.yml) -f $(readlink -f ./server.override.yml)"
 export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f $(readlink -f ./dashboard/docker/docker-compose.yml) -f $(readlink -f ./dashboard.override.yml)"
 export MME2E_UID=$(id -u)
-export MME2E_OSTYPE=$(docker system info -f '{{ .OSType }}')
+export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
+export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
 
 # Default the optional variables that are used in the docker-compose file
 export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --short=7 HEAD)"
 export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
 export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
+
+# OS Specific Variables declaration
+case $MME2E_OSTYPE in
+  darwin )
+    MME2E_DC_DASHBOARD_GATEWAY=$(ifconfig $(route get 1.1.1.1 | grep interface | awk '{print $2}') | grep -w inet | awk '{print $2}') 
+    export BROWSER="electron" ;; 
+  * )
+    MME2E_DC_DASHBOARD_NETWORK=$(docker inspect $(${MME2E_DC_DASHBOARD} ps -q dashboard) | jq -r '.[0].NetworkSettings.Networks | (keys|.[0])')
+    MME2E_DC_DASHBOARD_GATEWAY=$(docker network inspect $MME2E_DC_DASHBOARD_NETWORK | jq -r '.[0].IPAM.Config[0].Gateway')    
+    export BROWSER="chrome" ;;
+esac
 
 # Function definitions
 mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%Z)]" "$@"; }
