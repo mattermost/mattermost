@@ -1105,6 +1105,40 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
     };
 }
 
+export function addChannelMembers(channelId: string, userIds: string[], postRootId = ''): ActionFunc {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let channelMembers: ChannelMembership[];
+        try {
+            channelMembers = await Client4.addToChannels(userIds, channelId, postRootId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        Client4.trackEvent('action', 'action_channels_add_member', {channel_id: channelId});
+
+        for (const member of channelMembers) {
+            dispatch(batchActions([
+                {
+                    type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
+                    data: {id: channelId, user_id: member.user_id},
+                },
+                {
+                    type: ChannelTypes.RECEIVED_CHANNEL_MEMBER,
+                    data: member,
+                },
+                {
+                    type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
+                    id: channelId,
+                },
+            ], 'ADD_CHANNEL_MEMBER.BATCH'));
+        }
+
+        return {data: channelMembers};
+    };
+}
+
 export function removeChannelMember(channelId: string, userId: string): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         try {
@@ -1517,6 +1551,7 @@ export default {
     searchGroupChannels,
     getChannelStats,
     addChannelMember,
+    addChannelMembers,
     removeChannelMember,
     updateChannelHeader,
     updateChannelPurpose,

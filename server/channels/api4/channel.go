@@ -1680,20 +1680,21 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	props := model.StringInterfaceFromJSON(r.Body)
-	userId, ok := props["user_id"].(string)
-	if !ok || !model.IsValidId(userId) {
-		c.SetInvalidParam("user_id")
-		return
+
+	interfaceIds, ok := props["user_ids"].([]interface{})
+
+	var userIds []string
+	for _, userId := range interfaceIds {
+		userIds = append(userIds, userId.(string))
 	}
 
-	auditRec := c.MakeAuditRecord("addChannelMember", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "user_id", userId)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
-
-	member := &model.ChannelMember{
-		ChannelId: c.Params.ChannelId,
-		UserId:    userId,
+	if !ok {
+		userId, ok := props["user_id"].(string)
+		if !ok || !model.IsValidId(userId) {
+			c.SetInvalidParam("user_id")
+			return
+		}
+		userIds = append(userIds, userId)
 	}
 
 	postRootId, ok := props["post_root_id"].(string)
@@ -1701,22 +1702,19 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("post_root_id")
 		return
 	}
-
-	audit.AddEventParameter(auditRec, "post_root_id", postRootId)
-
 	if ok && len(postRootId) == 26 {
 		rootPost, err := c.App.GetSinglePost(postRootId, false)
 		if err != nil {
 			c.Err = err
 			return
 		}
-		if rootPost.ChannelId != member.ChannelId {
+		if rootPost.ChannelId != c.Params.ChannelId {
 			c.SetInvalidParam("post_root_id")
 			return
 		}
 	}
 
-	channel, err := c.App.GetChannel(c.AppContext, member.ChannelId)
+	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1727,91 +1725,133 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isNewMembership := false
-	if _, err = c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); err != nil {
-		if err.Id == app.MissingChannelMemberError {
-			isNewMembership = true
-		} else {
-			c.Err = err
-			return
+	var lastError *model.AppError
+	var newChannelMembers []model.ChannelMember
+
+	for _, userId := range userIds {
+		if !model.IsValidId(userId) {
+			c.SetInvalidParam("user_id")
+			lastError = c.Err
+			continue
 		}
-	}
 
-	isSelfAdd := member.UserId == c.AppContext.Session().UserId
+		auditRec := c.MakeAuditRecord("addChannelMember", audit.Fail)
+		defer c.LogAuditRec(auditRec)
+		audit.AddEventParameter(auditRec, "user_id", userId)
+		audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 
-	if channel.Type == model.ChannelTypeOpen {
-		if isSelfAdd && isNewMembership {
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels) {
-				c.SetPermissionError(model.PermissionJoinPublicChannels)
-				return
-			}
-		} else if isSelfAdd && !isNewMembership {
-			// nothing to do, since already in the channel
-		} else if !isSelfAdd {
-			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePublicChannelMembers) {
-				c.SetPermissionError(model.PermissionManagePublicChannelMembers)
-				return
-			}
+		member := &model.ChannelMember{
+			ChannelId: c.Params.ChannelId,
+			UserId:    userId,
 		}
-	}
 
-	if channel.Type == model.ChannelTypePrivate {
-		if isSelfAdd && isNewMembership {
-			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers) {
-				c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
-				return
-			}
-		} else if isSelfAdd && !isNewMembership {
-			// nothing to do, since already in the channel
-		} else if !isSelfAdd {
-			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers) {
-				c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
-				return
-			}
-		}
-	}
-
-	if channel.IsGroupConstrained() {
-		nonMembers, err := c.App.FilterNonGroupChannelMembers([]string{member.UserId}, channel)
-		if err != nil {
-			if v, ok := err.(*model.AppError); ok {
-				c.Err = v
+		isNewMembership := false
+		if _, err = c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); err != nil {
+			if err.Id == app.MissingChannelMemberError {
+				isNewMembership = true
 			} else {
-				c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
+				lastError = err
+				continue
 			}
-			return
 		}
-		if len(nonMembers) > 0 {
-			c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
-			return
+
+		isSelfAdd := member.UserId == c.AppContext.Session().UserId
+
+		if channel.Type == model.ChannelTypeOpen {
+			if isSelfAdd && isNewMembership {
+				if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels) {
+					c.SetPermissionError(model.PermissionJoinPublicChannels)
+					lastError = c.Err
+					continue
+				}
+			} else if isSelfAdd && !isNewMembership {
+				// nothing to do, since already in the channel
+			} else if !isSelfAdd {
+				if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePublicChannelMembers) {
+					c.SetPermissionError(model.PermissionManagePublicChannelMembers)
+					lastError = c.Err
+					continue
+				}
+			}
 		}
+
+		if channel.Type == model.ChannelTypePrivate {
+			if isSelfAdd && isNewMembership {
+				if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers) {
+					c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
+					lastError = c.Err
+					continue
+				}
+			} else if isSelfAdd && !isNewMembership {
+				// nothing to do, since already in the channel
+			} else if !isSelfAdd {
+				if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers) {
+					c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
+					lastError = c.Err
+					continue
+				}
+			}
+		}
+
+		if channel.IsGroupConstrained() {
+			nonMembers, err := c.App.FilterNonGroupChannelMembers([]string{member.UserId}, channel)
+			if err != nil {
+				if v, ok := err.(*model.AppError); ok {
+					lastError = v
+					// c.Err = v
+				} else {
+					lastError = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
+					// c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
+				}
+				continue
+			}
+			if len(nonMembers) > 0 {
+				lastError = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+				continue
+				// c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+				// return
+			}
+		}
+
+		cm, err := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
+			UserRequestorID: c.AppContext.Session().UserId,
+			PostRootID:      postRootId,
+		})
+		if err != nil {
+			lastError = err
+			continue
+		}
+		newChannelMembers = append(newChannelMembers, *cm)
+
+		if postRootId != "" {
+			err := c.App.UpdateThreadFollowForUserFromChannelAdd(c.AppContext, cm.UserId, channel.TeamId, postRootId)
+			if err != nil {
+				lastError = err
+				continue
+				// c.Err = err
+				// return
+			}
+		}
+
+		auditRec.Success()
+		auditRec.AddEventResultState(cm)
+		auditRec.AddEventObjectType("channel_member")
+		auditRec.AddMeta("add_user_id", cm.UserId)
+		c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
 	}
 
-	cm, err := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
-		UserRequestorID: c.AppContext.Session().UserId,
-		PostRootID:      postRootId,
-	})
-	if err != nil {
-		c.Err = err
+	if lastError != nil && len(newChannelMembers) == 0 {
+		c.Err = lastError
 		return
 	}
 
-	if postRootId != "" {
-		err := c.App.UpdateThreadFollowForUserFromChannelAdd(c.AppContext, cm.UserId, channel.TeamId, postRootId)
-		if err != nil {
-			c.Err = err
-			return
+	w.WriteHeader(http.StatusCreated)
+	if len(newChannelMembers) == 1 && len(userIds) == 1 {
+		if err := json.NewEncoder(w).Encode(newChannelMembers[0]); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}
-
-	auditRec.Success()
-	auditRec.AddEventResultState(cm)
-	auditRec.AddEventObjectType("channel_member")
-	auditRec.AddMeta("add_user_id", cm.UserId)
-	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
-
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(cm); err != nil {
+	if err := json.NewEncoder(w).Encode(newChannelMembers); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
