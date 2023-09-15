@@ -51,20 +51,77 @@ describe('component/ConvertGmToChannelModal', () => {
         },
     };
 
-    test('base case', async () => {
+    test('members part of multiple common teams', async () => {
         TestHelper.initBasic(Client4);
         nock(Client4.getBaseRoute()).
             get('/channels/channel_id_1/common_teams').
-            reply(200, [{id: 'team_id_1', display_name: 'Team 1'}, {id: 'team_id_2', display_name: 'Team 2'}]);
+            reply(200, [
+                {id: 'team_id_1', display_name: 'Team 1'},
+                {id: 'team_id_2', display_name: 'Team 2'},
+            ]);
 
         renderWithFullContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );
 
+        // we need to use waitFor for first assertion as we have a minimum 1200 ms loading animation in the dialog
+        // before it's content is rendered.
         await waitFor(
             () => expect(screen.queryByText('Conversation history will be visible to any channel members')).toBeInTheDocument(),
             {timeout: 1500},
         );
+
+        expect(screen.queryByText('Select Team')).toBeInTheDocument();
+        expect(screen.queryByPlaceholderText('Channel name')).toBeInTheDocument();
+        expect(screen.queryByText('Edit')).toBeInTheDocument();
+    });
+
+    test('members part of single common teams', async () => {
+        TestHelper.initBasic(Client4);
+        nock(Client4.getBaseRoute()).
+            get('/channels/channel_id_1/common_teams').
+            reply(200, [
+                {id: 'team_id_1', display_name: 'Team 1'},
+            ]);
+
+        renderWithFullContext(
+            <ConvertGmToChannelModal {...baseProps}/>,
+            baseState,
+        );
+
+        // we need to use waitFor for first assertion as we have a minimum 1200 ms loading animation in the dialog
+        // before it's content is rendered.
+        await waitFor(
+            () => expect(screen.queryByText('Conversation history will be visible to any channel members')).toBeInTheDocument(),
+            {timeout: 1500},
+        );
+
+        expect(screen.queryByText('Select Team')).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText('Channel name')).toBeInTheDocument();
+        expect(screen.queryByText('Edit')).toBeInTheDocument();
+    });
+
+    test('members part of no common teams', async () => {
+        TestHelper.initBasic(Client4);
+        nock(Client4.getBaseRoute()).
+            get('/channels/channel_id_1/common_teams').
+            reply(200, []);
+
+        renderWithFullContext(
+            <ConvertGmToChannelModal {...baseProps}/>,
+            baseState,
+        );
+
+        // we need to use waitFor for first assertion as we have a minimum 1200 ms loading animation in the dialog
+        // before it's content is rendered.
+        await waitFor(
+            () => expect(screen.queryByText('Unable to convert to a channel because group members are part of different teams')).toBeInTheDocument(),
+            {timeout: 1500},
+        );
+
+        expect(screen.queryByText('Select Team')).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText('Channel name')).not.toBeInTheDocument();
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
     });
 });
