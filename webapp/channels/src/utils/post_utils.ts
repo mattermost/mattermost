@@ -434,7 +434,7 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
             const mentionsArray = post.message.match(Constants.MENTIONS_REGEX) || [];
             for (let i = 0; i < mentionsArray.length; i++) {
                 const mention = mentionsArray[i];
-                const user = getUserOrGroupFromMentionName(users, mention.substring(1)) as UserProfile | '';
+                const user = getMentionDetails(users, mention.substring(1)) as UserProfile | '';
 
                 if (user) {
                     mentions[mention] = user;
