@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useMemo} from 'react';
 import {Overlay} from 'react-bootstrap';
 
 import type {Group} from '@mattermost/types/groups';
@@ -138,7 +138,10 @@ export const AtMention = (props: Props) => {
         return null;
     };
 
-    const [user, group] = getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight);
+    const [user, group] = useMemo(
+        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
+        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight],
+    );
 
     if (!user && !group) {
         return <>{props.children}</>;
