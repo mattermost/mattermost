@@ -82,11 +82,15 @@ jobs:
   smoketests:
     strategy:
       matrix:
-        ### Smoketests should be run only on ubuntu, for QA goals
-        ### But it's useful to be able to run and debug the smoketests for different OSes
+        #
+        # Note that smoketests should be run only on ubuntu, for QA purposes.
+        # But it's useful to be able to run and debug the smoketests for different OSes.
+        # Notes:
+        # - For MacOS: works on developer machines, but uses too many resources to be able to run on Github Actions
+        # - for Windows: cannot currently run on Github Actions, since the runners do not support running linux containers, at the moment
+        #
         #os: [ubuntu-latest-8-cores, windows-2022, macos-12-xl]
-        #os: [ubuntu-latest-8-cores]
-        os: [ubuntu-latest-8-cores, macos-12-xl]
+        os: [ubuntu-latest-8-cores]
     runs-on: "${{ matrix.os }}"
     needs:
       - cypress-check
