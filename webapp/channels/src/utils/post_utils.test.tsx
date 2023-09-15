@@ -1250,4 +1250,17 @@ describe('PostUtils.isWithinCodeBlock', () => {
         `);
         expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
     });
+
+    it('should produce consistent results when called multiple times', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |   Test text asd 1
+            |        ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
+        `);
+
+        const results = Array.from({ length: 10 }, () => PostUtils.isWithinCodeBlock(message, caretPosition));
+
+        expect(results.every(Boolean)).toBe(true);
+    });
 });
