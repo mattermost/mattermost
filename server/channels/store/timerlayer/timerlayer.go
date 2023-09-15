@@ -3139,7 +3139,7 @@ func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error
 	return err
 }
 
-func (s *TimerLayerEmojiStore) Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) Get(ctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
 	start := time.Now()
 
 	result, err := s.EmojiStore.Get(ctx, id, allowFromCache)
@@ -3155,7 +3155,7 @@ func (s *TimerLayerEmojiStore) Get(ctx context.Context, id string, allowFromCach
 	return result, err
 }
 
-func (s *TimerLayerEmojiStore) GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) GetByName(ctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
 	start := time.Now()
 
 	result, err := s.EmojiStore.GetByName(ctx, name, allowFromCache)
@@ -3187,7 +3187,7 @@ func (s *TimerLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) GetMultipleByName(ctx request.CTX, names []string) ([]*model.Emoji, error) {
 	start := time.Now()
 
 	result, err := s.EmojiStore.GetMultipleByName(ctx, names)
@@ -4705,10 +4705,10 @@ func (s *TimerLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 	return result, err
 }
 
-func (s *TimerLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
+func (s *TimerLayerLicenseStore) Get(ctx context.Context, id string) (*model.LicenseRecord, error) {
 	start := time.Now()
 
-	result, err := s.LicenseStore.Get(id)
+	result, err := s.LicenseStore.Get(ctx, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4737,10 +4737,10 @@ func (s *TimerLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 	return result, err
 }
 
-func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
+func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) error {
 	start := time.Now()
 
-	result, err := s.LicenseStore.Save(license)
+	err := s.LicenseStore.Save(license)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4750,7 +4750,7 @@ func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.Lice
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("LicenseStore.Save", success, elapsed)
 	}
-	return result, err
+	return err
 }
 
 func (s *TimerLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
