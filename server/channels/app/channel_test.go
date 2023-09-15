@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
@@ -2471,7 +2473,7 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 
 	th.App.Srv().Store().Team()
 
-	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2", "user_id_3"}).Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
+	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2"}).Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
 	mockTeamStore.On("GetMany", []string{"team_id_1", "team_id_2", "team_id_3"}).Return(
 		[]*model.Team{
 			{DisplayName: "Team 1"},
@@ -2497,9 +2499,6 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 		{
 			Id: "user_id_2",
 		},
-		{
-			Id: "user_id_3",
-		},
 	}, nil)
 
 	var err error
@@ -2519,7 +2518,7 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 	require.Equal(t, 3, len(commonTeams))
 
 	// case of no common teams
-	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2", "user_id_3"}).Return([]string{}, nil)
+	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2"}).Return([]string{}, nil)
 	commonTeams, appErr = th.App.GetGroupMessageMembersCommonTeams(th.Context, "gm_channel_id")
 	require.Nil(t, appErr)
 	require.Equal(t, 0, len(commonTeams))
@@ -2548,11 +2547,66 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockChannelStore.On("InvalidatePinnedPostCount", "channelidchannelidchanneli")
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "channelidchannelidchanneli", true).Return(map[string]model.StringMap{}, nil)
 	mockChannelStore.On("IncrementMentionCount", "", []string{}, true, false).Return(nil)
+	mockChannelStore.On("DeleteAllSidebarChannelForChannel", "channelidchannelidchanneli").Return(nil)
+	mockChannelStore.On("GetSidebarCategories", "user_id_1", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", ExcludeTeam: false, Type: "channels"}).Return(
+		&model.OrderedSidebarCategories{
+			Categories: model.SidebarCategoriesWithChannels{
+				{
+					SidebarCategory: model.SidebarCategory{
+						Type: model.SidebarCategoryChannels,
+					},
+				},
+			},
+		}, nil)
+	mockChannelStore.On("GetSidebarCategories", "user_id_2", &store.SidebarCategorySearchOpts{TeamID: "team_id_1", ExcludeTeam: false, Type: "channels"}).Return(
+		&model.OrderedSidebarCategories{
+			Categories: model.SidebarCategoriesWithChannels{
+				{
+					SidebarCategory: model.SidebarCategory{
+						Type: model.SidebarCategoryChannels,
+					},
+				},
+			},
+		}, nil)
+	mockChannelStore.On("UpdateSidebarCategories", "user_id_1", "team_id_1", mock.Anything).Return(
+		[]*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Type: model.SidebarCategoryChannels,
+				},
+			},
+		},
+		[]*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Type: model.SidebarCategoryChannels,
+				},
+			},
+		},
+		nil,
+	)
+	mockChannelStore.On("UpdateSidebarCategories", "user_id_2", "team_id_1", mock.Anything).Return(
+		[]*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Type: model.SidebarCategoryChannels,
+				},
+			},
+		},
+		[]*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Type: model.SidebarCategoryChannels,
+				},
+			},
+		},
+		nil,
+	)
 
 	mockTeamStore := mocks.TeamStore{}
 	mockStore.On("Team").Return(&mockTeamStore)
 	mockTeamStore.On("GetMember", sqlstore.WithMaster(context.Background()), "team_id_1", "user_id_1").Return(&model.TeamMember{}, nil)
-	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2", "user_id_3"}).Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
+	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2"}).Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
 	mockTeamStore.On("GetMany", []string{"team_id_1", "team_id_2", "team_id_3"}).Return(
 		[]*model.Team{
 			{Id: "team_id_1", DisplayName: "Team 1"},
@@ -2568,7 +2622,6 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockUserStore.On("GetProfilesInChannel", mock.AnythingOfType("*model.UserGetOptions")).Return([]*model.User{
 		{Id: "user_id_1", Username: "user_id_1"},
 		{Id: "user_id_2", Username: "user_id_2"},
-		{Id: "user_id_3", Username: "user_id_3"},
 	}, nil)
 	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(map[string]*model.User{}, nil)
 
