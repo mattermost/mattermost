@@ -8,13 +8,14 @@ import {NotificationsSettings} from './notification_settings';
 export default class AccountSettingsModal {
     readonly container: Locator;
 
-    readonly notificationsSettings: Locator;
+    readonly notificationsSettingsTab;
+    readonly notificationsSettings;
 
     constructor(container: Locator) {
         this.container = container;
 
-        this.notificationsSettings = container.getByRole('tab', {name: 'notifications'});
-        
+        this.notificationsSettingsTab = this.container.locator('#notificationsButton');
+        this.notificationsSettings = new NotificationsSettings(container.locator('#notificationSettings'));
     }
 
     async toBeVisible() {
@@ -22,7 +23,10 @@ export default class AccountSettingsModal {
     }
 
     async openNotificationsTab() {
-        await this.notificationsTab.click();
+        await expect(this.notificationsSettingsTab).toBeVisible();
+        await this.notificationsSettingsTab.click();
+    
+        await this.notificationsSettings.toBeVisible();
     }
 
 }

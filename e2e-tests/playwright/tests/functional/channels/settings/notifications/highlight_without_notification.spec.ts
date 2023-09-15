@@ -17,6 +17,12 @@ test('MM-XX Should add the keyword when enter is pressed on the textbox', async 
     await channelPage.goto();
     await channelPage.toBeVisible();
 
+    await channelPage.centerView.postCreate.postMessage('Hello World');
+
     // # Open settings modal
     await channelPage.globalHeader.openSettings();
+    await channelPage.accountSettingsModal.toBeVisible();
+
+    // # Open notifications tab
+    await channelPage.accountSettingsModal.openNotificationsTab();
 });

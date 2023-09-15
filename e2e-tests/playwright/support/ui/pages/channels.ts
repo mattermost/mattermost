@@ -39,7 +39,7 @@ export default class ChannelsPage {
         // Modals        
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
-        this.accountSettingsModal = new components.AccountSettingsModal(page.getByRole('dialog', {name: 'Settings'}));
+        this.accountSettingsModal = new components.AccountSettingsModal(page.locator('#accountSettingsModal'));
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));

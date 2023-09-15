@@ -1206,7 +1206,11 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         const autoResponderSection = this.createAutoResponderSection();
 
         return (
-            <div id='notificationSettings'>
+            <div
+                id='notificationSettings'
+                role='tabpanel'
+                aria-labelledby='notificationsButton'
+            >
                 <div className='modal-header'>
                     <button
                         id='closeButton'
@@ -1316,7 +1320,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     <div className='divider-dark'/>
                 </div>
             </div>
-
         );
     }
 }
