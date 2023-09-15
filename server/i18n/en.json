@@ -4812,6 +4812,10 @@
     "translation": "Couldn't fetch common teams."
   },
   {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Couldn't delete existing sidebar categories for converted GM."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },

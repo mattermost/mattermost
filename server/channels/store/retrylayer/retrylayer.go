@@ -934,6 +934,27 @@ func (s *RetryLayerChannelStore) Delete(channelID string, timestamp int64) error
 
 }
 
+func (s *RetryLayerChannelStore) DeleteAllSidebarChannelForChannel(channelID string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelStore.DeleteAllSidebarChannelForChannel(channelID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) DeleteSidebarCategory(categoryID string) error {
 
 	tries := 0

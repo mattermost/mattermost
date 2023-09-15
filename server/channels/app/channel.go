@@ -3539,8 +3539,68 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
-	_ = a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId)
+
+	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
+		InChannelId: gmConversionRequest.ChannelID,
+		Page:        0,
+		PerPage:     model.ChannelGroupMaxUsers,
+	}, false)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	_ = a.setSidebarCategoriesForConvertedGroupMessage(c, gmConversionRequest, users)
+	_ = a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId, users)
 	return updatedChannel, nil
+}
+
+func (a *App) setSidebarCategoriesForConvertedGroupMessage(c request.CTX, gmConversionRequest *model.GroupMessageConversionRequestBody, channelUsers []*model.User) *model.AppError {
+	// First we'll delete channel from everyone's sidebar. Only the members of GM
+	// can have it in sidebar, so we can delete the channel from all SidebarChannels entries.
+	err := a.Srv().Store().Channel().DeleteAllSidebarChannelForChannel(gmConversionRequest.ChannelID)
+	if err != nil {
+		return model.NewAppError(
+			"setSidebarCategoriesForConvertedGroupMessage",
+			"app.channel.gm_conversion_set_categories.delete_all.error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(err)
+	}
+
+	// Now that we've deleted existing entries, we can set the channel in default "Channels" category
+	// for all GM members
+	for _, user := range channelUsers {
+		categories, appErr := a.GetSidebarCategories(c, user.Id, &store.SidebarCategorySearchOpts{
+			TeamID: gmConversionRequest.TeamID,
+			Type:   model.SidebarCategoryChannels,
+		})
+
+		if appErr != nil {
+			mlog.Error("Failed to search sidebar categories for user for adding converted GM")
+			continue
+		}
+
+		if len(categories.Categories) < 1 {
+			// It is normal for user to not have the default category.
+			// The default "Channels" category is created when the user first logs in,
+			// and all their channels are moved to this category at the same time.
+			// So its perfectly okay for this condition to occur.
+			continue
+		}
+
+		// when we fetch the default "Channels" category from store layer,
+		// it auto-fills any channels the user has access to but aren't associated to a category in the database.
+		// So what we do is fetch the category, so we get an auto-filled data,
+		// then call update category to persist the data and send the websocket events.
+		channelsCategory := categories.Categories[0]
+		_, appErr = a.UpdateSidebarCategories(c, user.Id, gmConversionRequest.TeamID, []*model.SidebarCategoryWithChannels{channelsCategory})
+		if appErr != nil {
+			mlog.Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(err))
+		}
+	}
+
+	return nil
 }
 
 func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, originalChannel *model.Channel, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
@@ -3594,24 +3654,15 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 	return clone.IsValid()
 }
 
-func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelID, convertedByUserId string) *model.AppError {
+func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelID, convertedByUserId string, channelUsers []*model.User) *model.AppError {
 	convertedByUser, appErr := a.GetUser(convertedByUserId)
 	if appErr != nil {
 		return appErr
 	}
 
-	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
-		InChannelId: channelID,
-		Page:        0,
-		PerPage:     model.ChannelGroupMaxUsers,
-	}, false)
-	if appErr != nil {
-		return appErr
-	}
-
-	userIDs := make([]string, len(users))
-	usernames := make([]string, len(users))
-	for i, user := range users {
+	userIDs := make([]string, len(channelUsers))
+	usernames := make([]string, len(channelUsers))
+	for i, user := range channelUsers {
 		userIDs[i] = user.Id
 		usernames[i] = user.Username
 	}

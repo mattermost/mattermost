@@ -6,10 +6,7 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import {bindActionCreators} from 'redux';
 
 import {convertGroupMessageToPrivateChannel} from 'mattermost-redux/actions/channels';
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
     makeGetProfilesInChannel,
@@ -30,14 +27,11 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: Props) => {
         const allProfilesInChannel = getProfilesInChannel(state, ownProps.channel.id);
         const currentUserId = getCurrentUserId(state);
-        const currentTeamId = getCurrentTeamId(state);
         const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
-        const channelsCategory = getCategoryInTeamByType(state, currentTeamId, CategoryTypes.CHANNELS);
 
         return {
             profilesInChannel: allProfilesInChannel,
             teammateNameDisplaySetting,
-            channelsCategoryId: channelsCategory?.id,
             currentUserId,
         };
     };

@@ -34,7 +34,6 @@ export type Props = {
     actions: Actions;
     profilesInChannel: UserProfile[];
     teammateNameDisplaySetting: string;
-    channelsCategoryId: string | undefined;
     currentUserId: string;
 }
 
@@ -116,12 +115,9 @@ const ConvertGmToChannelModal = (props: Props) => {
         }
 
         setConversionError(undefined);
-        if (props.channelsCategoryId) {
-            props.actions.moveChannelsInSidebar(props.channelsCategoryId, 0, props.channel.id, false);
-        }
         trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
         props.onExited();
-    }, [selectedTeamId, props.channel.id, channelName, channelURL.current, props.channelsCategoryId, props.actions.moveChannelsInSidebar]);
+    }, [selectedTeamId, props.channel.id, channelName, channelURL.current, props.actions.moveChannelsInSidebar]);
 
     const showLoader = !commonTeamsFetched || !loadingAnimationTimeout;
     const canCreate = selectedTeamId !== undefined && channelName !== '' && !nameError;
