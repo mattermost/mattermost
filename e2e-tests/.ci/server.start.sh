@@ -29,9 +29,9 @@ mme2e_generate_envfile_from_var_names >.env.cypress <<EOF
 BRANCH
 BUILD_ID
 CI_BASE_URL
+BROWSER
 AUTOMATION_DASHBOARD_URL
 AUTOMATION_DASHBOARD_TOKEN
-BROWSER
 EOF
 
 # Wait for the required server image

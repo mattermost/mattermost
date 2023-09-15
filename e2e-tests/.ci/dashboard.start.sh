@@ -18,7 +18,14 @@ mme2e_log "Starting the dashboard"
 ${MME2E_DC_DASHBOARD} up -d db dashboard
 
 mme2e_log "Generating the dashboard's local URL"
-AUTOMATION_DASHBOARD_URL="http://${MME2E_DC_DASHBOARD_GATEWAY}:4000/api"
+case $MME2E_OSTYPE in
+  darwin )
+    AUTOMATION_DASHBOARD_IP=$(ifconfig $(route get 1.1.1.1 | grep interface | awk '{print $2}') | grep -w inet | awk '{print $2}') ;;
+  * )
+    MME2E_DC_DASHBOARD_NETWORK=$(docker inspect $(${MME2E_DC_DASHBOARD} ps -q dashboard) | jq -r '.[0].NetworkSettings.Networks | (keys|.[0])')
+    AUTOMATION_DASHBOARD_IP=$(docker network inspect $MME2E_DC_DASHBOARD_NETWORK | jq -r '.[0].IPAM.Config[0].Gateway')
+esac
+AUTOMATION_DASHBOARD_URL="http://${AUTOMATION_DASHBOARD_IP}:4000/api"
 
 mme2e_log "Generating a signed JWT token for accessing the dashboard"
 ${MME2E_DC_DASHBOARD} exec -T dashboard npm i

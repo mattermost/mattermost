@@ -72,6 +72,7 @@ services:
 
   cypress:
     image: "cypress/browsers:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1"
+    ### Temorarily disabling this image, until both the amd64 and arm64 version are mirrored
     # image: "mattermostdevelopment/mirrored-cypress-browsers-public:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1"
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]

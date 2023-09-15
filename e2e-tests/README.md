@@ -17,7 +17,7 @@ Instructions, tl;dr: create a local branch with your E2E test changes, then open
 Instructions, detailed:
 1. (optional, undefined variables are set to sane defaults) Create the `.ci/env` file, and populate it with the variables you need out of the following list:
   * The following variables will be passed over to the server container: `MM_LICENSE` (no enterprise features will be available if this is unset), and the exploded `MM_ENV` (a comma-separated list of env var specifications)
-  * The following variables will be passed over to the cypress container: `BRANCH`, `BUILD_ID`, `CI_BASE_URL`, `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN`
+  * The following variables will be passed over to the cypress container: `BRANCH`, `BUILD_ID`, `CI_BASE_URL`, `BROWSER`, `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN`
   * The `SERVER_IMAGE` variable can also be set, if you want to select a custom mattermost-server image. If not specified, the value of the `SERVER_IMAGE_DEFAULT` variable defined in file `.ci/.e2erc` is used.
   * The `TEST_FILTER` variable can also be set, to customize which tests you want cypress to run. If not specified, only the smoke tests will run. Please check the `e2e-tests/cypress/run_tests.js` file for details about its format.
 2. (optional) `make start-dashboard`: start the automation-dashboard in the background
