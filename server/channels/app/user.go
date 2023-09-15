@@ -1271,6 +1271,8 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	a.InvalidateCacheForUser(user.Id)
 	a.onUserProfileChange(user.Id)
 
+	newUser.Sanitize(map[string]bool{})
+
 	return newUser, nil
 }
 
