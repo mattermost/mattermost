@@ -72,26 +72,35 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 
 	// track errors returned for various users.
 	differentChannels := make([]string, 0, 1)
-	nonTeamUsers := make([]string, 0, 1)
-	channelConstrained := make([]*model.User, 0, 1)
+	nonTeamUsers := make(map[string][]string)
+	channelConstrained := make([]string, 0, 1)
 	usersInChannel := make([]string, 0, 1)
-	errorUsers := make([]*model.User, 0, 1)
+	errorUsers := make([]string, 0, 1)
 
-	for _, targetUser := range targetUsers {
-		for _, targetChannel := range targetChannels {
+	for _, targetChannel := range targetChannels {
+		var targetTeamDisplay string
+		for _, targetUser := range targetUsers {
 			userError := i.addUserToChannel(a, c, args, targetUser, targetChannel)
 			if userError == NoError {
 				if args.ChannelId != targetChannel.Id {
 					differentChannels = append(differentChannels, targetUser.Username)
 				}
 			} else if userError == UserNotInTeam {
-				nonTeamUsers = append(nonTeamUsers, targetUser.Username)
+				if targetTeamDisplay == "" {
+					targetTeam, err := a.GetTeam(targetChannel.TeamId)
+					if err != nil {
+						targetTeamDisplay = "unknown"
+					} else {
+						targetTeamDisplay = targetTeam.DisplayName
+					}
+				}
+				nonTeamUsers[targetTeamDisplay] = append(nonTeamUsers[targetTeamDisplay], targetUser.Username)
 			} else if userError == IsConstrained {
-				channelConstrained = append(channelConstrained, targetUser)
+				channelConstrained = append(channelConstrained, targetUser.Username)
 			} else if userError == UserInChannel {
 				usersInChannel = append(usersInChannel, targetUser.Username)
 			} else {
-				errorUsers = append(errorUsers, targetUser)
+				errorUsers = append(errorUsers, targetUser.Username)
 			}
 		}
 	}
@@ -135,22 +144,24 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 	}
 
 	if len(nonTeamUsers) > 0 {
-		if len(nonTeamUsers) > 10 {
-			*resps = append(*resps,
-				args.T("api.command_invite.user_not_in_team.messageOverflow", map[string]any{
-					"FirstUser": "@" + nonTeamUsers[0],
-					"Others":    len(nonTeamUsers) - 1,
-					"Team":      "",
-				}),
-			)
-		} else {
-			usersString := map[string]any{
-				"Users": "@" + strings.Join(nonTeamUsers, ", @"),
-				"Team":  "test",
+		for k, v := range nonTeamUsers {
+			if len(v) > 10 {
+				*resps = append(*resps,
+					args.T("api.command_invite.user_not_in_team.messageOverflow", map[string]any{
+						"FirstUser": "@" + v[0],
+						"Others":    len(v) - 1,
+						"Team":      k,
+					}),
+				)
+			} else {
+				usersString := map[string]any{
+					"Users": "@" + strings.Join(v, ", @"),
+					"Team":  k,
+				}
+				*resps = append(*resps,
+					args.T("api.command_invite.user_not_in_team.app_error", usersString),
+				)
 			}
-			*resps = append(*resps,
-				args.T("api.command_invite.user_not_in_team.app_error", usersString),
-			)
 		}
 	}
 
