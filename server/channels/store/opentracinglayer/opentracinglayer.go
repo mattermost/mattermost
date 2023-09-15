@@ -3317,7 +3317,7 @@ func (s *OpenTracingLayerDesktopTokensStore) GetUserId(token string, minCreatedA
 	return result, err
 }
 
-func (s *OpenTracingLayerDesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
+func (s *OpenTracingLayerDesktopTokensStore) Insert(token string, createAt int64, userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DesktopTokensStore.Insert")
 	s.Root.Store.SetContext(newCtx)
@@ -3326,7 +3326,7 @@ func (s *OpenTracingLayerDesktopTokensStore) Insert(token string, createdAt int6
 	}()
 
 	defer span.Finish()
-	err := s.DesktopTokensStore.Insert(token, createdAt, userId)
+	err := s.DesktopTokensStore.Insert(token, createAt, userId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
