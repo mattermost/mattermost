@@ -9848,7 +9848,7 @@
   },
   {
     "id": "app.post.delete_post.get_team.app_error",
-    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten"
+    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten."
   },
   {
     "id": "app.post_persistent_notification.delete_by_team.app_error",
