@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import {MessageDescriptor, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
+import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
+import ShieldWithCheckmarkSVG from 'components/common/svg_images_components/shield_with_checkmark';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
-import ShieldWithCheckmarkSVG from 'components/common/svg_images_components/shield_with_checkmark';
-import {SubmitOptions} from 'components/claim/components/email_to_ldap';
 
 import './login_mfa.scss';
 

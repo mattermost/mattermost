@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {ChevronDownIcon, ChevronUpIcon, FormatLetterCaseIcon} from '@mattermost/compass-icons/components';
 import {useIntl} from 'react-intl';
+
+import {ChevronDownIcon, ChevronUpIcon, FormatLetterCaseIcon} from '@mattermost/compass-icons/components';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
 import Constants from 'utils/constants';
 
 import {IconContainer} from './formatting_bar/formatting_icon';

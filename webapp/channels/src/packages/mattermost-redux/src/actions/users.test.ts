@@ -5,15 +5,17 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import type {UserProfile} from '@mattermost/types/users';
+
+import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {RequestStatus} from '../constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-import {UserTypes} from 'mattermost-redux/action_types';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
+import {RequestStatus} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
 

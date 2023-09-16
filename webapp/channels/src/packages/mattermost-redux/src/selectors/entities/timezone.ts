@@ -3,11 +3,10 @@
 
 import timezones from 'timezones.json';
 
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-
 import {getTimezoneLabel, getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import {getCurrentUser} from './common';

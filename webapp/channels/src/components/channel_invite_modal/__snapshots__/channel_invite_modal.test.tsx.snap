@@ -65,9 +65,6 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-cancel tertiary-button"
         backButtonClick={[Function]}
-        backButtonText="Cancel"
-        buttonSubmitLoadingText="Adding..."
-        buttonSubmitText="Add"
         customNoOptionsMessage={null}
         focusOnLoad={true}
         handleAdd={[Function]}
@@ -79,24 +76,8 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
-        options={
-          Array [
-            Object {
-              "delete_at": 0,
-              "id": "user-1",
-              "label": "user-1",
-              "value": "user-1",
-            },
-            Object {
-              "delete_at": 0,
-              "id": "user-2",
-              "label": "user-2",
-              "value": "user-2",
-            },
-          ]
-        }
+        options={Array []}
         perPage={50}
-        placeholderText="Search for people"
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -107,6 +88,11 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         }
         valueWithImage={true}
         values={Array []}
+      />
+      <Memo(TeamWarningBanner)
+        guests={Array []}
+        teamId="eatxocwc3bg9ffo9xyybnj4omr"
+        users={Array []}
       />
     </div>
   </ModalBody>
@@ -178,9 +164,6 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-cancel tertiary-button"
         backButtonClick={[Function]}
-        backButtonText="Cancel"
-        buttonSubmitLoadingText="Adding..."
-        buttonSubmitText="Add"
         customNoOptionsMessage={null}
         focusOnLoad={true}
         handleAdd={[Function]}
@@ -192,24 +175,8 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
-        options={
-          Array [
-            Object {
-              "delete_at": 0,
-              "id": "user-1",
-              "label": "user-1",
-              "value": "user-1",
-            },
-            Object {
-              "delete_at": 0,
-              "id": "user-2",
-              "label": "user-2",
-              "value": "user-2",
-            },
-          ]
-        }
+        options={Array []}
         perPage={50}
-        placeholderText="Search for people"
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -221,52 +188,36 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         valueWithImage={true}
         values={Array []}
       />
+      <Memo(TeamWarningBanner)
+        guests={Array []}
+        teamId="eatxocwc3bg9ffo9xyybnj4omr"
+        users={Array []}
+      />
     </div>
   </ModalBody>
 </Modal>
 `;
 
 exports[`components/channel_invite_modal should match snapshot for channel_invite_modal with userStatuses 1`] = `
-<div
-  className="more-modal__row clickable more-modal__row--selected"
-  onClick={[Function]}
-  onMouseMove={[Function]}
->
-  <ProfilePicture
-    hasMention={false}
-    isEmoji={false}
-    popoverPlacement="right"
-    size="md"
-    src="/api/v4/users/user-1/image"
-    status="online"
-    wrapperClass=""
-  />
-  <div
-    className="more-modal__details"
-  >
-    <div
-      className="more-modal__name"
-    >
-      <span
-        className="d-flex"
-      >
-        <span />
-        <span
-          className="ml-2 light flex-auto"
-        />
-      </span>
-    </div>
-  </div>
-  <div
-    className="more-modal__actions"
-  >
-    <div
-      className="more-modal__actions--round"
-    >
-      <AddIcon />
-    </div>
-  </div>
-</div>
+<Memo(GroupOption)
+  addUserProfile={[MockFunction]}
+  group={
+    Object {
+      "delete_at": 0,
+      "id": "user-1",
+      "label": "user-1",
+      "value": "user-1",
+    }
+  }
+  isSelected={true}
+  onMouseMove={[MockFunction]}
+  rowSelected="more-modal__row--selected"
+  selectedItemRef={
+    Object {
+      "current": null,
+    }
+  }
+/>
 `;
 
 exports[`components/channel_invite_modal should match snapshot with exclude and include users 1`] = `
@@ -334,9 +285,6 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-cancel tertiary-button"
         backButtonClick={[Function]}
-        backButtonText="Cancel"
-        buttonSubmitLoadingText="Adding..."
-        buttonSubmitText="Add"
         customNoOptionsMessage={null}
         focusOnLoad={true}
         handleAdd={[Function]}
@@ -348,24 +296,8 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
-        options={
-          Array [
-            Object {
-              "delete_at": 0,
-              "id": "user-2",
-              "label": "user-2",
-              "value": "user-2",
-            },
-            Object {
-              "delete_at": 0,
-              "id": "user-3",
-              "label": "user-3",
-              "value": "user-3",
-            },
-          ]
-        }
+        options={Array []}
         perPage={50}
-        placeholderText="Search for people"
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -376,6 +308,11 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         }
         valueWithImage={true}
         values={Array []}
+      />
+      <Memo(TeamWarningBanner)
+        guests={Array []}
+        teamId="eatxocwc3bg9ffo9xyybnj4omr"
+        users={Array []}
       />
     </div>
   </ModalBody>

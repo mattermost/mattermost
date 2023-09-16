@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
-import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import type {ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserNotifyProps} from '@mattermost/types/users';
 
 import ChannelNotificationsModal from 'components/channel_notifications_modal/channel_notifications_modal';
 
-import {UserNotifyProps} from '@mattermost/types/users';
-import {ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
+import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/channel_notifications_modal/ChannelNotificationsModal', () => {
     const baseProps: ComponentProps<typeof ChannelNotificationsModal> = {

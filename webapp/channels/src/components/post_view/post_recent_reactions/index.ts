@@ -2,15 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {getEmojiMap} from 'selectors/emojis';
-import {getCurrentLocale} from 'selectors/i18n';
-import {GlobalState} from 'types/store';
-import {GenericAction} from 'mattermost-redux/types/actions';
+import type {Emoji} from '@mattermost/types/emojis';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {addReaction} from 'actions/post_actions';
-import {Emoji} from '@mattermost/types/emojis';
+import {getEmojiMap} from 'selectors/emojis';
+import {getCurrentLocale} from 'selectors/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import PostReaction from './post_recent_reactions';
 

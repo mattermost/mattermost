@@ -2,17 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
 
 import {getTeams as fetchTeams, searchTeams} from 'mattermost-redux/actions/teams';
-import {getTeams} from 'mattermost-redux/selectors/entities/teams';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getTeams} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
-
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import TeamList from './team_list';
 

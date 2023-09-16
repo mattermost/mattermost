@@ -1,32 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {RelationOneToOne} from '@mattermost/types/utilities';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
 import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
 
-import classNames from 'classnames';
-
+import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import LocalizedInput from 'components/localized_input/localized_input';
+import * as Menu from 'components/menu';
 import QuickInput from 'components/quick_input';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import LocalizedInput from 'components/localized_input/localized_input';
-import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
-import * as Menu from 'components/menu';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import * as UserAgent from 'utils/user_agent';
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
 import {isArchivedChannel} from 'utils/channel_utils';
-
+import Constants, {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
-import {Filter, FilterType} from './browse_channels/browse_channels';
+import * as UserAgent from 'utils/user_agent';
+import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
+
+import type {FilterType} from './browse_channels/browse_channels';
+import {Filter} from './browse_channels/browse_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
@@ -349,9 +350,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             listContent = (
                 <div
                     className='no-channel-message'
-                    aria-label={this.state.channelSearchValue.length > 0 ?
-                        localizeAndFormatMessage(t('more_channels.noMore'), 'No results for {text}', {text: this.state.channelSearchValue}) :
-                        localizeMessage('widgets.channels_input.empty', 'No channels found')
+                    aria-label={this.state.channelSearchValue.length > 0 ? localizeAndFormatMessage(t('more_channels.noMore'), 'No results for {text}', {text: this.state.channelSearchValue}) : localizeMessage('widgets.channels_input.empty', 'No channels found')
                     }
                 >
                     <MagnifyingGlassSVG/>
