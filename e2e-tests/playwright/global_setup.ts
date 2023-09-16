@@ -170,7 +170,7 @@ async function ensureServerDeployment(client: Client) {
             sameClusterName,
             sameClusterName
                 ? ''
-                : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${haClusterName}"`
+                : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${haClusterName}"`,
         ).toBe(true);
 
         const clusterInfo = await client.getClusterStatus();
@@ -179,12 +179,12 @@ async function ensureServerDeployment(client: Client) {
             sameCount,
             sameCount
                 ? ''
-                : `Should match number of nodes in a cluster as expected. Got "${clusterInfo?.length}" but expected "${haClusterNodeCount}"`
+                : `Should match number of nodes in a cluster as expected. Got "${clusterInfo?.length}" but expected "${haClusterNodeCount}"`,
         ).toBe(true);
 
         clusterInfo.forEach((info) =>
             // eslint-disable-next-line no-console
-            console.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`)
+            console.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`),
         );
     }
 }
