@@ -584,22 +584,22 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 			}
 		}
 
-		// Separate Terms into exactPhraseTerms(quoted string) and normalTerms(non-quoted string)
-		// Add asterisk character after each term of the normalTerms to perform wildcard search
-		wildcardAddedNormalTerms := params.GetWildcardAddedNormalTerms()
-		exactPhraseTerms := params.GetExactPhraseTerms()
 		excludedTerms := params.ExcludedTerms
 
 		// these chars have special meaning and can be treated as spaces
 		for _, c := range fs.specialSearchChars() {
-			wildcardAddedNormalTerms = strings.Replace(wildcardAddedNormalTerms, c, " ", -1)
-			exactPhraseTerms = strings.Replace(exactPhraseTerms, c, " ", -1)
+			params.Terms = strings.Replace(params.Terms, c, " ", -1)
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}
 
-		if wildcardAddedNormalTerms == "" && exactPhraseTerms == "" && excludedTerms == "" {
+		if params.Terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
 		} else if fs.DriverName() == model.DatabaseDriverPostgres {
+			// Separate Terms into exactPhraseTerms(quoted string) and normalTerms(non-quoted string)
+			// Add asterisk character after each term of the normalTerms to perform wildcard search
+			wildcardAddedNormalTerms := params.GetWildcardAddedNormalTerms()
+			exactPhraseTerms := params.GetExactPhraseTerms()
+
 			// replace a term only if there is a wildcard at the end of the word
 			excludedTerms = wildcardRegExpForPostgres.ReplaceAllLiteralString(excludedTerms, ":* ")
 
@@ -629,7 +629,13 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		} else if fs.DriverName() == model.DatabaseDriverMysql {
 			var err error
 
-			wildcardAddedNormalTerms, err = removeMysqlStopWordsFromTerms(wildcardAddedNormalTerms)
+			params.Terms, err = removeMysqlStopWordsFromTerms(params.Terms)
+
+			// Separate Terms into exactPhraseTerms(quoted string) and normalTerms(non-quoted string)
+			// Add asterisk character after each term of the normalTerms to perform wildcard search
+			wildcardAddedNormalTerms := params.GetWildcardAddedNormalTerms()
+			exactPhraseTerms := params.GetExactPhraseTerms()
+
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to remove Mysql stop-words from terms")
 			}
