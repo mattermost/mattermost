@@ -48,7 +48,7 @@ async function sysadminSetup(client: Client, user: UserProfile | null) {
         await client.createTeam(createRandomTeam(defaultTeam.name, defaultTeam.displayName, 'O', false));
     } else if (myDefaultTeam && testConfig.resetBeforeTest) {
         await Promise.all(
-            myTeams.filter((team) => team.name !== defaultTeam.name).map((team) => client.deleteTeam(team.id))
+            myTeams.filter((team) => team.name !== defaultTeam.name).map((team) => client.deleteTeam(team.id)),
         );
 
         const myChannels = await client.getMyChannels(myDefaultTeam.id);
@@ -61,7 +61,7 @@ async function sysadminSetup(client: Client, user: UserProfile | null) {
                         channel.name !== 'off-topic'
                     );
                 })
-                .map((channel) => client.deleteChannel(channel.id))
+                .map((channel) => client.deleteChannel(channel.id)),
         );
     }
 

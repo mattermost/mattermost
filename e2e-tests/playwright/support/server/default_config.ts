@@ -68,7 +68,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v7.10 server
+// Based on v9.1 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
