@@ -684,7 +684,7 @@ func TestRedirectLocation(t *testing.T) {
 	}))
 	defer func() { testServer2.Close() }()
 
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer2.URL, "")
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(testServer2.URL, "")
 	require.NoError(t, err)
 	assert.Equal(t, almostTooLongUrl, actual)
 
@@ -696,7 +696,7 @@ func TestRedirectLocation(t *testing.T) {
 	}))
 	defer func() { testServer3.Close() }()
 
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer3.URL, "")
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(testServer3.URL, "")
 	require.NoError(t, err)
 	assert.Equal(t, "", actual)
 }
