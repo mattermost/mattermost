@@ -379,8 +379,8 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
-		s.Require().NotNil(err)
-		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
+		s.Require().NotNil(err) 
+		s.Require().Equal("1 error occurred:\n\t* could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell\n\n", err.Error())
 	})
 
 	s.Run("Delete user that does not exist in db returns an error", func() {
@@ -408,7 +408,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 		err := deleteUsersCmdF(s.client, cmd, []string{arg})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", arg), printer.GetErrorLines()[0])
 	})
