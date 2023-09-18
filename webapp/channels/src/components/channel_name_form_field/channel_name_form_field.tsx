@@ -77,7 +77,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             setURLError('');
             props.onURLChange(cleanURL);
         }
-    }, [props.onDisplayNameChange, props.onURLChange, urlModified.current]);
+    }, [props.onDisplayNameChange, props.onURLChange]);
 
     const handleOnDisplayNameBlur = useCallback(() => {
         if (displayName.current && !url) {
@@ -89,7 +89,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             displayNameModified.current = true;
             setInputCustomMessage(null);
         }
-    }, [props.onURLChange, displayName.current, url, displayNameModified, displayNameError]);
+    }, [props.onURLChange, displayName.current, url, displayNameModified]);
 
     const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();

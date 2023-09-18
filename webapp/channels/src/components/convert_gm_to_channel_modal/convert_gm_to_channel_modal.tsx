@@ -77,6 +77,10 @@ const ConvertGmToChannelModal = (props: Props) => {
     useEffect(() => {
         const work = async () => {
             const response = await dispatch(getGroupMessageMembersCommonTeams(props.channel.id)) as ActionResult<Team[], ServerError>;
+            if (!mounted.current) {
+                return;
+            }
+
             if (response.error || !response.data) {
                 return;
             }
@@ -87,10 +91,8 @@ const ConvertGmToChannelModal = (props: Props) => {
                 teamsById[team.id] = team;
             });
 
-            if (mounted) {
-                setCommonTeamsById(teamsById);
-                setCommonTeamsFetched(true);
-            }
+            setCommonTeamsById(teamsById);
+            setCommonTeamsFetched(true);
 
             // if there is only common team, selected it.
             if (teams.length === 1) {
@@ -100,7 +102,7 @@ const ConvertGmToChannelModal = (props: Props) => {
 
         work();
         setTimeout(() => setLoadingAnimationTimeout(true), 1200);
-    }, [mounted]);
+    }, []);
 
     const handleConfirm = useCallback(async () => {
         if (!selectedTeamId) {
