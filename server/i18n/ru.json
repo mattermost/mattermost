@@ -9870,5 +9870,13 @@
   {
     "id": "model.config.is_valid.local_mode_socket.app_error",
     "translation": "Невозможно найти каталог локального файла сокета."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Невозможно проверить непрочитанные и упоминания"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Невозможно пометить все обсуждения, как прочитанные каналом"
   }
 ]
