@@ -638,13 +638,16 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	var result *multierror.Error
 	if !confirmFlag {
 		if err := getConfirmation("Are you sure you want to delete the users specified? All data will be permanently deleted?", true); err != nil {
-			return err
+			result = multierror.Append(result, err)
+			return result.ErrorOrNil()
 		}
 	}
 
 	users, err := getUsersFromArgs(c, args)
+	result = multierror.Append(result, err)
 	if err != nil {
 		printer.PrintError(err.Error())
 	}
@@ -663,7 +666,7 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintT("Deleted user '{{.Username}}'", user)
 		}
 	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
