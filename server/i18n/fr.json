@@ -1509,7 +1509,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nCanaux ajoutés :\n"
+    "translation": "\nCanaux ajoutés:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
