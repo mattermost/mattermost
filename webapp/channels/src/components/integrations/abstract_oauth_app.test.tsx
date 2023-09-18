@@ -5,7 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import AbstractOAuthApp from 'components/integrations/abstract_oauth_app.jsx';
+import AbstractOAuthApp from 'components/integrations/abstract_oauth_app';
 
 import {TestHelper} from 'utils/test_helper';
 
