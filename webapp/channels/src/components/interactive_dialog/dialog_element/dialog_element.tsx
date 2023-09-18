@@ -168,7 +168,7 @@ export default class DialogElement extends React.PureComponent<Props, State> {
                 <TextSetting
                     autoFocus={this.props.autoFocus}
                     id={name}
-                    type={subtype as InputTypes || 'text'}
+                    type={(type === 'textarea' ? 'textarea' : subtype) as InputTypes || 'text'}
                     label={displayNameContent}
                     maxLength={textSettingMaxLength}
                     value={textValue || ''}
