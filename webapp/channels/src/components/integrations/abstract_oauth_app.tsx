@@ -19,8 +19,6 @@ import SpinnerButton from 'components/spinner_button';
 
 import * as Utils from 'utils/utils';
 
-type App = Omit<OAuthApp, 'id' | 'creator_id' | 'create_at' | 'update_at'| 'client_secret'>;
-
 type Props = {
 
     /**
@@ -56,12 +54,12 @@ type Props = {
     /**
    * The OAuthApp used to set the initial state
    */
-    initialApp: App;
+    initialApp?: OAuthApp;
 
     /**
     * The async function to run when the action button is pressed
     */
-    action: (app: App) => Promise<void>;
+    action: (app: OAuthApp) => Promise<void>;
 
 }
 
@@ -87,10 +85,10 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         this.image = new Image();
         this.image.onload = this.imageLoaded;
         this.icon_url = React.createRef();
-        this.state = this.getStateFromApp(this.props.initialApp || {});
+        this.state = this.getStateFromApp(this.props.initialApp || {} as OAuthApp);
     }
 
-    getStateFromApp = (app: App) => {
+    getStateFromApp = (app: OAuthApp) => {
         return {
             name: app.name || '',
             description: app.description || '',
@@ -189,12 +187,17 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         }
 
         const app = {
+            id: this.props.initialApp?.id || '',
             name: this.state.name,
             callback_urls: callbackUrls,
             homepage: this.state.homepage,
             description: this.state.description,
             is_trusted: this.state.is_trusted,
             icon_url: this.state.icon_url,
+            create_at: this.props.initialApp?.create_at || 0,
+            update_at: this.props.initialApp?.update_at || 0,
+            creator_id: this.props.initialApp?.creator_id || '',
+            client_secret: this.props.initialApp?.client_secret || '',
         };
 
         this.props.action(app).then(() => this.setState({saving: false}));

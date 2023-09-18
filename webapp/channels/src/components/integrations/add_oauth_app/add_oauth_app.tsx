@@ -58,7 +58,7 @@ const AddOAuthApp = ({team, actions}: Props): JSX.Element => {
             header={HEADER}
             footer={FOOTER}
             loading={LOADING}
-            renderExtra={''}
+            renderExtra={<div>{''}</div>}
             action={addOAuthApp}
             serverError={serverError}
         />
