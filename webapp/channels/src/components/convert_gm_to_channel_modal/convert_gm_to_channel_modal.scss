@@ -1,0 +1,60 @@
+#convert-gm-to-channel-modal {
+    .convert-gm-to-channel-modal-body {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: visible;
+        transition: height 200ms ease;
+
+        &.multi-team {
+            height: 340px;
+        }
+
+        &.single-team {
+            height: 230px;
+        }
+
+        &.loading {
+            height: 152px;
+        }
+
+        &.error {
+            height: unset;
+        }
+
+        .new-channel-modal__url {
+            margin-top: -20px;
+        }
+
+        .loadingIndicator {
+            display: block;
+            width: 32px;
+            height: 32px;
+            margin: 36px auto 48px;
+            font-size: 32px;
+        }
+
+        .conversion-error {
+            color: var(--error-text);
+        }
+    }
+
+    .DropDown__menu {
+        z-index: 999;
+        max-height: 120px;
+    }
+
+    .DropDown__menu-list {
+        z-index: 999;
+        max-height: 120px;
+    }
+
+    .modal-body {
+        overflow: visible;
+    }
+
+    .GenericModal__button.delete.disabled {
+        color: var(--button-color) !important;
+        opacity: 0.65;
+    }
+}
