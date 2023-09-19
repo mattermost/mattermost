@@ -2,28 +2,28 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useRef} from 'react';
-import styled, {css} from 'styled-components';
-import AutoSizer from 'react-virtualized-auto-sizer';
-import {VariableSizeList, ListChildComponentProps} from 'react-window';
-import InfiniteLoader from 'react-window-infinite-loader';
-import {useHistory} from 'react-router-dom';
 import {useIntl} from 'react-intl';
+import {useHistory} from 'react-router-dom';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import {VariableSizeList} from 'react-window';
+import type {ListChildComponentProps} from 'react-window';
+import InfiniteLoader from 'react-window-infinite-loader';
+import styled, {css} from 'styled-components';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
-import {ServerError} from '@mattermost/types/errors';
+import NoResultsIndicator from 'components/no_results_indicator';
+import {NoResultsVariant} from 'components/no_results_indicator/types';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import SimpleTooltip from 'components/widgets/simple_tooltip';
+import Avatar from 'components/widgets/users/avatar';
 
 import * as Utils from 'utils/utils';
 
-import Avatar from 'components/widgets/users/avatar';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
-import NoResultsIndicator from 'components/no_results_indicator';
-import {NoResultsVariant} from 'components/no_results_indicator/types';
-
-import {Load} from '../user_group_popover';
+import {Load} from '../constants';
 
 const USERS_PER_PAGE = 100;
 

@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SaveButton from 'components/save_button';
+
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {a11yFocus} from 'utils/utils';
+
 type Props = {
 
     // Array of inputs selection

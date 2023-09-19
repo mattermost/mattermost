@@ -2,13 +2,18 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {MouseEventHandler, RefObject, useEffect, useRef, useState} from 'react';
-import styled, {createGlobalStyle, css} from 'styled-components';
-import {CssVarKeyForResizable, ResizeDirection} from './constants';
-import {useGlobalState} from 'stores/hooks';
-import {isSizeLessThanSnapSize, isSnapableSpeed, shouldSnapWhenSizeGrown, shouldSnapWhenSizeShrunk} from './utils';
+import type {MouseEventHandler, RefObject} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
+import styled, {createGlobalStyle, css} from 'styled-components';
+
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import {useGlobalState} from 'stores/hooks';
+
+import type {CssVarKeyForResizable} from './constants';
+import {ResizeDirection} from './constants';
+import {isSizeLessThanSnapSize, isSnapableSpeed, shouldSnapWhenSizeGrown, shouldSnapWhenSizeShrunk} from './utils';
 
 type Props = {
     id?: string;

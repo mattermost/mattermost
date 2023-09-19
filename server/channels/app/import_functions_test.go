@@ -722,7 +722,6 @@ func TestImportImportChannel(t *testing.T) {
 }
 
 func TestImportImportUser(t *testing.T) {
-	t.Skip("MM-43341")
 	th := Setup(t)
 	defer th.TearDown()
 

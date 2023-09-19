@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {
-    ReactElement,
-    ReactNode,
-    Children,
-    KeyboardEvent,
-    MouseEvent,
-    useContext,
-} from 'react';
-import {styled} from '@mui/material/styles';
-import {useSelector} from 'react-redux';
 import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
+import {styled} from '@mui/material/styles';
 import {cloneDeep} from 'lodash';
+import React, {
+    Children,
+    useContext,
+} from 'react';
+import type {
+    ReactElement,
+    ReactNode,
+    KeyboardEvent,
+    MouseEvent} from 'react';
+import {useSelector} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';
 

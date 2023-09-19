@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedTime, FormattedDate} from 'react-intl';
 
-import {JobStatus} from '@mattermost/types/jobs';
+import type {JobStatus} from '@mattermost/types/jobs';
 
 import {JobStatuses} from 'utils/constants';
 

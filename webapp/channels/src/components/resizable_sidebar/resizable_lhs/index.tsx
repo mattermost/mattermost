@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes, useRef} from 'react';
+import type {HTMLAttributes} from 'react';
+import React, {useRef} from 'react';
 
 import {DEFAULT_LHS_WIDTH, CssVarKeyForResizable, ResizeDirection} from '../constants';
 import ResizableDivider from '../resizable_divider';

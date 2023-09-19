@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Post} from '@mattermost/types/posts';
+import type {ThreadsState, UserThread} from '@mattermost/types/threads';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
+
 import {ChannelTypes, PostTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
-import {ThreadsState, UserThread} from '@mattermost/types/threads';
-import {UserProfile} from '@mattermost/types/users';
-import {IDMappedObjects} from '@mattermost/types/utilities';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import {threadsInTeamReducer, unreadThreadsInTeamReducer} from './threadsInTeam';
 import {countsReducer, countsIncludingDirectReducer} from './counts';
-
-import {ExtraData} from './types';
+import {threadsInTeamReducer, unreadThreadsInTeamReducer} from './threadsInTeam';
+import type {ExtraData} from './types';
 
 export const threadsReducer = (state: ThreadsState['threads'] = {}, action: GenericAction, extra: ExtraData) => {
     switch (action.type) {

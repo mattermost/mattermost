@@ -7,7 +7,8 @@ import {useSelector} from 'react-redux';
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
 import {getEmojiMap} from 'selectors/emojis';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 interface ComponentProps {
     emojiName: string;

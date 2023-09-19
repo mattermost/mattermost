@@ -1,19 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
-import {FormattedMessage, MessageDescriptor} from 'react-intl';
+import React from 'react';
+import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
+import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {localizeMessage} from 'utils/utils';
-import {Team} from '@mattermost/types/teams';
+import type {OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ChannelSelect from 'components/channel_select';
+import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
-import ExternalLink from 'components/external_link';
+
 import {DocLinks} from 'utils/constants';
-import {OutgoingWebhook} from '@mattermost/types/integrations';
+import {localizeMessage} from 'utils/utils';
 
 interface State {
     callbackUrls: string;

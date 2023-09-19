@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import crypto from 'crypto';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
-import crypto from 'crypto';
-import classNames from 'classnames';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {UserProfile} from '@mattermost/types/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {loginWithDesktopToken} from 'actions/views/login';
 
