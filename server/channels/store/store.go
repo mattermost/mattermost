@@ -654,7 +654,7 @@ type TokenStore interface {
 
 type DesktopTokensStore interface {
 	GetUserId(token string, minCreatedAt int64) (*string, error)
-	Insert(token string, createdAt int64, userId string) error
+	Insert(token string, createAt int64, userId string) error
 	Delete(token string) error
 	DeleteByUserId(userId string) error
 	DeleteOlderThan(minCreatedAt int64) error

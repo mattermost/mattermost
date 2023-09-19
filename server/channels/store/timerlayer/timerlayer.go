@@ -3043,10 +3043,10 @@ func (s *TimerLayerDesktopTokensStore) GetUserId(token string, minCreatedAt int6
 	return result, err
 }
 
-func (s *TimerLayerDesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
+func (s *TimerLayerDesktopTokensStore) Insert(token string, createAt int64, userId string) error {
 	start := time.Now()
 
-	err := s.DesktopTokensStore.Insert(token, createdAt, userId)
+	err := s.DesktopTokensStore.Insert(token, createAt, userId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

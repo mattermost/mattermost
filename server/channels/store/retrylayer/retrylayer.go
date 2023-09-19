@@ -3703,11 +3703,11 @@ func (s *RetryLayerDesktopTokensStore) GetUserId(token string, minCreatedAt int6
 
 }
 
-func (s *RetryLayerDesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
+func (s *RetryLayerDesktopTokensStore) Insert(token string, createAt int64, userId string) error {
 
 	tries := 0
 	for {
-		err := s.DesktopTokensStore.Insert(token, createdAt, userId)
+		err := s.DesktopTokensStore.Insert(token, createAt, userId)
 		if err == nil {
 			return nil
 		}
