@@ -445,6 +445,7 @@ export const ModalIdentifiers = {
     SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
     START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
     START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
+    CONVERT_GM_TO_CHANNEL: 'convert_gm_to_channel',
 };
 
 export const UserStatuses = {

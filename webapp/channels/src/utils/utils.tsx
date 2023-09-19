@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {getName} from 'country-list';
+import crypto from 'crypto';
 import cssVars from 'css-vars-ponyfill';
 import type {Locale} from 'date-fns';
 import {isNil} from 'lodash';
@@ -1747,6 +1748,9 @@ export function getBlankAddressWithCountry(country?: string): Address {
     };
 }
 
+export function generateSlug(): string {
+    return crypto.randomBytes(16).toString('hex');
+}
 export function sortUsersAndGroups(a: UserProfile | Group, b: UserProfile | Group) {
     let aSortString = '';
     let bSortString = '';

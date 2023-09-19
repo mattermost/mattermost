@@ -174,6 +174,8 @@ type TeamStore interface {
 	// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
 	// users belong.
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
+
+	GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error)
 }
 
 type ChannelStore interface {
@@ -287,6 +289,7 @@ type ChannelStore interface {
 	UpdateSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarCategory(categoryID string) error
+	DeleteAllSidebarChannelForChannel(channelID string) error
 	GetAllChannelsForExportAfter(limit int, afterID string) ([]*model.ChannelForExport, error)
 	GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error)
 	GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error)
@@ -1100,6 +1103,7 @@ type PostReminderMetadata struct {
 type SidebarCategorySearchOpts struct {
 	TeamID      string
 	ExcludeTeam bool
+	Type        model.SidebarCategoryType
 }
 
 // Ensure store service adapter implements `product.StoreService`
