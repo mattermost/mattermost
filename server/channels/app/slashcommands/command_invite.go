@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
@@ -17,6 +18,16 @@ type InviteProvider struct {
 
 const (
 	CmdInvite = "invite"
+)
+
+type UserError int64
+
+const (
+	NoError UserError = iota
+	UserInChannel
+	UserNotInTeam
+	IsConstrained
+	Unknown
 )
 
 func init() {
@@ -59,26 +70,136 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 	// Verify that the inviter has permissions to invite users to the every channel.
 	targetChannels = i.checkPermissions(a, c, args, resps, targetUsers[0], targetChannels)
 
-	for _, targetUser := range targetUsers {
-		for _, targetChannel := range targetChannels {
-			if resp = i.addUserToChannel(a, c, args, targetUser, targetChannel); resp != "" {
-				*resps = append(*resps, resp)
-				continue
-			}
-			if args.ChannelId != targetChannel.Id {
-				*resps = append(*resps, args.T("api.command_invite.success", map[string]any{
-					"User":    targetUser.Username,
-					"Channel": targetChannel.Name,
-				}))
+	// track errors returned for various users.
+	differentChannels := make([]string, 0, 1)
+	nonTeamUsers := make(map[string][]string)
+	channelConstrained := make([]string, 0, 1)
+	usersInChannel := make([]string, 0, 1)
+	errorUsers := make([]string, 0, 1)
+
+	for _, targetChannel := range targetChannels {
+		var targetTeamDisplay string
+		for _, targetUser := range targetUsers {
+			userError := i.addUserToChannel(a, c, args, targetUser, targetChannel)
+			if userError == NoError {
+				if args.ChannelId != targetChannel.Id {
+					differentChannels = append(differentChannels, targetUser.Username)
+				}
+			} else if userError == UserNotInTeam {
+				if targetTeamDisplay == "" {
+					targetTeam, err := a.GetTeam(targetChannel.TeamId)
+					if err != nil {
+						targetTeamDisplay = "unknown"
+					} else {
+						targetTeamDisplay = targetTeam.DisplayName
+					}
+				}
+				nonTeamUsers[targetTeamDisplay] = append(nonTeamUsers[targetTeamDisplay], targetUser.Username)
+			} else if userError == IsConstrained {
+				channelConstrained = append(channelConstrained, targetUser.Username)
+			} else if userError == UserInChannel {
+				usersInChannel = append(usersInChannel, targetUser.Username)
+			} else {
+				errorUsers = append(errorUsers, targetUser.Username)
 			}
 		}
+	}
+
+	if len(usersInChannel) > 0 {
+		if len(usersInChannel) > 10 {
+			*resps = append(*resps,
+				args.T("api.command_invite.user_already_in_channel.overflow", map[string]any{
+					"FirstUser": "@" + usersInChannel[0],
+					"Others":    len(usersInChannel) - 1,
+				}),
+			)
+		} else {
+			usersString := map[string]any{
+				"User": "@" + strings.Join(usersInChannel, ", @"),
+			}
+			*resps = append(*resps,
+				args.T("api.command_invite.user_already_in_channel.app_error", len(usersInChannel), usersString),
+			)
+		}
+	}
+
+	if len(differentChannels) > 0 {
+		if len(differentChannels) > 10 {
+			*resps = append(*resps,
+				args.T("api.command_invite.successOverflow", map[string]any{
+					"FirstUser": "@" + differentChannels[0],
+					"Others":    len(differentChannels) - 1,
+					"Channel":   "",
+				}),
+			)
+		} else {
+			usersString := map[string]any{
+				"Users":   "@" + strings.Join(differentChannels, ", @"),
+				"Channel": "test",
+			}
+			*resps = append(*resps,
+				args.T("api.command_invite.success", usersString),
+			)
+		}
+	}
+
+	if len(nonTeamUsers) > 0 {
+		for k, v := range nonTeamUsers {
+			if len(v) > 10 {
+				*resps = append(*resps,
+					args.T("api.command_invite.user_not_in_team.messageOverflow", map[string]any{
+						"FirstUser": "@" + v[0],
+						"Others":    len(v) - 1,
+						"Team":      k,
+					}),
+				)
+			} else {
+				usersString := map[string]any{
+					"Users": "@" + strings.Join(v, ", @"),
+					"Team":  k,
+				}
+				*resps = append(*resps,
+					args.T("api.command_invite.user_not_in_team.app_error", usersString),
+				)
+			}
+		}
+	}
+
+	if len(channelConstrained) > 0 {
+		*resps = append(*resps,
+			args.T("api.command_invite.channel_constrained_user_denied"),
+		)
+	}
+
+	if len(errorUsers) > 0 {
+		*resps = append(*resps,
+			args.T("api.command_invite.fail.app_error"),
+		)
 	}
 
 	if len(*resps) > 0 {
 		return strings.Join(*resps, "\n")
 	}
-
 	return ""
+}
+
+func (i *InviteProvider) getUsersFromMentionName(a *app.App, mentionName string) []*model.User {
+	userProfile, err := a.Srv().Store().User().GetByUsername(mentionName)
+	if err == nil && userProfile.DeleteAt == 0 {
+		return []*model.User{userProfile}
+	}
+
+	group, appErr := a.GetGroupByName(mentionName, model.GroupSearchOpts{FilterAllowReference: true})
+	if appErr != nil || group == nil {
+		return nil
+	}
+
+	members, appErr := a.GetGroupMemberUsers(group.Id)
+	if appErr != nil {
+		return nil
+	}
+
+	return members
 }
 
 func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, message string) ([]*model.User, []*model.Channel, string) {
@@ -93,15 +214,15 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 		}
 
 		if msg[0] == '@' || (msg[0] != '~' && j == 0) {
-			targetUsername := strings.TrimPrefix(msg, "@")
-			userProfile := i.getUserProfile(a, targetUsername)
-			if userProfile == nil {
+			targetMentionName := strings.TrimPrefix(msg, "@")
+			users := i.getUsersFromMentionName(a, targetMentionName)
+			if len(users) == 0 {
 				*resps = append(*resps, args.T("api.command_invite.missing_user.app_error", map[string]any{
-					"User": targetUsername,
+					"User": targetMentionName,
 				}))
 				continue
 			}
-			targetUsers = append(targetUsers, userProfile)
+			targetUsers = append(targetUsers, users...)
 		} else {
 			targetChannelName := strings.TrimPrefix(msg, "~")
 			channelToJoin, err := a.GetChannelByName(c, targetChannelName, args.TeamId, false)
@@ -135,19 +256,6 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 	}
 
 	return targetUsers, targetChannels, ""
-}
-
-func (i *InviteProvider) getUserProfile(a *app.App, username string) *model.User {
-	userProfile, nErr := a.Srv().Store().User().GetByUsername(username)
-	if nErr != nil {
-		return nil
-	}
-
-	if userProfile.DeleteAt != 0 {
-		return nil
-	}
-
-	return userProfile
 }
 
 func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, targetUser *model.User, targetChannels []*model.Channel) []*model.Channel {
@@ -188,26 +296,23 @@ func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model
 	return validChannels
 }
 
-func (i *InviteProvider) addUserToChannel(a *app.App, c request.CTX, args *model.CommandArgs, userProfile *model.User, channelToJoin *model.Channel) string {
+func (i *InviteProvider) addUserToChannel(a *app.App, c request.CTX, args *model.CommandArgs, userProfile *model.User, channelToJoin *model.Channel) UserError {
 	// Check if user is already in the channel
 	_, err := a.GetChannelMember(c, channelToJoin.Id, userProfile.Id)
 	if err == nil {
-		return args.T("api.command_invite.user_already_in_channel.app_error", map[string]any{
-			"User": userProfile.Username,
-		})
+		return UserInChannel
 	}
 
 	if _, err = a.AddChannelMember(c, userProfile.Id, channelToJoin, app.ChannelMemberOpts{UserRequestorID: args.UserId}); err != nil {
 		if err.Id == "api.channel.add_members.user_denied" {
-			return args.T("api.command_invite.group_constrained_user_denied")
+			return IsConstrained
 		} else if err.Id == "app.team.get_member.missing.app_error" ||
 			err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
-			return args.T("api.command_invite.user_not_in_team.app_error", map[string]any{
-				"Username": userProfile.Username,
-			})
+			return UserNotInTeam
 		}
-		return args.T("api.command_invite.fail.app_error")
+		mlog.Warn("addUserToChannel had unexpected error.", mlog.String("UserId", userProfile.Id), mlog.Err(err))
+		return Unknown
 	}
 
-	return ""
+	return NoError
 }

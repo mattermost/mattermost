@@ -243,14 +243,16 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
     // Navigate to settings modal
     cy.uiOpenSettingsModal();
 
-    // Notifications header should be visible
-    cy.get('#notificationSettingsTitle').
-        scrollIntoView().
+    // # Click on notifications tab
+    cy.findByRoleExtended('tab', {name: 'Notifications'}).
         should('be.visible').
-        and('contain', 'Notifications');
+        click();
+
+    // Notifications header should be visible
+    cy.findAllByText('Notifications').should('be.visible');
 
     // Open up 'Words that trigger mentions' sub-section
-    cy.get('#keysTitle').
+    cy.findByText('Keywords that trigger Notifications').
         scrollIntoView().
         click();
 
@@ -270,8 +272,8 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
     // Set Custom field
     if (desiredSettings.custom && desiredSettings.customText) {
         cy.get('#notificationTriggerCustomText').
-            clear().
-            type(desiredSettings.customText);
+            type(desiredSettings.customText, {force: true}).
+            tab();
     }
 
     // Click “Save” and close modal
