@@ -4540,7 +4540,7 @@ func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool, now int64, p
 	a.app.FinishSendAdminNotifyPost(trial, now, pluginBasedData)
 }
 
-func (a *OpenTracingAppLayer) GenerateAndSaveDesktopToken(expiryTime int64, user *model.User) (*string, *model.AppError) {
+func (a *OpenTracingAppLayer) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateAndSaveDesktopToken")
 
@@ -4552,7 +4552,7 @@ func (a *OpenTracingAppLayer) GenerateAndSaveDesktopToken(expiryTime int64, user
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GenerateAndSaveDesktopToken(expiryTime, user)
+	resultVar0, resultVar1 := a.app.GenerateAndSaveDesktopToken(createAt, user)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
