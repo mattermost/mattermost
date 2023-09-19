@@ -1049,20 +1049,23 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
 
         Client4.trackEvent('action', 'action_channels_add_member', {channel_id: channelId});
 
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
-                data: {id: channelId, user_id: userId},
-            },
-            {
-                type: ChannelTypes.RECEIVED_CHANNEL_MEMBER,
-                data: member,
-            },
-            {
-                type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
-                id: channelId,
-            },
-        ], 'ADD_CHANNEL_MEMBER.BATCH'));
+        const membersInChannel = getState().entities.channels.membersInChannel[channelId];
+        if (!(membersInChannel && userId in membersInChannel)) {
+            dispatch(batchActions([
+                {
+                    type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
+                    data: {id: channelId, user_id: userId},
+                },
+                {
+                    type: ChannelTypes.RECEIVED_CHANNEL_MEMBER,
+                    data: member,
+                },
+                {
+                    type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
+                    id: channelId,
+                },
+            ], 'ADD_CHANNEL_MEMBER.BATCH'));
+        }
 
         return {data: member};
     };
