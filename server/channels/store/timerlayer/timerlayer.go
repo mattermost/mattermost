@@ -827,6 +827,22 @@ func (s *TimerLayerChannelStore) Delete(channelID string, timestamp int64) error
 	return err
 }
 
+func (s *TimerLayerChannelStore) DeleteAllSidebarChannelForChannel(channelID string) error {
+	start := time.Now()
+
+	err := s.ChannelStore.DeleteAllSidebarChannelForChannel(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.DeleteAllSidebarChannelForChannel", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerChannelStore) DeleteSidebarCategory(categoryID string) error {
 	start := time.Now()
 
@@ -8602,6 +8618,22 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userID str
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetChannelUnreadsForTeam", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.TeamStore.GetCommonTeamIDsForMultipleUsers(userIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetCommonTeamIDsForMultipleUsers", success, elapsed)
 	}
 	return result, err
 }
