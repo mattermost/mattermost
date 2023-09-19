@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
@@ -25,6 +26,7 @@ type Props = {
     config: Partial<ClientConfig>;
     license: ClientLicense;
     analytics?: Record<string, number | AnalyticsRow[]>;
+    currentChannel?: Channel;
     actions: {
         savePreferences(userId: string, preferences: PreferenceType[]): void;
         dismissNotice(type: string): void;
@@ -60,7 +62,13 @@ export default class SystemNotice extends React.PureComponent<Props> {
                 continue;
             }
 
-            if (!notice.show?.(this.props.serverVersion, this.props.config, this.props.license, this.props.analytics)) {
+            if (!notice.show?.(
+                this.props.serverVersion,
+                this.props.config,
+                this.props.license,
+                this.props.analytics,
+                this.props.currentChannel,
+            )) {
                 continue;
             }
 
@@ -118,44 +126,44 @@ export default class SystemNotice extends React.PureComponent<Props> {
             );
         }
 
+        const icon = notice.icon || <MattermostLogo/>;
+
         return (
             <div
                 className='system-notice bg--white shadow--2'
             >
-                <div className='system-notice__header'>
-                    <div className='system-notice__logo'>
-                        <MattermostLogo/>
-                    </div>
+                <div className='system-notice__logo'>
+                    {icon}
+                </div>
+                <div className='system-notice__body'>
                     <div className='system-notice__title'>
                         {notice.title}
                     </div>
-                </div>
-                <div className='system-notice__body'>
                     {notice.body}
-                </div>
-                {visibleMessage}
-                <div className='system-notice__footer'>
-                    <button
-                        id='systemnotice_remindme'
-                        className='btn btn-transparent'
-                        onClick={this.hideAndRemind}
-                    >
-                        <FormattedMessage
-                            id='system_notice.remind_me'
-                            defaultMessage='Remind Me Later'
-                        />
-                    </button>
-                    {notice.allowForget &&
+                    {visibleMessage}
+                    <div className='system-notice__footer'>
                         <button
-                            id='systemnotice_dontshow'
-                            className='btn btn-transparent'
-                            onClick={this.hideAndForget}
+                            id='systemnotice_remindme'
+                            className='btn btn-primary'
+                            onClick={this.hideAndRemind}
                         >
                             <FormattedMessage
-                                id='system_notice.dont_show'
-                                defaultMessage="Don't Show Again"
+                                id='system_notice.remind_me'
+                                defaultMessage='Remind Me Later'
                             />
-                        </button>}
+                        </button>
+                        {notice.allowForget &&
+                            <button
+                                id='systemnotice_dontshow'
+                                className='btn'
+                                onClick={this.hideAndForget}
+                            >
+                                <FormattedMessage
+                                    id='system_notice.dont_show'
+                                    defaultMessage="Don't Show Again"
+                                />
+                            </button>}
+                    </div>
                 </div>
             </div>
         );

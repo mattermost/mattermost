@@ -36,6 +36,9 @@ describe('notification_actions', () => {
                 desktop: NotificationLevels.ALL,
                 desktop_sound: false,
                 desktop_threads: NotificationLevels.ALL,
+                mention_keys: 'mentionkey',
+                first_name: 'true',
+                channel: 'true',
             };
 
             post = {
@@ -79,7 +82,12 @@ describe('notification_actions', () => {
                             current_user_id: {
                                 id: 'current_user_id',
                                 notify_props: userSettings,
+                                username: 'currentusername',
+                                first_name: 'currentuserfirstname',
                             },
+                        },
+                        profilesInChannel: {
+                            gm_channel: new Set(['current_user_id']),
                         },
                     },
                     teams: {
@@ -109,10 +117,18 @@ describe('notification_actions', () => {
                                 id: 'another_channel_id',
                                 team_id: 'team_id',
                             },
+                            gm_channel: {
+                                id: 'gm_channel',
+                                type: 'G',
+                            },
                         },
                         myMembers: {
                             channel_id: {
                                 id: 'current_user_id',
+                                notify_props: channelSettings,
+                            },
+                            gm_channel: {
+                                id: 'gm_channel',
                                 notify_props: channelSettings,
                             },
                         },
@@ -120,6 +136,12 @@ describe('notification_actions', () => {
                             channel_id: {
                                 current_user_id: {
                                     id: 'current_user_id',
+                                    notify_props: channelSettings,
+                                },
+                            },
+                            gm_channel: {
+                                current_user_id: {
+                                    id: 'gm_channel',
                                     notify_props: channelSettings,
                                 },
                             },
@@ -137,6 +159,10 @@ describe('notification_actions', () => {
                         myPreferences: {
                             'display_settings--collapsed_reply_threads': crt,
                         },
+                    },
+                    groups: {
+                        groups: {},
+                        myGroups: [],
                     },
                 },
                 views: {
@@ -398,6 +424,86 @@ describe('notification_actions', () => {
                     expect(getHistory().push).toHaveBeenCalledWith('/team/pl/post_id');
                     expect(window.focus).toHaveBeenCalled();
                     window.focus = focus;
+                });
+            });
+        });
+
+        describe('GMs', () => {
+            test('should notify for any message when channel setting is DEFAULT and user setting is MENTION', async () => {
+                const store = testConfigureStore(baseState);
+                userSettings.desktop = NotificationLevels.MENTION;
+                channelSettings.desktop = NotificationLevels.DEFAULT;
+                post.channel_id = 'gm_channel';
+                msgProps.team_id = '';
+
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).toHaveBeenCalled();
+                });
+            });
+            test('should not notify for any message when channel setting is DEFAULT and user setting is NONE', async () => {
+                const store = testConfigureStore(baseState);
+                userSettings.desktop = NotificationLevels.NONE;
+                channelSettings.desktop = NotificationLevels.DEFAULT;
+                post.message = '@username';
+                post.channel_id = 'gm_channel';
+                msgProps.team_id = '';
+
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).not.toHaveBeenCalled();
+                });
+            });
+            test('should notify when channel setting MENTION and there is a explicit mention', async () => {
+                const store = testConfigureStore(baseState);
+                channelSettings.desktop = NotificationLevels.MENTION;
+                post.message = '@currentusername';
+                post.channel_id = 'gm_channel';
+                msgProps.team_id = '';
+
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).toHaveBeenCalled();
+                });
+            });
+            test('should notify when channel setting MENTION and there is a keyword mention', async () => {
+                const store = testConfigureStore(baseState);
+                channelSettings.desktop = NotificationLevels.MENTION;
+                post.message = 'mentionkey';
+                post.channel_id = 'gm_channel';
+                msgProps.team_id = '';
+
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).toHaveBeenCalled();
+                });
+            });
+            test('should notify when channel setting MENTION and there is the first name', async () => {
+                const store = testConfigureStore(baseState);
+                channelSettings.desktop = NotificationLevels.MENTION;
+                post.message = 'currentuserfirstname';
+                post.channel_id = 'gm_channel';
+                msgProps.team_id = '';
+
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).toHaveBeenCalled();
+                });
+            });
+            test('should notify when channel setting MENTION and there is a channel mention', async () => {
+                const store = testConfigureStore(baseState);
+                channelSettings.desktop = NotificationLevels.MENTION;
+                post.message = '@all';
+                post.channel_id = 'gm_channel';
+                msgProps.team_id = '';
+
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).toHaveBeenCalled();
+                });
+            });
+            test('should not notify when channel setting MENTION and there is no explicit mention', async () => {
+                const store = testConfigureStore(baseState);
+                channelSettings.desktop = NotificationLevels.MENTION;
+                post.channel_id = 'gm_channel';
+                msgProps.team_id = '';
+
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).not.toHaveBeenCalled();
                 });
             });
         });
