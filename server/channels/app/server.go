@@ -424,9 +424,15 @@ func NewServer(options ...Option) (*Server, error) {
 		s.EmailService.InitEmailBatching()
 	})
 
+	isTrial := false
+	if licence := s.License(); licence != nil {
+		isTrial = licence.IsTrial
+	}
+
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
 	mlog.Info(
 		logCurrentVersion,
+		mlog.Bool("is_trial", isTrial),
 		mlog.String("current_version", model.CurrentVersion),
 		mlog.String("build_number", model.BuildNumber),
 		mlog.String("build_date", model.BuildDate),

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -101,9 +102,11 @@ func (a *App) generateSupportPacketYaml(c *request.Context) (*model.FileData, er
 
 	licenseTo := ""
 	supportedUsers := 0
+	var isTrial bool
 	if license := a.Srv().License(); license != nil {
 		supportedUsers = *license.Features.Users
 		licenseTo = license.Customer.Company
+		isTrial = license.IsTrial
 	}
 
 	/* Jobs  */
@@ -173,6 +176,7 @@ func (a *App) generateSupportPacketYaml(c *request.Context) (*model.FileData, er
 		/* License */
 		LicenseTo:             licenseTo,
 		LicenseSupportedUsers: supportedUsers,
+		LicenseIsTrial:        strconv.FormatBool(isTrial),
 
 		/* Server stats */
 		ActiveUsers: int(uniqueUserCount),
