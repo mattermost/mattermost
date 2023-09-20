@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -36,8 +36,9 @@ function GMConversionMessage(props: Props): JSX.Element {
         ),
     );
 
-    const convertedByUserUsername = userProfiles.find((user) => user.id === convertedByUserId)!.username;
-    const gmMembersUsernames = userProfiles.map((user) => renderUsername(user.username));
+    // we can memoize on profile length as the number of users in a GM always stay constant
+    const convertedByUserUsername = useMemo(() => userProfiles.find((user) => user.id === convertedByUserId)!.username, [userProfiles.length]);
+    const gmMembersUsernames = useMemo(() => userProfiles.map((user) => renderUsername(user.username)), [userProfiles.length]);
 
     if (!convertedByUserId || !gmMembersDuringConversionIDs || gmMembersDuringConversionIDs.length === 0) {
         return (

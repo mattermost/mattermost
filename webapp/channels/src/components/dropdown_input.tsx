@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
@@ -99,11 +99,12 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
     const ownValue = useRef<T>();
 
-    const ownOnChange = (value: T, action: ActionMeta<T>) => {
+    const ownOnChange = useCallback((value: T, action: ActionMeta<T>) => {
         ownValue.current = value;
         onChange(value, action);
-    };
-    const validateInput = () => {
+    }, [onChange]);
+
+    const validateInput = useCallback(() => {
         if (!props.required || (ownValue.current !== null && ownValue.current)) {
             setCustomInputLabel(null);
             return;
@@ -111,18 +112,16 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
 
         const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
         setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
-    };
+    }, [props.required]);
 
-    const onInputBlur = (event: React.FocusEvent<HTMLElement>) => {
-        const {onBlur} = props;
-
+    const onInputBlur = useCallback((event: React.FocusEvent<HTMLElement>) => {
         setFocused(false);
         validateInput();
 
-        if (onBlur) {
-            onBlur(event);
+        if (props.onBlur) {
+            props.onBlur(event);
         }
-    };
+    }, [props.onBlur]);
 
     const showLegend = Boolean(focused || value);
     const isError = error || customInputLabel?.type === 'error';
