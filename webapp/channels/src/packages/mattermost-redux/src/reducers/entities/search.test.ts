@@ -6,8 +6,8 @@ import {
     SearchTypes,
     UserTypes,
 } from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import reducer from 'mattermost-redux/reducers/entities/search';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 type SearchState = ReturnType<typeof reducer>;
 

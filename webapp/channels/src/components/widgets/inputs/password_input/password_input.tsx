@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEventHandler, FocusEventHandler, useState} from 'react';
-import {useIntl} from 'react-intl';
 import classNames from 'classnames';
+import React, {useState} from 'react';
+import type {ChangeEventHandler, FocusEventHandler} from 'react';
+import {useIntl} from 'react-intl';
 
 import {ItemStatus} from 'utils/constants';
 
-import Input, {CustomMessageInputType, SIZE} from '../input/input';
+import Input from '../input/input';
+import type {CustomMessageInputType, SIZE} from '../input/input';
 
 import './password_input.scss';
 
@@ -51,9 +53,7 @@ const PasswordInput = React.forwardRef((
     const customMessageInfo: CustomMessageInputType | null = info ? {type: ItemStatus.INFO, value: info} : null;
     const customMessage = error ? customMessageError : customMessageInfo;
 
-    const placeHolder = createMode ?
-        formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) :
-        formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
+    const placeHolder = createMode ? formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) : formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
 
     return (
         <Input

@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AnyAction} from 'redux';
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import {ChannelTypes, GroupTypes, UserTypes} from 'mattermost-redux/action_types';
-import {General} from 'mattermost-redux/constants';
-import {Client4} from 'mattermost-redux/client';
+import type {GroupPatch, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GetGroupsParams, GetGroupsForUserParams} from '@mattermost/types/groups';
+import {SyncableType, GroupSource} from '@mattermost/types/groups';
 
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {GroupPatch, SyncableType, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GroupSource, GetGroupsParams, GetGroupsForUserParams} from '@mattermost/types/groups';
+import {ChannelTypes, GroupTypes, UserTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import {General} from 'mattermost-redux/constants';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';

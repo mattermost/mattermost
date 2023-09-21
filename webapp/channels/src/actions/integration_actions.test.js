@@ -3,9 +3,9 @@
 
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
-import mockStore from 'tests/test_store';
-
 import * as Actions from 'actions/integration_actions.jsx';
+
+import mockStore from 'tests/test_store';
 
 jest.mock('mattermost-redux/actions/users', () => ({
     getProfilesByIds: jest.fn(() => {

@@ -1,22 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Stripe} from '@stripe/stripe-js';
+import type {Stripe} from '@stripe/stripe-js';
 import {getCode} from 'country-list';
 
+import type {Address, CloudCustomerPatch, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
+
+import {CloudTypes} from 'mattermost-redux/action_types';
 import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
-import {getConfirmCardSetup} from 'components/payment_form/stripe';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
-import {CloudTypes} from 'mattermost-redux/action_types';
+import {getConfirmCardSetup} from 'components/payment_form/stripe';
+
 import {getBlankAddressWithCountry} from 'utils/utils';
-import {Address, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
+
+import type {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
 
 // Returns true for success, and false for any error
 export function completeStripeAddPaymentMethod(
@@ -87,6 +89,7 @@ export function subscribeCloudSubscription(
     shippingAddress: Address = getBlankAddressWithCountry(),
     seats = 0,
     downgradeFeedback?: Feedback,
+    customerPatch?: CloudCustomerPatch,
 ) {
     return async () => {
         try {
@@ -95,6 +98,7 @@ export function subscribeCloudSubscription(
                 shippingAddress,
                 seats,
                 downgradeFeedback,
+                customerPatch,
             );
 
             return {data: subscription};

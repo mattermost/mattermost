@@ -3,32 +3,32 @@
 
 import {combineReducers} from 'redux';
 
+import addChannelCtaDropdown from './add_channel_cta_dropdown';
+import addChannelDropdown from './add_channel_dropdown';
 import admin from './admin';
 import announcementBar from './announcement_bar';
 import browser from './browser';
 import channel from './channel';
-import rhs from './rhs';
-import rhsSuppressed from './rhs_suppressed';
-import posts from './posts';
-import modals from './modals';
+import channelSelectorModal from './channel_selector_modal';
+import channelSidebar from './channel_sidebar';
+import drafts from './drafts';
 import emoji from './emoji';
 import i18n from './i18n';
 import lhs from './lhs';
-import search from './search';
-import notice from './notice';
-import system from './system';
-import channelSelectorModal from './channel_selector_modal';
-import settings from './settings';
 import marketplace from './marketplace';
-import channelSidebar from './channel_sidebar';
-import productMenu from './product_menu';
-import textbox from './textbox';
-import statusDropdown from './status_dropdown';
-import addChannelDropdown from './add_channel_dropdown';
-import addChannelCtaDropdown from './add_channel_cta_dropdown';
-import threads from './threads';
+import modals from './modals';
+import notice from './notice';
 import onboardingTasks from './onboarding_tasks';
-import drafts from './drafts';
+import posts from './posts';
+import productMenu from './product_menu';
+import rhs from './rhs';
+import rhsSuppressed from './rhs_suppressed';
+import search from './search';
+import settings from './settings';
+import statusDropdown from './status_dropdown';
+import system from './system';
+import textbox from './textbox';
+import threads from './threads';
 
 export default combineReducers({
     admin,
