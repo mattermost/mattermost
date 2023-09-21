@@ -267,7 +267,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                     <ChannelPermissionGate
                         channelId={channel.id}
                         teamId={channel.team_id}
-                        permissions={[Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE, Permissions.CREATE_PRIVATE_CHANNEL]}
+                        permissions={[Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE]}
                     >
                         <Menu.ItemToggleModalRedux
                             id='channelConvertToPrivate'
