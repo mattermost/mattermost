@@ -2,23 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {IntlShape} from 'react-intl';
-
+import type {IntlShape} from 'react-intl';
 import {Provider} from 'react-redux';
 
-import store from 'stores/redux_store.jsx';
-import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
+import type {Team} from '@mattermost/types/teams';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-import {Team} from '@mattermost/types/teams';
-import {generateId} from 'utils/utils';
 
-import ResultView from './result_view';
-import InviteView from './invite_view';
-import NoPermissionsView from './no_permissions_view';
-import InvitationModal, {Props, View, InvitationModal as BaseInvitationModal} from './invitation_modal';
+import store from 'stores/redux_store.jsx';
+
+import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+import {generateId} from 'utils/utils';
+
+import InvitationModal, {View, InvitationModal as BaseInvitationModal} from './invitation_modal';
+import type {Props} from './invitation_modal';
+import InviteView from './invite_view';
+import NoPermissionsView from './no_permissions_view';
+import ResultView from './result_view';
 
 const defaultProps: Props = deepFreeze({
     actions: {

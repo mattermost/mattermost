@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {OAuthApp} from '@mattermost/types/integrations';
+import type {OAuthApp} from '@mattermost/types/integrations';
+
+import FormError from 'components/form_error';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import icon50 from 'images/icon50x50.png';
-import FormError from 'components/form_error';
 import {getHistory} from 'utils/browser_history';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 export type Params = {
     responseType: string | null;

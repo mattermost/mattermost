@@ -783,6 +783,12 @@ type API interface {
 	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
+	// SetFileSearchableContent update the File Info searchable text for full text search
+	//
+	// @tag File
+	// Minimum server version: 9.1
+	SetFileSearchableContent(fileID string, content string) *model.AppError
+
 	// GetFileInfos gets File Infos with options
 	//
 	// @tag File
@@ -1180,6 +1186,18 @@ type API interface {
 	// @tag Upload
 	// Minimum server version: 7.6
 	GetUploadSession(uploadID string) (*model.UploadSession, error)
+
+	// SendPushNotification will send a push notification to all of user's sessions.
+	//
+	// It is the responsibility of the plugin to respect the server's configuration and licence,
+	// especially related to `cfg.EmailSettings.PushNotificationContents`, particularly
+	// `model.IdLoadedNotification` and the generic settings.
+	// Refer to `app.sendPushNotificationSync` for the logic used to construct push notifications.
+	//
+	// Note: the NotificationWillBePushed hook will be run after SendPushNotification is called.
+	//
+	// Minimum server version: 9.0
+	SendPushNotification(notification *model.PushNotification, userID string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

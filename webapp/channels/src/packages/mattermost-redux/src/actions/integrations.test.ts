@@ -3,15 +3,15 @@
 
 import nock from 'nock';
 
-import {DialogSubmission, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {DialogSubmission, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
 
 import * as Actions from 'mattermost-redux/actions/integrations';
 import * as TeamsActions from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 const OK_RESPONSE = {status: 'OK'};
 

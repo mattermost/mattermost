@@ -4,7 +4,6 @@
 import React from 'react';
 
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
-
 import {TestHelper} from 'utils/test_helper';
 
 import AdminUserCard from './admin_user_card';

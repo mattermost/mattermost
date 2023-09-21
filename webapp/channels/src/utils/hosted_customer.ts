@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Product} from '@mattermost/types/cloud';
-import {UserProfile} from '@mattermost/types/users';
+import type {Product} from '@mattermost/types/cloud';
+import type {UserProfile} from '@mattermost/types/users';
 
 // find a self-hosted product based on its SKU
 // This function should not be used for cloud products, because there are

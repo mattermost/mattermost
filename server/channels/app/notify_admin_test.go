@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -13,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const PluginIdGithub = "github"
@@ -22,10 +21,10 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		err := th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.Nil(t, err)
 	})
@@ -33,10 +32,10 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("no error sending trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		err := th.App.SendNotifyAdminPosts(ctx, "", "", true)
 		require.Nil(t, err)
 	})
@@ -44,6 +43,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("successfully send upgrade notification", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -62,7 +62,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", false)
 		require.Nil(t, appErr)
 
@@ -98,6 +97,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("successfully send trial upgrade notification", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -110,7 +110,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", true)
 		require.Nil(t, appErr)
 
@@ -146,6 +145,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("successfully send install plugin notification", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
 
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
@@ -156,7 +156,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.Nil(t, appErr)
 
@@ -191,6 +190,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("persist notify admin data after sending the install plugin notification", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
 
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
@@ -201,7 +201,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.Nil(t, appErr)
 
@@ -261,6 +260,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("error when trying to send upgrade post before end of cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -272,7 +272,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.Nil(t, appErr)
 
@@ -293,6 +292,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("can send upgrade post at the end of cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -307,7 +307,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.Nil(t, appErr)
 
@@ -329,6 +328,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("can filter notifications when plan changes within cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -349,7 +349,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		appErr = th.App.SendNotifyAdminPosts(ctx, "test", model.LicenseShortSkuProfessional, false) // try and send notification but workspace currentSKU has since changed to cloud-professional
 		require.Nil(t, appErr)
 
@@ -385,12 +384,12 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("correctly send upgrade and install plugin post with the correct user request", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		ctx := request.EmptyContext(th.TestLogger)
+
 		os.Setenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS", "0")
 		defer os.Unsetenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS")
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
