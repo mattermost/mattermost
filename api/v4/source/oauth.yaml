@@ -209,26 +209,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            appToUpdate := &model.OAuthApp{
-              Id:           <APP ID>,
-              Name:         <APP NAME>,
-              Description:  <APP DESCRIPTION>,
-              IconURL:      <URL TO APP ICON>,
-              CallbackUrls: [<CALLBACK URL1>, <CALLBACK URL2>],
-              Homepage:     <URL TO APP HOMEPAGE>,
-              IsTrusted:    <BOOLEAN>
-            }
-
-            // UpdateOAuthApp
-            updatedApp, resp := Client.UpdateOAuthApp(appToUpdate)
     delete:
       tags:
         - OAuth

@@ -2,43 +2,43 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {displayLastActiveLabel, getCurrentUserId, getLastActiveTimestampUnits, getLastActivityForUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {
-    getCurrentTeam,
-    getCurrentRelativeTeamUrl,
-    getTeamMember,
-} from 'mattermost-redux/selectors/entities/teams';
+import type {ServerError} from '@mattermost/types/errors';
+
 import {
     canManageAnyChannelMembersInCurrentTeam,
     getCurrentChannelId,
     getChannelByName,
     getChannelMember,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getCallsConfig, getCalls} from 'mattermost-redux/selectors/entities/common';
-import {GenericAction} from 'mattermost-redux/types/actions';
+import {getCallsConfig, getProfilesInCalls} from 'mattermost-redux/selectors/entities/common';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getCurrentTeam,
+    getCurrentRelativeTeamUrl,
+    getTeamMember,
+} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
+import {displayLastActiveLabel, getCurrentUserId, getLastActiveTimestampUnits, getLastActivityForUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {getMembershipForEntities} from 'actions/views/profile_popover';
 import {closeModal, openModal} from 'actions/views/modals';
-
+import {getMembershipForEntities} from 'actions/views/profile_popover';
+import {isCallsEnabled} from 'selectors/calls';
 import {getRhsState, getSelectedPost} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
-import {isAnyModalOpen} from 'selectors/views/modals';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
-
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
-
-import {ServerError} from '@mattermost/types/errors';
+import {isAnyModalOpen} from 'selectors/views/modals';
 
 import {getDirectChannelName} from 'utils/utils';
 
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
+
 import ProfilePopover from './profile_popover';
-import {isCallsEnabled} from 'selectors/calls';
 
 type OwnProps = {
     userId: string;
@@ -53,11 +53,11 @@ function getDefaultChannelId(state: GlobalState) {
 export function checkUserInCall(state: GlobalState, userId: string) {
     let isUserInCall = false;
 
-    const calls = getCalls(state);
-    Object.keys(calls).forEach((channelId) => {
-        const usersInCall = calls[channelId] || [];
+    const profilesInCalls = getProfilesInCalls(state);
+    Object.keys(profilesInCalls).forEach((channelId) => {
+        const profiles = profilesInCalls[channelId] || [];
 
-        for (const user of usersInCall) {
+        for (const user of profiles) {
             if (user.id === userId) {
                 isUserInCall = true;
                 break;

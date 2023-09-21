@@ -21,6 +21,7 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, DESKTOP on expanded view 1`] = `
 <ExpandView
   globalNotifyLevel="default"
+  isGM={false}
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}
@@ -45,6 +46,11 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, MARK_UNREAD on expanded view 1`] = `
 <ExpandView
+<<<<<<< HEAD:webapp/channels/src/components/channel_notifications_modal/components/__snapshots__/notification_section.test.tsx.snap
+=======
+  globalNotifyLevel={null}
+  isGM={false}
+>>>>>>> b7b08dbc0f9b13feee12e7289eae1e3fca0aa682:webapp/channels/src/components/channel_notifications_modal/components/__snapshots__/notification_section.test.jsx.snap
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}
@@ -71,6 +77,7 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, PUSH on expanded view 1`] = `
 <ExpandView
   globalNotifyLevel="default"
+  isGM={false}
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}

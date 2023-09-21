@@ -3,9 +3,10 @@
 
 import {combineReducers} from 'redux';
 
+import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
+
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {ClientLicense, ClientConfig} from '@mattermost/types/config';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function config(state: Partial<ClientConfig> = {}, action: GenericAction) {
     switch (action.type) {

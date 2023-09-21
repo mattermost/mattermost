@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 
-import {shallow} from 'enzyme';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {UserProfile} from '@mattermost/types/users';
-
-import {Value} from 'components/multiselect/multiselect';
-import {RelationOneToOne} from '@mattermost/types/utilities';
+import type {Value} from 'components/multiselect/multiselect';
 
 import AddUserToGroupMultiSelect from './add_user_to_group_multiselect';
 

@@ -1,25 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ComponentProps} from 'react';
+import type {ComponentProps} from 'react';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
+import type {Post} from '@mattermost/types/posts';
+
+import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeamId, getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
+import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId, getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {setThreadFollow} from 'mattermost-redux/actions/threads';
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
-
-import {openModal} from 'actions/views/modals';
 
 import {
     flagPost,
@@ -29,20 +28,18 @@ import {
     setEditingPost,
     markPostAsUnread,
 } from 'actions/post_actions';
-
+import {openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import * as PostUtils from 'utils/post_utils';
-
 import {isArchivedChannel} from 'utils/channel_utils';
+import {Locations, Preferences} from 'utils/constants';
+import * as PostUtils from 'utils/post_utils';
+import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
+import {allAtMentions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
 
-import {Locations, Preferences} from 'utils/constants';
-import {allAtMentions} from 'utils/text_formatting';
-
-import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
-
-import {Post} from '@mattermost/types/posts';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 import DotMenu from './dot_menu';
 
@@ -114,7 +111,6 @@ function makeMapStateToProps() {
             postEditTimeLimit: config.PostEditTimeLimit,
             isLicensed: license.IsLicensed === 'true',
             teamId: getCurrentTeamId(state),
-            pluginMenuItems: state.plugins.components.PostDropdownMenu,
             canEdit: PostUtils.canEditPost(state, post, license, config, channel, userId),
             canDelete: PostUtils.canDeletePost(state, post, channel),
             teamUrl,

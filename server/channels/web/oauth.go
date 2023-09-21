@@ -352,20 +352,25 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if desktopToken != "" {
-			desktopTokenErr := c.App.AuthenticateDesktopToken(desktopToken, time.Now().Add(-model.DesktopTokenTTL).Unix(), user)
-			if desktopTokenErr != nil {
-				desktopTokenErr.Translate(c.AppContext.T)
-				c.LogErrorByCode(desktopTokenErr)
-				renderError(desktopTokenErr)
+			serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
+			if serverTokenErr != nil {
+				serverTokenErr.Translate(c.AppContext.T)
+				c.LogErrorByCode(serverTokenErr)
+				renderError(serverTokenErr)
 				return
 			}
 
 			queryString := map[string]string{
-				"desktopAuthComplete": "true",
+				"client_token": desktopToken,
+				"server_token": *serverToken,
 			}
 			if val, ok := props["redirect_to"]; ok {
 				queryString["redirect_to"] = val
 			}
+			if strings.HasPrefix(desktopToken, "dev-") {
+				queryString["isDesktopDev"] = "true"
+			}
+
 			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
 		}
 	}
@@ -383,14 +388,6 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginHint := r.URL.Query().Get("login_hint")
 	redirectURL := r.URL.Query().Get("redirect_to")
 	desktopToken := r.URL.Query().Get("desktop_token")
-	if desktopToken != "" {
-		desktopTokenErr := c.App.CreateDesktopToken(desktopToken, time.Now().Unix())
-
-		if desktopTokenErr != nil {
-			c.Err = desktopTokenErr
-			return
-		}
-	}
 
 	if redirectURL != "" && !utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectURL) {
 		c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, "", http.StatusBadRequest)
@@ -461,14 +458,6 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	desktopToken := r.URL.Query().Get("desktop_token")
-	if desktopToken != "" {
-		desktopTokenErr := c.App.CreateDesktopToken(desktopToken, time.Now().Unix())
-
-		if desktopTokenErr != nil {
-			c.Err = desktopTokenErr
-			return
-		}
-	}
 
 	authURL, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId, desktopToken)
 	if err != nil {

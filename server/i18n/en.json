@@ -296,6 +296,14 @@
     "translation": "Your license does not support channel moderation"
   },
   {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "User is not allowed to convert group message to private channel"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} created this channel from a group message with {{.GMMembers}}."
+  },
+  {
     "id": "api.channel.guest_join_channel.post_and_forget",
     "translation": "%v joined the channel as guest."
   },
@@ -338,6 +346,10 @@
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -430,6 +442,10 @@
   {
     "id": "api.channel.update_channel.typechange.app_error",
     "translation": "Channel type cannot be updated."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
@@ -812,6 +828,46 @@
     "translation": "An error occurred while expanding previews."
   },
   {
+    "id": "api.command_exportlink.desc",
+    "translation": "Generate a link to download a export."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "The file store driver does not support link generation."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "No export file has been found."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Unable to find the file you requested."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "You can download your file here: {{.Link}}.\nThis link will expire in {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Unable to retrieve the export list."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "You don't have enough permissions to run this command."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Unable to generate presign url."
+  },
+  {
     "id": "api.command_groupmsg.desc",
     "translation": "Sends a Group Message to the specified users"
   },
@@ -871,6 +927,10 @@
     "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
+  },
+  {
     "id": "api.command_invite.desc",
     "translation": "Invite a user to a channel"
   },
@@ -881,10 +941,6 @@
   {
     "id": "api.command_invite.fail.app_error",
     "translation": "An error occurred while joining the channel."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {
     "id": "api.command_invite.hint",
@@ -915,12 +971,27 @@
     "translation": "{{.User}} added to {{.Channel}} channel."
   },
   {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} and {{.Others}} added to {{.Channel}} channel."
+  },
+  {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is already in the channel."
+    "translation": {
+      "one": "{{.User}} is already in the channel.",
+      "other": "{{.User}} are already in the channel."
+    }
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} and {{.Others}} others are already in the channel."
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} is not a member of the team."
+    "translation": "You can add {{.Users}} to this channel once they are members of the **{{.Team}}** team."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "You can add {{.FirstUser}} and {{.Others}} others to this channel once they are members of the **{{.Team}}** team."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1938,10 +2009,6 @@
     "translation": "Invalid username."
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights is behind a feature flag which is not enabled."
-  },
-  {
     "id": "api.invalid_channel",
     "translation": "Channel listed in the request doesn't belong to the user"
   },
@@ -2354,10 +2421,6 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -4256,6 +4319,10 @@
     "translation": "Login failed because email address has not been verified."
   },
   {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Login failed because remote users are not allow to log in."
+  },
+  {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "Please sign in using {{.AuthService}}."
   },
@@ -4740,6 +4807,26 @@
     "translation": "No channel found."
   },
   {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Unable to find member count for given channels."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Unable to find member count."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Unable to check unreads and mentions"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Channel is not a group message."
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Couldn't fetch common teams."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -4798,6 +4885,26 @@
   {
     "id": "app.channel.get_unread.app_error",
     "translation": "Unable to get the channel unread messages."
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Couldn't delete existing sidebar categories for converted GM."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Cannot find user's channel membership"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "The specified team ID in conversion request does not contain all the group message members"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "The channel being converted is not a group message. You can only convert group messages"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Failed to create group message to channel conversion post"
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
@@ -4886,6 +4993,14 @@
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
     "translation": "Unable to mark channel as unread."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Unable to update the channel member."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Unable to update the channel member, notify props size limit exceeded."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -5024,24 +5139,12 @@
     "translation": "group name is not unique"
   },
   {
-    "id": "app.desktop_token.authenticate.invalid_or_expired",
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
     "translation": "Token does not exist or is expired"
   },
   {
-    "id": "app.desktop_token.create.collision",
-    "translation": "This token already exists in the system"
-  },
-  {
-    "id": "app.desktop_token.create.error",
-    "translation": "An error occured attempted to create the token"
-  },
-  {
-    "id": "app.desktop_token.validate.expired",
-    "translation": "Token is expired"
-  },
-  {
     "id": "app.desktop_token.validate.invalid",
-    "translation": "Token is not valid"
+    "translation": "Token is not valid or is expired"
   },
   {
     "id": "app.desktop_token.validate.no_user",
@@ -5116,6 +5219,30 @@
     "translation": "Unable to get the emoji."
   },
   {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "This actions requires the use of a dedicated export store."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign url generation."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "This feature is restricted by a feature flag."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Unable to check if the file exists."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Unable to generate the presigned url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "The export file was not found."
+  },
+  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export."
   },
@@ -5178,6 +5305,10 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Unable to save the file info."
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Unable to set the searchable content of the file."
   },
   {
     "id": "app.group.crud_permission",
@@ -5246,6 +5377,10 @@
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
     "translation": "Some users not found"
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Unable to archive imported channel."
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -5776,10 +5911,6 @@
     "translation": "insert error"
   },
   {
-    "id": "app.insights.feature_disabled",
-    "translation": "Insights feature is disabled."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -5974,10 +6105,6 @@
   {
     "id": "app.oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app."
-  },
-  {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -6240,18 +6367,6 @@
     "translation": "Unable to get the posts for the channel."
   },
   {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Unable to get top DMs for user."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Unable to get top threads for team."
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Unable to get top threads for user."
-  },
-  {
     "id": "app.post.marshal.app_error",
     "translation": "Failed to marshal post."
   },
@@ -6344,12 +6459,12 @@
     "translation": "Unable to get reactions for post."
   },
   {
-    "id": "app.reaction.save.save.app_error",
-    "translation": "Unable to save reaction."
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete reactions for user."
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": "Error fetching recent searches"
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Unable to save reaction."
   },
   {
     "id": "app.recover.delete.app_error",
@@ -6714,6 +6829,10 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Unable to mark all threads as read by channel"
   },
   {
     "id": "app.update_error",
@@ -8000,6 +8119,10 @@
     "translation": "Unsupported syncable type '{{.Value}}'."
   },
   {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} and {{.LastItem}}"
+  },
+  {
     "id": "import_process.worker.do_job.file_exists",
     "translation": "Unable to process import: file does not exists."
   },
@@ -8246,6 +8369,10 @@
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify props size limit exceeded."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
@@ -8584,6 +8711,10 @@
     "translation": "AD/LDAP field \"Username Attribute\" is required."
   },
   {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Invalid value for link metadata timeout. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
   },
@@ -8804,6 +8935,10 @@
     "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values."
   },
   {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Invalid value for user status away timeout. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Invalid value for webserver connection security."
   },
@@ -9014,10 +9149,6 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Invalid time range."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -9757,11 +9888,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 112+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

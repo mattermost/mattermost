@@ -3,12 +3,11 @@
 
 import React from 'react';
 
-import {Post, PostType} from '@mattermost/types/posts';
+import type {Post, PostType} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
 
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-
 import {TestHelper} from 'utils/test_helper';
 
 import PostMarkdown from './post_markdown';
@@ -16,7 +15,6 @@ import PostMarkdown from './post_markdown';
 describe('components/PostMarkdown', () => {
     const baseProps = {
         imageProps: {},
-        isRHS: false,
         message: 'message',
         post: TestHelper.getPostMock(),
         mentionKeys: [{key: 'a'}, {key: 'b'}, {key: 'c'}],

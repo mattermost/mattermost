@@ -3,6 +3,13 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {ChannelTypes} from 'mattermost-redux/action_types';
+import {fetchAppBindings} from 'mattermost-redux/actions/apps';
 import {
     fetchMyChannelsAndMembersREST,
     getChannelByNameAndTeamName,
@@ -11,42 +18,37 @@ import {
 } from 'mattermost-redux/actions/channels';
 import {logout, loadMe, loadMeREST} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
-import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {ChannelTypes} from 'mattermost-redux/action_types';
-import {fetchAppBindings} from 'mattermost-redux/actions/apps';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {Post} from '@mattermost/types/posts';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {Team} from '@mattermost/types/teams';
+import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
-import {getHistory} from 'utils/browser_history';
 import {handleNewPost} from 'actions/post_actions';
 import {stopPeriodicStatusUpdates} from 'actions/status_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
-import {closeRightHandSide, closeMenu as closeRhsMenu, updateRhsState} from 'actions/views/rhs';
 import {clearUserCookie} from 'actions/views/cookie';
 import {close as closeLhs} from 'actions/views/lhs';
+import {closeRightHandSide, closeMenu as closeRhsMenu, updateRhsState} from 'actions/views/rhs';
 import * as WebsocketActions from 'actions/websocket_actions.jsx';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsRhsOpen, getPreviousRhsState, getRhsState} from 'selectors/rhs';
 import BrowserStore from 'stores/browser_store';
-import store from 'stores/redux_store.jsx';
 import LocalStorageStore from 'stores/local_storage_store';
+import store from 'stores/redux_store.jsx';
+
+import SubMenuModal from 'components/widgets/menu/menu_modals/submenu_modal/submenu_modal';
+
 import WebSocketClient from 'client/web_websocket_client.jsx';
-
-import {GlobalState} from 'types/store';
-
+import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostTypes, RHSStates, ModalIdentifiers, PreviousViewedTypes} from 'utils/constants';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
-import SubMenuModal from '../components/widgets/menu/menu_modals/submenu_modal/submenu_modal';
+
+import type {GlobalState} from 'types/store';
 
 import {openModal} from './views/modals';
 
@@ -65,7 +67,7 @@ export function emitChannelClickEvent(channel: Channel) {
         const currentChannelId = getCurrentChannelId(state);
         const previousRhsState = getPreviousRhsState(state);
 
-        dispatch(getChannelStats(chan.id, true));
+        dispatch(getChannelStats(chan.id));
 
         const penultimate = LocalStorageStore.getPreviousChannelName(userId, teamId);
         const penultimateType = LocalStorageStore.getPreviousViewedType(userId, teamId);

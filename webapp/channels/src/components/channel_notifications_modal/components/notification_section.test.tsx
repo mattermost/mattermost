@@ -1,12 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+<<<<<<< HEAD:webapp/channels/src/components/channel_notifications_modal/components/notification_section.test.tsx
 import React, {ChangeEvent} from 'react';
+=======
+>>>>>>> b7b08dbc0f9b13feee12e7289eae1e3fca0aa682:webapp/channels/src/components/channel_notifications_modal/components/notification_section.test.jsx
 import {shallow} from 'enzyme';
-
-import {NotificationLevels, NotificationSections} from 'utils/constants';
+import React from 'react';
 
 import NotificationSection, {Props} from 'components/channel_notifications_modal/components/notification_section';
+
+import {NotificationLevels, NotificationSections} from 'utils/constants';
 
 describe('components/channel_notifications_modal/NotificationSection', () => {
     const baseProps: Props = {
@@ -21,6 +25,7 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
         onSubmit: () => {}, //eslint-disable-line no-empty-function
         onUpdateSection: () => {}, //eslint-disable-line no-empty-function
         serverError: '',
+        isGM: false,
     };
 
     test('should match snapshot, DESKTOP on collapsed view', () => {

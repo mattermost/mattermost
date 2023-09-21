@@ -6,10 +6,8 @@ package model
 type GlobalRetentionPolicy struct {
 	MessageDeletionEnabled bool  `json:"message_deletion_enabled"`
 	FileDeletionEnabled    bool  `json:"file_deletion_enabled"`
-	BoardsDeletionEnabled  bool  `json:"boards_deletion_enabled"`
 	MessageRetentionCutoff int64 `json:"message_retention_cutoff"`
 	FileRetentionCutoff    int64 `json:"file_retention_cutoff"`
-	BoardsRetentionCutoff  int64 `json:"boards_retention_cutoff"`
 }
 
 type RetentionPolicy struct {
@@ -85,4 +83,16 @@ type RetentionPolicyCursor struct {
 	ChannelPoliciesDone bool
 	TeamPoliciesDone    bool
 	GlobalPoliciesDone  bool
+}
+
+type RetentionIdsForDeletion struct {
+	Id        string
+	TableName string
+	Ids       []string
+}
+
+func (r *RetentionIdsForDeletion) PreSave() {
+	if r.Id == "" {
+		r.Id = NewId()
+	}
 }

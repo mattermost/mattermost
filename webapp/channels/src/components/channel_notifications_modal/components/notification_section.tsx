@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, PureComponent, ReactNode} from 'react';
+import React, {PureComponent} from 'react';
+import type {ChangeEvent, ReactNode} from 'react';
+import type {ValueType} from 'react-select';
 
-import {ValueType} from 'react-select';
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
 
 import {NotificationSections, NotificationLevels} from 'utils/constants';
-
-import {ChannelNotifyProps} from '@mattermost/types/channels';
 
 import CollapseView from './collapse_view';
 import ExpandView from './expand_view';
@@ -95,6 +95,11 @@ export type Props = {
      * Error string from the server
      */
     serverError?: ReactNode;
+
+    /**
+     * Whether the preferences are those of a GM
+     */
+    isGM: boolean;
 }
 
 export default class NotificationSection extends PureComponent<Props> {
@@ -142,6 +147,7 @@ export default class NotificationSection extends PureComponent<Props> {
             onReset,
             section,
             serverError,
+            isGM,
         } = this.props;
 
         if (expand) {
@@ -165,6 +171,7 @@ export default class NotificationSection extends PureComponent<Props> {
                     onSubmit={onSubmit}
                     serverError={serverError}
                     onCollapseSection={this.handleCollapseSection}
+                    isGM={isGM}
                 />
             );
         }

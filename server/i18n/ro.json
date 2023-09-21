@@ -4044,10 +4044,6 @@
     "translation": "Identitatea creatorului invalidă."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Sa decodeze gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Valoare invalidă pentru create_at."
   },
