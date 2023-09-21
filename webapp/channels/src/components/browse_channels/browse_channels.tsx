@@ -328,7 +328,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primaryButton', <i className='icon-plus'/>)}
+                {createNewChannelButton('btn-primary', <i className='icon-plus'/>)}
             </>
         );
 
