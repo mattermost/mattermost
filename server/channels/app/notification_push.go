@@ -512,17 +512,25 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 	return sessions, nil
 }
 
-func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
-	return DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned) &&
+func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
+	return DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM) &&
 		DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId)
 }
 
-func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned bool) bool {
+func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) bool {
 	userNotifyProps := user.NotifyProps
 	userNotify := userNotifyProps[model.PushNotifyProp]
 	channelNotify, ok := channelNotifyProps[model.PushNotifyProp]
 	if !ok || channelNotify == "" {
 		channelNotify = model.ChannelNotifyDefault
+	}
+
+	notify := channelNotify
+	if channelNotify == model.ChannelNotifyDefault {
+		notify = userNotify
+		if isGM && userNotify == model.UserNotifyMention {
+			notify = model.ChannelNotifyAll
+		}
 	}
 
 	// If the channel is muted do not send push notifications
@@ -534,26 +542,17 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 		return false
 	}
 
-	if channelNotify == model.UserNotifyNone {
+	if notify == model.ChannelNotifyNone {
 		return false
 	}
 
-	if channelNotify == model.ChannelNotifyMention && !wasMentioned {
+	if notify == model.ChannelNotifyMention && !wasMentioned {
 		return false
 	}
 
-	if userNotify == model.UserNotifyMention && channelNotify == model.ChannelNotifyDefault && !wasMentioned {
-		return false
-	}
-
-	if (userNotify == model.UserNotifyAll || channelNotify == model.ChannelNotifyAll) &&
+	if (notify == model.ChannelNotifyAll) &&
 		(post.UserId != user.Id || post.GetProp("from_webhook") == "true") {
 		return true
-	}
-
-	if userNotify == model.UserNotifyNone &&
-		channelNotify == model.ChannelNotifyDefault {
-		return false
 	}
 
 	return true

@@ -397,7 +397,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.onlyMentions'
-                                defaultMessage='Only for mentions and direct messages'
+                                defaultMessage='Only for mentions, direct messages, and group messages'
                             />
                         </label>
                         <br/>
