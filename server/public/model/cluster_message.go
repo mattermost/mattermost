@@ -6,6 +6,7 @@ package model
 type ClusterEvent string
 
 const (
+	ClusterEventNone                                        ClusterEvent = "none"
 	ClusterEventPublish                                     ClusterEvent = "publish"
 	ClusterEventUpdateStatus                                ClusterEvent = "update_status"
 	ClusterEventInvalidateAllCaches                         ClusterEvent = "inv_all_caches"

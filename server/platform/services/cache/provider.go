@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/redis/go-redis/v9"
 )
 
 // CacheOptions contains options for initializing a cache
@@ -17,6 +18,9 @@ type CacheOptions struct {
 	InvalidateClusterEvent model.ClusterEvent
 	Striped                bool
 	StripedBuckets         int
+	RedisAddr              string
+	RedisPassword          string
+	RedisDB                int
 }
 
 // Provider is a provider for Cache
@@ -64,4 +68,40 @@ func (c *cacheProvider) Connect() error {
 // Close releases any resources used by the cache provider.
 func (c *cacheProvider) Close() error {
 	return nil
+}
+
+type redisProvider struct {
+	client *redis.Client
+}
+
+// NewProvider creates a new CacheProvider
+func NewRedisProvider() Provider {
+	return &redisProvider{}
+}
+
+// NewCache creates a new cache with given opts
+func (c *redisProvider) NewCache(opts *CacheOptions) (Cache, error) {
+	cache := NewRedis(RedisOptions{
+		Name:          opts.Name,
+		DefaultExpiry: opts.DefaultExpiry,
+		Addr:          opts.RedisAddr,
+		Password:      opts.RedisPassword,
+		DB:            opts.RedisDB,
+	})
+	if c.client == nil {
+		c.client = cache.client
+	} else {
+		cache.client = c.client
+	}
+	return cache, nil
+}
+
+// Connect opens a new connection to the cache using specific provider parameters.
+func (c *redisProvider) Connect() error {
+	return nil
+}
+
+// Close releases any resources used by the cache provider.
+func (c *redisProvider) Close() error {
+	return c.client.Close()
 }
