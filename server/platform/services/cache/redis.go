@@ -18,18 +18,10 @@ type Redis struct {
 type RedisOptions struct {
 	Name          string
 	DefaultExpiry time.Duration
-	Addr          string
-	Password      string
-	DB            int
 }
 
 func NewRedis(opts RedisOptions) *Redis {
-	client := redis.NewClient(&redis.Options{
-		Addr:     opts.Addr,
-		Password: opts.Password,
-		DB:       opts.DB,
-	})
-	return &Redis{name: opts.Name, client: client, defaultExpiry: opts.DefaultExpiry}
+	return &Redis{name: opts.Name, defaultExpiry: opts.DefaultExpiry}
 }
 
 func (r *Redis) Purge() error {
@@ -75,12 +67,12 @@ func (r *Redis) Remove(key string) error {
 
 // Keys returns a slice of the keys in the cache.
 func (r *Redis) Keys() ([]string, error) {
-	return r.client.Keys(context.Background(), r.name).Result()
+	return r.client.Keys(context.Background(), r.name+"_*").Result()
 }
 
 // Len returns the number of items in the cache.
 func (r *Redis) Len() (int, error) {
-	keys, err := r.client.Keys(context.Background(), r.name).Result()
+	keys, err := r.client.Keys(context.Background(), r.name+"_*").Result()
 	if err != nil {
 		return 0, err
 	}
