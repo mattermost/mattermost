@@ -136,14 +136,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
 	ps.isFirstUserAccount.Store(true)
 
-	// Step 1: Cache provider.
-	// At the moment we only have this implementation
-	// in the future the cache provider will be built based on the loaded config
-	ps.cacheProvider = cache.NewProvider()
-	if err2 := ps.cacheProvider.Connect(); err2 != nil {
-		return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
-	}
-
 	// Apply options, some of the options overrides the default config actually.
 	for _, option := range options {
 		if err := option(ps); err != nil {
@@ -165,6 +157,30 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 		ps.configStore = configStore
 	}
+
+	cacheConfig := ps.configStore.Get().CacheSettings
+	if *cacheConfig.CacheType == "lru" {
+		// Step 1: Cache provider.
+		// At the moment we only have this implementation
+		// in the future the cache provider will be built based on the loaded config
+		ps.cacheProvider = cache.NewProvider()
+		if err2 := ps.cacheProvider.Connect(); err2 != nil {
+			return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
+		}
+	} else if *cacheConfig.CacheType == "redis" {
+		// Step 1: Cache provider.
+		// At the moment we only have this implementation
+		// in the future the cache provider will be built based on the loaded config
+		ps.cacheProvider = cache.NewRedisProvider(
+			*cacheConfig.RedisAddress,
+			*cacheConfig.RedisPassword,
+			*cacheConfig.RedisDB,
+		)
+		if err2 := ps.cacheProvider.Connect(); err2 != nil {
+			return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
+		}
+	}
+
 
 	// Step 2: Start logging.
 	if err := ps.initLogging(); err != nil {

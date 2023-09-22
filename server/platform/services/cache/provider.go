@@ -75,8 +75,13 @@ type redisProvider struct {
 }
 
 // NewProvider creates a new CacheProvider
-func NewRedisProvider() Provider {
-	return &redisProvider{}
+func NewRedisProvider(addr string, password string, db int) Provider {
+	client := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: password,
+		DB:       db,
+	})
+	return &redisProvider{client: client}
 }
 
 // NewCache creates a new cache with given opts
@@ -84,9 +89,6 @@ func (c *redisProvider) NewCache(opts *CacheOptions) (Cache, error) {
 	cache := NewRedis(RedisOptions{
 		Name:          opts.Name,
 		DefaultExpiry: opts.DefaultExpiry,
-		Addr:          opts.RedisAddr,
-		Password:      opts.RedisPassword,
-		DB:            opts.RedisDB,
 	})
 	if c.client == nil {
 		c.client = cache.client

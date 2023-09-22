@@ -919,6 +919,19 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
+type CacheSettings struct {
+	CacheType     *string `access:"cache"`
+	RedisAddress  *string `access:"cache"`
+	RedisPassword *string `access:"cache"`
+	RedisDB       *int    `access:"cache"`
+}
+
+func (s *CacheSettings) SetDefaults() {
+	if s.CacheType == nil {
+		s.CacheType = NewString("lru")
+	}
+}
+
 type ClusterSettings struct {
 	Enable                             *bool   `access:"environment_high_availability,write_restrictable"`
 	ClusterName                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -3489,6 +3502,7 @@ type Config struct {
 	LocalizationSettings      LocalizationSettings
 	SamlSettings              SamlSettings
 	NativeAppSettings         NativeAppSettings
+	CacheSettings             CacheSettings
 	ClusterSettings           ClusterSettings
 	MetricsSettings           MetricsSettings
 	ExperimentalSettings      ExperimentalSettings
@@ -3597,6 +3611,7 @@ func (o *Config) SetDefaults() {
 	o.SupportSettings.SetDefaults()
 	o.AnnouncementSettings.SetDefaults()
 	o.ThemeSettings.SetDefaults()
+	o.CacheSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
 	o.ProductSettings.SetDefaults()
@@ -3633,6 +3648,14 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *o.CacheSettings.CacheType != "lru" && *o.CacheSettings.CacheType != "redis" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.cache_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *o.CacheSettings.CacheType == "redis" && (o.CacheSettings.RedisAddress == nil || o.CacheSettings.RedisPassword == nil || o.CacheSettings.RedisDB == nil) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.cache_redis_config.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *o.ServiceSettings.SiteURL == "" && *o.ServiceSettings.AllowCookiesForSubdomains {
