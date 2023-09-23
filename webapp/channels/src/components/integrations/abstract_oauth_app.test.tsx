@@ -95,7 +95,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
         expect(wrapper.state('name')).toEqual('new name');
         const evt2 = {preventDefault: jest.fn(), target: {value: 'another name'}} as any;
         (wrapper.instance() as AbstractOAuthApp).updateName(evt2);
-        expect(wrapper.state('name')).toEqual('other name');
+        expect(wrapper.state('name')).toEqual('another name');
     });
 
     test('should have correct state when updateTrusted is called', () => {
