@@ -443,3 +443,10 @@ func GetGroupNameFromUserIds(userIds []string) string {
 
 	return hex.EncodeToString(h.Sum(nil))
 }
+
+type GroupMessageConversionRequestBody struct {
+	ChannelID   string `json:"channel_id"`
+	TeamID      string `json:"team_id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+}

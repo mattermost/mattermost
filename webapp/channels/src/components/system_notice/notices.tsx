@@ -7,8 +7,8 @@ import {FormattedMessage} from 'react-intl';
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import type {Notice} from 'components/system_notice/types';
+import InfoIcon from 'components/widgets/icons/info_icon';
 
-import mattermostIcon from 'images/icon50x50.png';
 import {DocLinks} from 'utils/constants';
 import * as ServerVersion from 'utils/server_version';
 import * as UserAgent from 'utils/user_agent';
@@ -29,12 +29,11 @@ const notices: Notice[] = [
         name: 'apiv3_deprecation',
         adminOnly: true,
         title: (
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 id='system_notice.title'
-                defaultMessage='**Notice**\nfrom Mattermost'
+                defaultMessage='Notice from Mattermost'
             />
         ),
-        icon: mattermostIcon,
         body: (
             <FormattedMessage
                 id='system_notice.body.api3'
@@ -63,12 +62,11 @@ const notices: Notice[] = [
         name: 'advanced_permissions',
         adminOnly: true,
         title: (
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 id='system_notice.title'
-                defaultMessage='**Notice**\nfrom Mattermost'
+                defaultMessage='Notice from Mattermost'
             />
         ),
-        icon: mattermostIcon,
         body: (
             <FormattedMessage
                 id='system_notice.body.permissions'
@@ -103,12 +101,11 @@ const notices: Notice[] = [
         name: 'ee_upgrade_advice',
         adminOnly: true,
         title: (
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 id='system_notice.title'
-                defaultMessage='**Notice**\nfrom Mattermost'
+                defaultMessage='Notice from Mattermost'
             />
         ),
-        icon: mattermostIcon,
         body: (
             <FormattedMessage
                 id='system_notice.body.ee_upgrade_advice'
@@ -150,10 +147,9 @@ const notices: Notice[] = [
         title: (
             <FormattedMarkdownMessage
                 id='system_notice.title'
-                defaultMessage='**Notice**\nfrom Mattermost'
+                defaultMessage='Notice from Mattermost'
             />
         ),
-        icon: mattermostIcon,
         allowForget: false,
         body: (
             <FormattedMessage
@@ -183,6 +179,30 @@ const notices: Notice[] = [
             }
 
             return true;
+        },
+    },
+    {
+
+        // This notice is marked as viewed by default for new users on the server.
+        // Any change on this notice should be handled also in the server side.
+        name: 'GMasDM',
+        allowForget: true,
+        title: (
+            <FormattedMessage
+                id='system_notice.title.gm_as_dm'
+                defaultMessage='Updates to Group Messages'
+            />
+        ),
+        icon: (<InfoIcon/>),
+        body: (
+            <FormattedMessage
+                id='system_noticy.body.gm_as_dm'
+                defaultMessage='You wil now be notified for all activity in your group messages along with a notification badge for every new message.{br}{br}You can configure this in notification preferences for each group message.'
+                values={{br: (<br/>)}}
+            />
+        ),
+        show: (serverVersion, config, license, analytics, currentChannel) => {
+            return currentChannel?.type === 'G';
         },
     },
 ];
