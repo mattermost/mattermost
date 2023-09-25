@@ -2768,52 +2768,124 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableLinkPreviews = &enableLinkPreviews
+			cfg.ServiceSettings.SiteURL = &siteURL
+		})
+	}()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableLinkPreviews = true
 		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 	})
 
-	directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-	assert.Nil(t, err)
+	t.Run("should not preview for users with no access to the channel", func(t *testing.T) {
+		directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		assert.Nil(t, err)
 
-	userID := model.NewId()
-	post := &model.Post{
-		Id: userID,
-		Metadata: &model.PostMetadata{
-			Embeds: []*model.PostEmbed{
-				{
-					Type: model.PostEmbedOpengraph,
-					URL:  "ogURL",
-					Data: &opengraph.OpenGraph{
-						Images: []*ogimage.Image{
-							{
-								URL: "imageURL",
+		userID := model.NewId()
+		post := &model.Post{
+			Id: userID,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "permalink post message",
+								ChannelId: directChannel.Id,
 							},
 						},
 					},
 				},
 			},
-		},
-	}
+		}
 
-	previewedPost := model.NewPreviewPost(post, th.BasicTeam, directChannel)
+		previewedPost := model.NewPreviewPost(post, th.BasicTeam, directChannel)
 
-	actual := th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, th.BasicUser2.Id)
-	assert.NotNil(t, actual.Metadata.Embeds[0].Data)
+		actual := th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, th.BasicUser2.Id)
+		assert.NotNil(t, actual.Metadata.Embeds[0].Data)
 
-	guestID := model.NewId()
-	guest := &model.User{
-		Email:         "success+" + guestID + "@simulator.amazonses.com",
-		Username:      "un_" + guestID,
-		Nickname:      "nn_" + guestID,
-		Password:      "Password1",
-		EmailVerified: true,
-	}
-	guest, appErr := th.App.CreateGuest(th.Context, guest)
-	require.Nil(t, appErr)
+		guestID := model.NewId()
+		guest := &model.User{
+			Email:         "success+" + guestID + "@simulator.amazonses.com",
+			Username:      "un_" + guestID,
+			Nickname:      "nn_" + guestID,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		guest, appErr := th.App.CreateGuest(th.Context, guest)
+		require.Nil(t, appErr)
 
-	actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, guest.Id)
-	assert.Nil(t, actual.Metadata.Embeds[0].Data)
+		actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, guest.Id)
+		assert.Nil(t, actual.Metadata.Embeds[0].Data)
+	})
+
+	t.Run("should not preview for archived channels", func(t *testing.T) {
+		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+			})
+		}()
+
+		publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
+			Name:      "private_chanenl",
+			Type:      model.ChannelTypeOpen,
+			TeamId:    th.BasicTeam.Id,
+			CreatorId: th.SystemAdminUser.Id,
+		}, true)
+
+		require.Nil(t, err)
+		require.NotEmpty(t, publicChannel.Id)
+
+		err = th.App.DeleteChannel(th.Context, publicChannel, th.SystemAdminUser.Id)
+		require.Nil(t, err)
+
+		publicChannel, err = th.App.GetChannel(th.Context, publicChannel.Id)
+		require.Nil(t, err)
+		require.NotEmpty(t, publicChannel.Id)
+		require.NotEqual(t, 0, publicChannel.DeleteAt)
+
+		post := &model.Post{
+			Id: th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "permalink post message",
+								ChannelId: publicChannel.Id,
+							},
+						},
+					},
+				},
+			},
+		}
+
+		previewedPost := model.NewPreviewPost(post, th.BasicTeam, publicChannel)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+		})
+
+		actual := th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, publicChannel, th.BasicUser.Id)
+		assert.NotNil(t, actual.Metadata.Embeds[0].Data)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+		})
+
+		actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, publicChannel, th.BasicUser.Id)
+		assert.Nil(t, actual.Metadata.Embeds[0].Data)
+	})
 }
 
 func TestSanitizePostMetaDataForAudit(t *testing.T) {
@@ -2872,55 +2944,140 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	privateChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
-		Name:      "private_chanenl",
-		Type:      model.ChannelTypePrivate,
-		TeamId:    th.BasicTeam.Id,
-		CreatorId: th.SystemAdminUser.Id,
-	}, true)
+	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableLinkPreviews = &enableLinkPreviews
+		})
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableLinkPreviews = true
+	})
 
-	require.Nil(t, err)
-	require.NotEmpty(t, privateChannel.Id)
+	t.Run("should remove embeds for not accessible channels", func(t *testing.T) {
+		privateChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
+			Name:      "private_chanenl",
+			Type:      model.ChannelTypePrivate,
+			TeamId:    th.BasicTeam.Id,
+			CreatorId: th.SystemAdminUser.Id,
+		}, true)
 
-	post := &model.Post{
-		Id:     "post_id_1",
-		UserId: th.BasicUser.Id,
-		Metadata: &model.PostMetadata{
-			Embeds: []*model.PostEmbed{
-				{
-					Type: model.PostEmbedPermalink,
-					Data: &model.PreviewPost{
-						PostID: "permalink_post_id",
-						Post: &model.Post{
-							Id:        "permalink_post_id",
-							Message:   "permalink post message",
-							ChannelId: privateChannel.Id,
+		require.Nil(t, err)
+		require.NotEmpty(t, privateChannel.Id)
+
+		post := &model.Post{
+			Id:     "post_id_1",
+			UserId: th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "permalink post message",
+								ChannelId: privateChannel.Id,
+							},
 						},
 					},
-				},
-				{
-					Type: model.PostEmbedPermalink,
-					Data: &model.PreviewPost{
-						PostID: "permalink_post_id_2",
-						Post: &model.Post{
-							Id:        "permalink_post_id_2",
-							Message:   "permalink post message 2",
-							ChannelId: privateChannel.Id,
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id_2",
+							Post: &model.Post{
+								Id:        "permalink_post_id_2",
+								Message:   "permalink post message 2",
+								ChannelId: privateChannel.Id,
+							},
 						},
 					},
-				},
-				{
-					Type: model.PostEmbedLink,
-					URL:  "https://mattermost.com",
+					{
+						Type: model.PostEmbedLink,
+						URL:  "https://mattermost.com",
+					},
 				},
 			},
-		},
-	}
+		}
 
-	sanitizedPost, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
-	require.Nil(t, err)
-	require.NotNil(t, sanitizedPost)
+		sanitizedPost, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, sanitizedPost)
 
-	require.Equal(t, 1, len(sanitizedPost.Metadata.Embeds))
-	require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
+		require.Equal(t, 1, len(sanitizedPost.Metadata.Embeds))
+		require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
+	})
+
+	t.Run("should remove embeds for archived channels if the config does not allow it", func(t *testing.T) {
+		publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
+			Name:      "private_chanenl",
+			Type:      model.ChannelTypeOpen,
+			TeamId:    th.BasicTeam.Id,
+			CreatorId: th.SystemAdminUser.Id,
+		}, true)
+
+		require.Nil(t, err)
+		require.NotEmpty(t, publicChannel.Id)
+
+		err = th.App.DeleteChannel(th.Context, publicChannel, th.SystemAdminUser.Id)
+		require.Nil(t, err)
+
+		publicChannel, err = th.App.GetChannel(th.Context, publicChannel.Id)
+		require.Nil(t, err)
+		require.NotEmpty(t, publicChannel.Id)
+		require.NotEqual(t, 0, publicChannel.DeleteAt)
+
+		post := &model.Post{
+			Id:     "post_id_1",
+			UserId: th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "permalink post message",
+								ChannelId: publicChannel.Id,
+							},
+						},
+					},
+					{
+						Type: model.PostEmbedLink,
+						URL:  "https://mattermost.com",
+					},
+				},
+			},
+		}
+
+		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+			})
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+		})
+
+		sanitizedPost, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, sanitizedPost)
+
+		require.Equal(t, 2, len(sanitizedPost.Metadata.Embeds))
+		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+		})
+
+		sanitizedPost, err = th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, sanitizedPost)
+
+		require.Equal(t, 1, len(sanitizedPost.Metadata.Embeds))
+		require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
+	})
 }
