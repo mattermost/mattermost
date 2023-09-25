@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -497,6 +498,8 @@ func (h *Hub) Start() {
 						return
 					}
 					if webConn.ShouldSendEvent(msg) {
+						msg := runBroadcastHooks(msg, webConn)
+
 						select {
 						case webConn.send <- msg:
 						default:
@@ -563,6 +566,95 @@ func (h *Hub) Start() {
 	}
 
 	go doRecoverableStart()
+}
+
+func runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn) *model.WebSocketEvent {
+	hookIDs := msg.GetBroadcast().BroadcastHooks
+
+	if len(hookIDs) == 0 {
+		return msg
+	}
+
+	// Check first if any hooks want to make changes to the event
+	hasChanges := false
+
+	for i, hookID := range hookIDs {
+		hook := broadcastHooks[hookID]
+		args := msg.GetBroadcast().BroadcastHookArgs[i]
+		if hook == nil {
+			continue
+		}
+
+		if hook.HasChanges(msg, webConn, args) {
+			hasChanges = true
+			break
+		}
+	}
+
+	if !hasChanges {
+		return msg
+	}
+
+	// Copy the event and remove any precomputed JSON since one or more hooks wants to make changes to it
+	msg = msg.Copy()
+	msg.RemovePrecomputedJSON()
+
+	for i, hookID := range hookIDs {
+		hook := broadcastHooks[hookID]
+		args := msg.GetBroadcast().BroadcastHookArgs[i]
+		if hook == nil {
+			continue
+		}
+
+		hook.Process(msg, webConn, args)
+	}
+
+	return msg
+}
+
+const AddMentionsAndFollowers = "add_mentions_and_followers"
+
+type BroadcastHook struct {
+	HasChanges func(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) bool
+	Process    func(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) *model.WebSocketEvent
+}
+
+var broadcastHooks = map[string]*BroadcastHook{
+	AddMentionsAndFollowers: {
+		HasChanges: func(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) bool {
+			// This hook will only modify the event if the current user was mentioned or is following the post
+			mentions := args["mentions"].(model.StringArray)
+			followers := args["followers"].(model.StringArray)
+
+			return pUtils.Contains[string](mentions, webConn.UserId) ||
+				pUtils.Contains[string](followers, webConn.UserId)
+		},
+		Process: func(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) *model.WebSocketEvent {
+			mentions, ok := args["mentions"].(model.StringArray)
+			hasMention := false
+			if ok && len(mentions) > 0 {
+				hasMention = pUtils.Contains(mentions, webConn.UserId)
+			}
+
+			followers, ok := args["followers"].(model.StringArray)
+			isFollower := false
+			if ok && len(followers) > 0 {
+				isFollower = pUtils.Contains(followers, webConn.UserId)
+			}
+
+			if hasMention || isFollower {
+				// Note that the client expects these fields to be stringified
+				if hasMention {
+					msg.AddWithCopy("mentions", model.ArrayToJSON([]string{webConn.UserId}))
+				}
+				if isFollower {
+					msg.AddWithCopy("followers", model.ArrayToJSON([]string{webConn.UserId}))
+				}
+			}
+
+			return msg
+		},
+	},
 }
 
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.

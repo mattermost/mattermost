@@ -104,6 +104,11 @@ type WebsocketBroadcast struct {
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
+
+	// BroadcastHooks is a slice of hooks IDs used to process events before sending them on individual connections. The
+	// IDs should be understood by the WebSocket code.
+	BroadcastHooks    []string         `json:"-"`
+	BroadcastHookArgs []map[string]any `json:"-"`
 }
 
 func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
@@ -126,6 +131,11 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	c.ContainsSensitiveData = wb.ContainsSensitiveData
 
 	return &c
+}
+
+func (wb *WebsocketBroadcast) AddHook(hookID string, hookArgs map[string]any) {
+	wb.BroadcastHooks = append(wb.BroadcastHooks, hookID)
+	wb.BroadcastHookArgs = append(wb.BroadcastHookArgs, hookArgs)
 }
 
 type precomputedWebSocketEventJSON struct {
@@ -190,7 +200,18 @@ func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 	return evCopy
 }
 
+func (ev *WebSocketEvent) RemovePrecomputedJSON() {
+	ev.precomputedJSON = nil
+}
+
 func (ev *WebSocketEvent) Add(key string, value any) {
+	ev.data[key] = value
+}
+
+// AddWithCopy copies the map and writes to a copy of that,
+// and sets the map to the new event.
+func (ev *WebSocketEvent) AddWithCopy(key string, value any) {
+	ev.data = copyMap(ev.data)
 	ev.data[key] = value
 }
 
@@ -219,22 +240,22 @@ func (ev *WebSocketEvent) Copy() *WebSocketEvent {
 }
 
 func (ev *WebSocketEvent) DeepCopy() *WebSocketEvent {
-	var dataCopy map[string]any
-	if ev.data != nil {
-		dataCopy = make(map[string]any, len(ev.data))
-		for k, v := range ev.data {
-			dataCopy[k] = v
-		}
-	}
-
 	evCopy := &WebSocketEvent{
 		event:           ev.event,
-		data:            dataCopy,
+		data:            copyMap(ev.data),
 		broadcast:       ev.broadcast.copy(),
 		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON.copy(),
 	}
 	return evCopy
+}
+
+func copyMap[K comparable, V any](m map[K]V) map[K]V {
+	dataCopy := make(map[K]V, len(m))
+	for k, v := range m {
+		dataCopy[k] = v
+	}
+	return dataCopy
 }
 
 func (ev *WebSocketEvent) GetData() map[string]any {

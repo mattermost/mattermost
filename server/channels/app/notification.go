@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -518,12 +519,11 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		}
 	}
 
-	if len(mentionedUsersList) != 0 {
-		message.Add("mentions", model.ArrayToJSON(mentionedUsersList))
-	}
-
-	if len(notificationsForCRT.Desktop) != 0 {
-		message.Add("followers", model.ArrayToJSON(notificationsForCRT.Desktop))
+	if len(mentionedUsersList) > 0 || len(notificationsForCRT.Desktop) > 0 {
+		message.GetBroadcast().AddHook(platform.AddMentionsAndFollowers, map[string]any{
+			"mentions":  mentionedUsersList,
+			"followers": notificationsForCRT.Desktop,
+		})
 	}
 
 	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
