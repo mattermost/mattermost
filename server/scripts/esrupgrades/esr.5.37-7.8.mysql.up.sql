@@ -954,7 +954,7 @@ SELECT CONCAT('-- ', NOW(), ' MigratePosts procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigratePosts;
 
 /* ==> mysql/000068_upgrade_teammembers_v6.1.up.sql <== */
-/* ==> mysql/000092_add_createat_to_teammembers.up.sql <== */
+/* ==> mysql/000092_add_createat_to_teamembers.up.sql <== */
 DELIMITER //
 CREATE PROCEDURE MigrateTeamMembers ()
 BEGIN

@@ -182,8 +182,8 @@ channels/db/migrations/mysql/000090_create_enums.down.sql
 channels/db/migrations/mysql/000090_create_enums.up.sql
 channels/db/migrations/mysql/000091_create_post_reminder.down.sql
 channels/db/migrations/mysql/000091_create_post_reminder.up.sql
-channels/db/migrations/mysql/000092_add_createat_to_teammembers.down.sql
-channels/db/migrations/mysql/000092_add_createat_to_teammembers.up.sql
+channels/db/migrations/mysql/000092_add_createat_to_teamembers.down.sql
+channels/db/migrations/mysql/000092_add_createat_to_teamembers.up.sql
 channels/db/migrations/mysql/000093_notify_admin.down.sql
 channels/db/migrations/mysql/000093_notify_admin.up.sql
 channels/db/migrations/mysql/000094_threads_teamid.down.sql

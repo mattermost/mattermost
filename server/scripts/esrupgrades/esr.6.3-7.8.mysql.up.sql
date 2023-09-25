@@ -428,7 +428,7 @@ SET @preparedStatement = (SELECT IF(
 PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
-/* ==> mysql/000092_add_createat_to_teammembers.up.sql <== */
+/* ==> mysql/000092_add_createat_to_teamembers.up.sql <== */
 SET @preparedStatement = (SELECT IF(
     NOT EXISTS(
         SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
