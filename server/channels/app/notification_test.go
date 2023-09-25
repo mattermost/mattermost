@@ -38,19 +38,21 @@ func TestSendNotifications(t *testing.T) {
 
 	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 
-	post1, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+	post1, createPostErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
 		Type:      model.PostTypeAddToChannel,
 		Props:     map[string]any{model.PostPropsAddedUserId: "junk"},
 	}, true, true)
-	require.Nil(t, appErr)
+	require.Nil(t, createPostErr)
 
-	mentions, err := th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
-	require.NoError(t, err)
-	require.NotNil(t, mentions)
-	require.True(t, pUtils.Contains(mentions, th.BasicUser2.Id), "mentions", mentions)
+	t.Run("Basic channel", func(t *testing.T) {
+		mentions, err := th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		require.NoError(t, err)
+		require.NotNil(t, mentions)
+		require.True(t, pUtils.Contains(mentions, th.BasicUser2.Id), "mentions", mentions)
+	})
 
 	t.Run("license is required for group mention", func(t *testing.T) {
 		group := th.CreateGroup()
@@ -70,7 +72,7 @@ func TestSendNotifications(t *testing.T) {
 		groupMentionPost, createPostErr := th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, false, true)
 		require.Nil(t, createPostErr)
 
-		mentions, err = th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		mentions, err := th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 		require.Len(t, mentions, 0)
@@ -83,40 +85,83 @@ func TestSendNotifications(t *testing.T) {
 		require.Len(t, mentions, 1)
 	})
 
-	dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-	require.Nil(t, appErr)
+	t.Run("message in DM generate mention", func(t *testing.T) {
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
 
-	post2, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: dm.Id,
-		Message:   "dm message",
-	}, true, true)
-	require.Nil(t, appErr)
+		post2, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dm.Id,
+			Message:   "dm message",
+		}, true, true)
+		require.Nil(t, appErr)
 
-	mentions, err = th.App.SendNotifications(th.Context, post2, th.BasicTeam, dm, th.BasicUser, nil, true)
-	require.NoError(t, err)
-	require.NotNil(t, mentions)
+		mentions, err := th.App.SendNotifications(th.Context, post2, th.BasicTeam, dm, th.BasicUser, nil, true)
+		require.NoError(t, err)
+		require.NotNil(t, mentions)
 
-	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser2, false)
-	require.Nil(t, appErr)
-	appErr = th.App.Srv().InvalidateAllCaches()
-	require.Nil(t, appErr)
+		_, appErr = th.App.UpdateActive(th.Context, th.BasicUser2, false)
+		require.Nil(t, appErr)
+		appErr = th.App.Srv().InvalidateAllCaches()
+		require.Nil(t, appErr)
 
-	post3, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: dm.Id,
-		Message:   "dm message",
-	}, true, true)
-	require.Nil(t, appErr)
+		post3, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dm.Id,
+			Message:   "dm message",
+		}, true, true)
+		require.Nil(t, appErr)
 
-	mentions, err = th.App.SendNotifications(th.Context, post3, th.BasicTeam, dm, th.BasicUser, nil, true)
-	require.NoError(t, err)
-	require.NotNil(t, mentions)
+		mentions, err = th.App.SendNotifications(th.Context, post3, th.BasicTeam, dm, th.BasicUser, nil, true)
+		require.NoError(t, err)
+		require.NotNil(t, mentions)
 
-	th.BasicChannel.DeleteAt = 1
-	mentions, err = th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
-	require.NoError(t, err)
-	require.Empty(t, mentions)
+		th.BasicChannel.DeleteAt = 1
+		mentions, err = th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		require.NoError(t, err)
+		require.Empty(t, mentions)
+	})
+
+	t.Run("message in GM generate mention", func(t *testing.T) {
+		users := []*model.User{}
+		for i := 0; i < 2; i++ {
+			user := th.CreateUser()
+			users = append(users, user)
+		}
+		channel := th.CreateGroupChannel(th.Context, users[0], users[1])
+
+		post2, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+			UserId:    users[0].Id,
+			ChannelId: channel.Id,
+			Message:   "gm message",
+		}, true, true)
+		require.Nil(t, appErr)
+
+		mentions, err := th.App.SendNotifications(th.Context, post2, th.BasicTeam, channel, users[0], nil, true)
+		require.NoError(t, err)
+		require.NotNil(t, mentions)
+
+		_, appErr = th.App.UpdateActive(th.Context, users[1], false)
+		require.Nil(t, appErr)
+		appErr = th.App.Srv().InvalidateAllCaches()
+		require.Nil(t, appErr)
+
+		post3, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+			UserId:    users[0].Id,
+			ChannelId: channel.Id,
+			Message:   "gm message",
+		}, true, true)
+		require.Nil(t, appErr)
+
+		mentions, err = th.App.SendNotifications(th.Context, post3, th.BasicTeam, channel, users[0], nil, true)
+		require.NoError(t, err)
+		require.NotNil(t, mentions)
+
+		th.BasicChannel.DeleteAt = 1
+		mentions, err = th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, users[0], nil, true)
+		require.NoError(t, err)
+		require.Empty(t, mentions)
+	})
 
 	t.Run("replies to post created by OAuth bot should not notify user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -129,7 +174,7 @@ func TestSendNotifications(t *testing.T) {
 				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
 			}
 
-			rootPost, appErr = th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
+			rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
 			require.Nil(t, appErr)
 
 			childPost := &model.Post{
@@ -145,11 +190,12 @@ func TestSendNotifications(t *testing.T) {
 				Order: []string{rootPost.Id, childPost.Id},
 				Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
 			}
-			mentions, err = th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+			mentions, err := th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
 			require.NoError(t, err)
 			require.False(t, pUtils.Contains(mentions, user.Id))
 		}
 
+		var appErr *model.AppError
 		th.BasicUser.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 		th.BasicUser, appErr = th.App.UpdateUser(th.Context, th.BasicUser, false)
 		require.Nil(t, appErr)
