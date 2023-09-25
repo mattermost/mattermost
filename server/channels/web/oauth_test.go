@@ -402,7 +402,10 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	}
 
 	var siteURL = "http://localhost:8065"
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = siteURL })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = siteURL
+		cfg.NativeAppSettings.AppCustomURLSchemes = append(cfg.NativeAppSettings.AppCustomURLSchemes, "mmauth://")
+	})
 
 	translationFunc := i18n.GetUserTranslations("en")
 	c.AppContext.SetT(translationFunc)
@@ -412,10 +415,18 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 
 	t.Run("Should include redirect URL in the output when valid URL Scheme is passed", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("mmauth://"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.Contains(t, responseWriter.Body.String(), "mmauth://")
+		assert.NotContains(t, responseWriter.Body.String(), siteURL)
+	})
+
+	t.Run("Should include SiteURL in the output when invalid URL Scheme is passed", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
 		mobileLoginWithOAuth(c, responseWriter, request)
-		assert.Contains(t, responseWriter.Body.String(), "randomScheme://")
-		assert.NotContains(t, responseWriter.Body.String(), siteURL)
+		assert.NotContains(t, responseWriter.Body.String(), "randomScheme://")
+		assert.Contains(t, responseWriter.Body.String(), siteURL)
 	})
 
 	t.Run("Should not include the redirect URL consisting of javascript protocol", func(t *testing.T) {

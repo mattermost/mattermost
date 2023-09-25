@@ -79,13 +79,13 @@ func (_m *DesktopTokensStore) GetUserId(token string, minCreatedAt int64) (*stri
 	return r0, r1
 }
 
-// Insert provides a mock function with given fields: token, createdAt, userId
-func (_m *DesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
-	ret := _m.Called(token, createdAt, userId)
+// Insert provides a mock function with given fields: token, createAt, userId
+func (_m *DesktopTokensStore) Insert(token string, createAt int64, userId string) error {
+	ret := _m.Called(token, createAt, userId)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64, string) error); ok {
-		r0 = rf(token, createdAt, userId)
+		r0 = rf(token, createAt, userId)
 	} else {
 		r0 = ret.Error(0)
 	}

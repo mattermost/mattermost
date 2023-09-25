@@ -522,7 +522,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     {removeImageIcon}
                                 </div>
                                 <div
-                                    className='btn btn-sm btn-primary btn-file sel-btn'
+                                    className='btn btn-sm btn-primary btn-file'
                                 >
                                     <FormattedMessage
                                         id='bots.image.upload'
@@ -718,7 +718,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 errors={[this.state.error]}
                             />
                             <Link
-                                className='btn btn-link btn-sm'
+                                className='btn btn-tertiary'
                                 to={`/${this.props.team.name}/integrations/bots`}
                             >
                                 <FormattedMessage

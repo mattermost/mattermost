@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import crypto from 'crypto';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {Tooltip} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -25,15 +24,12 @@ import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
 
+import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import OverlayTrigger from 'components/overlay_trigger';
-import Input from 'components/widgets/inputs/input/input';
-import URLInput from 'components/widgets/inputs/url_input/url_input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 
 import Pluggable from 'plugins/pluggable';
-import Constants, {ItemStatus, ModalIdentifiers} from 'utils/constants';
-import {cleanUpUrlable, validateChannelUrl, getSiteURL} from 'utils/url';
-import {localizeMessage} from 'utils/utils';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -53,20 +49,6 @@ export function getChannelTypeFromPermissions(canCreatePublicChannel: boolean, c
     return channelType as ChannelType;
 }
 
-export function validateDisplayName(displayName: string) {
-    const errors: string[] = [];
-
-    if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.longer', 'Channel names must have at least 2 characters.'));
-    }
-
-    if (displayName.length > Constants.MAX_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.shorter', 'Channel names must have maximum 64 characters.'));
-    }
-
-    return errors;
-}
-
 const enum ServerErrorId {
     CHANNEL_URL_SIZE = 'model.channel.is_valid.1_or_more.app_error',
     CHANNEL_UPDATE_EXISTS = 'store.sql_channel.update.exists.app_error',
@@ -78,7 +60,7 @@ const NewChannelModal = () => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
-    const {id: currentTeamId, name: currentTeamName} = useSelector((state: GlobalState) => getCurrentTeam(state));
+    const {id: currentTeamId} = useSelector(getCurrentTeam);
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL) : false));
     const canCreatePrivateChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL) : false));
@@ -88,12 +70,10 @@ const NewChannelModal = () => {
     const [displayName, setDisplayName] = useState('');
     const [url, setURL] = useState('');
     const [purpose, setPurpose] = useState('');
-    const [displayNameModified, setDisplayNameModified] = useState(false);
-    const [urlModified, setURLModified] = useState(false);
-    const [displayNameError, setDisplayNameError] = useState('');
     const [urlError, setURLError] = useState('');
     const [purposeError, setPurposeError] = useState('');
     const [serverError, setServerError] = useState('');
+    const [channelInputError, setChannelInputError] = useState(false);
 
     // create a board along with the channel
     const pluginsComponentsList = useSelector((state: GlobalState) => state.plugins.components);
@@ -215,48 +195,10 @@ const NewChannelModal = () => {
         }
     };
 
-    const handleOnDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const {target: {value: displayName}} = e;
-
-        const displayNameErrors = validateDisplayName(displayName);
-
-        setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
-        setDisplayName(displayName);
-        setServerError('');
-
-        if (!urlModified) {
-            setURL(cleanUpUrlable(displayName));
-            setURLError('');
-        }
-    };
-
-    const handleOnDisplayNameBlur = () => {
-        if (displayName && !url) {
-            setURL(crypto.randomBytes(16).toString('hex'));
-        }
-        if (!displayNameModified) {
-            setDisplayNameModified(true);
-        }
-    };
-
-    const handleOnURLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const {target: {value: url}} = e;
-
-        const cleanURL = url.toLowerCase().replace(/\s/g, '-');
-        const urlErrors = validateChannelUrl(cleanURL, intl) as string[];
-
-        setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
-        setURL(cleanURL);
-        setURLModified(true);
-        setServerError('');
-    };
-
-    const handleOnTypeChange = (channelType: ChannelType) => {
+    const handleOnTypeChange = useCallback((channelType: ChannelType) => {
         setType(channelType);
         setServerError('');
-    };
+    }, []);
 
     const handleOnPurposeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.preventDefault();
@@ -272,7 +214,7 @@ const NewChannelModal = () => {
         e.stopPropagation();
     };
 
-    const canCreate = displayName && !displayNameError && !urlError && type && !purposeError && !serverError && canCreateFromPluggable;
+    const canCreate = displayName && !urlError && type && !purposeError && !serverError && canCreateFromPluggable && !channelInputError;
 
     const newBoardInfoIcon = (
         <OverlayTrigger
@@ -318,31 +260,13 @@ const NewChannelModal = () => {
             onExited={handleOnModalCancel}
         >
             <div className='new-channel-modal-body'>
-                <Input
-                    type='text'
-                    autoComplete='off'
-                    autoFocus={true}
-                    required={true}
-                    name='new-channel-modal-name'
-                    containerClassName='new-channel-modal-name-container'
-                    inputClassName='new-channel-modal-name-input'
-                    label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
-                    placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
-                    limit={Constants.MAX_CHANNELNAME_LENGTH}
+                <ChannelNameFormField
                     value={displayName}
-                    customMessage={displayNameModified ? {type: ItemStatus.ERROR, value: displayNameError} : null}
-                    onChange={handleOnDisplayNameChange}
-                    onBlur={handleOnDisplayNameBlur}
-                />
-                <URLInput
-                    className='new-channel-modal__url'
-                    base={getSiteURL()}
-                    path={`${currentTeamName}/channels`}
-                    pathInfo={url}
-                    limit={Constants.MAX_CHANNELNAME_LENGTH}
-                    shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
-                    error={urlError}
-                    onChange={handleOnURLChange}
+                    name='new-channel-modal-name'
+                    placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
+                    onDisplayNameChange={setDisplayName}
+                    onURLChange={setURL}
+                    onErrorStateChange={setChannelInputError}
                 />
                 <PublicPrivateSelector
                     className='new-channel-modal-type-selector'

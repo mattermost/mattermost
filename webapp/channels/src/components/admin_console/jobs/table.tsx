@@ -119,7 +119,7 @@ class JobTable extends React.PureComponent<Props> {
                         <div>
                             <button
                                 type='button'
-                                className='btn btn-default'
+                                className='btn btn-tertiary'
                                 onClick={this.handleCreateJob}
                                 disabled={this.props.disabled}
                             >
