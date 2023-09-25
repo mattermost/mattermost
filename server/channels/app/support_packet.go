@@ -42,6 +42,7 @@ func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
 		"notification log": a.getNotificationsLog,
 		"cpu profile":      a.createCPUProfile,
 		"heap profile":     a.createHeapProfile,
+		"goroutines":       a.createGoroutineProfile,
 	}
 
 	for name, fn := range functions {
@@ -329,6 +330,21 @@ func (a *App) createHeapProfile(*request.Context) (*model.FileData, error) {
 
 	fileData := &model.FileData{
 		Filename: "heap.prof",
+		Body:     b.Bytes(),
+	}
+	return fileData, nil
+}
+
+func (a *App) createGoroutineProfile(_ *request.Context) (*model.FileData, error) {
+	var b bytes.Buffer
+
+	err := pprof.Lookup("goroutine").WriteTo(&b, 2)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to lookup goroutine profile")
+	}
+
+	fileData := &model.FileData{
+		Filename: "goroutines",
 		Body:     b.Bytes(),
 	}
 	return fileData, nil
