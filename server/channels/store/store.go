@@ -174,6 +174,8 @@ type TeamStore interface {
 	// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
 	// users belong.
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
+
+	GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error)
 }
 
 type ChannelStore interface {
@@ -287,6 +289,7 @@ type ChannelStore interface {
 	UpdateSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarCategory(categoryID string) error
+	DeleteAllSidebarChannelForChannel(channelID string) error
 	GetAllChannelsForExportAfter(limit int, afterID string) ([]*model.ChannelForExport, error)
 	GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error)
 	GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error)
@@ -638,8 +641,8 @@ type PreferenceStore interface {
 }
 
 type LicenseStore interface {
-	Save(license *model.LicenseRecord) (*model.LicenseRecord, error)
-	Get(id string) (*model.LicenseRecord, error)
+	Save(license *model.LicenseRecord) error
+	Get(ctx context.Context, id string) (*model.LicenseRecord, error)
 	GetAll() ([]*model.LicenseRecord, error)
 }
 
@@ -654,7 +657,7 @@ type TokenStore interface {
 
 type DesktopTokensStore interface {
 	GetUserId(token string, minCreatedAt int64) (*string, error)
-	Insert(token string, createdAt int64, userId string) error
+	Insert(token string, createAt int64, userId string) error
 	Delete(token string) error
 	DeleteByUserId(userId string) error
 	DeleteOlderThan(minCreatedAt int64) error
@@ -662,9 +665,9 @@ type DesktopTokensStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
-	Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error)
-	GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error)
-	GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error)
+	Get(ctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error)
+	GetByName(ctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error)
+	GetMultipleByName(ctx request.CTX, names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
@@ -1100,6 +1103,7 @@ type PostReminderMetadata struct {
 type SidebarCategorySearchOpts struct {
 	TeamID      string
 	ExcludeTeam bool
+	Type        model.SidebarCategoryType
 }
 
 // Ensure store service adapter implements `product.StoreService`

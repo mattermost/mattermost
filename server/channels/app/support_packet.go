@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -19,6 +20,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/config"
+)
+
+const (
+	cpuProfileDuration = 5 * time.Second
 )
 
 func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
@@ -35,6 +40,8 @@ func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
 		"config":           a.createSanitizedConfigFile,
 		"mattermost log":   a.getMattermostLog,
 		"notification log": a.getNotificationsLog,
+		"cpu profile":      a.createCPUProfile,
+		"heap profile":     a.createHeapProfile,
 		"goroutines":       a.createGoroutineProfile,
 	}
 
@@ -294,12 +301,46 @@ func (a *App) createSanitizedConfigFile(_ *request.Context) (*model.FileData, er
 	return fileData, nil
 }
 
+func (a *App) createCPUProfile(_ *request.Context) (*model.FileData, error) {
+	var b bytes.Buffer
+
+	err := pprof.StartCPUProfile(&b)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to start CPU profile")
+	}
+
+	time.Sleep(cpuProfileDuration)
+
+	pprof.StopCPUProfile()
+
+	fileData := &model.FileData{
+		Filename: "cpu.prof",
+		Body:     b.Bytes(),
+	}
+	return fileData, nil
+}
+
+func (a *App) createHeapProfile(*request.Context) (*model.FileData, error) {
+	var b bytes.Buffer
+
+	err := pprof.Lookup("heap").WriteTo(&b, 0)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to lookup heap profile")
+	}
+
+	fileData := &model.FileData{
+		Filename: "heap.prof",
+		Body:     b.Bytes(),
+	}
+	return fileData, nil
+}
+
 func (a *App) createGoroutineProfile(_ *request.Context) (*model.FileData, error) {
 	var b bytes.Buffer
 
 	err := pprof.Lookup("goroutine").WriteTo(&b, 2)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to lookup heap profile")
+		return nil, errors.Wrap(err, "failed to lookup goroutine profile")
 	}
 
 	fileData := &model.FileData{

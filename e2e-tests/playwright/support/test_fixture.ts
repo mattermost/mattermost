@@ -1,11 +1,10 @@
-import {test as base, Browser, Page, ViewportSize} from '@playwright/test';
+import {test as base, Browser, Page} from '@playwright/test';
 import {AxeResults} from 'axe-core';
 import AxeBuilder from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
-import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldSkipInSmallScreen, shouldRunInLinux} from './flag';
+import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldRunInLinux} from './flag';
 import {initSetup, getAdminClient} from './server';
-import {isSmallScreen} from './util';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
@@ -29,8 +28,8 @@ export const test = base.extend<ExtendedFixtures>({
         const ab = new AxeBuilderExtended();
         await use(ab);
     },
-    pw: async ({browser, viewport}, use) => {
-        const pw = new PlaywrightExtended(browser, viewport);
+    pw: async ({browser}, use) => {
+        const pw = new PlaywrightExtended(browser);
         await use(pw);
         await pw.testBrowser.close();
     },
@@ -47,7 +46,6 @@ class PlaywrightExtended {
     // ./flag
     readonly shouldHaveCallsEnabled;
     readonly shouldHaveFeatureFlag;
-    readonly shouldSkipInSmallScreen;
     readonly shouldRunInLinux;
 
     // ./server
@@ -62,20 +60,16 @@ class PlaywrightExtended {
     // ./ui/pages
     readonly pages;
 
-    // ./util
-    readonly isSmallScreen;
-
     // ./visual
     readonly matchSnapshot;
 
-    constructor(browser: Browser, viewport: ViewportSize | null) {
+    constructor(browser: Browser) {
         // ./browser_context
         this.testBrowser = new TestBrowser(browser);
 
         // ./flag
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
         this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
-        this.shouldSkipInSmallScreen = shouldSkipInSmallScreen;
         this.shouldRunInLinux = shouldRunInLinux;
 
         // ./server
@@ -89,9 +83,6 @@ class PlaywrightExtended {
 
         // ./ui/pages
         this.pages = pages;
-
-        // ./util
-        this.isSmallScreen = () => isSmallScreen(viewport);
 
         // ./visual
         this.matchSnapshot = matchSnapshot;

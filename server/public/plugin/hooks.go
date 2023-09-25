@@ -52,6 +52,7 @@ const (
 	ConfigurationWillBeSavedID                = 34
 	NotificationWillBePushedID                = 35
 	UserHasBeenDeactivatedID                  = 36
+	MessageHasBeenDeletedID                   = 37
 	TotalHooksID                              = iota
 )
 
@@ -168,6 +169,13 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+
+	// MessageHasBeenDeleted is invoked after the message has been deleted from the database.
+	// Note that this method will be called for posts deleted by plugins, including the plugin that
+	// deleted the post.
+	//
+	// Minimum server version: 9.1
+	MessageHasBeenDeleted(c *Context, post *model.Post)
 
 	// ChannelHasBeenCreated is invoked after the channel has been committed to the database.
 	//
