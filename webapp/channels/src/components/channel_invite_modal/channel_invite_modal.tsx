@@ -95,8 +95,8 @@ const UsernameSpan = styled.span`
 `;
 
 const UserMappingSpan = styled.span`
-    position: 'absolute';
-    right: 20;
+    position: absolute;
+    right: 20px;
 `;
 
 export default class ChannelInviteModal extends React.PureComponent<Props, State> {
