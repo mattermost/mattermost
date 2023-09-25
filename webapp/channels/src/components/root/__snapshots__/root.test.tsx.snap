@@ -2,6 +2,7 @@
 
 exports[`components/Root Routes Should mount public product routes 1`] = `
 <RootProvider>
+  <Connect(MobileViewWatcher) />
   <Switch>
     <Route
       component={[Function]}

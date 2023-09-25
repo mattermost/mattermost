@@ -45,6 +45,7 @@ type Props = {
     memberDesktopNotificationSound?: string;
     section: string;
     serverError?: string;
+    isGM: boolean;
 }
 
 const sounds = Array.from(notificationSounds.keys());
@@ -74,6 +75,7 @@ export default function ExpandView({
     onCollapseSection,
     ignoreChannelMentions,
     channelAutoFollowThreads,
+    isGM,
 }: Props) {
     const isCRTEnabled = useSelector(isCollapsedThreadsEnabled);
 
@@ -275,6 +277,7 @@ export default function ExpandView({
             {isCRTEnabled &&
             section === NotificationSections.DESKTOP &&
             memberNotifyLevel === NotificationLevels.MENTION &&
+            !isGM &&
             <>
                 <hr/>
                 <fieldset>
@@ -378,6 +381,7 @@ export default function ExpandView({
             {isCRTEnabled &&
             section === NotificationSections.PUSH &&
             memberNotifyLevel === NotificationLevels.MENTION &&
+            !isGM &&
             <>
                 <hr/>
                 <fieldset>

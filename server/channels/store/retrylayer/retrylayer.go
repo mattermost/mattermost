@@ -934,6 +934,27 @@ func (s *RetryLayerChannelStore) Delete(channelID string, timestamp int64) error
 
 }
 
+func (s *RetryLayerChannelStore) DeleteAllSidebarChannelForChannel(channelID string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelStore.DeleteAllSidebarChannelForChannel(channelID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) DeleteSidebarCategory(categoryID string) error {
 
 	tries := 0
@@ -3703,11 +3724,11 @@ func (s *RetryLayerDesktopTokensStore) GetUserId(token string, minCreatedAt int6
 
 }
 
-func (s *RetryLayerDesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
+func (s *RetryLayerDesktopTokensStore) Insert(token string, createAt int64, userId string) error {
 
 	tries := 0
 	for {
-		err := s.DesktopTokensStore.Insert(token, createdAt, userId)
+		err := s.DesktopTokensStore.Insert(token, createAt, userId)
 		if err == nil {
 			return nil
 		}
@@ -3829,7 +3850,7 @@ func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error
 
 }
 
-func (s *RetryLayerEmojiStore) Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) Get(ctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
 
 	tries := 0
 	for {
@@ -3850,7 +3871,7 @@ func (s *RetryLayerEmojiStore) Get(ctx context.Context, id string, allowFromCach
 
 }
 
-func (s *RetryLayerEmojiStore) GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) GetByName(ctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
 
 	tries := 0
 	for {
@@ -3892,7 +3913,7 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 
 }
 
-func (s *RetryLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) GetMultipleByName(ctx request.CTX, names []string) ([]*model.Emoji, error) {
 
 	tries := 0
 	for {
@@ -5857,11 +5878,11 @@ func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 
 }
 
-func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
+func (s *RetryLayerLicenseStore) Get(ctx context.Context, id string) (*model.LicenseRecord, error) {
 
 	tries := 0
 	for {
-		result, err := s.LicenseStore.Get(id)
+		result, err := s.LicenseStore.Get(ctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -5899,21 +5920,21 @@ func (s *RetryLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 
 }
 
-func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
+func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) error {
 
 	tries := 0
 	for {
-		result, err := s.LicenseStore.Save(license)
+		err := s.LicenseStore.Save(license)
 		if err == nil {
-			return result, nil
+			return nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -10890,6 +10911,27 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userID str
 	tries := 0
 	for {
 		result, err := s.TeamStore.GetChannelUnreadsForTeam(teamID, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetCommonTeamIDsForMultipleUsers(userIDs)
 		if err == nil {
 			return result, nil
 		}
