@@ -32,6 +32,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
     const users = [
         {id: 'user1', roles: 'system_user'},
         {id: 'guest1', roles: 'system_guest'},
+        {id: 'test-user-id', roles: 'system_user'},
     ] as UserProfile[];
 
     const baseProps = {
@@ -153,6 +154,9 @@ describe('components/post_view/ChannelIntroMessages', () => {
 
             expect(editIcon).toBeInTheDocument();
             expect(editIcon).toHaveClass('icon-pencil-outline');
+
+            const notificationPreferencesButton = screen.getByText('Notification Preferences');
+            expect(notificationPreferencesButton).toBeInTheDocument();
         });
     });
 

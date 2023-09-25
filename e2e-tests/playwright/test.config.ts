@@ -4,8 +4,6 @@
 import {Page, ViewportSize} from '@playwright/test';
 import * as dotenv from 'dotenv';
 
-import {callsPluginId} from '@e2e-support/constant';
-
 dotenv.config();
 
 export type TestArgs = {
@@ -47,7 +45,7 @@ const config: TestConfig = {
     ensurePluginsInstalled:
         typeof process.env?.PW_ENSURE_PLUGINS_INSTALLED === 'string'
             ? process.env.PW_ENSURE_PLUGINS_INSTALLED.split(',')
-            : [callsPluginId],
+            : [],
     haClusterEnabled: parseBool(process.env.PW_HA_CLUSTER_ENABLED, false),
     haClusterNodeCount: parseNumber(process.env.PW_HA_CLUSTER_NODE_COUNT, 2),
     haClusterName: process.env.PW_HA_CLUSTER_NAME || 'mm_dev_cluster',
