@@ -320,7 +320,7 @@ callbackUrl2.com
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/outgoing_webhooks"
         >
           <MemoizedFormattedMessage

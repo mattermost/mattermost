@@ -59,11 +59,6 @@ export default class FileUploadSetting extends Setting {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
-        let btnClass = 'btn';
-        if (this.state.fileSelected) {
-            btnClass = 'btn btn-primary';
-        }
-
         let fileName;
         if (this.state.fileName) {
             fileName = this.state.fileName;
@@ -86,7 +81,7 @@ export default class FileUploadSetting extends Setting {
                     <div className='file__upload'>
                         <button
                             type='button'
-                            className='btn btn-default'
+                            className='btn btn-tertiary'
                             disabled={this.props.disabled}
                         >
                             <FormattedMessage
@@ -104,7 +99,7 @@ export default class FileUploadSetting extends Setting {
                     </div>
                     <button
                         type='button'
-                        className={btnClass}
+                        className='btn btn-primary'
                         disabled={!this.state.fileSelected}
                         onClick={this.handleSubmit}
                     >
