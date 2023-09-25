@@ -2,11 +2,12 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/redis/go-redis/v9"
+	"github.com/tinylib/msgp/msgp"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Redis struct {
@@ -25,7 +26,11 @@ func NewRedis(opts RedisOptions) *Redis {
 }
 
 func (r *Redis) Purge() error {
-	return errors.New("not implemented")
+	keys, err := r.Keys()
+	if err != nil {
+		return err
+	}
+	return r.client.Del(context.Background(), keys...).Err()
 }
 
 func (r *Redis) Set(key string, value any) error {
@@ -41,12 +46,20 @@ func (r *Redis) SetWithDefaultExpiry(key string, value any) error {
 // SetWithExpiry adds the given key and value to the cache with the given expiry. If the key
 // already exists, it will overwrite the previous value
 func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
-	err := r.client.Set(context.Background(), r.name+"_"+key, value, ttl).Err()
+	var buf []byte
+	var err error
+	// We use a fast path for hot structs.
+	if msgpVal, ok := value.(msgp.Marshaler); ok {
+		buf, err = msgpVal.MarshalMsg(nil)
+	} else {
+		// Slow path for other structs.
+		buf, err = msgpack.Marshal(value)
+	}
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return r.client.Set(context.Background(), r.name+"_"+key, buf, ttl).Err()
 }
 
 // Get the content stored in the cache for the given key, and decode it into the value interface.
@@ -56,8 +69,36 @@ func (r *Redis) Get(key string, value any) error {
 	if err != nil {
 		return err
 	}
-	value = val
-	return nil
+
+	// We use a fast path for hot structs.
+	if msgpVal, ok := value.(msgp.Unmarshaler); ok {
+		_, err := msgpVal.UnmarshalMsg([]byte(val))
+		return err
+	}
+
+	// This is ugly and makes the cache package aware of the model package.
+	// But this is due to 2 things.
+	// 1. The msgp package works on methods on structs rather than functions.
+	// 2. Our cache interface passes pointers to empty pointers, and not pointers
+	// to values. This is mainly how all our model structs are passed around.
+	// It might be technically possible to use values _just_ for hot structs
+	// like these and then return a pointer while returning from the cache function,
+	// but it will make the codebase inconsistent, and has some edge-cases to take care of.
+	switch v := value.(type) {
+	case **model.User:
+		var u model.User
+		_, err := u.UnmarshalMsg([]byte(val))
+		*v = &u
+		return err
+	case *map[string]*model.User:
+		var u model.UserMap
+		_, err := u.UnmarshalMsg([]byte(val))
+		*v = u
+		return err
+	}
+
+	// Slow path for other structs.
+	return msgpack.Unmarshal([]byte(val), value)
 }
 
 // Remove deletes the value for a given key.
