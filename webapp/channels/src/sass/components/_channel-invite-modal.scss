@@ -9,6 +9,15 @@
         padding: 0 2.4rem;
     }
 
+    .AlertBanner {
+        margin: 1.2rem 2.4rem 0;
+
+        button.btn {
+            border-radius: 4px;
+            font-weight: 600;
+        }
+    }
+
     .react-select__multi-value {
         border-radius: 50px;
     }
@@ -92,6 +101,34 @@
         .more-modal__options {
             overflow: visible;
             min-height: auto;
+
+            .group-name {
+                font-size: 12px;
+                line-height: 20px;
+            }
+
+            .more-modal__group-image {
+                display: flex;
+                width: 32px;
+                min-width: 32px;
+                height: 32px;
+                align-items: center;
+                justify-content: center;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                border-radius: 30px;
+            }
+
+            .add-group-members {
+                display: none;
+                min-width: 110px;
+                margin-left: auto;
+                color: var(--button-bg);
+                font-family: 'Open Sans';
+                font-size: 14px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 20px;
+            }
         }
     }
 
@@ -123,6 +160,10 @@
 
     .more-modal__details {
         padding-left: 12px;
+    }
+
+    .add-others-link {
+        color: var(--button-bg);
     }
 }
 

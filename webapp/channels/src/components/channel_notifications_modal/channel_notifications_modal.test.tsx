@@ -54,6 +54,37 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should match snapshot for GMs', () => {
+        const wrapper = shallow(
+            <ChannelNotificationsModal
+                {...{
+                    ...baseProps,
+                    channel: TestHelper.getChannelMock({
+                        id: 'channel_id',
+                        display_name: 'channel_display_name',
+                        type: 'G',
+                    }),
+                    channelMember: {
+                        notify_props: {
+                            ...baseProps.channelMember!.notify_props,
+                            desktop: NotificationLevels.MENTION,
+                            push: NotificationLevels.MENTION,
+                        },
+                    } as unknown as ChannelMembership,
+                    currentUser: TestHelper.getUserMock({
+                        id: 'current_user_id',
+                        notify_props: {
+                            desktop: NotificationLevels.MENTION,
+                            desktop_threads: NotificationLevels.ALL,
+                        } as UserNotifyProps,
+                    }),
+                }}
+            />,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
     test('should provide default notify props when missing', () => {
         const wrapper = shallow(
             <ChannelNotificationsModal

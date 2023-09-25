@@ -41,6 +41,7 @@ func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
 		"mattermost log":   a.getMattermostLog,
 		"notification log": a.getNotificationsLog,
 		"cpu profile":      a.createCPUProfile,
+		"heap profile":     a.createHeapProfile,
 	}
 
 	for name, fn := range functions {
@@ -313,6 +314,21 @@ func (a *App) createCPUProfile(_ *request.Context) (*model.FileData, error) {
 
 	fileData := &model.FileData{
 		Filename: "cpu.prof",
+		Body:     b.Bytes(),
+	}
+	return fileData, nil
+}
+
+func (a *App) createHeapProfile(*request.Context) (*model.FileData, error) {
+	var b bytes.Buffer
+
+	err := pprof.Lookup("heap").WriteTo(&b, 0)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to lookup heap profile")
+	}
+
+	fileData := &model.FileData{
+		Filename: "heap.prof",
 		Body:     b.Bytes(),
 	}
 	return fileData, nil
