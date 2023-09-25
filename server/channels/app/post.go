@@ -688,7 +688,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err = a.FillInPostProps(c, newPost, nil); err != nil {
+	if err = a.FillInPostProps(c, post, nil); err != nil {
 		return nil, err
 	}
 
