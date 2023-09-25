@@ -700,7 +700,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	pluginContext := pluginContext(c)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
-		return newPost != nil
+		return post != nil
 	}, plugin.MessageWillBeUpdatedID)
 	if newPost == nil {
 		return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
