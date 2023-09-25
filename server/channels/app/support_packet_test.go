@@ -102,7 +102,15 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	fileDatas := th.App.GenerateSupportPacket(ctx)
 	var rFileNames []string
-	testFiles := []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "mattermost.log", "notifications.log", "heap.prof"}
+	testFiles := []string{
+		"support_packet.yaml",
+		"plugins.json",
+		"sanitized_config.json",
+		"mattermost.log",
+		"notifications.log",
+		"cpu.prof",
+		"heap.prof",
+	}
 	for _, fileData := range fileDatas {
 		require.NotNil(t, fileData)
 		assert.Positive(t, len(fileData.Body))
@@ -117,7 +125,14 @@ func TestGenerateSupportPacket(t *testing.T) {
 	err = os.Remove("mattermost.log")
 	require.NoError(t, err)
 	fileDatas = th.App.GenerateSupportPacket(ctx)
-	testFiles = []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "heap.prof", "warning.txt"}
+	testFiles = []string{
+		"support_packet.yaml",
+		"plugins.json",
+		"sanitized_config.json",
+		"cpu.prof",
+		"heap.prof",
+		"warning.txt",
+	}
 	rFileNames = nil
 	for _, fileData := range fileDatas {
 		require.NotNil(t, fileData)
