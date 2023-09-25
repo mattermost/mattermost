@@ -398,7 +398,7 @@ func (s LocalCacheStore) DropAllTables() {
 
 func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string) {
 	cache.Remove(key)
-	if s.cluster != nil {
+	if s.cluster != nil && cache.GetInvalidateClusterEvent() != model.ClusterEventNone {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
@@ -428,7 +428,7 @@ func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, val
 
 func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
 	cache.Purge()
-	if s.cluster != nil {
+	if s.cluster != nil && cache.GetInvalidateClusterEvent() != model.ClusterEventNone {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
