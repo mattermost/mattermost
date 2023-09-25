@@ -516,7 +516,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                         savingMessage={localizeMessage('admin.saving', 'Saving Config...')}
                     />
                     <BlockableLink
-                        className='cancel-button'
+                        className='btn btn-tertiary'
                         to='/admin_console/user_management/permissions'
                     >
                         <FormattedMessage
@@ -527,7 +527,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                     <a
                         data-testid='resetPermissionsToDefault'
                         onClick={() => this.setState({showResetDefaultModal: true})}
-                        className='cancel-button reset-defaults-btn'
+                        className='btn btn-quaternary'
                     >
                         <FormattedMessage
                             id='admin.permissions.systemScheme.resetDefaultsButton'
