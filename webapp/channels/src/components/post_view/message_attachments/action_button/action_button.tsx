@@ -34,22 +34,24 @@ export default class ActionButton extends React.PureComponent<Props> {
 
     render() {
         const {action, handleAction, disabled, theme} = this.props;
-        let customButtonStyle;
         const actionStyle = action.style || 'primary';
 
         const STATUS_COLORS = this.getStatusColors(theme);
-        const hexColor =
+
+        let hexColor =
             STATUS_COLORS[actionStyle] ||
             theme[actionStyle] ||
             (actionStyle.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && actionStyle);
 
-        if (hexColor) {
-            customButtonStyle = {
-                borderColor: changeOpacity(hexColor, 0.25),
-                backgroundColor: hexColor,
-                borderWidth: 2,
-            };
+        if (!hexColor) {
+            hexColor = STATUS_COLORS.primary;
         }
+
+        const buttonStyle = {
+            borderColor: changeOpacity(hexColor, 0.25),
+            backgroundColor: hexColor,
+            borderWidth: 2,
+        };
 
         return (
             <button
@@ -58,7 +60,7 @@ export default class ActionButton extends React.PureComponent<Props> {
                 disabled={disabled}
                 key={action.id}
                 onClick={(e) => handleAction(e, this.props.action.options)}
-                style={customButtonStyle}
+                style={buttonStyle}
             >
                 <LoadingWrapper
                     loading={this.props.actionExecuting}
