@@ -127,7 +127,7 @@ const Button = styled.button<{open: boolean}>(({open}) => {
 });
 
 const PlayButton = styled.button`
-    padding: 10px 20px;
+    padding: 10px 0;
     max-width: 175px;
     background: var(--button-bg);
     border-radius: 4px;

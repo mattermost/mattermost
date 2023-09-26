@@ -50,7 +50,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -205,7 +205,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -330,7 +330,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -485,7 +485,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -693,7 +693,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -942,7 +942,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>

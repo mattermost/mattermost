@@ -11,8 +11,6 @@ import type {Team} from '@mattermost/types/teams';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import UnarchiveIcon from 'components/widgets/icons/unarchive_icon';
 
 import {t} from 'utils/i18n';
 
@@ -95,15 +93,15 @@ export const ChannelProfile: React.SFC<ChannelProfileProps> = (props: ChannelPro
                                 classNames(
                                     'btn',
                                     'btn-secondary',
-                                    'ArchiveButton',
-                                    {ArchiveButton___archived: isArchived},
-                                    {ArchiveButton___unarchived: !isArchived},
+                                    {'btn-danger': !isArchived},
                                     {disabled: isDisabled},
                                 )
                             }
                             onClick={props.onToggleArchive}
                         >
-                            {isArchived ? <UnarchiveIcon className='channel-icon channel-icon__unarchive'/> : <ArchiveIcon className='channel-icon channel-icon__archive'/>}
+                            {isArchived ?
+                                <i className='icon icon-archive-arrow-up-outline'/> :
+                                <i className='icon icon-archive-outline'/>}
                             <FormattedMessage
                                 id={archiveBtnID}
                                 defaultMessage={archiveBtnDefault}
