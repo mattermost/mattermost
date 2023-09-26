@@ -4,12 +4,14 @@
 import {useState, useEffect, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getSelfHostedProducts, getSelfHostedProductsLoaded} from 'mattermost-redux/selectors/entities/hosted_customer';
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {getSelfHostedProducts as getSelfHostedProductsAction} from 'actions/hosted_customer';
-import {useIsLoggedIn} from 'components/global_header/hooks';
+import type {Product} from '@mattermost/types/cloud';
 
-import {Product} from '@mattermost/types/cloud';
+import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {getSelfHostedProducts, getSelfHostedProductsLoaded} from 'mattermost-redux/selectors/entities/hosted_customer';
+
+import {getSelfHostedProducts as getSelfHostedProductsAction} from 'actions/hosted_customer';
+
+import {useIsLoggedIn} from 'components/global_header/hooks';
 
 export default function useGetSelfHostedProducts(): [Record<string, Product>, boolean] {
     const isCloud = useSelector(isCurrentLicenseCloud);

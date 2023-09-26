@@ -4,9 +4,10 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-import {Channel} from '@mattermost/types/channels';
 
 import AboutAreaChannel from './about_area_channel';
 

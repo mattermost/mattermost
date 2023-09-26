@@ -3,17 +3,19 @@
 
 import React from 'react';
 
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {UserProfile} from '@mattermost/types/users';
+
+import SharedUserIndicator from 'components/shared_user_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
+import Avatar from 'components/widgets/users/avatar';
 
 import * as Utils from 'utils/utils';
-import Avatar from 'components/widgets/users/avatar';
-import SharedUserIndicator from 'components/shared_user_indicator';
 
-import {UserProfile} from '@mattermost/types/users';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
-
-import Provider, {ResultsCallback} from './provider';
-import {SuggestionContainer, SuggestionProps} from './suggestion';
+import Provider from './provider';
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
 
 const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<UserProfile>>((props, ref) => {
     const {item} = props;

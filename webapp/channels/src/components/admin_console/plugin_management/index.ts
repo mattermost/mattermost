@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {
     getPlugins,
@@ -13,9 +14,9 @@ import {
     enablePlugin,
     disablePlugin,
 } from 'mattermost-redux/actions/admin';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {streamlinedMarketplaceEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import PluginManagement from './plugin_management';
 
@@ -24,6 +25,7 @@ function mapStateToProps(state: any) {
         plugins: state.entities.admin.plugins,
         pluginStatuses: state.entities.admin.pluginStatuses,
         appsFeatureFlagEnabled: appsFeatureFlagEnabled(state),
+        streamlinedMarketplaceFlagEnabled: streamlinedMarketplaceEnabled(state),
     };
 }
 
