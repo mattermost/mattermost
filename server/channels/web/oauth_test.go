@@ -404,7 +404,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	var siteURL = "http://localhost:8065"
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = siteURL
-		cfg.NativeAppSettings.AppCustomURLSchemes = append(cfg.NativeAppSettings.AppCustomURLSchemes, "mmauth://")
+		*cfg.GitLabSettings.Enable = true
 	})
 
 	translationFunc := i18n.GetUserTranslations("en")
@@ -417,32 +417,36 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("mmauth://"), nil)
 		mobileLoginWithOAuth(c, responseWriter, request)
-		assert.Contains(t, responseWriter.Body.String(), "mmauth://")
+		assert.Equal(t, responseWriter.Code, 302)
 		assert.NotContains(t, responseWriter.Body.String(), siteURL)
 	})
 
 	t.Run("Should include SiteURL in the output when invalid URL Scheme is passed", func(t *testing.T) {
+		einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 		responseWriter := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
 		mobileLoginWithOAuth(c, responseWriter, request)
-		assert.NotContains(t, responseWriter.Body.String(), "randomScheme://")
-		assert.Contains(t, responseWriter.Body.String(), siteURL)
+		body := responseWriter.Body.String()
+		assert.NotContains(t, body, "randomScheme://")
+		assert.Contains(t, body, siteURL)
 	})
 
 	t.Run("Should not include the redirect URL consisting of javascript protocol", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
 		mobileLoginWithOAuth(c, responseWriter, request)
-		assert.NotContains(t, responseWriter.Body.String(), "javascript:alert('hello')")
-		assert.Contains(t, responseWriter.Body.String(), siteURL)
+		body := responseWriter.Body.String()
+		assert.NotContains(t, body, "javascript:alert('hello')")
+		assert.Contains(t, body, siteURL)
 	})
 
 	t.Run("Should not include the redirect URL consisting of javascript protocol in mixed case", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("JaVasCript:alert('hello')"), nil)
 		mobileLoginWithOAuth(c, responseWriter, request)
-		assert.NotContains(t, responseWriter.Body.String(), "JaVasCript:alert('hello')")
-		assert.Contains(t, responseWriter.Body.String(), siteURL)
+		body := responseWriter.Body.String()
+		assert.NotContains(t, body, "JaVasCript:alert('hello')")
+		assert.Contains(t, body, siteURL)
 	})
 }
 
