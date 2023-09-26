@@ -63,7 +63,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     >
       <MultiSelect
         ariaLabelRenderer={[Function]}
-        backButtonClass="btn-cancel tertiary-button"
+        backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
         customNoOptionsMessage={null}
         focusOnLoad={true}
@@ -162,7 +162,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     >
       <MultiSelect
         ariaLabelRenderer={[Function]}
-        backButtonClass="btn-cancel tertiary-button"
+        backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
         customNoOptionsMessage={null}
         focusOnLoad={true}
@@ -283,7 +283,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
     >
       <MultiSelect
         ariaLabelRenderer={[Function]}
-        backButtonClass="btn-cancel tertiary-button"
+        backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
         customNoOptionsMessage={null}
         focusOnLoad={true}
