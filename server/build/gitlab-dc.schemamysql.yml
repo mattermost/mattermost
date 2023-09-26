@@ -32,5 +32,5 @@ services:
 
 networks:
   default:
-    external:
-      name: ${COMPOSE_PROJECT_NAME}
+    name: ${COMPOSE_PROJECT_NAME}
+    external: true
