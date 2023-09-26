@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CustomEmoji, Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import type {CustomEmoji, Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import {EmojiIndicesByAlias, EmojiIndicesByUnicode, Emojis} from 'utils/emoji';
 

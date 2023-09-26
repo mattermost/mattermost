@@ -9,15 +9,14 @@ import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {Router} from 'react-router-dom';
 
-import {DeepPartial} from '@mattermost/types/utilities';
-
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import configureStore from 'store';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 export * from '@testing-library/react';
 export {userEvent};

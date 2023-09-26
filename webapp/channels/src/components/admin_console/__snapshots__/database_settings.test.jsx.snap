@@ -385,7 +385,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

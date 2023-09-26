@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
 import classNames from 'classnames';
-
+import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
+
 import {
     AlertOutlineIcon,
     CheckIcon,
@@ -14,6 +14,7 @@ import {
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
 import Constants from 'utils/constants';
 
 import './alert_banner.scss';
@@ -30,6 +31,7 @@ export type AlertBannerProps = {
     hideIcon?: boolean;
     actionButtonLeft?: React.ReactNode;
     actionButtonRight?: React.ReactNode;
+    footerMessage?: React.ReactNode;
     closeBtnTooltip?: React.ReactNode;
     onDismiss?: () => void;
     variant?: 'sys' | 'app';
@@ -46,6 +48,7 @@ const AlertBanner = ({
     actionButtonLeft,
     actionButtonRight,
     closeBtnTooltip,
+    footerMessage,
     hideIcon,
     children,
 }: AlertBannerProps) => {
@@ -104,6 +107,13 @@ const AlertBanner = ({
                         {actionButtonRight}
                     </div>
                 )}
+                {
+                    footerMessage && (
+                        <div className='AlertBanner__footerMessage'>
+                            {footerMessage}
+                        </div>
+                    )
+                }
             </div>
             {onDismiss && (
                 <OverlayTrigger

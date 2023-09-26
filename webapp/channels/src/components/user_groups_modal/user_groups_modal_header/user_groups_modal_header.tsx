@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-
 import {Modal} from 'react-bootstrap';
-
 import {FormattedMessage} from 'react-intl';
 
 import CreateUserGroupsModal from 'components/create_user_groups_modal';
-import {ModalData} from 'types/actions';
+
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 export type Props = {
     canCreateCustomGroups: boolean;
@@ -46,7 +46,7 @@ const UserGroupsModalHeader = (props: Props) => {
             {
                 props.canCreateCustomGroups &&
                 <button
-                    className='user-groups-create btn btn-md btn-primary'
+                    className='user-groups-create btn btn-secondary btn-sm'
                     onClick={goToCreateModal}
                 >
                     <FormattedMessage

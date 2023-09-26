@@ -1,14 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 import * as reactRedux from 'react-redux';
 
-import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 import {trackEvent} from 'actions/telemetry_actions';
 import configureStore from 'store';
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+
 import useGetMultiplesExceededCloudLimit from 'components/common/hooks/useGetMultiplesExceededCloudLimit';
+
+import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {LimitTypes} from 'utils/limits';
 
 import {FreemiumModal} from './freemium_modal';

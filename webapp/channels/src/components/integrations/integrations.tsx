@@ -4,22 +4,20 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import BotAccountsIcon from 'images/bot_default_icon.png';
+import ExternalLink from 'components/external_link';
+import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
+import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
-import * as Utils from 'utils/utils';
+import BotAccountsIcon from 'images/bot_default_icon.png';
 import IncomingWebhookIcon from 'images/incoming_webhook.jpg';
 import OAuthIcon from 'images/oauth_icon.png';
 import OutgoingWebhookIcon from 'images/outgoing_webhook.jpg';
 import SlashCommandIcon from 'images/slash_command_icon.jpg';
-
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
-
-import ExternalLink from 'components/external_link';
+import * as Utils from 'utils/utils';
 
 import IntegrationOption from './integration_option';
 

@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, ActionCreatorsMapObject, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
 import {addCommand} from 'mattermost-redux/actions/integrations';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import AddCommand, {Props} from './add_command';
+import AddCommand from './add_command';
+import type {Props} from './add_command';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {

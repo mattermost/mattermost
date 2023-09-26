@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {PostImage} from '@mattermost/types/posts';
+import type {PostImage} from '@mattermost/types/posts';
 
 import {getImageSrc} from 'utils/post_utils';
 
