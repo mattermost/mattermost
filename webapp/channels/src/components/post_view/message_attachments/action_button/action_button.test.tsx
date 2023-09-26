@@ -51,7 +51,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.25)}`);
         expect(button).toHaveStyle('borderWidth: 2');
-        expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
+        expect(button).toHaveStyle(`backgroundColor: ${Preferences.THEMES.denim.onlineIndicator}`);
     });
 
     test('should have correct styles when provided color from not default theme', () => {
@@ -67,7 +67,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.indigo.errorTextColor, 0.25)}`);
         expect(button).toHaveStyle('borderWidth: 2');
-        expect(button).toHaveStyle(`color: ${Preferences.THEMES.indigo.errorTextColor}`);
+        expect(button).toHaveStyle(`backgroundColor: ${Preferences.THEMES.indigo.errorTextColor}`);
     });
 
     test('should have correct styles when provided status color', () => {
@@ -81,7 +81,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.25)}`);
         expect(button).toHaveStyle('borderWidth: 2');
-        expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
+        expect(button).toHaveStyle(`backgroundColor: ${Preferences.THEMES.denim.onlineIndicator}`);
     });
 
     test('should have correct styles when provided hex color', () => {
@@ -95,10 +95,10 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         expect(button).toHaveStyle(`borderColor: ${changeOpacity(props.action.style, 0.25)}`);
         expect(button).toHaveStyle('borderWidth: 2');
-        expect(button).toHaveStyle(`color: ${props.action.style}`);
+        expect(button).toHaveStyle(`backgroundColor: ${props.action.style}`);
     });
 
-    test('should have no styles when provided invalid hex color', () => {
+    test('should have default styles when provided invalid hex color', () => {
         const props = {
             ...baseProps,
             action: {...baseProps.action, style: '#wrong'},
@@ -107,10 +107,12 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         render(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
-        expect(button.style.length).toBe(0);
+        expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.denim.buttonBg, 0.25)}`);
+        expect(button).toHaveStyle('borderWidth: 2');
+        expect(button).toHaveStyle(`backgroundColor: ${Preferences.THEMES.denim.buttonBg}`);
     });
 
-    test('should have no styles when provided undefined', () => {
+    test('should have default styles when provided undefined', () => {
         const props = {
             ...baseProps,
             action: {...baseProps.action, style: undefined},
@@ -119,6 +121,8 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         render(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
-        expect(button.style.length).toBe(0);
+        expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.denim.buttonBg, 0.25)}`);
+        expect(button).toHaveStyle('borderWidth: 2');
+        expect(button).toHaveStyle(`backgroundColor: ${Preferences.THEMES.denim.buttonBg}`);
     });
 });
