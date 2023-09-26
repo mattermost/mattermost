@@ -2835,7 +2835,7 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 		}()
 
 		publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
-			Name:      "private_chanenl",
+			Name:      model.NewId(),
 			Type:      model.ChannelTypeOpen,
 			TeamId:    th.BasicTeam.Id,
 			CreatorId: th.SystemAdminUser.Id,
@@ -2957,7 +2957,7 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 
 	t.Run("should remove embeds for not accessible channels", func(t *testing.T) {
 		privateChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
-			Name:      "private_chanenl",
+			Name:      model.NewId(),
 			Type:      model.ChannelTypePrivate,
 			TeamId:    th.BasicTeam.Id,
 			CreatorId: th.SystemAdminUser.Id,
@@ -3011,7 +3011,7 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 
 	t.Run("should remove embeds for archived channels if the config does not allow it", func(t *testing.T) {
 		publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
-			Name:      "private_chanenl",
+			Name:      model.NewId(),
 			Type:      model.ChannelTypeOpen,
 			TeamId:    th.BasicTeam.Id,
 			CreatorId: th.SystemAdminUser.Id,
