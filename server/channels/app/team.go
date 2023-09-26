@@ -36,8 +36,8 @@ type teamServiceWrapper struct {
 	app AppIface
 }
 
-func (w *teamServiceWrapper) GetMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return w.app.GetTeamMember(teamID, userID)
+func (w *teamServiceWrapper) GetMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
+	return w.app.GetTeamMember(c, teamID, userID)
 }
 
 func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError) {
@@ -421,8 +421,8 @@ func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *mod
 	return model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId, nil
 }
 
-func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
-	member, nErr := a.Srv().Store().Team().GetMember(context.Background(), teamID, userID)
+func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
+	member, nErr := a.Srv().Store().Team().GetMember(c, teamID, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -505,8 +505,8 @@ func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles strin
 	return member, nil
 }
 
-func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
-	member, err := a.GetTeamMember(teamID, userID)
+func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
+	member, err := a.GetTeamMember(c, teamID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -760,7 +760,7 @@ func (a *App) AddUserToTeamByInviteId(c *request.Context, inviteId string, userI
 }
 
 func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
-	teamMember, alreadyAdded, err := a.ch.srv.teamService.JoinUserToTeam(team, user)
+	teamMember, alreadyAdded, err := a.ch.srv.teamService.JoinUserToTeam(c, team, user)
 	if err != nil {
 		var appErr *model.AppError
 		var conflictErr *store.ErrConflict
@@ -794,7 +794,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		TeamID:      team.Id,
 		ExcludeTeam: false,
 	}
-	if _, err := a.createInitialSidebarCategories(user.Id, opts); err != nil {
+	if _, err := a.createInitialSidebarCategories(c, user.Id, opts); err != nil {
 		mlog.Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
@@ -994,8 +994,8 @@ func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
-	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.WithMaster(context.Background()), teamID, userID)
+func (a *App) GetTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
+	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(c), teamID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1009,8 +1009,8 @@ func (a *App) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.Ap
 	return teamMember, nil
 }
 
-func (a *App) GetTeamMembersForUser(userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, *model.AppError) {
-	teamMembers, err := a.Srv().Store().Team().GetTeamsForUser(context.Background(), userID, excludeTeamID, includeDeleted)
+func (a *App) GetTeamMembersForUser(c request.CTX, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, *model.AppError) {
+	teamMembers, err := a.Srv().Store().Team().GetTeamsForUser(c, userID, excludeTeamID, includeDeleted)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamMembersForUser", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1238,7 +1238,7 @@ func (a *App) postProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMe
 }
 
 func (a *App) LeaveTeam(c request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError {
-	teamMember, err := a.GetTeamMember(team.Id, user.Id)
+	teamMember, err := a.GetTeamMember(c, team.Id, user.Id)
 	if err != nil {
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}

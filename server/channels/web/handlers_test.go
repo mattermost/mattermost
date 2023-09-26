@@ -171,7 +171,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	}
 	session.GenerateCSRF()
 	th.App.SetSessionExpireInHours(session, 24)
-	session, err := th.App.CreateSession(session)
+	session, err := th.App.CreateSession(th.Context, session)
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}

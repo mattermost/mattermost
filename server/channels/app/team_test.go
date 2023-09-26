@@ -1302,7 +1302,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_user")
 		require.NotNil(t, err, "Should fail when try to modify the guest role")
 	})
 
@@ -1313,7 +1313,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_guest")
 		require.NotNil(t, err, "Should fail when try to modify the guest role")
 	})
 
@@ -1324,7 +1324,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user team_admin")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_user team_admin")
 		require.Nil(t, err, "Should work when you not modify guest role")
 	})
 
@@ -1338,7 +1338,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, err = th.App.CreateRole(&model.Role{Name: "custom", DisplayName: "custom", Description: "custom"})
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest custom")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_guest custom")
 		require.Nil(t, err, "Should work when you not modify guest role")
 	})
 
@@ -1349,7 +1349,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest team_user")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_guest team_user")
 		require.NotNil(t, err, "Should work when you not modify guest role")
 	})
 }

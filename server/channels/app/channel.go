@@ -1583,7 +1583,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 // AddUserToChannel adds a user to a given channel.
 func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
 	if !skipTeamMemberIntegrityCheck {
-		teamMember, nErr := a.Srv().Store().Team().GetMember(context.Background(), channel.TeamId, user.Id)
+		teamMember, nErr := a.Srv().Store().Team().GetMember(c, channel.TeamId, user.Id)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -2531,7 +2531,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 			return err
 		}
 		if len(currentMembers) == 0 {
-			teamMember, err := a.GetTeamMember(channel.TeamId, userIDToRemove)
+			teamMember, err := a.GetTeamMember(c, channel.TeamId, userIDToRemove)
 			if err != nil {
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}

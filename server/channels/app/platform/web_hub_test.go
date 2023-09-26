@@ -64,7 +64,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	session, err := th.Service.CreateSession(&model.Session{
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
 	})
 	require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	// So we just use this quick hack for the test.
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 
-	session, err := th.Service.CreateSession(&model.Session{
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
 	})
 	require.NoError(t, err)
@@ -179,7 +179,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	session, err := th.Service.CreateSession(&model.Session{
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: "testid",
 	})
 	require.NoError(t, err)
@@ -464,7 +464,7 @@ func TestHubIsRegistered(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	session, err := th.Service.CreateSession(&model.Session{
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
 	})
 	require.NoError(t, err)
@@ -488,7 +488,7 @@ func TestHubIsRegistered(t *testing.T) {
 	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load()))
 	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load()))
 
-	session4, err := th.Service.CreateSession(&model.Session{
+	session4, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser2.Id,
 	})
 	require.NoError(t, err)

@@ -779,10 +779,10 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(userID *model.User, otherUs
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.CreateInitialSidebarCategories(userID, opts)
+	result, err := s.ChannelStore.CreateInitialSidebarCategories(c, userID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3155,10 +3155,10 @@ func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error
 	return err
 }
 
-func (s *TimerLayerEmojiStore) Get(ctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) Get(c request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
 	start := time.Now()
 
-	result, err := s.EmojiStore.Get(ctx, id, allowFromCache)
+	result, err := s.EmojiStore.Get(c, id, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3171,10 +3171,10 @@ func (s *TimerLayerEmojiStore) Get(ctx request.CTX, id string, allowFromCache bo
 	return result, err
 }
 
-func (s *TimerLayerEmojiStore) GetByName(ctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) GetByName(c request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
 	start := time.Now()
 
-	result, err := s.EmojiStore.GetByName(ctx, name, allowFromCache)
+	result, err := s.EmojiStore.GetByName(c, name, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3203,10 +3203,10 @@ func (s *TimerLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerEmojiStore) GetMultipleByName(ctx request.CTX, names []string) ([]*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error) {
 	start := time.Now()
 
-	result, err := s.EmojiStore.GetMultipleByName(ctx, names)
+	result, err := s.EmojiStore.GetMultipleByName(c, names)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7471,10 +7471,10 @@ func (s *TimerLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) erro
 	return err
 }
 
-func (s *TimerLayerSessionStore) Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error) {
+func (s *TimerLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*model.Session, error) {
 	start := time.Now()
 
-	result, err := s.SessionStore.Get(ctx, sessionIDOrToken)
+	result, err := s.SessionStore.Get(c, sessionIDOrToken)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7487,10 +7487,10 @@ func (s *TimerLayerSessionStore) Get(ctx context.Context, sessionIDOrToken strin
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) GetSessions(userID string) ([]*model.Session, error) {
+func (s *TimerLayerSessionStore) GetSessions(c *request.Context, userID string) ([]*model.Session, error) {
 	start := time.Now()
 
-	result, err := s.SessionStore.GetSessions(userID)
+	result, err := s.SessionStore.GetSessions(c, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7583,10 +7583,10 @@ func (s *TimerLayerSessionStore) RemoveAllSessions() error {
 	return err
 }
 
-func (s *TimerLayerSessionStore) Save(session *model.Session) (*model.Session, error) {
+func (s *TimerLayerSessionStore) Save(c request.CTX, session *model.Session) (*model.Session, error) {
 	start := time.Now()
 
-	result, err := s.SessionStore.Save(session)
+	result, err := s.SessionStore.Save(c, session)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8670,10 +8670,10 @@ func (s *TimerLayerTeamStore) GetMany(ids []string) ([]*model.Team, error) {
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetMember(ctx context.Context, teamID string, userID string) (*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error) {
 	start := time.Now()
 
-	result, err := s.TeamStore.GetMember(ctx, teamID, userID)
+	result, err := s.TeamStore.GetMember(c, teamID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8766,10 +8766,10 @@ func (s *TimerLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team, er
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetTeamsForUser(ctx context.Context, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) GetTeamsForUser(c request.CTX, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
 	start := time.Now()
 
-	result, err := s.TeamStore.GetTeamsForUser(ctx, userID, excludeTeamID, includeDeleted)
+	result, err := s.TeamStore.GetTeamsForUser(c, userID, excludeTeamID, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

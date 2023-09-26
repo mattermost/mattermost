@@ -319,7 +319,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Len(t, outOfChannelUsers, 2)
@@ -332,7 +332,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{user2.Username, user3.Username, user4.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(guest, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, guest, post, channel, potentialMentions)
 
 		require.NoError(t, err)
 		require.Len(t, outOfChannelUsers, 1)
@@ -346,7 +346,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -360,7 +360,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, directChannel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, directChannel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -374,7 +374,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, groupChannel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, groupChannel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -389,7 +389,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{inactiveUser.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -403,7 +403,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{botUser.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -414,7 +414,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{"foo", "bar"}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -448,7 +448,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{nonChannelMember.Username, nonGroupMember.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, constrainedChannel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, constrainedChannel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Len(t, outOfChannelUsers, 1)
