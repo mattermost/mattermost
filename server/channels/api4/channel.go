@@ -1798,18 +1798,14 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				if v, ok := err.(*model.AppError); ok {
 					lastError = v
-					// c.Err = v
 				} else {
 					lastError = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
-					// c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
 				}
 				continue
 			}
 			if len(nonMembers) > 0 {
 				lastError = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 				continue
-				// c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
-				// return
 			}
 		}
 
@@ -1828,8 +1824,6 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				lastError = err
 				continue
-				// c.Err = err
-				// return
 			}
 		}
 

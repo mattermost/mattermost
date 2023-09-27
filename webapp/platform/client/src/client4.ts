@@ -1722,9 +1722,12 @@ export default class Client4 {
     };
 
     addToChannels = (userIds: string[], channelId: string, postRootId = '') => {
-        this.trackEvent('api', 'api_channels_add_member', {channel_id: channelId});
+        this.trackEvent('api', 'api_channels_add_members', {channel_id: channelId});
 
-        const members = {user_ids: userIds, channel_id: channelId, post_root_id: postRootId};
+        const members = userIds.map((userId) => {
+            return {user_id: userId, channel_id: channelId, post_root_id: postRootId};
+        });
+
         return this.doFetch<ChannelMembership[]>(
             `${this.getChannelMembersRoute(channelId)}`,
             {method: 'post', body: JSON.stringify(members)},

@@ -3626,6 +3626,23 @@ func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string
 	return ch, BuildResponse(r), nil
 }
 
+// AddChannelMembers adds users to a channel and return an array of channel members.
+func (c *Client4) AddChannelMembers(ctx context.Context, channelId string, userIds []string) ([]*ChannelMember, *Response, error) {
+	requestBody := map[string]string{"user_ids": ArrayToJSON(userIds)}
+	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", MapToJSON(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*ChannelMember
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("AddChannelMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
 func (c *Client4) AddChannelMemberWithRootId(ctx context.Context, channelId, userId, postRootId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId, "post_root_id": postRootId}
