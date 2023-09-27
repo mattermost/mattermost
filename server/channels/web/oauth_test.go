@@ -413,7 +413,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	provider := &MattermostTestProvider{}
 	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
-	t.Run("Should include redirect URL in the output when valid URL Scheme is passed", func(t *testing.T) {
+	t.Run("Should redirect to the SSO login page when valid URL Scheme is passed as redirect_to parameter", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("mmauth://"), nil)
 		mobileLoginWithOAuth(c, responseWriter, request)
