@@ -275,6 +275,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// Step 4: Start platform
 	s.platform.Start()
 
+	s.RegisterBroadcastHooks()
+
 	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
 	// otherwise it will throw a panic.
 
