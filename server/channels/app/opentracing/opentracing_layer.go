@@ -1295,7 +1295,7 @@ func (a *OpenTracingAppLayer) CheckPostReminders() {
 	a.app.CheckPostReminders()
 }
 
-func (a *OpenTracingAppLayer) CheckProviderAttributes(user *model.User, patch *model.UserPatch) string {
+func (a *OpenTracingAppLayer) CheckProviderAttributes(c *request.Context, user *model.User, patch *model.UserPatch) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckProviderAttributes")
 
@@ -1307,7 +1307,7 @@ func (a *OpenTracingAppLayer) CheckProviderAttributes(user *model.User, patch *m
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckProviderAttributes(user, patch)
+	resultVar0 := a.app.CheckProviderAttributes(c, user, patch)
 
 	return resultVar0
 }
@@ -9002,7 +9002,7 @@ func (a *OpenTracingAppLayer) GetSamlCertificateStatus() *model.SamlCertificateS
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetSamlMetadata() (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSamlMetadata(c *request.Context) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSamlMetadata")
 
@@ -9014,7 +9014,7 @@ func (a *OpenTracingAppLayer) GetSamlMetadata() (string, *model.AppError) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSamlMetadata()
+	resultVar0, resultVar1 := a.app.GetSamlMetadata(c)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -75,7 +75,7 @@ type AppIface interface {
 	// CheckProviderAttributes returns the empty string if the patch can be applied without
 	// overriding attributes set by the user's login provider; otherwise, the name of the offending
 	// field is returned.
-	CheckProviderAttributes(user *model.User, patch *model.UserPatch) string
+	CheckProviderAttributes(c *request.Context, user *model.User, patch *model.UserPatch) string
 	// CommandsForTeam returns all the plugin and product commands for the given team.
 	CommandsForTeam(teamID string) []*model.Command
 	// ComputeLastAccessibleFileTime updates cache with CreateAt time of the last accessible file as per the cloud plan's limit.
@@ -759,7 +759,7 @@ type AppIface interface {
 	GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
 	GetSamlCertificateStatus() *model.SamlCertificateStatus
-	GetSamlMetadata() (string, *model.AppError)
+	GetSamlMetadata(c *request.Context) (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataURL string) (*model.SamlMetadataResponse, *model.AppError)
 	GetSanitizeOptions(asAdmin bool) map[string]bool
 	GetScheme(id string) (*model.Scheme, *model.AppError)

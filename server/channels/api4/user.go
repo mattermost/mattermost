@@ -1287,7 +1287,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check that the fields being updated are not set by the login provider
-	conflictField := c.App.CheckProviderAttributes(ouser, user.ToPatch())
+	conflictField := c.App.CheckProviderAttributes(c.AppContext, ouser, user.ToPatch())
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
@@ -1363,7 +1363,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	conflictField := c.App.CheckProviderAttributes(ouser, &patch)
+	conflictField := c.App.CheckProviderAttributes(c.AppContext, ouser, &patch)
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
@@ -3131,7 +3131,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if migrate := c.App.AccountMigration(); migrate != nil {
-		if err := migrate.MigrateToSaml(from, usersMap, auto, false); err != nil {
+		if err := migrate.MigrateToSaml(c.AppContext, from, usersMap, auto, false); err != nil {
 			c.Err = model.NewAppError("api.migrateAuthToSaml", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}

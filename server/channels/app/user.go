@@ -1066,7 +1066,7 @@ func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*
 // CheckProviderAttributes returns the empty string if the patch can be applied without
 // overriding attributes set by the user's login provider; otherwise, the name of the offending
 // field is returned.
-func (a *App) CheckProviderAttributes(user *model.User, patch *model.UserPatch) string {
+func (a *App) CheckProviderAttributes(c *request.Context, user *model.User, patch *model.UserPatch) string {
 	tryingToChange := func(userValue *string, patchValue *string) bool {
 		return patchValue != nil && *patchValue != *userValue
 	}
@@ -1084,7 +1084,7 @@ func (a *App) CheckProviderAttributes(user *model.User, patch *model.UserPatch) 
 		(user.IsLDAPUser() || (user.IsSAMLUser() && *SamlSettings.EnableSyncWithLdap)) {
 		conflictField = a.Ldap().CheckProviderAttributes(c, LdapSettings, user, patch)
 	} else if a.Saml() != nil && user.IsSAMLUser() {
-		conflictField = a.Saml().CheckProviderAttributes(SamlSettings, user, patch)
+		conflictField = a.Saml().CheckProviderAttributes(c, SamlSettings, user, patch)
 	} else if user.IsOAuthUser() {
 		if tryingToChange(&user.FirstName, patch.FirstName) || tryingToChange(&user.LastName, patch.LastName) {
 			conflictField = "full name"
