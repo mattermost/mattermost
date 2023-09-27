@@ -1,170 +1,295 @@
-.SectionContent {
-    width: 920px;
-    height: 192px;
-    padding: 16px 20px;
-    background: white;
-    border-radius: 4px 4px 0 0;
-    display: inline-flex;
+.MainPanel {
+    display: flex;
+    padding: var(--spacing-xl, 20px);
     flex-direction: column;
-    justify-content: flex-start;
     align-items: flex-start;
+    gap: var(--spacing-xl, 20px);
 
-    .Table {
-        align-self: stretch;
-        height: 160px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: flex-start;
+    .EditSection {
+        background-color: var(--center-channel-bg, #FFF);
+        border-radius: 8px;
+        width: 920px;
 
-        .HeaderRow {
-            background-color: #f5f5f5;
-            display: flex;
-            padding: 10px 12px;
-            align-items: center;
-            gap: 10px;
-            align-self: stretch;
-            font-family: 'Open Sans';
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 20px;
-            border-bottom: 1px solid var(--center-channel-color-16, rgba(63, 67, 80, 0.16));
+        .TableSectionContent {
+            width: 920px;
+            height: 192px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 8px;
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
 
-            .FilterName,
-            .IpAddressRange {
-                color: #3f4350;
-                font-size: 14px;
-                font-family: 'Open Sans';
-                line-height: 20px;
-                word-wrap: break-word;
-            }
+            .Table {
+                align-self: stretch;
+                height: 160px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: flex-start;
 
-            .FilterName {
-                width: 291px;
-                font-weight: 600;
-            }
+                .HeaderRow {
+                    background-color: #f5f5f5;
+                    display: flex;
+                    padding: 10px 12px;
+                    align-items: center;
+                    gap: 10px;
+                    align-self: stretch;
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-weight: 600;
+                    line-height: 20px;
+                    border-bottom: 1px solid var(--center-channel-color-16, rgba(63, 67, 80, 0.16));
 
-            .IpAddressRange {
-                flex: 1 1 0;
+                    .FilterName,
+                    .IpAddressRange {
+                        color: #3f4350;
+                        font-size: 14px;
+                        font-family: 'Open Sans';
+                        line-height: 20px;
+                        word-wrap: break-word;
+                    }
+
+                    .FilterName {
+                        width: 291px;
+                        font-weight: 600;
+                    }
+
+                    .IpAddressRange {
+                        flex: 1 1 0;
+                    }
+                }
+
+                .Row {
+                    background: #fff;
+                    align-self: stretch;
+                    padding: 10px 12px;
+                    justify-content: flex-start;
+                    align-items: center;
+                    gap: 10px;
+                    display: inline-flex;
+                    border-bottom: 1px solid var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+
+                    .FilterName,
+                    .IpAddressRange {
+                        color: #3f4350;
+                        font-size: 14px;
+                        font-family: 'Open Sans';
+                        line-height: 20px;
+                        word-wrap: break-word;
+                    }
+
+                    .FilterName {
+                        width: 291px;
+                    }
+
+                    .IpAddressRange {
+                        flex: 1 1 0;
+                    }
+                }
             }
         }
 
-        .Row {
-            background: #fff;
-            align-self: stretch;
-            padding: 10px 12px;
-            justify-content: flex-start;
-            align-items: center;
-            gap: 10px;
+        .AllowedIPAddressesSection {
+            width: 920px;
+            height: 112px;
+            background: white;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            overflow: hidden;
             display: inline-flex;
-            border-bottom: 1px solid var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
 
-            .FilterName,
-            .IpAddressRange {
-                color: #3f4350;
-                font-size: 14px;
-                font-family: 'Open Sans';
-                line-height: 20px;
-                word-wrap: break-word;
-            }
+            .SectionHeaderContent {
+                align-self: stretch;
+                height: 112px;
+                padding: 24px 32px;
+                border-bottom: 1px solid rgba(63, 67, 80, 0.12);
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: flex-start;
+                gap: 24px;
 
-            .FilterName {
-                width: 291px;
-            }
+                .Frame1281 {
+                    align-self: stretch;
+                    display: inline-flex;
+                    justify-content: flex-start;
+                    align-items: flex-start;
+                    gap: 32px;
 
-            .IpAddressRange {
-                flex: 1 1 0;
+                    .TitleSubtitle {
+                        flex: 1 1 0;
+                        display: inline-flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: flex-start;
+
+                        .Title {
+                            color: #3F4350;
+                            font-size: 16px;
+                            font-family: Metropolis;
+                            font-weight: 600;
+                            line-height: 24px;
+                            word-wrap: break-word;
+                        }
+
+                        .Subtitle {
+                            align-self: stretch;
+                            color: #3F4350;
+                            font-size: 14px;
+                            font-family: 'Open Sans';
+                            font-weight: 400;
+                            line-height: 20px;
+                            word-wrap: break-word;
+                        }
+                    }
+
+                    .Frame1282 {
+                        display: inline-flex;
+                        flex-direction: column;
+                        justify-content: flex-start;
+                        align-items: flex-end;
+                        gap: 16px;
+
+                        .Button {
+                            padding: 10px 16px;
+                            background: #1C58D9;
+                            border-radius: 4px;
+                            flex-direction: column;
+                            justify-content: flex-start;
+                            align-items: center;
+                            gap: 10px;
+                            display: flex;
+
+                            .Content {
+                                justify-content: flex-start;
+                                align-items: flex-start;
+                                gap: 6px;
+                                display: inline-flex;
+
+                                .Icon {
+                                    justify-content: flex-start;
+                                    align-items: center;
+                                    gap: 10px;
+                                    display: flex;
+                                }
+
+                                .TextFrame {
+                                    padding-top: 1px;
+                                    padding-bottom: 1px;
+                                    justify-content: flex-start;
+                                    align-items: center;
+                                    display: flex;
+
+                                    .Label {
+                                        color: white;
+                                        font-size: 12px;
+                                        font-family: 'Open Sans';
+                                        font-weight: 600;
+                                        line-height: 9.50px;
+                                        word-wrap: break-word;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
-}
 
-.SectionHeaderContent {
-    width: 920px;
-    height: 92px;
-    padding: 24px 32px;
-    border-bottom: 1px solid rgba(63, 67, 80, 0.12);
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-    gap: 24px;
-
-    .Frame1281 {
-        align-self: stretch;
+    .EnableSectionContent {
+        width: 920px;
+        height: 92px;
+        padding: var(--spacing-xxl, 24px) 32px;
         display: inline-flex;
+        flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
-        gap: 32px;
+        gap: var(--spacing-xxl, 24px);
+        background-color: var(--center-channel-bg, #FFF);
+        border-radius: 8px;
 
-        .TitleSubtitle {
-            flex: 1 1 0;
+        .Frame1281 {
+            align-self: stretch;
             display: inline-flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: flex-start;
-            gap: 24px;
+            gap: 32px;
 
-            .Frame1286 {
-                align-self: stretch;
-                height: 44px;
-                display: flex;
+            .TitleSubtitle {
+                flex: 1 1 0;
+                display: inline-flex;
                 flex-direction: column;
                 justify-content: center;
                 align-items: flex-start;
+                gap: 24px;
 
-                .Title {
-                    color: #3F4350;
-                    font-size: 16px;
-                    font-family: Metropolis;
-                    font-weight: 600;
-                    line-height: 24px;
-                    word-wrap: break-word;
-                }
-
-                .Subtitle {
+                .Frame1286 {
                     align-self: stretch;
-                    color: #3F4350;
-                    font-size: 14px;
-                    font-family: 'Open Sans';
-                    font-weight: 400;
-                    line-height: 20px;
-                    word-wrap: break-word;
+                    height: 44px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: flex-start;
+
+                    .Title {
+                        color: #3F4350;
+                        font-size: 16px;
+                        font-family: Metropolis;
+                        font-weight: 600;
+                        line-height: 24px;
+                        word-wrap: break-word;
+                    }
+
+                    .Subtitle {
+                        align-self: stretch;
+                        color: #3F4350;
+                        font-size: 14px;
+                        font-family: 'Open Sans';
+                        font-weight: 400;
+                        line-height: 20px;
+                        word-wrap: break-word;
+                    }
                 }
             }
-        }
 
-        .Frame1282 {
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: flex-end;
-            gap: 16px;
+            .Frame1282 {
+                display: inline-flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: flex-end;
+                gap: 16px;
 
-            .SwitchSelector {
-                width: 32px;
-                height: 20px;
-                position: relative;
-
-                .Track {
+                .SwitchSelector {
                     width: 32px;
                     height: 20px;
-                    left: 0;
-                    top: 0;
-                    position: absolute;
-                    background: #1C58D9;
-                    border-radius: 10px;
-                }
+                    position: relative;
 
-                .Knob {
-                    width: 16px;
-                    height: 16px;
-                    left: 14px;
-                    top: 2px;
-                    position: absolute;
-                    background: white;
-                    box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.08);
-                    border-radius: 9999px;
+                    .Track {
+                        width: 32px;
+                        height: 20px;
+                        left: 0;
+                        top: 0;
+                        position: absolute;
+                        background: #1C58D9;
+                        border-radius: 10px;
+                    }
+
+                    .Knob {
+                        width: 16px;
+                        height: 16px;
+                        left: 14px;
+                        top: 2px;
+                        position: absolute;
+                        background: white;
+                        box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.08);
+                        border-radius: 9999px;
+                    }
                 }
             }
         }
