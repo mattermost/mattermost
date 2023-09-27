@@ -1360,10 +1360,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link-Vorschauen wurden vom Systemadministrator deaktiviert."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
   },
@@ -5736,10 +5732,6 @@
     "translation": "@{{.Username}} ist kein Mitglied dieses Teams."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Dieser Kanal wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Kanal synchronisiert ist."
-  },
-  {
     "id": "api.command.execute_command.format.app_error",
     "translation": "Dem Kommandowort fehlt der führende Slash"
   },
@@ -9675,13 +9667,6 @@
     "translation": "Oauth-Daten können nicht entfernt werden."
   },
   {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "Du hast eine zugewiesene Aufgabe:",
-      "other": "Du hast {{.Count}} zugewiesene Aufgaben:"
-    }
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Ungültige geschäftliche E-Mail für den Test"
   },
@@ -9876,5 +9861,109 @@
   {
     "id": "model.config.is_valid.local_mode_socket.app_error",
     "translation": "Das Verzeichnis der lokalen Socket-Dateien kann nicht gefunden werden."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Kanal-Mitgliedschaft des Benutzers kann nicht gefunden werden"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Benutzer darf Gruppennachricht nicht in privaten Kanal umwandeln"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Es kann kein Benutzer für dieses Token gefunden werden"
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Ungelesene Nachrichten und Erwähnungen können nicht überprüft werden"
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Reaktionen für Benutzer können nicht gelöscht werden."
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Die Anmeldung ist fehlgeschlagen, weil Remote-Benutzer sich nicht angemeldet dürfen."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Dieser Kanal wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Kanal synchronisiert wird."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du darfst den Namen, den Anzeigenamen und den Zweck von Direkt- oder Gruppennachrichten nicht ändern."
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "Der zu konvertierende Kanal ist keine Gruppennachricht. Du kannst nur Gruppennachrichten konvertieren"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Gruppennachricht für Kanalumwandlungsbeitrag konnte nicht erstellt werden"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token ist ungültig oder abgelaufen"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Vorhandene Sidebar-Kategorien für konvertierte Gruppennachrichten konnten nicht gelöscht werden."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Du kannst {{.FirstUser}} und {{.Others}} andere zu diesem Kanal hinzufügen, sobald sie Mitglieder des **{{.Team}}**-Teams sind."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du darfst den Namen, den Anzeigenamen und den Zweck von Direkt- oder Gruppennachrichten nicht ändern."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} und {{.LastItem}}"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} und {{.Others}} zum Kanal {{.Channel}} hinzugefügt."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Ungültiger Wert für Link-Metadaten-Timeout. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Der importierte Kanal kann nicht archiviert werden."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} und {{.Others}} andere sind bereits im Kanal."
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} hat diesen Kanal aus einer Gruppennachricht mit {{.GMMembers}} erstellt."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Alle Unterhaltungen können nicht als vom Kanal gelesen markiert werden"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Der Kanal ist keine Gruppennachricht."
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Token existiert nicht oder ist abgelaufen"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Konnte keine gemeinsamen Teams abrufen."
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "Die in der Konvertierungsanforderung angegebene Team-ID enthält nicht alle Mitglieder der Gruppennachricht"
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Der durchsuchbare Inhalt der Datei kann nicht festgelegt werden."
   }
 ]
