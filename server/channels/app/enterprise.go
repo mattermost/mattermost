@@ -97,3 +97,9 @@ func (s *Server) initEnterprise() {
 		s.Cloud = cloudInterface(s)
 	}
 }
+
+var IPFilteringInterface func(*App) einterfaces.IPFilteringInterface
+
+func RegisterIPFilteringInterface(f func(*App) einterfaces.IPFilteringInterface) {
+	IPFilteringInterface = f
+}

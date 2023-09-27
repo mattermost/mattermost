@@ -9,6 +9,7 @@ import {
     getTeammateNameDisplaySetting,
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
+import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
@@ -18,11 +19,13 @@ import {getChannelURL, getPermalinkURL} from 'selectors/urls';
 import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
+import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {stripMarkdown} from 'utils/markdown';
+import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
+import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
+import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
 import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -93,14 +96,94 @@ export function sendDesktopNotification(post, msgProps) {
             return;
         }
 
-        let notifyLevel = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
+        const channelNotifyProp = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
+        let notifyLevel = channelNotifyProp;
 
         if (notifyLevel === NotificationLevels.DEFAULT) {
             notifyLevel = user?.notify_props?.desktop || NotificationLevels.ALL;
         }
 
+        if (channel.type === 'G' && channelNotifyProp === NotificationLevels.DEFAULT && user?.notify_props?.desktop === NotificationLevels.MENTION) {
+            notifyLevel = NotificationLevels.ALL;
+        }
+
         if (notifyLevel === NotificationLevels.NONE) {
             return;
+        } else if (channel.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
+            // Compose the whole text in the message, including interactive messages.
+            let text = post.message;
+
+            // We do this on a try catch block to avoid errors from malformed props
+            try {
+                if (post.props && post.props.attachments) {
+                    const attachments = post.props.attachments;
+                    function appendText(toAppend) {
+                        if (toAppend) {
+                            text += `\n${toAppend}`;
+                        }
+                    }
+                    for (const attachment of attachments) {
+                        appendText(attachment.pretext);
+                        appendText(attachment.title);
+                        appendText(attachment.text);
+                        appendText(attachment.footer);
+                        if (attachment.fields) {
+                            for (const field of attachment.fields) {
+                                appendText(field.title);
+                                appendText(field.value);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.log('Could not process the whole attachment for mentions', e);
+            }
+
+            const allMentions = getAllUserMentionKeys(state);
+
+            const ignoreChannelMentionProp = member?.notify_props?.ignore_channel_mentions || IgnoreChannelMentions.DEFAULT;
+            let ignoreChannelMention = ignoreChannelMentionProp === IgnoreChannelMentions.ON;
+            if (ignoreChannelMentionProp === IgnoreChannelMentions.DEFAULT) {
+                ignoreChannelMention = user?.notify_props?.channel === 'false';
+            }
+
+            const mentionableText = formatWithRenderer(text, new MentionableRenderer());
+            let isExplicitlyMentioned = false;
+            for (const mention of allMentions) {
+                if (!mention || !mention.key) {
+                    continue;
+                }
+
+                if (ignoreChannelMention && ['@all', '@here', '@channel'].includes(mention.key)) {
+                    continue;
+                }
+
+                let flags = 'g';
+                if (!mention.caseSensitive) {
+                    flags += 'i';
+                }
+
+                let pattern;
+                if (cjkrPattern.test(mention.key)) {
+                    // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
+                    pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
+                } else {
+                    pattern = new RegExp(
+                        `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
+                        flags,
+                    );
+                }
+
+                if (pattern.test(mentionableText)) {
+                    isExplicitlyMentioned = true;
+                    break;
+                }
+            }
+
+            if (!isExplicitlyMentioned) {
+                return;
+            }
         } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
             return;
         } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1) {

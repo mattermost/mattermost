@@ -153,7 +153,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -288,7 +288,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

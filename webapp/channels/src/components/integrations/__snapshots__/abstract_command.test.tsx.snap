@@ -441,7 +441,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/test/integrations/commands"
         >
           <MemoizedFormattedMessage
@@ -911,7 +911,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/test/integrations/commands"
         >
           <MemoizedFormattedMessage
@@ -1384,7 +1384,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/test/integrations/commands"
         >
           <MemoizedFormattedMessage

@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
-	"github.com/mattermost/mattermost/server/v8/platform/services/ip_filtering"
 )
 
 func (api *API) InitIPFiltering() {
@@ -18,8 +17,8 @@ func (api *API) InitIPFiltering() {
 	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(applyIPFilters)).Methods("POST")
 }
 
-func ensureIPFilteringService(c *Context, where string) bool {
-	if c.App.Srv().IPFilteringService() == nil {
+func ensureIPFilteringInterface(c *Context, where string) bool {
+	if c.App.IPFiltering() == nil {
 		c.Err = model.NewAppError(where, "api.context.ip_filtering.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return false
 	}
@@ -27,15 +26,15 @@ func ensureIPFilteringService(c *Context, where string) bool {
 }
 
 func getIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
-	ensured := ensureIPFilteringService(c, "getIPFilters")
+	ensured := ensureIPFilteringInterface(c, "getIPFilters")
 	if !ensured {
 		return
 	}
 	// TODO: Permissions
 
-	ipFilterService := *c.App.Srv().IPFilteringService()
+	ipFiltering := c.App.IPFiltering()
 
-	allowedRanges, err := ipFilterService.GetIPFilters()
+	allowedRanges, err := ipFiltering.GetIPFilters()
 	if err != nil {
 		c.Err = model.NewAppError("getIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
@@ -51,7 +50,7 @@ func getIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
-	ensured := ensureIPFilteringService(c, "applyIPFilters")
+	ensured := ensureIPFilteringInterface(c, "applyIPFilters")
 	if !ensured {
 		return
 	}
@@ -61,9 +60,9 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("applyIPFilters", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	ipFilterService := *c.App.Srv().IPFilteringService()
+	ipFiltering := c.App.IPFiltering()
 
-	var allowedRanges *ip_filtering.AllowedIPRanges
+	var allowedRanges *model.AllowedIPRanges
 	if err := json.NewDecoder(r.Body).Decode(allowedRanges); err != nil {
 		c.Err = model.NewAppError("applyIPFilters", "api.context.ip_filtering.apply_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
@@ -71,7 +70,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	audit.AddEventParameterAuditable(auditRec, "IPFilter", allowedRanges)
 
-	if err := ipFilterService.ApplyIPFilters(allowedRanges); err != nil {
+	if err := ipFiltering.ApplyIPFilters(allowedRanges); err != nil {
 		c.Err = model.NewAppError("applyIPFilters", "api.context.ip_filtering.apply_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}

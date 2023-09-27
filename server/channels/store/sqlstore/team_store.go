@@ -1513,6 +1513,46 @@ func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([
 	return teamIDs, nil
 }
 
+func (s SqlTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error) {
+	subQuery := s.getSubQueryBuilder().
+		Select("TeamId, UserId").
+		From("TeamMembers").
+		Where(sq.Eq{
+			"UserId":   userIDs,
+			"DeleteAt": 0,
+		})
+
+	subQuerySQL, subQueryParams, err := subQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetCommonTeamIDsForMultipleUsers_subquery_toSQL")
+	}
+
+	query := s.getQueryBuilder().
+		Select("t.Id").
+		From("Teams AS t").
+		Join("("+subQuerySQL+") AS tm ON t.Id = tm.TeamId", subQueryParams...).
+		Where(sq.Eq{
+			"t.DeleteAt": 0,
+		}).
+		GroupBy("t.Id").
+		Having(sq.Eq{
+			"COUNT(UserId)": len(userIDs),
+		})
+
+	querySQL, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetCommonTeamIDsForMultipleUsers_query_toSQL")
+	}
+
+	var teamIDs []string
+
+	if err := s.GetReplicaX().Select(&teamIDs, querySQL, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find common team for users %v", userIDs)
+	}
+
+	return teamIDs, nil
+}
+
 // GetTeamMembersForExport gets the various teams for which a user, denoted by userId, is a part of.
 func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, error) {
 	members := []*model.TeamMemberForExport{}
