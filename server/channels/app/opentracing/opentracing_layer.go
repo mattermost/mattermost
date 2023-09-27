@@ -11615,6 +11615,23 @@ func (a *OpenTracingAppLayer) HubUnregister(webConn *platform.WebConn) {
 	a.app.HubUnregister(webConn)
 }
 
+func (a *OpenTracingAppLayer) IPFiltering() einterfaces.IPFilteringInterface {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IPFiltering")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.IPFiltering()
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) ImageProxyAdder() func(string) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ImageProxyAdder")

@@ -469,7 +469,6 @@ type AppIface interface {
 	ClientConfig() map[string]string
 	ClientConfigHash() string
 	Cloud() einterfaces.CloudInterface
-	IPFiltering() einterfaces.IPFilteringInterface
 	Cluster() einterfaces.ClusterInterface
 	CompareAndDeletePluginKey(pluginID string, key string, oldValue []byte) (bool, *model.AppError)
 	CompareAndSetPluginKey(pluginID string, key string, oldValue, newValue []byte) (bool, *model.AppError)
@@ -873,6 +872,7 @@ type AppIface interface {
 	HasPermissionToUser(askingUserId string, userID string) bool
 	HasSharedChannel(channelID string) (bool, error)
 	HooksManager() *product.HooksManager
+	IPFiltering() einterfaces.IPFilteringInterface
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string
 	ImageProxyRemover() (f func(string) string)
