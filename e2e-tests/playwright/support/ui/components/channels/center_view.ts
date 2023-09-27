@@ -47,8 +47,8 @@ export default class ChannelsCenterView {
 
     /**
      * Return the Nth post in the Center from the top
-     * @param index 
-     * @returns 
+     * @param index
+     * @returns
      */
     async getNthPost(index: number) {
         const nthPost = this.container.getByTestId('postView').nth(index);
@@ -73,7 +73,7 @@ export default class ChannelsCenterView {
                 const content = await post.container.textContent();
                 return content?.includes(text);
             },
-            {timeout}
+            {timeout},
         );
     }
 
@@ -85,7 +85,7 @@ export default class ChannelsCenterView {
 
                 return content?.includes(text);
             },
-            {timeout}
+            {timeout},
         );
     }
 }
