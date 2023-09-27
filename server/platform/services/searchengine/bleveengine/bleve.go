@@ -272,7 +272,7 @@ func (b *BleveEngine) deleteIndexes() *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) PurgeIndexes() *model.AppError {
+func (b *BleveEngine) PurgeIndexes(c *request.Context) *model.AppError {
 	if *b.cfg.BleveSettings.IndexDir == "" {
 		return nil
 	}
@@ -280,7 +280,7 @@ func (b *BleveEngine) PurgeIndexes() *model.AppError {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
 
-	mlog.Info("PurgeIndexes Bleve")
+	c.Logger().Info("PurgeIndexes Bleve")
 	if err := b.closeIndexes(); err != nil {
 		return err
 	}

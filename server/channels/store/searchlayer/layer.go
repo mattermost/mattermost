@@ -116,7 +116,7 @@ func runIndexFn(c *request.Context, engine searchengine.SearchEngineInterface, i
 	if engine.IsIndexingSync() {
 		indexFn(engine)
 		if err := engine.RefreshIndexes(c); err != nil {
-			mlog.Error("Encountered error refresh the indexes", mlog.Err(err))
+			c.Logger().Error("Encountered error refresh the indexes", mlog.Err(err))
 		}
 	} else {
 		go (func(engineCopy searchengine.SearchEngineInterface) {

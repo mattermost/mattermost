@@ -143,7 +143,7 @@ func (c *SearchChannelStore) RemoveMembers(ctx *request.Context, channelID strin
 }
 
 func (c *SearchChannelStore) CreateDirectChannel(ctx *request.Context, user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
-	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser, channelOptions...)
+	channel, err := c.ChannelStore.CreateDirectChannel(ctx, user, otherUser, channelOptions...)
 	if err == nil {
 		c.rootStore.indexUserFromID(ctx, user.Id)
 		c.rootStore.indexUserFromID(ctx, otherUser.Id)
@@ -315,14 +315,14 @@ func (c *SearchChannelStore) PermanentDeleteMembersByChannel(ctx *request.Contex
 	return err
 }
 
-func (c *SearchChannelStore) PermanentDelete(channelId string) error {
+func (c *SearchChannelStore) PermanentDelete(ctx *request.Context, channelId string) error {
 	channel, channelErr := c.ChannelStore.Get(channelId, true)
 	if channelErr != nil {
 		mlog.Warn("Encountered error deleting channel", mlog.String("channel_id", channelId), mlog.Err(channelErr))
 	}
 	err := c.ChannelStore.PermanentDelete(channelId)
 	if err == nil && channelErr == nil {
-		c.deleteChannelIndex(channel)
+		c.deleteChannelIndex(ctx, channel)
 	}
 	return err
 }

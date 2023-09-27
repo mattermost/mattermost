@@ -190,7 +190,7 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error)
-	CreateDirectChannel(ctx *request.Context, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
+	CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(channel *model.Channel) (*model.Channel, error)
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
@@ -707,7 +707,7 @@ type FileInfoStore interface {
 	GetForUser(userID string) ([]*model.FileInfo, error)
 	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
-	AttachToPost(fileID string, postID string, channelID, creatorID string) error
+	AttachToPost(c *request.Context, fileID string, postID string, channelID, creatorID string) error
 	DeleteForPost(postID string) (string, error)
 	PermanentDelete(fileID string) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)

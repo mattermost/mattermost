@@ -793,7 +793,7 @@ func (s *OpenTracingLayerChannelStore) CountUrgentPostsAfter(channelID string, t
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) CreateDirectChannel(ctx *request.Context, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+func (s *OpenTracingLayerChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.CreateDirectChannel")
 	s.Root.Store.SetContext(newCtx)

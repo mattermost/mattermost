@@ -239,32 +239,32 @@ func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64,
 	return r0, r1
 }
 
-// CreateDirectChannel provides a mock function with given fields: userID, otherUserID, channelOptions
-func (_m *ChannelStore) CreateDirectChannel(userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+// CreateDirectChannel provides a mock function with given fields: ctx, userID, otherUserID, channelOptions
+func (_m *ChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	_va := make([]interface{}, len(channelOptions))
 	for _i := range channelOptions {
 		_va[_i] = channelOptions[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, userID, otherUserID)
+	_ca = append(_ca, ctx, userID, otherUserID)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *model.Channel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.User, *model.User, ...model.ChannelOption) (*model.Channel, error)); ok {
-		return rf(userID, otherUserID, channelOptions...)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.User, ...model.ChannelOption) (*model.Channel, error)); ok {
+		return rf(ctx, userID, otherUserID, channelOptions...)
 	}
-	if rf, ok := ret.Get(0).(func(*model.User, *model.User, ...model.ChannelOption) *model.Channel); ok {
-		r0 = rf(userID, otherUserID, channelOptions...)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.User, ...model.ChannelOption) *model.Channel); ok {
+		r0 = rf(ctx, userID, otherUserID, channelOptions...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.User, *model.User, ...model.ChannelOption) error); ok {
-		r1 = rf(userID, otherUserID, channelOptions...)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, *model.User, ...model.ChannelOption) error); ok {
+		r1 = rf(ctx, userID, otherUserID, channelOptions...)
 	} else {
 		r1 = ret.Error(1)
 	}

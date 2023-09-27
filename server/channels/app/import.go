@@ -61,7 +61,7 @@ func processAttachmentPaths(c request.CTX, files *[]imports.AttachmentImportData
 	return nil
 }
 
-func processAttachments(c request.CTX, line *imports.LineImportData, basePath string, filesMap map[string]*zip.File) error {
+func processAttachments(c *request.Context, line *imports.LineImportData, basePath string, filesMap map[string]*zip.File) error {
 	var ok bool
 	switch line.Type {
 	case "post", "direct_post":
@@ -111,7 +111,7 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 	return nil
 }
 
-func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
+func (a *App) bulkImportWorker(c *request.Context, dryRun bool, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
 	workerID := model.NewId()
 	processedLines := uint64(0)
 
@@ -183,7 +183,7 @@ func (a *App) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmen
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -312,7 +312,7 @@ func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.
 	return *line.Version, nil
 }
 
-func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool) *model.AppError {
+func (a *App) importLine(c *request.Context, line imports.LineImportData, dryRun bool) *model.AppError {
 	switch {
 	case line.Type == "scheme":
 		if line.Scheme == nil {

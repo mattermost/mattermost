@@ -429,7 +429,7 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 	return channel, nil
 }
 
-func (a *App) getOrCreateDirectChannelWithUser(c request.CTX, user, otherUser *model.User) (*model.Channel, *model.AppError) {
+func (a *App) getOrCreateDirectChannelWithUser(c *request.Context, user, otherUser *model.User) (*model.Channel, *model.AppError) {
 	channel, nErr := a.getDirectChannel(c, user.Id, otherUser.Id)
 	if nErr != nil {
 		return nil, nErr
@@ -502,7 +502,7 @@ func (a *App) createDirectChannel(c request.CTX, userID string, otherUserID stri
 	return a.createDirectChannelWithUser(c, user, otherUser, channelOptions...)
 }
 
-func (a *App) createDirectChannelWithUser(c *request.Context, user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	channel, nErr := a.Srv().Store().Channel().CreateDirectChannel(c, user, otherUser, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput

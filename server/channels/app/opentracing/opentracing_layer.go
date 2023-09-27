@@ -1884,7 +1884,7 @@ func (a *OpenTracingAppLayer) CopyFileInfos(userID string, fileIDs []string) ([]
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateBot")
 
@@ -4063,7 +4063,7 @@ func (a *OpenTracingAppLayer) EnableUserAccessToken(c request.CTX, token *model.
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string, error) {
+func (a *OpenTracingAppLayer) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnsureBot")
 

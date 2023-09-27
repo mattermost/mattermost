@@ -90,7 +90,7 @@ type AppIface interface {
 	// Create/ Update a subscription history event
 	SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error)
 	// CreateBot creates the given bot and corresponding user.
-	CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError)
+	CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError)
 	// CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
 	CreateChannelScheme(c request.CTX, channel *model.Channel) (*model.Scheme, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
@@ -142,7 +142,7 @@ type AppIface interface {
 	// any ensureBotOptions hence it is not required for now.
 	// TODO: Once the focalboard migration completed, we should add this logic to the app and
 	// let plugin-api use the same code
-	EnsureBot(c request.CTX, productID string, bot *model.Bot) (string, error)
+	EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error)
 	// Expand announcements in incoming webhooks from Slack. Those announcements
 	// can be found in the text attribute, or in the pretext, text, title and value
 	// attributes of the attachment structure. The Slack attachment structure is

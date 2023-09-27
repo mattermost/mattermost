@@ -39,7 +39,7 @@ func (w *botServiceWrapper) EnsureBot(c request.CTX, productID string, bot *mode
 // any ensureBotOptions hence it is not required for now.
 // TODO: Once the focalboard migration completed, we should add this logic to the app and
 // let plugin-api use the same code
-func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string, error) {
+func (a *App) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
 	if bot == nil {
 		return "", errors.New("passed a nil bot")
 	}
@@ -104,7 +104,7 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 }
 
 // CreateBot creates the given bot and corresponding user.
-func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
 	vErr := bot.IsValidCreate()
 	if vErr != nil {
 		return nil, vErr
