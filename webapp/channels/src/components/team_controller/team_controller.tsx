@@ -215,6 +215,7 @@ function TeamController(props: Props) {
 
     return (
         <Switch>
+            {/* /:team already validated on parent route */}
             <Route
                 path={'/:team/integrations'}
                 component={BackstageController}
