@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
@@ -26,7 +27,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store) *jobs.SimpleWorker
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
-	execute := func(job *model.Job) error {
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(job)
 
 		return store.DesktopTokens().DeleteOlderThan(time.Now().Add(-maxAge).Unix())

@@ -24,7 +24,6 @@ func TestGetJob(t *testing.T) {
 		Id:     model.NewId(),
 		Status: model.NewId(),
 	}
-	status.InitLogger(th.TestLogger)
 
 	_, err := th.App.Srv().Store().Job().Save(status)
 	require.NoError(t, err)
@@ -243,8 +242,6 @@ func TestGetJobByType(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		status.InitLogger(th.TestLogger)
-
 		_, err := th.App.Srv().Store().Job().Save(status)
 		require.NoError(t, err)
 		defer th.App.Srv().Store().Job().Delete(status.Id)
@@ -290,8 +287,6 @@ func TestGetJobsByTypes(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		status.InitLogger(th.TestLogger)
-
 		_, err := th.App.Srv().Store().Job().Save(status)
 		require.NoError(t, err)
 		defer th.App.Srv().Store().Job().Delete(status.Id)

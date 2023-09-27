@@ -21,6 +21,19 @@ const (
 	CancelWatcherPollingInterval = 5000
 )
 
+// JobLoggerFields returns the logger annotations reflecting the given job metadata.
+func JobLoggerFields(job *model.Job) []mlog.Field {
+	if job == nil {
+		return nil
+	}
+
+	return []mlog.Field{
+		mlog.String("job_id", job.Id),
+		mlog.String("job_type", job.Type),
+		mlog.String("job_create_at", time.UnixMilli(job.CreateAt).String()),
+	}
+}
+
 func (srv *JobServer) CreateJob(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job, appErr := srv._createJob(c, jobType, jobData)
 	if appErr != nil {
@@ -55,8 +68,6 @@ func (srv *JobServer) _createJob(c *request.Context, jobType string, jobData map
 		Status:   model.JobStatusPending,
 		Data:     jobData,
 	}
-
-	job.InitLogger(c.Logger())
 
 	if err := job.IsValid(); err != nil {
 		return nil, err
@@ -214,11 +225,7 @@ func (srv *JobServer) HandleJobPanic(job *model.Job) {
 		return
 	}
 
-	var logger mlog.LoggerIFace = job.Logger
-	if job.Logger == nil {
-		// Fall back to JobServer logger
-		logger = srv.logger
-	}
+	logger := srv.logger.With(JobLoggerFields(job)...)
 
 	sb := &strings.Builder{}
 	pprof.Lookup("goroutine").WriteTo(sb, 2)

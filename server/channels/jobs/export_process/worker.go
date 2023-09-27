@@ -26,7 +26,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	const workerName = "ExportProcess"
 
 	isEnabled := func(cfg *model.Config) bool { return true }
-	execute := func(job *model.Job) error {
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(job)
 
 		opts := model.BulkExportOpts{
@@ -59,7 +59,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			}
 		}()
 
-		appErr := app.BulkExport(request.EmptyContext(job.Logger), wr, outPath, job, opts)
+		appErr := app.BulkExport(request.EmptyContext(logger), wr, outPath, job, opts)
 		wr.Close() // Close never returns an error
 
 		if appErr != nil {

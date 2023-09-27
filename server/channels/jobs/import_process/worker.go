@@ -37,7 +37,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
-	execute := func(job *model.Job) error {
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(job)
 
 		importFileName, ok := job.Data["import_file"]

@@ -258,7 +258,6 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 		Data: map[string]string{"import_file": "import1.zip"},
 	})
 	s.Require().Nil(appErr)
-	job.Logger = nil
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -353,7 +352,6 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 			Data: map[string]string{"import_file": "import2.zip"},
 		})
 		s.Require().Nil(appErr)
-		job2.Logger = nil
 
 		time.Sleep(time.Millisecond)
 
@@ -362,7 +360,6 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 			Data: map[string]string{"import_file": "import3.zip"},
 		})
 		s.Require().Nil(appErr)
-		job3.Logger = nil
 
 		err := importJobListCmdF(c, cmd, nil)
 		s.Require().Nil(err)

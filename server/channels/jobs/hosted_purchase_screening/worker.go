@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
@@ -27,7 +28,7 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeSto
 	isEnabled := func(_ *model.Config) bool {
 		return !license.IsCloud()
 	}
-	execute := func(job *model.Job) error {
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(job)
 
 		now := time.Now()

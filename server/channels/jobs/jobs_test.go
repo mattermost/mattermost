@@ -38,6 +38,7 @@ func makeJobServer(t *testing.T) (*JobServer, *storetest.Store, *mocks.MetricsIn
 		ConfigService: configService,
 		Store:         mockStore,
 		metrics:       mockMetrics,
+		logger:        mlog.CreateConsoleTestLogger(t),
 	}
 
 	return jobServer, mockStore, mockMetrics
@@ -501,13 +502,11 @@ func TestUpdateInProgressJobData(t *testing.T) {
 func TestHandleJobPanic(t *testing.T) {
 	t.Run("no panic", func(t *testing.T) {
 		jobServer, _, _ := makeJobServer(t)
-		logger := mlog.CreateConsoleTestLogger(t)
 
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
 			Status: model.JobStatusInProgress,
 		}
-		job.InitLogger(logger)
 
 		f := func() {
 			defer jobServer.HandleJobPanic(job)
@@ -520,13 +519,11 @@ func TestHandleJobPanic(t *testing.T) {
 
 	t.Run("with panic string", func(t *testing.T) {
 		jobServer, mockStore, metrics := makeJobServer(t)
-		logger := mlog.CreateConsoleTestLogger(t)
 
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
 			Status: model.JobStatusInProgress,
 		}
-		job.InitLogger(logger)
 
 		f := func() {
 			defer jobServer.HandleJobPanic(job)
@@ -542,13 +539,11 @@ func TestHandleJobPanic(t *testing.T) {
 
 	t.Run("with panic error", func(t *testing.T) {
 		jobServer, mockStore, metrics := makeJobServer(t)
-		logger := mlog.CreateConsoleTestLogger(t)
 
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
 			Status: model.JobStatusInProgress,
 		}
-		job.InitLogger(logger)
 
 		f := func() {
 			defer jobServer.HandleJobPanic(job)

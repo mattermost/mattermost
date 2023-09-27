@@ -282,7 +282,6 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 		Type: model.JobTypeExportProcess,
 	})
 	s.Require().Nil(appErr)
-	job.Logger = nil
 
 	time.Sleep(time.Millisecond)
 
@@ -373,7 +372,6 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
-		job2.Logger = nil
 
 		time.Sleep(time.Millisecond)
 
@@ -381,7 +379,6 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
-		job3.Logger = nil
 
 		err := exportJobListCmdF(c, cmd, nil)
 		s.Require().Nil(err)
