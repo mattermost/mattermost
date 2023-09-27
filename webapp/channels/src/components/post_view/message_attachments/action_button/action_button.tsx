@@ -23,12 +23,12 @@ type Props = {
 export default class ActionButton extends React.PureComponent<Props> {
     getStatusColors(theme: Theme) {
         return {
-            good: '#00c100',
-            warning: '#dede01',
+            good: '#339970',
+            warning: '#CC8F00',
             danger: theme.errorTextColor,
             default: theme.centerChannelColor,
             primary: theme.buttonBg,
-            success: theme.onlineIndicator,
+            success: `#339970`,
         } as Record<string, string>;
     }
 
@@ -45,15 +45,15 @@ export default class ActionButton extends React.PureComponent<Props> {
 
             if (hexColor) {
                 customButtonStyle = {
-                    borderColor: changeOpacity(hexColor, 0.25),
                     color: hexColor,
-                    borderWidth: 2,
+                    backgroundColor: changeOpacity(hexColor, 0.08),
                 };
             }
         }
 
         return (
-            <button
+            <button 
+                className="btn btn-sm"
                 data-action-id={action.id}
                 data-action-cookie={action.cookie}
                 disabled={disabled}
