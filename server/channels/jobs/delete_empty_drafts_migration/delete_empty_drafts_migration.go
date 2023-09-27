@@ -4,214 +4,82 @@
 package delete_empty_drafts_migration
 
 import (
-	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/pkg/errors"
 )
 
 const (
-	JobName = "DeleteEmptyDraftsMigration"
-
 	timeBetweenBatches = 1 * time.Second
 )
 
-type AppIFace interface {
-	GetClusterStatus() []*model.ClusterInfo
+// MakeWorker creates a batch migration worker to delete empty drafts.
+func MakeWorker(jobServer *jobs.JobServer, store store.Store, app jobs.BatchMigrationWorkerAppIFace) model.Worker {
+	return jobs.MakeBatchMigrationWorker(
+		jobServer,
+		store,
+		app,
+		model.MigrationKeyDeleteEmptyDrafts,
+		timeBetweenBatches,
+		doDeleteEmptyDraftsMigrationBatch,
+	)
 }
 
-type DeleteEmptyDraftsMigrationWorker struct {
-	name      string
-	jobServer *jobs.JobServer
-	logger    mlog.LoggerIFace
-	store     store.Store
-	app       AppIFace
-
-	stop    chan bool
-	stopped chan bool
-	jobs    chan model.Job
-}
-
-func MakeWorker(jobServer *jobs.JobServer, store store.Store, app AppIFace) model.Worker {
-	worker := &DeleteEmptyDraftsMigrationWorker{
-		jobServer: jobServer,
-		logger:    jobServer.Logger().With(mlog.String("workername", JobName)),
-		store:     store,
-		app:       app,
-		name:      JobName,
-		stop:      make(chan bool, 1),
-		stopped:   make(chan bool, 1),
-		jobs:      make(chan model.Job),
-	}
-	return worker
-}
-
-func (worker *DeleteEmptyDraftsMigrationWorker) Run() {
-	mlog.Debug("Worker started", mlog.String("worker", worker.name))
-	// We have to re-assign the stop channel again, because
-	// it might happen that the job was restarted due to a config change.
-	worker.stop = make(chan bool, 1)
-
-	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", worker.name))
-		worker.stopped <- true
-	}()
-
-	for {
-		select {
-		case <-worker.stop:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", worker.name))
-			return
-		case job := <-worker.jobs:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", worker.name))
-			worker.DoJob(&job)
-		}
-	}
-}
-
-func (worker *DeleteEmptyDraftsMigrationWorker) Stop() {
-	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
-	close(worker.stop)
-	<-worker.stopped
-}
-
-func (worker *DeleteEmptyDraftsMigrationWorker) JobChannel() chan<- model.Job {
-	return worker.jobs
-}
-
-func (worker *DeleteEmptyDraftsMigrationWorker) IsEnabled(_ *model.Config) bool {
-	return true
-}
-
-func (worker *DeleteEmptyDraftsMigrationWorker) DoJob(job *model.Job) {
-	defer worker.jobServer.HandleJobPanic(job)
-
-	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		mlog.Warn("DeleteEmptyDraftsMigrationWorker experienced an error while trying to claim job",
-			mlog.String("worker", worker.name),
-			mlog.String("job_id", job.Id),
-			mlog.Err(err))
-		return
-	} else if !claimed {
-		return
-	}
-
-	c := request.EmptyContext(worker.logger)
-	var appErr *model.AppError
-	// We get the job again because ClaimJob changes the job status.
-	job, appErr = worker.jobServer.GetJob(c, job.Id)
-	if appErr != nil {
-		mlog.Error("DeleteEmptyDraftsMigrationWorker: job execution error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
-		worker.setJobError(job, appErr)
-		return
-	}
-
-	// Wait for all clusters to finish DB migration
-	clusterStatus := worker.app.GetClusterStatus()
-	for i := 1; i < len(clusterStatus); i++ {
-		if clusterStatus[i].SchemaVersion != clusterStatus[0].SchemaVersion {
-			// Just wait for the next loop
-			worker.jobServer.SetJobPending(job)
-			return
-		}
-	}
-
-	// Check if there is metadata for that job.
-	// If there isn't, it will be empty by default, which is the right value.
-	userID := job.Data["user_id"]
+// parseJobMetadata parses the opaque job metadata to return the information needed to decide which
+// batch to process next.
+func parseJobMetadata(data model.StringMap) (int64, string, error) {
 	createAt := int64(0)
-	if job.Data["create_at"] != "" {
-		parsedCreateAt, parseErr := strconv.ParseInt(job.Data["create_at"], 10, 64)
+	if data["create_at"] != "" {
+		parsedCreateAt, parseErr := strconv.ParseInt(data["create_at"], 10, 64)
 		if parseErr != nil {
-			mlog.Error("DeleteEmptyDraftsMigrationWorker: failed to get create at", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
-			worker.setJobError(job, appErr)
-			return
+			return 0, "", errors.Wrap(parseErr, "failed to parse create_at")
 		}
 		createAt = parsedCreateAt
 	}
 
-	for {
-		select {
-		case <-worker.stop:
-			mlog.Info("Worker: Delete Empty Drafts has been canceled via Worker Stop. Setting the job back to pending.",
-				mlog.String("workername", worker.name),
-				mlog.String("job_id", job.Id))
-			if err := worker.jobServer.SetJobPending(job); err != nil {
-				mlog.Error("Worker: Failed to mark job as pending",
-					mlog.String("workername", worker.name),
-					mlog.String("job_id", job.Id),
-					mlog.Err(err))
-			}
-			return
-		case <-time.After(timeBetweenBatches):
-			nextCreateAt, nextUserID, err := worker.store.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
-			if err != nil {
-				mlog.Error("DeleteEmptyDraftsMigrationWorker: Failed to get the working page for the migration. Exiting", mlog.Err(err))
-				worker.setJobError(job, model.NewAppError("DoJob", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
-				return
-			}
+	userID := data["user_id"]
 
-			if nextCreateAt == 0 && nextUserID == "" {
-				mlog.Info("DeleteEmptyDraftsMigrationWorker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
-				worker.setJobSuccess(job)
-				worker.markAsComplete()
-				return
-			}
-
-			err = worker.store.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
-			if err != nil {
-				mlog.Error("DeleteEmptyDraftsMigrationWorker: Failed to delete the empty drafts for the page. Exiting", mlog.Err(err))
-				worker.setJobError(job, model.NewAppError("DoJob", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
-				return
-			}
-
-			// Work on each batch and save the batch starting ID in metadata
-			if job.Data == nil {
-				job.Data = make(model.StringMap)
-			}
-			job.Data["user_id"] = nextUserID
-			job.Data["create_at"] = strconv.FormatInt(nextCreateAt, 10)
-			worker.jobServer.SetJobProgress(job, 0)
-			userID = nextUserID
-			createAt = nextCreateAt
-		}
-	}
+	return createAt, userID, nil
 }
 
-func (worker *DeleteEmptyDraftsMigrationWorker) markAsComplete() {
-	system := model.System{
-		Name:  model.MigrationKeyDeleteEmptyDrafts,
-		Value: "true",
-	}
+// makeJobMetadata encodes the information needed to decide which batch to process next back into
+// the opaque job metadata.
+func makeJobMetadata(createAt int64, userID string) model.StringMap {
+	data := make(model.StringMap)
+	data["create_at"] = strconv.FormatInt(createAt, 10)
+	data["user_id"] = userID
 
-	// Note that if this fails, then the job would have still succeeded.
-	// So it will try to run the same job again next time, but then
-	// it will just fall through everything because there would be no empty drafts.
-	// The actual job is idempotent, so there won't be a problem.
-	if err := worker.jobServer.Store.System().Save(&system); err != nil {
-		mlog.Error("Worker: Failed to mark empty draft deletion as completed in the systems table.", mlog.String("workername", worker.name), mlog.Err(err))
-	}
+	return data
 }
 
-func (worker *DeleteEmptyDraftsMigrationWorker) setJobSuccess(job *model.Job) {
-	if err := worker.jobServer.SetJobProgress(job, 100); err != nil {
-		mlog.Error("Worker: Failed to update progress for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
-		worker.setJobError(job, err)
+// doDeleteEmptyDraftsMigrationBatch iterates through all drafts, deleting empty drafts within each
+// batch keyed by the compound primary key (createAt, userID)
+func doDeleteEmptyDraftsMigrationBatch(data model.StringMap, store store.Store) (model.StringMap, bool, error) {
+	createAt, userID, err := parseJobMetadata(data)
+	if err != nil {
+		return nil, false, errors.Wrap(err, "failed to parse job metadata")
 	}
 
-	if err := worker.jobServer.SetJobSuccess(job); err != nil {
-		mlog.Error("DeleteEmptyDraftsMigrationWorker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
-		worker.setJobError(job, err)
+	// Determine the /next/ (createAt, userId) by finding the last record in the batch we're
+	// about to delete.
+	nextCreateAt, nextUserID, err := store.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
+	if err != nil {
+		return nil, false, errors.Wrapf(err, "failed to get the next batch (create_at=%v, user_id=%v)", createAt, userID)
 	}
-}
 
-func (worker *DeleteEmptyDraftsMigrationWorker) setJobError(job *model.Job, appError *model.AppError) {
-	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		mlog.Error("DeleteEmptyDraftsMigrationWorker Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+	// If we get the nil values, it means the batch was empty and we're done.
+	if nextCreateAt == 0 && nextUserID == "" {
+		return nil, true, nil
 	}
+
+	err = store.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
+	if err != nil {
+		return nil, false, errors.Wrapf(err, "failed to delete empty drafts (create_at=%v, user_id=%v)", createAt, userID)
+	}
+
+	return makeJobMetadata(nextCreateAt, nextUserID), false, nil
 }
