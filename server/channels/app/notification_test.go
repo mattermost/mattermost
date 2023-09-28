@@ -322,7 +322,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 
 		// Test sending notifications
 		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		received1 := <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
