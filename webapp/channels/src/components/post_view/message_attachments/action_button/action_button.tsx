@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled, {css} from 'styled-components'
+import styled, {css} from 'styled-components';
 
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
-
 
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
