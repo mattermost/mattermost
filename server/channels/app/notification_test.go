@@ -233,11 +233,11 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("should inform each user if they were mentioned by a post", func(t *testing.T) {
-		messages1, close1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
-		defer close1()
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		defer closeWS1()
 
-		messages2, close2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
-		defer close2()
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		defer closeWS2()
 
 		// First post mentioning the whole channel
 		post := &model.Post{
@@ -306,11 +306,11 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		require.Nil(t, upsertErr)
 
 		// Set up the websockets
-		messages1, close1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
-		defer close1()
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		defer closeWS1()
 
-		messages2, close2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
-		defer close2()
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		defer closeWS2()
 
 		// Confirm permissions for group mentions are correct
 		post := &model.Post{
@@ -334,11 +334,11 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	})
 
 	t.Run("should inform each user if they are following a thread that was posted in", func(t *testing.T) {
-		messages1, close1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
-		defer close1()
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		defer closeWS1()
 
-		messages2, close2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
-		defer close2()
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		defer closeWS2()
 
 		// First post mentioning the whole channel
 		post := &model.Post{
@@ -364,7 +364,7 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userId string, connectio
 	var server *httptest.Server
 	var webConn *platform.WebConn
 
-	close := func() {
+	closeWS := func() {
 		if webConn != nil {
 			webConn.Close()
 		}
@@ -441,7 +441,7 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userId string, connectio
 	received = <-messages
 	assert.Equal(t, model.WebsocketEventStatusChange, received.EventType())
 
-	return messages, close
+	return messages, closeWS
 }
 
 func TestConnectFakeWebSocket(t *testing.T) {
@@ -451,8 +451,8 @@ func TestConnectFakeWebSocket(t *testing.T) {
 	teamId := th.BasicTeam.Id
 	userId := th.BasicUser.Id
 
-	messages, close := connectFakeWebSocket(t, th, userId, "")
-	defer close()
+	messages, closeWS := connectFakeWebSocket(t, th, userId, "")
+	defer closeWS()
 
 	msg := model.NewWebSocketEvent(model.WebsocketEventPosted, teamId, "", "", nil, "")
 	th.App.Publish(msg)

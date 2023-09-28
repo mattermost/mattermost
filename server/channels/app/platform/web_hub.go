@@ -505,10 +505,8 @@ func (h *Hub) Start() {
 						return
 					}
 					if webConn.ShouldSendEvent(msg) {
-						msg := h.runBroadcastHooks(msg, webConn)
-
 						select {
-						case webConn.send <- msg:
+						case webConn.send <- h.runBroadcastHooks(msg, webConn):
 						default:
 							// Don't log the warning if it's an inactive connection.
 							if webConn.active.Load() {
