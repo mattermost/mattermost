@@ -24,6 +24,17 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *mo
 		}
 	}
 
+	if opts != nil && opts.IncludeMemberIDs {
+		users, err := a.Srv().Store().Group().GetMemberUsers(id)
+		if err != nil {
+			return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		for _, user := range users {
+			group.MemberIDs = append(group.MemberIDs, user.Id)
+		}
+	}
+
 	if opts != nil && opts.IncludeMemberCount {
 		memberCount, err := a.Srv().Store().Group().GetMemberCountWithRestrictions(id, viewRestrictions)
 		if err != nil {
@@ -634,6 +645,19 @@ func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestr
 	groups, err := a.Srv().Store().Group().GetGroups(page, perPage, opts, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetGroups", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if opts.IncludeMemberIDs {
+		for _, group := range groups {
+			users, err := a.Srv().Store().Group().GetMemberUsers(group.Id)
+			if err != nil {
+				return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			for _, user := range users {
+				group.MemberIDs = append(group.MemberIDs, user.Id)
+			}
+		}
 	}
 
 	return groups, nil

@@ -553,6 +553,10 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 		query = query.Where(sq.Eq{"SidebarCategories.TeamId": opts.TeamID})
 	}
 
+	if opts.Type != "" {
+		query = query.Where(sq.Eq{"SidebarCategories.Type": opts.Type})
+	}
+
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sidebar_categories_tosql")
@@ -1124,4 +1128,19 @@ func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) (err error) {
 	}
 
 	return nil
+}
+
+func (s SqlChannelStore) DeleteAllSidebarChannelForChannel(channelID string) error {
+	query, args, err := s.getQueryBuilder().
+		Delete("SidebarChannels").
+		Where(sq.Eq{
+			"ChannelId": channelID,
+		}).ToSql()
+
+	if err != nil {
+		return errors.Wrap(err, "delete_all_sidebar_channel_for_channel_to_sql")
+	}
+
+	_, err = s.GetMasterX().Exec(query, args...)
+	return err
 }

@@ -108,7 +108,7 @@ export default class SearchResultsHeader extends React.PureComponent<Props> {
                         >
                             <button
                                 type='button'
-                                className='sidebar--right__expand btn-icon'
+                                className='sidebar--right__expand btn btn-icon btn-sm'
                                 onClick={this.props.actions.toggleRhsExpanded}
                             >
                                 <LocalizedIcon
@@ -130,7 +130,7 @@ export default class SearchResultsHeader extends React.PureComponent<Props> {
                         <button
                             id='searchResultsCloseButton'
                             type='button'
-                            className='sidebar--right__close btn-icon'
+                            className='sidebar--right__close btn btn-icon btn-sm'
                             aria-label='Close'
                             onClick={this.props.actions.closeRightHandSide}
                         >

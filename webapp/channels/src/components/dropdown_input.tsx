@@ -2,10 +2,16 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
+import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {Props as SelectProps, ActionMeta} from 'react-select';
+
+import InputError from 'components/input_error';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+
+import {ItemStatus} from 'utils/constants';
 
 import './dropdown_input.scss';
 
@@ -22,6 +28,7 @@ type Props<T> = Omit<SelectProps<T>, 'onChange'> & {
     error?: string;
     onChange: (value: T, action: ActionMeta<T>) => void;
     testId?: string;
+    required?: boolean;
 };
 
 const baseStyles = {
@@ -73,19 +80,6 @@ const Option = (props: any) => {
     );
 };
 
-const renderError = (error?: string) => {
-    if (!error) {
-        return null;
-    }
-
-    return (
-        <div className='Input___error'>
-            <i className='icon icon-alert-outline'/>
-            <span>{error}</span>
-        </div>
-    );
-};
-
 const DropdownInput = <T extends ValueType>(props: Props<T>) => {
     const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, ...otherProps} = props;
 
@@ -101,10 +95,29 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
         }
     };
 
+    const {formatMessage} = useIntl();
+    const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
+    const ownValue = useRef<T>();
+
+    const ownOnChange = (value: T, action: ActionMeta<T>) => {
+        ownValue.current = value;
+        onChange(value, action);
+    };
+    const validateInput = () => {
+        if (!props.required || (ownValue.current !== null && ownValue.current)) {
+            setCustomInputLabel(null);
+            return;
+        }
+
+        const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
+        setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
+    };
+
     const onInputBlur = (event: React.FocusEvent<HTMLElement>) => {
         const {onBlur} = props;
 
         setFocused(false);
+        validateInput();
 
         if (onBlur) {
             onBlur(event);
@@ -112,6 +125,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
     };
 
     const showLegend = Boolean(focused || value);
+    const isError = error || customInputLabel?.type === 'error';
 
     return (
         <div
@@ -120,7 +134,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
         >
             <fieldset
                 className={classNames('Input_fieldset', className, {
-                    Input_fieldset___error: error,
+                    Input_fieldset___error: isError,
                     Input_fieldset___legend: showLegend,
                 })}
             >
@@ -145,14 +159,17 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={'DropDown'}
                         value={value}
-                        onChange={onChange as any} // types are not working correctly for multiselect
+                        onChange={ownOnChange as any} // types are not working correctly for multiselect
                         styles={{...baseStyles, ...styles}}
                         {...otherProps}
                     />
                 </div>
                 {addon}
             </fieldset>
-            {renderError(error)}
+            <InputError
+                message={error}
+                custom={customInputLabel}
+            />
         </div>
     );
 };
