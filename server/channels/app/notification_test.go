@@ -246,7 +246,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			Message:   "@channel",
 		}
 		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		received1 := <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
@@ -263,7 +263,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			Message:   fmt.Sprintf("@%s @%s", th.BasicUser.Username, th.BasicUser2.Username),
 		}
 		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		received1 = <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
@@ -280,7 +280,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			Message:   "@" + th.BasicUser.Username,
 		}
 		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		received1 = <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
@@ -347,7 +347,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			Message:   "@channel",
 		}
 		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		received1 := <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
@@ -416,7 +416,7 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userId string, connectio
 	// Connect the WebSocket
 	d := websocket.Dialer{}
 	ws, _, err := d.Dial("ws://"+server.Listener.Addr().String(), nil)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Register the WebSocket with the server as a WebConn
 	if connectionId == "" {
