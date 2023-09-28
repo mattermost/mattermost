@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
 import {BellRingOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
