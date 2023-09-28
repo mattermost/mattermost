@@ -78,7 +78,7 @@ const AccessHistoryModal = ({
                 <button
                     id='closeModalButton'
                     type='button'
-                    className='btn btn-link'
+                    className='btn btn-tertiary'
                 >
                     <FormattedMessage
                         id='general_button.close'

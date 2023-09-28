@@ -66,7 +66,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
 
     componentDidMount() {
         if (this.settingList.current) {
-            const focusableElements: NodeListOf<HTMLElement> = this.settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-cancel), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
+            const focusableElements: NodeListOf<HTMLElement> = this.settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-tertiary), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
             if (focusableElements.length > 0) {
                 a11yFocus(focusableElements[0]);
             } else {
@@ -92,7 +92,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
             target.tagName !== 'SELECT' &&
             target.parentElement &&
             target.parentElement.className !== 'react-select__input' &&
-            !target.classList.contains('btn-cancel') &&
+            !target.classList.contains('btn-tertiary') &&
             this.settingList.current &&
             this.settingList.current.contains(target)) {
             this.handleSubmit(e);
@@ -244,7 +244,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                             {submit}
                             <button
                                 id={'cancelSetting'}
-                                className='btn btn-sm btn-cancel cursor--pointer style--none'
+                                className='btn btn-tertiary'
                                 onClick={this.handleUpdateSection}
                             >
                                 {cancelButtonText}

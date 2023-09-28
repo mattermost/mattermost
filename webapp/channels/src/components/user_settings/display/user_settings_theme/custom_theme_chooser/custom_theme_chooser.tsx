@@ -433,7 +433,7 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
                 />
                 <div className='mt-3'>
                     <button
-                        className='btn btn-link copy-theme-button'
+                        className='btn btn-tertiary'
                         onClick={this.copyTheme}
                     >
                         <FormattedMessage

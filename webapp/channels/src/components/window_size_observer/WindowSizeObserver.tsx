@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import throttle from 'lodash/throttle';
-import {useCallback, useEffect} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {setLhsSize} from 'actions/views/lhs';
@@ -12,13 +12,13 @@ import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import Constants from 'utils/constants';
 
-const smallSidebarMediaQuery = window.matchMedia(`(max-width: ${Constants.SMALL_SIDEBAR_BREAKPOINT}px)`);
-const mediumSidebarMediaQuery = window.matchMedia(`(min-width: ${Constants.SMALL_SIDEBAR_BREAKPOINT + 1}px) and (max-width: ${Constants.MEDIUM_SIDEBAR_BREAKPOINT}px)`);
-const largeSidebarMediaQuery = window.matchMedia(`(min-width: ${Constants.MEDIUM_SIDEBAR_BREAKPOINT + 1}px) and (max-width: ${Constants.LARGE_SIDEBAR_BREAKPOINT}px)`);
-const xLargeSidebarMediaQuery = window.matchMedia(`(min-width: ${Constants.LARGE_SIDEBAR_BREAKPOINT + 1}px)`);
-
 function WindowSizeObserver() {
     const dispatch = useDispatch();
+
+    const smallSidebarMediaQuery = useRef(window.matchMedia(`(max-width: ${Constants.SMALL_SIDEBAR_BREAKPOINT}px)`)).current;
+    const mediumSidebarMediaQuery = useRef(window.matchMedia(`(min-width: ${Constants.SMALL_SIDEBAR_BREAKPOINT + 1}px) and (max-width: ${Constants.MEDIUM_SIDEBAR_BREAKPOINT}px)`)).current;
+    const largeSidebarMediaQuery = useRef(window.matchMedia(`(min-width: ${Constants.MEDIUM_SIDEBAR_BREAKPOINT + 1}px) and (max-width: ${Constants.LARGE_SIDEBAR_BREAKPOINT}px)`)).current;
+    const xLargeSidebarMediaQuery = useRef(window.matchMedia(`(min-width: ${Constants.LARGE_SIDEBAR_BREAKPOINT + 1}px)`)).current;
 
     const updateSidebarSize = useCallback(() => {
         switch (true) {
