@@ -52,8 +52,8 @@ export default class ActionButton extends React.PureComponent<Props> {
         }
 
         return (
-            <button 
-                className="btn btn-sm"
+            <button
+                className='btn btn-sm'
                 data-action-id={action.id}
                 data-action-cookie={action.cookie}
                 disabled={disabled}
