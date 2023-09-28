@@ -339,6 +339,40 @@ export function updateChannelPrivacy(channelId: string, privacy: string): Action
     };
 }
 
+export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): ActionFunc {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
+
+        let updatedChannel;
+        try {
+            updatedChannel = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: ChannelTypes.UPDATE_CHANNEL_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch(batchActions([
+            {
+                type: ChannelTypes.RECEIVED_CHANNEL,
+                data: updatedChannel,
+            },
+            {
+                type: ChannelTypes.UPDATE_CHANNEL_SUCCESS,
+            },
+        ]));
+
+        // move the channel from direct message category to the default "channels" category
+        const channelsCategory = getCategoryInTeamByType(getState(), teamID, CategoryTypes.CHANNELS);
+        if (!channelsCategory) {
+            return {};
+        }
+
+        return updatedChannel;
+    };
+}
+
 export function updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const notifyProps = {
@@ -1049,20 +1083,23 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
 
         Client4.trackEvent('action', 'action_channels_add_member', {channel_id: channelId});
 
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
-                data: {id: channelId, user_id: userId},
-            },
-            {
-                type: ChannelTypes.RECEIVED_CHANNEL_MEMBER,
-                data: member,
-            },
-            {
-                type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
-                id: channelId,
-            },
-        ], 'ADD_CHANNEL_MEMBER.BATCH'));
+        const membersInChannel = getState().entities.channels.membersInChannel[channelId];
+        if (!(membersInChannel && userId in membersInChannel)) {
+            dispatch(batchActions([
+                {
+                    type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
+                    data: {id: channelId, user_id: userId},
+                },
+                {
+                    type: ChannelTypes.RECEIVED_CHANNEL_MEMBER,
+                    data: member,
+                },
+                {
+                    type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
+                    id: channelId,
+                },
+            ], 'ADD_CHANNEL_MEMBER.BATCH'));
+        }
 
         return {data: member};
     };
