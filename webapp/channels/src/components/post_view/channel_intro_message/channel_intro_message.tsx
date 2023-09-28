@@ -95,7 +95,7 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
     }
 }
 
-const GMIntroMessages = defineMessages({
+const gmIntroMessages = defineMessages({
     muted: {id: 'intro_messages.GM.muted', defaultMessage: 'This group message is currently <b>muted</b>, so you will not be notified.'},
     [NotificationLevel.ALL]: {id: 'intro_messages.GM.all', defaultMessage: 'You\'ll be notified <b>for all activity</b> in this group message.'},
     [NotificationLevel.DEFAULT]: {id: 'intro_messages.GM.all', defaultMessage: 'You\'ll be notified <b>for all activity</b> in this group message.'},
@@ -103,31 +103,31 @@ const GMIntroMessages = defineMessages({
     [NotificationLevel.NONE]: {id: 'intro_messages.GM.none', defaultMessage: 'You have selected to <b>never</b> be notified in this group message.'},
 });
 
-const getGMIntroMessageSpecificPart = (userProfile: UserProfileType | undefined, membership: ChannelMembership | undefined, channelType: ChannelType) => {
+const getGMIntroMessageSpecificPart = (userProfile: UserProfileType | undefined, membership: ChannelMembership | undefined) => {
     const isMuted = isChannelMuted(membership);
     if (isMuted) {
         return (
             <FormattedMessage
-                {...GMIntroMessages.muted}
+                {...gmIntroMessages.muted}
                 values={{
                     b: (chunks) => <b>{chunks}</b>,
                 }}
             />
         );
     }
-    const channelNotifyProp = membership?.notify_props.desktop || NotificationLevel.DEFAULT;
-    const userNotifyProp = userProfile?.notify_props.desktop || NotificationLevel.MENTION;
+    const channelNotifyProp = membership?.notify_props?.desktop || NotificationLevel.DEFAULT;
+    const userNotifyProp = userProfile?.notify_props?.desktop || NotificationLevel.MENTION;
     let notifyLevelToUse = channelNotifyProp;
     if (notifyLevelToUse === NotificationLevel.DEFAULT) {
         notifyLevelToUse = userNotifyProp;
     }
-    if (channelType === 'G' && channelNotifyProp === NotificationLevel.DEFAULT && userNotifyProp === NotificationLevel.MENTION) {
+    if (channelNotifyProp === NotificationLevel.DEFAULT && userNotifyProp === NotificationLevel.MENTION) {
         notifyLevelToUse = NotificationLevel.ALL;
     }
 
     return (
         <FormattedMessage
-            {...GMIntroMessages[notifyLevelToUse]}
+            {...gmIntroMessages[notifyLevelToUse]}
             values={{
                 b: (chunks) => <b>{chunks}</b>,
             }}
@@ -169,7 +169,7 @@ function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles:
                             br: <br/>,
                         }}
                     />
-                    {getGMIntroMessageSpecificPart(currentUserProfile, channelMembership, channel.type)}
+                    {getGMIntroMessageSpecificPart(currentUserProfile, channelMembership)}
                 </p>
                 <div style={{display: 'flex'}}>
                     {createNotificationPreferencesButton(channel, currentUserProfile)}
