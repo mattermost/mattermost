@@ -15,18 +15,18 @@ import (
 func TestAddMentionsAndFollowersHook_HasChanges(t *testing.T) {
 	hook := makeAddMentionsAndFollowersHook()
 
-	userId := model.NewId()
-	otherUserId1 := model.NewId()
-	otherUserId2 := model.NewId()
+	userID := model.NewId()
+	otherUserID1 := model.NewId()
+	otherUserID2 := model.NewId()
 
 	msg := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
 	webConn := &platform.WebConn{
-		UserId: userId,
+		UserId: userID,
 	}
 
 	t.Run("should make changes to a new post event with mentions for the current user", func(t *testing.T) {
 		args := map[string]any{
-			"mentions": model.StringArray{userId, otherUserId1},
+			"mentions": model.StringArray{userID, otherUserID1},
 		}
 
 		assert.Equal(t, true, hook.HasChanges(msg, webConn, args))
@@ -34,7 +34,7 @@ func TestAddMentionsAndFollowersHook_HasChanges(t *testing.T) {
 
 	t.Run("should make changes to a new post event followed by the current user", func(t *testing.T) {
 		args := map[string]any{
-			"followers": model.StringArray{otherUserId2, userId},
+			"followers": model.StringArray{otherUserID2, userID},
 		}
 
 		assert.Equal(t, true, hook.HasChanges(msg, webConn, args))
@@ -48,8 +48,8 @@ func TestAddMentionsAndFollowersHook_HasChanges(t *testing.T) {
 
 	t.Run("should not make changes to a new post event only mentioning and followed by other users", func(t *testing.T) {
 		args := map[string]any{
-			"mentions":  model.StringArray{otherUserId1},
-			"followers": model.StringArray{otherUserId1, otherUserId2},
+			"mentions":  model.StringArray{otherUserID1},
+			"followers": model.StringArray{otherUserID1, otherUserID2},
 		}
 
 		assert.Equal(t, false, hook.HasChanges(msg, webConn, args))
@@ -57,7 +57,7 @@ func TestAddMentionsAndFollowersHook_HasChanges(t *testing.T) {
 
 	t.Run("should not make changes other types of events", func(t *testing.T) {
 		args := map[string]any{
-			"followers": model.StringArray{otherUserId2, userId},
+			"followers": model.StringArray{otherUserID2, userID},
 		}
 
 		assert.Equal(t, false, hook.HasChanges(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", "", nil, ""), webConn, args))
@@ -69,11 +69,11 @@ func TestAddMentionsAndFollowersHook_HasChanges(t *testing.T) {
 func TestAddMentionsAndFollowersHook_Process(t *testing.T) {
 	hook := makeAddMentionsAndFollowersHook()
 
-	userId := model.NewId()
-	otherUserId := model.NewId()
+	userID := model.NewId()
+	otherUserID := model.NewId()
 
 	webConn := &platform.WebConn{
-		UserId: userId,
+		UserId: userID,
 	}
 
 	t.Run("should add a mentions entry for the current user", func(t *testing.T) {
@@ -83,10 +83,10 @@ func TestAddMentionsAndFollowersHook_Process(t *testing.T) {
 		require.Nil(t, msg.GetData()["followers"])
 
 		hook.Process(msg, webConn, map[string]any{
-			"mentions": model.StringArray{userId},
+			"mentions": model.StringArray{userID},
 		})
 
-		assert.Equal(t, `["`+userId+`"]`, msg.GetData()["mentions"])
+		assert.Equal(t, `["`+userID+`"]`, msg.GetData()["mentions"])
 		assert.Nil(t, msg.GetData()["followers"])
 	})
 
@@ -97,11 +97,11 @@ func TestAddMentionsAndFollowersHook_Process(t *testing.T) {
 		require.Nil(t, msg.GetData()["followers"])
 
 		hook.Process(msg, webConn, map[string]any{
-			"followers": model.StringArray{userId},
+			"followers": model.StringArray{userID},
 		})
 
 		assert.Nil(t, msg.GetData()["mentions"])
-		assert.Equal(t, `["`+userId+`"]`, msg.GetData()["followers"])
+		assert.Equal(t, `["`+userID+`"]`, msg.GetData()["followers"])
 	})
 
 	t.Run("should not add a mentions for another user", func(t *testing.T) {
@@ -111,7 +111,7 @@ func TestAddMentionsAndFollowersHook_Process(t *testing.T) {
 		require.Nil(t, msg.GetData()["followers"])
 
 		hook.Process(msg, webConn, map[string]any{
-			"mentions": model.StringArray{otherUserId},
+			"mentions": model.StringArray{otherUserID},
 		})
 
 		assert.Nil(t, msg.GetData()["mentions"])
@@ -125,7 +125,7 @@ func TestAddMentionsAndFollowersHook_Process(t *testing.T) {
 		require.Nil(t, msg.GetData()["followers"])
 
 		hook.Process(msg, webConn, map[string]any{
-			"followers": model.StringArray{otherUserId},
+			"followers": model.StringArray{otherUserID},
 		})
 
 		assert.Nil(t, msg.GetData()["mentions"])
@@ -141,13 +141,13 @@ func TestAddMentionsAndFollowersHook_Process(t *testing.T) {
 		require.Nil(t, originalData["followers"])
 
 		hook.Process(msg, webConn, map[string]any{
-			"mentions":  model.StringArray{userId},
-			"followers": model.StringArray{userId},
+			"mentions":  model.StringArray{userID},
+			"followers": model.StringArray{userID},
 		})
 
 		assert.Nil(t, originalData["mentions"])
 		assert.Nil(t, originalData["followers"])
-		assert.Equal(t, `["`+userId+`"]`, msg.GetData()["mentions"])
-		assert.Equal(t, `["`+userId+`"]`, msg.GetData()["followers"])
+		assert.Equal(t, `["`+userID+`"]`, msg.GetData()["mentions"])
+		assert.Equal(t, `["`+userID+`"]`, msg.GetData()["followers"])
 	})
 }

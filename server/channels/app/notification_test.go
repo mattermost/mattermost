@@ -359,7 +359,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	})
 }
 
-func connectFakeWebSocket(t *testing.T, th *TestHelper, userId string, connectionId string) (chan *model.WebSocketEvent, func()) {
+func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectionID string) (chan *model.WebSocketEvent, func()) {
 	var session *model.Session
 	var server *httptest.Server
 	var webConn *platform.WebConn
@@ -380,7 +380,7 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userId string, connectio
 	// Create a session for the user's connection
 	var appErr *model.AppError
 	session, appErr = th.App.CreateSession(&model.Session{
-		UserId: userId,
+		UserId: userID,
 	})
 	require.Nil(t, appErr)
 
@@ -419,15 +419,15 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userId string, connectio
 	require.NoError(t, err)
 
 	// Register the WebSocket with the server as a WebConn
-	if connectionId == "" {
-		connectionId = model.NewId()
+	if connectionID == "" {
+		connectionID = model.NewId()
 	}
 	webConn = th.App.Srv().Platform().NewWebConn(&platform.WebConnConfig{
 		WebSocket:    ws,
 		Session:      *session,
 		TFunc:        i18n.IdentityTfunc(),
 		Locale:       "en",
-		ConnectionID: connectionId,
+		ConnectionID: connectionID,
 	}, th.App, th.App.Channels())
 	th.App.Srv().Platform().HubRegister(webConn)
 
@@ -448,16 +448,16 @@ func TestConnectFakeWebSocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	teamId := th.BasicTeam.Id
-	userId := th.BasicUser.Id
+	teamID := th.BasicTeam.Id
+	userID := th.BasicUser.Id
 
-	messages, closeWS := connectFakeWebSocket(t, th, userId, "")
+	messages, closeWS := connectFakeWebSocket(t, th, userID, "")
 	defer closeWS()
 
-	msg := model.NewWebSocketEvent(model.WebsocketEventPosted, teamId, "", "", nil, "")
+	msg := model.NewWebSocketEvent(model.WebsocketEventPosted, teamID, "", "", nil, "")
 	th.App.Publish(msg)
 
-	msg = model.NewWebSocketEvent("test_event_with_data", "", "", userId, nil, "")
+	msg = model.NewWebSocketEvent("test_event_with_data", "", "", userID, nil, "")
 	msg.Add("key1", "value1")
 	msg.Add("key2", 2)
 	msg.Add("key3", []string{"three", "trois"})
@@ -465,11 +465,11 @@ func TestConnectFakeWebSocket(t *testing.T) {
 
 	received := <-messages
 	require.Equal(t, model.WebsocketEventPosted, received.EventType())
-	assert.Equal(t, teamId, received.GetBroadcast().TeamId)
+	assert.Equal(t, teamID, received.GetBroadcast().TeamId)
 
 	received = <-messages
 	require.Equal(t, "test_event_with_data", received.EventType())
-	assert.Equal(t, userId, received.GetBroadcast().UserId)
+	assert.Equal(t, userID, received.GetBroadcast().UserId)
 	// These type changes are annoying but unavoidable because event data is untyped
 	assert.Equal(t, map[string]any{
 		"key1": "value1",
