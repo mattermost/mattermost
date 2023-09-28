@@ -155,7 +155,7 @@ export default class SystemNotice extends React.PureComponent<Props> {
                         {notice.allowForget &&
                             <button
                                 id='systemnotice_dontshow'
-                                className='btn'
+                                className='btn btn-tertiary'
                                 onClick={this.hideAndForget}
                             >
                                 <FormattedMessage
