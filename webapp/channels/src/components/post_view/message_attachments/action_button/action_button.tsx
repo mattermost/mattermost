@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import styled, {css} from 'styled-components'
 
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
+
 
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -28,38 +30,31 @@ export default class ActionButton extends React.PureComponent<Props> {
             danger: theme.errorTextColor,
             default: theme.centerChannelColor,
             primary: theme.buttonBg,
-            success: `#339970`,
+            success: '#339970',
         } as Record<string, string>;
     }
 
     render() {
         const {action, handleAction, disabled, theme} = this.props;
-        let customButtonStyle;
+        let hexColor: string | null | undefined;
 
         if (action.style) {
             const STATUS_COLORS = this.getStatusColors(theme);
-            const hexColor =
+            hexColor =
                 STATUS_COLORS[action.style] ||
                 theme[action.style] ||
                 (action.style.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && action.style);
-
-            if (hexColor) {
-                customButtonStyle = {
-                    color: hexColor,
-                    backgroundColor: changeOpacity(hexColor, 0.08),
-                };
-            }
         }
 
         return (
-            <button
-                className='btn btn-sm'
+            <ActionBtn
                 data-action-id={action.id}
                 data-action-cookie={action.cookie}
                 disabled={disabled}
                 key={action.id}
                 onClick={(e) => handleAction(e, this.props.action.options)}
-                style={customButtonStyle}
+                className='btn btn-sm'
+                hexColor={hexColor}
             >
                 <LoadingWrapper
                     loading={this.props.actionExecuting}
@@ -74,7 +69,21 @@ export default class ActionButton extends React.PureComponent<Props> {
                         }}
                     />
                 </LoadingWrapper>
-            </button>
+            </ActionBtn>
         );
     }
 }
+
+type ActionBtnProps = {hexColor: string | null | undefined};
+const ActionBtn = styled.button<ActionBtnProps>`
+    ${({hexColor}) => hexColor && css`
+        background-color: ${changeOpacity(hexColor, 0.08)} !important;
+        color: ${hexColor} !important;
+        &:hover {
+            background-color: ${changeOpacity(hexColor, 0.12)} !important;
+        }
+        &:active {
+            background-color: ${changeOpacity(hexColor, 0.16)} !important;
+        }
+    `}
+`;
