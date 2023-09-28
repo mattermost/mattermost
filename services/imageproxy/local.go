@@ -152,13 +152,12 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 
 	resp, err := backend.client.Do(actualReq)
 	if err != nil {
-		msg := fmt.Sprintf("error fetching remote image: %v", err)
-		mlog.Warn(msg)
+		mlog.Warn("error fetching remote image", mlog.Err(err))
 		statusCode := http.StatusInternalServerError
 		if e, ok := err.(net.Error); ok && e.Timeout() {
 			statusCode = http.StatusGatewayTimeout
 		}
-		http.Error(w, msg, statusCode)
+		http.Error(w, fmt.Sprintf("error fetching remote image: %v", err), statusCode)
 		return
 	}
 	// close the original resp.Body, even if we wrap it in a NopCloser below
