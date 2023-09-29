@@ -1395,6 +1395,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             <form
                 id='create_post'
                 ref={this.topDiv}
+                data-testid='create-post'
                 className={centerClass}
                 onSubmit={this.handleSubmit}
             >

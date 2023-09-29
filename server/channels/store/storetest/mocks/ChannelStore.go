@@ -336,6 +336,20 @@ func (_m *ChannelStore) Delete(channelID string, timestamp int64) error {
 	return r0
 }
 
+// DeleteAllSidebarChannelForChannel provides a mock function with given fields: channelID
+func (_m *ChannelStore) DeleteAllSidebarChannelForChannel(channelID string) error {
+	ret := _m.Called(channelID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteSidebarCategory provides a mock function with given fields: categoryID
 func (_m *ChannelStore) DeleteSidebarCategory(categoryID string) error {
 	ret := _m.Called(categoryID)

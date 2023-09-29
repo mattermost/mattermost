@@ -3,6 +3,7 @@
 exports[`components/advanced_create_post Show tutorial 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -87,6 +88,7 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
 exports[`components/advanced_create_post should match snapshot for center textbox 1`] = `
 <form
   className="center"
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -171,6 +173,7 @@ exports[`components/advanced_create_post should match snapshot for center textbo
 exports[`components/advanced_create_post should match snapshot when cannot post 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -255,6 +258,7 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
 exports[`components/advanced_create_post should match snapshot when file upload disabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -339,6 +343,7 @@ exports[`components/advanced_create_post should match snapshot when file upload 
 exports[`components/advanced_create_post should match snapshot, can post; preview disabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -423,6 +428,7 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
 exports[`components/advanced_create_post should match snapshot, can post; preview enabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -507,6 +513,7 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
 exports[`components/advanced_create_post should match snapshot, cannot post; preview disabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -591,6 +598,7 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
 exports[`components/advanced_create_post should match snapshot, cannot post; preview enabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -675,6 +683,7 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
 exports[`components/advanced_create_post should match snapshot, init 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -759,6 +768,7 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
 exports[`components/advanced_create_post should match snapshot, post priority disabled, with priority important 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -848,6 +858,7 @@ exports[`components/advanced_create_post should match snapshot, post priority di
 exports[`components/advanced_create_post should match snapshot, post priority enabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -940,6 +951,7 @@ exports[`components/advanced_create_post should match snapshot, post priority en
 exports[`components/advanced_create_post should match snapshot, post priority enabled, with priority important 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >

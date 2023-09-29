@@ -261,10 +261,6 @@ const AdvanceTextEditor = ({
     };
 
     let emojiPicker = null;
-    const emojiButtonAriaLabel = formatMessage({
-        id: 'emoji_picker.emojiPicker',
-        defaultMessage: 'Emoji Picker',
-    }).toLowerCase();
 
     if (enableEmojiPicker && !readOnlyChannel) {
         const emojiPickerTooltip = (
@@ -298,7 +294,7 @@ const AdvanceTextEditor = ({
                         ref={emojiPickerRef}
                         onClick={toggleEmojiPicker}
                         type='button'
-                        aria-label={emojiButtonAriaLabel}
+                        aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                         disabled={shouldShowPreview}
                         className={classNames({active: showEmojiPicker})}
                     >
@@ -392,12 +388,7 @@ const AdvanceTextEditor = ({
             return;
         }
 
-        const inputPaddingLeft = parseInt(window.getComputedStyle(input, null).paddingLeft || '0', 10);
-        const inputPaddingRight = parseInt(window.getComputedStyle(input, null).paddingRight || '0', 10);
-        const inputPaddingX = inputPaddingLeft + inputPaddingRight;
-        const currentWidth = width + inputPaddingX;
-
-        if (currentWidth >= maxWidth) {
+        if (width >= maxWidth) {
             setShowFormattingSpacer(true);
         } else {
             setShowFormattingSpacer(false);
@@ -608,22 +599,6 @@ const AdvanceTextEditor = ({
         }
     }, [handleWidthChange, message]);
 
-    useEffect(() => {
-        if (!input) {
-            return;
-        }
-
-        let padding = 16;
-        if (showFormattingBar) {
-            padding += 32;
-        }
-        if (renderScrollbar) {
-            padding += 8;
-        }
-
-        input.style.paddingRight = `${padding}px`;
-    }, [showFormattingBar, renderScrollbar, input]);
-
     const formattingBar = (
         <AutoHeightSwitcher
             showSlot={showFormattingBar ? 1 : 2}
@@ -648,6 +623,7 @@ const AdvanceTextEditor = ({
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     scroll: renderScrollbar,
+                    'formatting-bar': showFormattingBar,
                 })}
             >
                 <div

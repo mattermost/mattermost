@@ -1339,6 +1339,15 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		a.deleteFlaggedPosts(post.Id)
 	})
 
+	pluginPost := post.ForPlugin()
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
+			return true
+		}, plugin.MessageHasBeenDeletedID)
+	})
+
 	a.Srv().Go(func() {
 		if err = a.RemoveNotifications(c, post, channel); err != nil {
 			a.Log().Error("DeletePost failed to delete notification", mlog.Err(err))

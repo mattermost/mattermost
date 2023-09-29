@@ -7,10 +7,12 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {TeamTypes} from 'mattermost-redux/action_types';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
+import {logError} from 'mattermost-redux/actions/errors';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getUser} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
@@ -112,5 +114,21 @@ export function updateTeamsOrderForUser(teamIds: Array<Team['id']>) {
             value: teamIds.join(','),
         }];
         dispatch(savePreferences(currentUserId, teamOrderPreferences));
+    };
+}
+
+export function getGroupMessageMembersCommonTeams(channelId: string): ActionFunc<Team[], ServerError> {
+    return async (dispatch) => {
+        let teams: Team[];
+
+        try {
+            const response = await Client4.getGroupMessageMembersCommonTeams(channelId);
+            teams = response.data;
+        } catch (error) {
+            dispatch(logError(error as ServerError));
+            return {error: error as ServerError};
+        }
+
+        return {data: teams};
     };
 }

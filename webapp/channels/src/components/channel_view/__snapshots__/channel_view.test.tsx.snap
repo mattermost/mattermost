@@ -143,6 +143,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
   />
   <div
     className="post-create__container AdvancedTextEditor__ctr"
+    data-testid="post-create"
     id="post-create"
   >
     <Connect(AdvancedCreatePost)
