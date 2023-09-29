@@ -371,12 +371,12 @@
             }
 
             button {
-                border: none;
-                outline: 0;
                 margin-top: 8px;
-                font-size: 13px;
-                color: var(--center-channel-color);
+                outline: 0;
+                border: none;
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: var(--center-channel-color);
+                font-size: 13px;
 
                 &:hover {
                     background-color: rgba(var(--center-channel-color-rgb), 0.12);
@@ -384,8 +384,8 @@
                 }
 
                 &[disabled] {
-                    cursor: auto;
                     opacity: 0.5;
+                    cursor: auto;
                 }
 
                 a {
