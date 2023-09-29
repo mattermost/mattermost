@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from 'mattermost-redux/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)

@@ -3,6 +3,7 @@
     "@babel/eslint-parser": "7.21.8",
     "@babel/eslint-plugin": "7.19.1",
     "@cypress/request": "2.88.11",
+    "@mattermost/client": "7.10.0",
     "@mattermost/types": "7.10.0",
     "@testing-library/cypress": "9.0.0",
     "@types/async": "3.2.20",
@@ -54,7 +55,6 @@
     "lodash.mapkeys": "4.6.0",
     "lodash.without": "4.4.0",
     "lodash.xor": "4.5.0",
-    "mattermost-redux": "5.33.1",
     "mime": "3.0.0",
     "mime-types": "2.1.35",
     "mocha": "10.2.0",
@@ -76,6 +76,9 @@
     "yargs": "17.7.2"
   },
   "overrides": {
+    "@mattermost/client": {
+      "typescript": "^5.0.4"
+    },
     "@mattermost/types": {
       "typescript": "^5.0.4"
     }
