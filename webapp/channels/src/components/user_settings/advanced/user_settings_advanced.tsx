@@ -634,7 +634,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             <div className='mt-5'>
                                 <FormattedMessage
                                     id='user.settings.advance.dataPrefetch.Desc'
-                                    defaultMessage='When disabled, messages and user information will be fetched on each channel load instead of being pre-fetched on startup. This setting is recommended for users with a high unread channel count in order to improve application performance.'
+                                    defaultMessage='When disabled, messages and user information will be fetched on each channel load instead of being pre-fetched on startup. Disabling prefetch is recommended for users with a high unread channel count in order to improve application performance.'
                                 />
                             </div>
                         </fieldset>,
