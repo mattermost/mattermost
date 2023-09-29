@@ -13,7 +13,8 @@ import type Textbox from 'components/textbox/textbox';
 
 import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithRealStore, userEvent} from 'tests/react_testing_utils';
+import {renderWithFullContext, userEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 import {WebSocketContext} from 'utils/use_websocket';
 
 import type {PostDraft} from 'types/store/draft';
@@ -43,12 +44,7 @@ const initialState = {
         },
         channels: {
             channels: {
-                current_channel_id: {
-                    id: 'current_channel_id',
-                    group_constrained: false,
-                    team_id: 'current_team_id',
-                    type: 'O',
-                },
+                current_channel_id: TestHelper.getChannelMock({id: 'current_channel_id', team_id: 'current_team_id'}),
             },
             stats: {
                 current_channel_id: {
@@ -58,54 +54,24 @@ const initialState = {
             roles: {
                 current_channel_id: new Set(['channel_roles']),
             },
-            groupsAssociatedToChannel: {},
-            channelMemberCountsByGroup: {
-                current_channel_id: {},
-            },
         },
         teams: {
             currentTeamId: 'current_team_id',
             teams: {
-                current_team_id: {
-                    id: 'current_team_id',
-                    group_constrained: false,
-                },
+                current_team_id: TestHelper.getTeamMock({id: 'current_team_id'}),
             },
             myMembers: {
-                current_team_id: {
-                    roles: 'team_roles',
-                },
+                current_team_id: TestHelper.getTeamMembershipMock({roles: 'team_roles'}),
             },
-            groupsAssociatedToTeam: {},
         },
         users: {
             currentUserId: 'current_user_id',
             profiles: {
-                current_user_id: {
-                    id: 'current_user_id',
-                    roles: 'user_roles',
-                    locale: 'en',
-                },
+                current_user_id: TestHelper.getUserMock({id: 'current_user_id', roles: 'user_roles'}),
             },
             statuses: {
                 current_user_id: 'online',
             },
-        },
-        roles: {
-            roles: {
-                user_roles: {permissions: []},
-                channel_roles: {permissions: []},
-                team_roles: {permissions: []},
-            },
-        },
-        groups: {
-            groups: {},
-        },
-        emojis: {
-            customEmoji: {},
-        },
-        preferences: {
-            myPreferences: {},
         },
     },
     websocket: {
@@ -186,7 +152,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     describe('keyDown behavior', () => {
         it('Enter should call postMsgKeyPress', () => {
             const postMsgKeyPress = jest.fn();
-            renderWithRealStore(
+            renderWithFullContext(
                 <WebSocketContext.Provider value={WebSocketClient}>
                     <AdavancedTextEditor
                         {...baseProps}
@@ -209,7 +175,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         it('Ctrl+up should call loadPrevMessage', () => {
             const loadPrevMessage = jest.fn();
-            renderWithRealStore(
+            renderWithFullContext(
                 <WebSocketContext.Provider value={WebSocketClient}>
                     <AdavancedTextEditor
                         {...baseProps}
@@ -230,7 +196,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         it('up should call onEditLatestPost', () => {
             const onEditLatestPost = jest.fn();
-            renderWithRealStore(
+            renderWithFullContext(
                 <WebSocketContext.Provider value={WebSocketClient}>
                     <AdavancedTextEditor
                         {...baseProps}
@@ -250,7 +216,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
 
         it('ESC should blur the input', () => {
-            renderWithRealStore(
+            renderWithFullContext(
                 <WebSocketContext.Provider value={WebSocketClient}>
                     <AdavancedTextEditor
                         {...baseProps}
@@ -295,7 +261,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     const selectionStart = 5;
                     const selectionEnd = 10;
 
-                    renderWithRealStore(
+                    renderWithFullContext(
                         <WebSocketContext.Provider value={WebSocketClient}>
                             <AdavancedTextEditor
                                 {...baseProps}
