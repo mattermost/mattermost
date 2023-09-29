@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {getMissingProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
-
 import {General, WebsocketEvents} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-
 import configureStore from 'tests/test_store';
 
 import {userStartedTyping} from './actions';

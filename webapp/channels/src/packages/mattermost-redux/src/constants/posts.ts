@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostType} from '@mattermost/types/posts';
+import type {PostType} from '@mattermost/types/posts';
 
 export const PostTypes = {
     CHANNEL_DELETED: 'system_channel_deleted' as PostType,
@@ -32,6 +32,7 @@ export const PostTypes = {
     ADD_BOT_TEAMS_CHANNELS: 'add_bot_teams_channels' as PostType,
     SYSTEM_WARN_METRIC_STATUS: 'warn_metric_status' as PostType,
     REMINDER: 'reminder' as PostType,
+    GM_CONVERTED_TO_CHANNEL: 'system_gm_to_channel' as PostType,
 };
 
 export default {

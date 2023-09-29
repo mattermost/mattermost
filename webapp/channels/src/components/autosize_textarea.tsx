@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, FormEvent, CSSProperties, useRef, useEffect, useCallback, HTMLProps} from 'react';
-import useDidUpdate from './common/hooks/useDidUpdate';
-import {Intersection} from '@mattermost/types/utilities';
+import type {ChangeEvent, FormEvent, HTMLProps} from 'react';
+import React, {useRef, useEffect, useCallback} from 'react';
+
+import type {Intersection} from '@mattermost/types/utilities';
 
 type Props = {
     id?: string;
+    className?: string;
     disabled?: boolean;
     value?: string;
     defaultValue?: string;
@@ -17,11 +19,26 @@ type Props = {
     placeholder?: string;
 } & Intersection<HTMLProps<HTMLTextAreaElement>, HTMLProps<HTMLDivElement>>;
 
-const styles: { [Key: string]: CSSProperties} = {
-    container: {height: 0, overflow: 'hidden'},
-    reference: {height: 'auto', width: '100%'},
-    placeholder: {overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.5, pointerEvents: 'none', position: 'absolute', whiteSpace: 'nowrap', background: 'none', borderColor: 'transparent'},
-    measuring: {width: 'auto', display: 'inline-block'},
+const styles = {
+    container: {
+        height: 0,
+        overflow: 'hidden',
+    },
+    reference: {
+        display: 'inline-block',
+        height: 'auto',
+        width: 'auto',
+    },
+    placeholder: {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        opacity: 0.5,
+        pointerEvents: 'none' as const,
+        position: 'absolute' as const,
+        whiteSpace: 'nowrap' as const,
+        background: 'none',
+        borderColor: 'transparent',
+    },
 };
 
 const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
@@ -43,8 +60,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
 }: Props, ref) => {
     const height = useRef(0);
     const textarea = useRef<HTMLTextAreaElement>();
-    const referenceRef = useRef<HTMLTextAreaElement>(null);
-    const measuringRef = useRef<HTMLDivElement>(null);
+    const referenceRef = useRef<HTMLDivElement>(null);
 
     const recalculateHeight = () => {
         if (!referenceRef.current || !textarea.current) {
@@ -67,28 +83,15 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     };
 
     const recalculateWidth = () => {
-        if (!measuringRef.current) {
+        if (!referenceRef.current) {
             return;
         }
 
-        const width = measuringRef.current?.offsetWidth || -1;
+        const width = referenceRef.current?.offsetWidth || -1;
         if (width >= 0) {
             window.requestAnimationFrame(() => {
                 onWidthChange?.(width);
             });
-        }
-    };
-
-    const recalculatePadding = () => {
-        if (!referenceRef.current || !textarea.current) {
-            return;
-        }
-
-        const currentTextarea = textarea.current;
-        const {paddingRight} = getComputedStyle(currentTextarea);
-
-        if (paddingRight && paddingRight !== referenceRef.current.style.paddingRight) {
-            referenceRef.current.style.paddingRight = paddingRight;
         }
     };
 
@@ -107,12 +110,6 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     useEffect(() => {
         recalculateHeight();
         recalculateWidth();
-    }, []);
-
-    useDidUpdate(() => {
-        recalculateHeight();
-        recalculateWidth();
-        recalculatePadding();
     });
 
     const heightProps = {
@@ -142,6 +139,18 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
         );
     }
 
+    let referenceValue = value || defaultValue;
+    if (referenceValue?.endsWith('\n')) {
+        // In a div, the browser doesn't always count characters at the end of a line when measuring the dimensions
+        // of text. In the spec, they refer to those characters as "hanging". No matter what value we set for the
+        // `white-space` of a div, a single newline at the end of the div will always hang.
+        //
+        // The textarea doesn't have that behaviour, so we need to trick the reference div into measuring that
+        // newline, and it seems like the best way to do that is by adding a second newline because only the final
+        // one hangs.
+        referenceValue += '\n';
+    }
+
     return (
         <div>
             {textareaPlaceholder}
@@ -161,24 +170,16 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                 defaultValue={defaultValue}
             />
             <div style={styles.container}>
-                <textarea
+                <div
                     ref={referenceRef}
                     id={id + '-reference'}
+                    className={otherProps.className}
                     style={styles.reference}
                     dir='auto'
                     disabled={true}
-                    rows={1}
-                    {...otherProps}
-                    value={value || defaultValue}
                     aria-hidden={true}
-                    onChange={onChange}
-                />
-                <div
-                    ref={measuringRef}
-                    id={id + '-measuring'}
-                    style={styles.measuring}
                 >
-                    {value || defaultValue}
+                    {referenceValue}
                 </div>
             </div>
         </div>

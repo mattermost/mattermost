@@ -29,7 +29,6 @@ import {ThreadsState} from './threads';
 import {Typing} from './typing';
 import {UsersState} from './users';
 import {AppsState} from './apps';
-import {GifsState} from './gifs';
 
 export type GlobalState = {
     entities: {
@@ -61,7 +60,6 @@ export type GlobalState = {
             pending: Set<string>;
         };
         schemes: SchemesState;
-        gifs: GifsState;
         groups: GroupsState;
         channelCategories: ChannelCategoriesState;
         apps: AppsState;

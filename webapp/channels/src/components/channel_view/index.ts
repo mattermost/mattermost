@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
 import {getCurrentChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
@@ -11,7 +12,7 @@ import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {goToLastViewedChannel} from 'actions/views/channel';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import ChannelView from './channel_view';
 

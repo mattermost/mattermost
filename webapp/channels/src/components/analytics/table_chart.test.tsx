@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import TableChart, {TableItem} from 'components/analytics/table_chart';
+import TableChart from 'components/analytics/table_chart';
+import type {TableItem} from 'components/analytics/table_chart';
 
 describe('components/analytics/table_chart.tsx', () => {
     test('should match snapshot, loaded without data', () => {

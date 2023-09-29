@@ -3,18 +3,20 @@
 
 import React from 'react';
 
+import type {PostType} from '@mattermost/types/posts';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {GlobalState} from 'types/store';
 
-import {DeepPartial} from '@mattermost/types/utilities';
-import {PostType} from '@mattermost/types/posts';
+import type {GlobalState} from 'types/store';
+
+import DotMenu from './dot_menu';
+import type {DotMenuClass} from './dot_menu';
 
 jest.mock('./utils');
-
-import DotMenu, {DotMenuClass} from './dot_menu';
 
 describe('components/dot_menu/DotMenu', () => {
     const latestPost = {

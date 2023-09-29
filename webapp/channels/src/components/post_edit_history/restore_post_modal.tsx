@@ -4,9 +4,9 @@
 import React, {memo} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
-import {Post} from '@mattermost/types/posts';
-
 import {GenericModal} from '@mattermost/components';
+import type {Post} from '@mattermost/types/posts';
+
 import PostMessageView from 'components/post_view/post_message_view';
 
 const modalMessages = defineMessages({

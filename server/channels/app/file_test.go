@@ -650,3 +650,30 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 	})
 }
+
+func TestSetFileSearchableContent(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	fileInfo, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
+		CreatorId: th.BasicUser.Id,
+		PostId:    th.BasicPost.Id,
+		ChannelId: th.BasicPost.ChannelId,
+		Name:      "test",
+		Path:      "test",
+		Extension: "jpg",
+		MimeType:  "image/jpeg",
+	})
+	require.NoError(t, err)
+
+	result, appErr := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	require.Nil(t, appErr)
+	assert.Equal(t, 0, len(result.Order))
+
+	appErr = th.App.SetFileSearchableContent(fileInfo.Id, "searchable")
+	require.Nil(t, appErr)
+
+	result, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	require.Nil(t, appErr)
+	assert.Equal(t, 1, len(result.Order))
+}

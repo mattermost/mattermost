@@ -1,10 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelNotifyProps} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import TestHelper from '../../test/test_helper';
-import {General, Users} from '../constants';
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
 
 import {
     areChannelMentionsIgnored,
@@ -13,6 +11,9 @@ import {
     sortChannelsByDisplayName,
     sortChannelsByTypeListAndDisplayName,
 } from 'mattermost-redux/utils/channel_utils';
+
+import TestHelper from '../../test/test_helper';
+import {General, Users} from '../constants';
 
 describe('ChannelUtils', () => {
     it('areChannelMentionsIgnored', () => {

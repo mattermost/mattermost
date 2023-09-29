@@ -2,7 +2,7 @@
 
 exports[`components/select_team/SelectTeam should match snapshot 1`] = `
 <div>
-  <Connect(_class) />
+  <Connect(Component) />
   <BackButton
     url="/"
   />
@@ -114,7 +114,7 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
 
 exports[`components/select_team/SelectTeam should match snapshot, on create team restricted 1`] = `
 <div>
-  <Connect(_class) />
+  <Connect(Component) />
   <BackButton
     url="/"
   />
@@ -198,7 +198,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on create team
 
 exports[`components/select_team/SelectTeam should match snapshot, on error 1`] = `
 <div>
-  <Connect(_class) />
+  <Connect(Component) />
   <BackButton
     onClick={[Function]}
     url="/"
@@ -287,7 +287,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on error 1`] =
 
 exports[`components/select_team/SelectTeam should match snapshot, on loading 1`] = `
 <div>
-  <Connect(_class) />
+  <Connect(Component) />
   <BackButton
     url="/"
   />
@@ -363,7 +363,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on loading 1`]
 
 exports[`components/select_team/SelectTeam should match snapshot, on no joinable team and is not system admin nor can create team 1`] = `
 <div>
-  <Connect(_class) />
+  <Connect(Component) />
   <BackButton
     url="/"
   />
@@ -496,7 +496,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
 
 exports[`components/select_team/SelectTeam should match snapshot, on no joinable team and user is guest 1`] = `
 <div>
-  <Connect(_class) />
+  <Connect(Component) />
   <BackButton
     url="/"
   />
@@ -587,7 +587,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
 
 exports[`components/select_team/SelectTeam should match snapshot, on no joinable team but can create team 1`] = `
 <div>
-  <Connect(_class) />
+  <Connect(Component) />
   <BackButton
     url="/"
   />
