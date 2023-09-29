@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+import {batchActions} from 'redux-batched-actions';
+
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
 import {EmojiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import type {GetStateFunc, DispatchFunc, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
 import {parseNeededCustomEmojisFromText} from 'mattermost-redux/utils/emoji_utils';
 
 import {logError} from './errors';
@@ -69,16 +72,46 @@ export function getCustomEmojiByName(name: string): ActionFunc {
 }
 
 export function getCustomEmojisByName(names: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         if (!names || names.length === 0) {
             return {data: true};
         }
 
-        const promises: Array<Promise<ActionResult|ActionResult[]>> = [];
-        names.forEach((name) => promises.push(dispatch(getCustomEmojiByName(name))));
+        let data;
+        try {
+            data = await Client4.getCustomEmojisByNames(names);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
 
-        await Promise.all(promises);
-        return {data: true};
+        const actions: AnyAction[] = [{
+            type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
+            data,
+        }];
+
+        if (data.length !== names.length) {
+            for (const name of names) {
+                let found = false;
+
+                for (const emoji of data) {
+                    if (emoji.name === name) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    actions.push({
+                        type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST,
+                        data: name,
+                    });
+                }
+            }
+        }
+
+        return dispatch(actions.length > 1 ? batchActions(actions) : actions[0]);
     };
 }
 
