@@ -371,9 +371,9 @@
             }
 
             button {
+                border: none;
                 margin-top: 8px;
                 outline: 0;
-                border: none;
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
                 color: var(--center-channel-color);
                 font-size: 13px;
@@ -384,8 +384,8 @@
                 }
 
                 &[disabled] {
-                    opacity: 0.5;
                     cursor: auto;
+                    opacity: 0.5;
                 }
 
                 a {
