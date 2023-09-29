@@ -70,6 +70,7 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
           />
           <NotificationSection
             expand={false}
+            isGM={false}
             memberNotificationLevel="all"
             onChange={[Function]}
             onSubmit={[Function]}
@@ -83,6 +84,7 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
           <NotificationSection
             expand={false}
             ignoreChannelMentions="off"
+            isGM={false}
             memberNotificationLevel="all"
             onChange={[Function]}
             onSubmit={[Function]}
@@ -98,6 +100,7 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
               expand={false}
               globalNotificationLevel="all"
               globalNotificationSound="Bing"
+              isGM={false}
               isNotificationsSettingSameAsGlobal={true}
               memberDesktopNotificationSound="Bing"
               memberDesktopSound="on"
@@ -118,6 +121,8 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             />
             <NotificationSection
               expand={false}
+              globalNotificationLevel="all"
+              isGM={false}
               isNotificationsSettingSameAsGlobal={true}
               memberNotificationLevel="all"
               memberThreadsNotificationLevel="all"
@@ -137,6 +142,7 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             channelAutoFollowThreads="off"
             expand={false}
             ignoreChannelMentions="off"
+            isGM={false}
             memberNotificationLevel="all"
             onChange={[Function]}
             onSubmit={[Function]}
@@ -144,6 +150,151 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             section="channelAutoFollowThreads"
             serverError={null}
           />
+          <div
+            className="divider-dark"
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/channel_notifications_modal/ChannelNotificationsModal should match snapshot for GMs 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="channelNotificationModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal settings-modal settings-modal--tabless"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="channelNotificationModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Notification Preferences for "
+        id="channel_notifications.preferences"
+      />
+      <span
+        className="name"
+      >
+        channel_display_name
+      </span>
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="settings-table"
+    >
+      <div
+        className="settings-content"
+      >
+        <div
+          className="user-settings"
+        >
+          <br />
+          <div
+            className="divider-dark first"
+          />
+          <NotificationSection
+            expand={false}
+            isGM={true}
+            memberNotificationLevel="all"
+            onChange={[Function]}
+            onSubmit={[Function]}
+            onUpdateSection={[Function]}
+            section="markUnread"
+            serverError={null}
+          />
+          <div
+            className="divider-light"
+          />
+          <NotificationSection
+            expand={false}
+            ignoreChannelMentions="off"
+            isGM={true}
+            memberNotificationLevel="all"
+            onChange={[Function]}
+            onSubmit={[Function]}
+            onUpdateSection={[Function]}
+            section="ignoreChannelMentions"
+            serverError={null}
+          />
+          <div>
+            <div
+              className="divider-light"
+            />
+            <NotificationSection
+              expand={false}
+              globalNotificationLevel="all"
+              globalNotificationSound="Bing"
+              isGM={true}
+              isNotificationsSettingSameAsGlobal={false}
+              memberDesktopNotificationSound="Bing"
+              memberDesktopSound="on"
+              memberNotificationLevel="mention"
+              memberThreadsNotificationLevel="all"
+              onChange={[Function]}
+              onChangeDesktopSound={[Function]}
+              onChangeNotificationSound={[Function]}
+              onChangeThreads={[Function]}
+              onReset={[Function]}
+              onSubmit={[Function]}
+              onUpdateSection={[Function]}
+              section="desktop"
+              serverError={null}
+            />
+            <div
+              className="divider-light"
+            />
+            <NotificationSection
+              expand={false}
+              globalNotificationLevel="all"
+              isGM={true}
+              isNotificationsSettingSameAsGlobal={false}
+              memberNotificationLevel="mention"
+              memberThreadsNotificationLevel="all"
+              onChange={[Function]}
+              onChangeThreads={[Function]}
+              onReset={[Function]}
+              onSubmit={[Function]}
+              onUpdateSection={[Function]}
+              section="push"
+              serverError={null}
+            />
+          </div>
           <div
             className="divider-dark"
           />

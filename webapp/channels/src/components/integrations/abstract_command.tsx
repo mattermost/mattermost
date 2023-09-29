@@ -653,7 +653,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
-                                className='btn btn-link btn-sm'
+                                className='btn btn-tertiary'
                                 to={'/' + this.props.team.name + '/integrations/commands'}
                             >
                                 <FormattedMessage
