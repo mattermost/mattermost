@@ -82,16 +82,14 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 
 	c := request.EmptyContext(worker.logger)
 
-	var appErr *model.AppError
-	// We keep the reference to the old job because GetJob might return nil.
-	oldJob := job
 	// We get the job again because ClaimJob changes the job status.
-	job, appErr = worker.jobServer.GetJob(c, job.Id)
+	newJob, appErr := worker.jobServer.GetJob(c, job.Id)
 	if appErr != nil {
-		oldJob.Logger.Error("SimpleWorker: job execution error", mlog.Err(appErr))
-		worker.setJobError(oldJob, appErr)
+		job.Logger.Error("SimpleWorker: job execution error", mlog.Err(appErr))
+		worker.setJobError(job, appErr)
 		return
 	}
+	job = newJob
 
 	err := worker.execute(job)
 	if err != nil {

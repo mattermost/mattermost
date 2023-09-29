@@ -15,13 +15,11 @@ import (
 
 func TestSimpleWorkerPanic(t *testing.T) {
 	jobServer, mockStore, mockMetrics := makeJobServer(t)
-	logger := mlog.CreateConsoleTestLogger(t)
-	jobServer.logger = logger
 
 	job := &model.Job{
 		Id:     "job_id",
 		Type:   "job_type",
-		Logger: logger,
+		Logger: jobServer.logger.(*mlog.Logger),
 	}
 
 	exec := func(_ *model.Job) error {
