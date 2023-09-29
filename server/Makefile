@@ -301,7 +301,7 @@ endif
 plugin-checker:
 	$(GO) run $(GOFLAGS) ./public/plugin/checker
 
-prepackaged-plugins: ## Populate the prepackaged-plugins directory
+prepackaged-plugins: ## Populate the prepackaged-plugins directory.
 	@echo Downloading prepackaged plugins: $(PLUGIN_PACKAGES)
 	mkdir -p prepackaged_plugins
 	@cd prepackaged_plugins && for plugin_package in $(PLUGIN_PACKAGES) ; do \
