@@ -137,7 +137,6 @@ export default class Menu extends React.PureComponent<Props> {
                     className={classNames(
                         'Menu__content dropdown-menu',
                         {
-                            openLeft,
                             openUp,
                         },
                         this.props.className,
