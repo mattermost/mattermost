@@ -24,7 +24,7 @@ import {applyTheme, resetTheme} from 'utils/utils';
 
 import {LhsItemType} from 'types/store/lhs';
 
-import {AdminDefinitionSubSection, AdminDefinitionSection} from './admin_definition';
+import type {AdminDefinitionSubSection, AdminDefinitionSection} from './admin_definition';
 import AdminSidebar from './admin_sidebar';
 import Highlight from './highlight';
 
@@ -106,12 +106,12 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
             if (typeof section.isHidden === 'function') {
                 isSectionHidden = section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
             } else {
-                isSectionHidden = Boolean(section.isHidden)
+                isSectionHidden = Boolean(section.isHidden);
             }
             if (isSectionHidden) {
                 return [];
             }
-            return Object.values(section.subsections)
+            return Object.values(section.subsections);
         });
 
         let defaultUrl = '';

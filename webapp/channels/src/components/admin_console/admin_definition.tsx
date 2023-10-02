@@ -7,10 +7,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
-
-import {AdminConfig, ClientLicense} from '@mattermost/types/config';
-import {CloudState, Product, Limits} from '@mattermost/types/cloud';
-import {Job} from '@mattermost/types/jobs';
+import type {CloudState, Product, Limits} from '@mattermost/types/cloud';
+import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
+import type {Job} from '@mattermost/types/jobs';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
@@ -113,11 +112,9 @@ type AdminDefinitionConfigSchemaComponent = {
     component: Component;
 }
 
-type ConsoleAccess = {read: {}, write: {}}
+type ConsoleAccess = {read: any; write: any}
 
-type SettingType = 'text' | 'longtext' | 'number' | 'color' | 'bool' | 'permission' | 'radio' | 'banner' | 'dropdown' | 'generated' | 'username' | 'button' | 'language' | 'jobstable' | 'fileupload' | 'custom'
 type Validator = (value: any) => ValidationResult
-
 
 type AdminDefinitionSettingCustom = {
     type: 'custom';
@@ -126,15 +123,15 @@ type AdminDefinitionSettingCustom = {
     component: Component;
     key: string;
     isDisabled?: Check;
-    isHidden?: Check
+    isHidden?: Check;
 }
 
 type AdminDefinitionSettingBase = {
     key?: string;
     label: string;
     label_default: string;
-    onConfigLoad?: (configVal: any, config: any) => any,
-    onConfigSave?: (displayVal: any, previousVal?: any) => any,
+    onConfigLoad?: (configVal: any, config: any) => any;
+    onConfigSave?: (displayVal: any, previousVal?: any) => any;
     isHidden?: Check;
     isDisabled?: Check;
 }
@@ -164,7 +161,7 @@ type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
 }
 
 type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {
-    type: 'generated'
+    type: 'generated';
     help_text: string | JSX.Element;
     help_text_default: string | JSX.Element;
     isDisabled: Check;
@@ -176,7 +173,7 @@ type AdminDefinitionSettingDropdownOption = {
     display_name_default: string;
     help_text?: string;
     help_text_default?: string;
-    help_text_markdown?: boolean,
+    help_text_markdown?: boolean;
     help_text_values?: {[key: string]: any};
     isHidden?: Check;
 }
@@ -195,7 +192,7 @@ type AdminDefinitionSettingDropdown = AdminDefinitionSettingBase & {
 }
 
 type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
-    type: 'fileupload',
+    type: 'fileupload';
     help_text: string;
     help_text_default: string;
     remove_help_text: string;
@@ -218,15 +215,15 @@ type AdminDefinitionSettingJobsTable = AdminDefinitionSettingBase & {
     job_type: string;
     help_text: string;
     help_text_markdown: boolean;
-    help_text_default: string
+    help_text_default: string;
     help_text_values?: {[key: string]: any};
-    render_job: Component
+    render_job: Component;
 };
 
 type AdminDefinitionSettingLanguage = AdminDefinitionSettingBase & {
-    type: 'language',
-    help_text?: string
-    help_text_markdown?: boolean,
+    type: 'language';
+    help_text?: string;
+    help_text_markdown?: boolean;
     help_text_default?: string;
     help_text_values?: {[key: string]: any};
     multiple?: boolean;
@@ -253,41 +250,41 @@ type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
 }
 
 export type AdminDefinitionSetting = AdminDefinitionSettingCustom |
-    AdminDefinitionSettingInput | AdminDefinitionSettingGenerated |
-    AdminDefinitionSettingBanner | AdminDefinitionSettingDropdown |
-    AdminDefinitionSettingButton | AdminDefinitionSettingFileUpload |
-    AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage;
+AdminDefinitionSettingInput | AdminDefinitionSettingGenerated |
+AdminDefinitionSettingBanner | AdminDefinitionSettingDropdown |
+AdminDefinitionSettingButton | AdminDefinitionSettingFileUpload |
+AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage;
 
 type AdminDefinitionConfigSchemaSettings = {
     id: string;
     name: string;
     name_default: string;
     isHidden?: Check;
-    onConfigLoad?: (configVal: any, config: any) => any,
-    onConfigSave?: (displayVal: any) => any,
-    settings?: AdminDefinitionSetting[]
-    sections?: AdminDefinitionConfigSchemaSection[]
+    onConfigLoad?: (configVal: any, config: any) => any;
+    onConfigSave?: (displayVal: any) => any;
+    settings?: AdminDefinitionSetting[];
+    sections?: AdminDefinitionConfigSchemaSection[];
 }
 
 type AdminDefinitionConfigSchemaSection = {
     title: string;
     subtitle?: string;
-    settings: AdminDefinitionSetting[]
+    settings: AdminDefinitionSetting[];
 }
 
 type RestrictedIndicatorType = {
     value: (cloud: CloudState) => JSX.Element;
-    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product|undefined) => boolean
+    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product|undefined) => boolean;
 }
 
 export type AdminDefinitionSubSection = {
     url: string;
     title?: string;
     title_default?: string;
-    searchableStrings?: (string|[string,{[key:string]: any}])[];
+    searchableStrings?: Array<string|[string, {[key: string]: any}]>;
     isHidden?: Check;
     isDiscovery?: boolean;
-    isDisabled?: Check
+    isDisabled?: Check;
     schema: AdminDefinitionConfigSchemaComponent | AdminDefinitionConfigSchemaSettings;
     restrictedIndicator?: RestrictedIndicatorType;
 }
@@ -939,7 +936,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
             },
-        }
+        },
     },
     environment: {
         icon: (
