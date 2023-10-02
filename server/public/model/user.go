@@ -939,8 +939,8 @@ func HashPassword(password string) string {
 	return string(hash)
 }
 
-var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
-var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
+var validUsernameChars = regexp.MustCompile(`^[a-z][a-z0-9\.\-_]+$`)
+var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z][a-z0-9\.\-_:]+$`)
 
 var restrictedUsernames = map[string]struct{}{
 	"all":       {},
