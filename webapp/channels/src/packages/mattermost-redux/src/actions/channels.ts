@@ -1482,10 +1482,10 @@ export function patchChannelModerations(channelId: string, patch: ChannelModerat
     });
 }
 
-export function getChannelMemberCountsByGroup(channelId: string, includeTimezones: boolean): ActionFunc {
+export function getChannelMemberCountsByGroup(channelId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: async () => {
-            const channelMemberCountsByGroup = await Client4.getChannelMemberCountsByGroup(channelId, includeTimezones);
+            const channelMemberCountsByGroup = await Client4.getChannelMemberCountsByGroup(channelId, true);
             return {channelId, memberCounts: channelMemberCountsByGroup};
         },
         onSuccess: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
