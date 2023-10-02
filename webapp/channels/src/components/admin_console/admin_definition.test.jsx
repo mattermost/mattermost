@@ -3,7 +3,7 @@
 
 import * as yup from 'yup';
 
-import adminDefinition from 'components/admin_console/admin_definition.jsx';
+import adminDefinition from 'components/admin_console/admin_definition';
 
 import {Constants} from 'utils/constants';
 

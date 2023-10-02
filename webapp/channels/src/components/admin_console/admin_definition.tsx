@@ -8,6 +8,11 @@ import {FormattedMessage} from 'react-intl';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
 
+import {AdminConfig, ClientLicense} from '@mattermost/types/config';
+import {CloudState, Product, Limits} from '@mattermost/types/cloud';
+import {Job} from '@mattermost/types/jobs';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
@@ -27,9 +32,6 @@ import SystemAnalytics from 'components/analytics/system_analytics';
 import TeamAnalytics from 'components/analytics/team_analytics';
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
-import {AdminConfig, ClientLicense} from '@mattermost/types/config';
-import {CloudState, Product, Limits} from '@mattermost/types/cloud';
-import {Job} from '@mattermost/types/jobs';
 
 import {isCloudFreePlan} from 'utils/cloud_utils';
 import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
@@ -119,6 +121,8 @@ type Validator = (value: any) => ValidationResult
 
 type AdminDefinitionSettingCustom = {
     type: 'custom';
+    label?: string;
+    label_default?: string;
     component: Component;
     key: string;
     isDisabled?: Check;
@@ -155,7 +159,7 @@ type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     placeholder_default?: string;
     validate?: Validator;
     setFromMetadataField?: string;
-    dynamic_value?: (value: any, config: AdminConfig, state: any) => string;
+    dynamic_value?: (value: any, config: DeepPartial<AdminConfig>, state: any) => string;
     max_length?: number;
 }
 
@@ -248,7 +252,7 @@ type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
     sourceUrlKey?: string;
 }
 
-type AdminDefinitionSetting = AdminDefinitionSettingCustom |
+export type AdminDefinitionSetting = AdminDefinitionSettingCustom |
     AdminDefinitionSettingInput | AdminDefinitionSettingGenerated |
     AdminDefinitionSettingBanner | AdminDefinitionSettingDropdown |
     AdminDefinitionSettingButton | AdminDefinitionSettingFileUpload |
@@ -273,10 +277,10 @@ type AdminDefinitionConfigSchemaSection = {
 
 type RestrictedIndicatorType = {
     value: (cloud: CloudState) => JSX.Element;
-    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product) => boolean
+    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product|undefined) => boolean
 }
 
-type AdminDefinitionSubSection = {
+export type AdminDefinitionSubSection = {
     url: string;
     title?: string;
     title_default?: string;
@@ -288,7 +292,7 @@ type AdminDefinitionSubSection = {
     restrictedIndicator?: RestrictedIndicatorType;
 }
 
-type AdminDefinitionSection = {
+export type AdminDefinitionSection = {
     icon: JSX.Element;
     sectionTitle: string;
     sectionTitleDefault: string;
@@ -373,13 +377,13 @@ type AdminDefinitionType = {[key: string]: AdminDefinitionSection}
 //   - remove_action: An store action to remove the file.
 //   - fileType: A list of extensions separated by ",". E.g. ".jpg,.png,.gif".
 
-type Check = boolean | ((config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => boolean)
+type Check = boolean | ((config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => boolean)
 
 export const it = {
-    not: (func: Check) => (config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
+    not: (func: Check) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
         return typeof func === 'function' ? !func(config, state, license, enterpriseReady, consoleAccess, cloud, isSystemAdmin) : !func;
     },
-    all: (...funcs: Check[]) => (config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
+    all: (...funcs: Check[]) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
         for (const func of funcs) {
             if (typeof func === 'function' ? !func(config, state, license, enterpriseReady, consoleAccess, cloud, isSystemAdmin) : !func) {
                 return false;
@@ -387,7 +391,7 @@ export const it = {
         }
         return true;
     },
-    any: (...funcs: Check[]) => (config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
+    any: (...funcs: Check[]) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
         for (const func of funcs) {
             if (typeof func === 'function' ? func(config, state, license, enterpriseReady, consoleAccess, cloud, isSystemAdmin) : func) {
                 return true;
@@ -395,20 +399,20 @@ export const it = {
         }
         return false;
     },
-    stateMatches: (key: string, regex: RegExp) => (config: AdminConfig, state: any) => state[key].toString().match(regex),
-    stateEquals: (key: string, value: any) => (config: AdminConfig, state: any) => state[key] === value,
-    stateIsTrue: (key: string) => (config: AdminConfig, state: any) => Boolean(state[key]),
-    stateIsFalse: (key: string) => (config: AdminConfig, state: any) => !state[key],
-    configIsTrue: (group: keyof AdminConfig, setting: string) => (config: AdminConfig) => Boolean((config[group] as any)?.[setting]),
-    configIsFalse: (group: keyof AdminConfig, setting: string) => (config: AdminConfig) => !(config[group] as any)?.[setting],
-    configContains: (group: keyof AdminConfig, setting: string, word: string) => (config: AdminConfig) => Boolean((config[group] as any)?.[setting]?.includes(word)),
-    enterpriseReady: (config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean) => Boolean(enterpriseReady),
-    licensed: (config: AdminConfig, state: any, license?: ClientLicense) => license?.IsLicensed === 'true',
-    cloudLicensed: (config: AdminConfig, state: any, license?: ClientLicense) => Boolean(license?.IsLicenced && isCloudLicense(license)),
-    licensedForFeature: (feature: string) => (config: AdminConfig, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
-    licensedForSku: (skuName: string) => (config: AdminConfig, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
-    licensedForCloudStarter: (config: AdminConfig, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
-    hidePaymentInfo: (config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
+    stateMatches: (key: string, regex: RegExp) => (config: DeepPartial<AdminConfig>, state: any) => state[key].toString().match(regex),
+    stateEquals: (key: string, value: any) => (config: DeepPartial<AdminConfig>, state: any) => state[key] === value,
+    stateIsTrue: (key: string) => (config: DeepPartial<AdminConfig>, state: any) => Boolean(state[key]),
+    stateIsFalse: (key: string) => (config: DeepPartial<AdminConfig>, state: any) => !state[key],
+    configIsTrue: (group: keyof DeepPartial<AdminConfig>, setting: string) => (config: DeepPartial<AdminConfig>) => Boolean((config[group] as any)?.[setting]),
+    configIsFalse: (group: keyof DeepPartial<AdminConfig>, setting: string) => (config: DeepPartial<AdminConfig>) => !(config[group] as any)?.[setting],
+    configContains: (group: keyof DeepPartial<AdminConfig>, setting: string, word: string) => (config: DeepPartial<AdminConfig>) => Boolean((config[group] as any)?.[setting]?.includes(word)),
+    enterpriseReady: (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean) => Boolean(enterpriseReady),
+    licensed: (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense) => license?.IsLicensed === 'true',
+    cloudLicensed: (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicenced && isCloudLicense(license)),
+    licensedForFeature: (feature: string) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
+    licensedForSku: (skuName: string) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
+    licensedForCloudStarter: (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
+    hidePaymentInfo: (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
         if (!cloud) {
             return true;
         }
@@ -421,10 +425,10 @@ export const it = {
         const isCloudFreeProduct = isCloudFreePlan(subscriptionProduct, limits as Limits);
         return cloud?.subscription?.is_free_trial === 'true' || isCloudFreeProduct;
     },
-    userHasReadPermissionOnResource: (key: string) => (config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
+    userHasReadPermissionOnResource: (key: string) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
     userHasReadPermissionOnSomeResources: (key: string | {[key: string]: string}) => Object.values(key).some((resource) => it.userHasReadPermissionOnResource(resource)),
-    userHasWritePermissionOnResource: (key: string) => (config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.write as any)?.[key],
-    isSystemAdmin: (config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => Boolean(isSystemAdmin),
+    userHasWritePermissionOnResource: (key: string) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.write as any)?.[key],
+    isSystemAdmin: (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => Boolean(isSystemAdmin),
 };
 
 export const validators = {
@@ -432,7 +436,7 @@ export const validators = {
     minValue: (min: number, text: string, textDefault: string) => (value: number) => new ValidationResult((value >= min), text, textDefault),
 };
 
-const usesLegacyOauth = (config: AdminConfig, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
+const usesLegacyOauth = (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
     if (!config.GitLabSettings || !config.GoogleSettings || !config.Office365Settings) {
         return false;
     }
@@ -474,7 +478,7 @@ const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequiredForFe
             }}
         />
     ),
-    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product) => displayBlocked || (isCloudLicense(license) && subscriptionProduct?.sku === CloudProducts.STARTER),
+    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product|undefined) => displayBlocked || (isCloudLicense(license) && subscriptionProduct?.sku === CloudProducts.STARTER),
 });
 
 const AdminDefinition: AdminDefinitionType = {
@@ -5730,7 +5734,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: t('admin.gitlab.discoveryEndpointDesc'),
                             help_text_default: 'The URL of the discovery document for OpenID Connect with GitLab.',
                             help_text_markdown: false,
-                            dynamic_value: (value: any, config: AdminConfig, state: any) => {
+                            dynamic_value: (value: any, config: DeepPartial<AdminConfig>, state: any) => {
                                 if (state['GitLabSettings.Url']) {
                                     return state['GitLabSettings.Url'].replace(/\/$/, '') + '/.well-known/openid-configuration';
                                 }
@@ -5819,7 +5823,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: t('admin.office365.discoveryEndpointDesc'),
                             help_text_default: 'The URL of the discovery document for OpenID Connect with Office 365.',
                             help_text_markdown: false,
-                            dynamic_value: (value: any, config: AdminConfig, state: any) => {
+                            dynamic_value: (value: any, config: DeepPartial<AdminConfig>, state: any) => {
                                 if (state['Office365Settings.DirectoryId']) {
                                     return 'https://login.microsoftonline.com/' + state['Office365Settings.DirectoryId'] + '/v2.0/.well-known/openid-configuration';
                                 }
