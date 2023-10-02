@@ -87,7 +87,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               createMode={true}
               disabled={false}
               error=""
-              info="Must be 5-64 characters long."
+              info="Must be 5-72 characters long."
               inputSize="large"
               onBlur={[Function]}
               onChange={[Function]}
@@ -261,7 +261,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               createMode={true}
               disabled={false}
               error=""
-              info="Must be 5-64 characters long."
+              info="Must be 5-72 characters long."
               inputSize="large"
               onBlur={[Function]}
               onChange={[Function]}
