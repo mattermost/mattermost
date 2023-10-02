@@ -486,7 +486,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <InformationOutlineIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -524,7 +523,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <CreditCardOutlineIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -631,7 +629,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <ChartBarIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -726,7 +723,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <AccountMultipleOutlineIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -949,7 +945,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <ServerVariantIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -2237,7 +2232,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <CogOutlineIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -3457,7 +3451,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <ShieldOutlineIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -6076,7 +6069,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <PowerPlugOutlineIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -6127,7 +6119,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <SitemapIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -6412,7 +6403,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <FormatListBulletedIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),
@@ -6702,7 +6692,6 @@ const AdminDefinition: AdminDefinitionType = {
         icon: (
             <FlaskOutlineIcon
                 size={16}
-                className={'category-icon fa'}
                 color={'currentColor'}
             />
         ),

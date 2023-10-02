@@ -102,7 +102,6 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
         const {adminDefinition, config, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin} = this.props;
 
         const schemas: AdminDefinitionSubSection[] = Object.values(adminDefinition).flatMap((section: AdminDefinitionSection) => {
-            console.log(section)
             let isSectionHidden = false;
             if (typeof section.isHidden === 'function') {
                 isSectionHidden = section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
@@ -114,7 +113,6 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
             }
             return Object.values(section.subsections)
         });
-        console.log(schemas)
 
         let defaultUrl = '';
 
