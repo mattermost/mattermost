@@ -150,7 +150,7 @@ PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.38.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.2
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
@@ -282,7 +282,7 @@ endif
 plugin-checker:
 	$(GO) run $(GOFLAGS) ./public/plugin/checker
 
-prepackaged-plugins: ## Populate the prepackaged-plugins directory
+prepackaged-plugins: ## Populate the prepackaged-plugins directory.
 	@echo Downloading prepackaged plugins: $(PLUGIN_PACKAGES)
 	mkdir -p prepackaged_plugins
 	@cd prepackaged_plugins && for plugin_package in $(PLUGIN_PACKAGES) ; do \

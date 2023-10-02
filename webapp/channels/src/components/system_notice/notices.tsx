@@ -197,7 +197,7 @@ const notices: Notice[] = [
         body: (
             <FormattedMessage
                 id='system_noticy.body.gm_as_dm'
-                defaultMessage='You wil now be notified for all activity in your group messages along with a notification badge for every new message.{br}{br}You can configure this in notification preferences for each group message.'
+                defaultMessage='You will now be notified for all activity in your group messages along with a notification badge for every new message.{br}{br}You can configure this in notification preferences for each group message.'
                 values={{br: (<br/>)}}
             />
         ),
