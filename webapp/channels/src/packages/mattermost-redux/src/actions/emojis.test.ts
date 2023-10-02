@@ -321,9 +321,9 @@ describe('Actions.Emojis', () => {
             nock(Client4.getBaseRoute()).
                 post('/emoji/names', names.slice(200, 400)).
                 reply(200, emojis.slice(200, 400));
-                nock(Client4.getBaseRoute()).
-                    post('/emoji/names', names.slice(400, 500)).
-                    reply(200, emojis.slice(400, 500));
+            nock(Client4.getBaseRoute()).
+                post('/emoji/names', names.slice(400, 500)).
+                reply(200, emojis.slice(400, 500));
 
             await store.dispatch(Actions.getCustomEmojisByName(names));
 
