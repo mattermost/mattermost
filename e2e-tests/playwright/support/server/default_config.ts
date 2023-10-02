@@ -666,8 +666,7 @@ const defaultServerConfig: AdminConfig = {
     },
     DisplaySettings: {
         CustomURLSchemes: [],
-        MaxMarkdownNodes: 0,
-        ExperimentalTimezone: true,
+        MaxMarkdownNodes: 0
     },
     GuestAccountsSettings: {
         Enable: false,
