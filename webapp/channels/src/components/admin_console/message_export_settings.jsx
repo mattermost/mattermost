@@ -31,7 +31,8 @@ export default class MessageExportSettings extends AdminSettings {
                 SMTPUsername: this.state.globalRelaySMTPUsername,
                 SMTPPassword: this.state.globalRelaySMTPPassword,
                 EmailAddress: this.state.globalRelayEmailAddress,
-
+                CustomSMTPServerName: this.state.globalRelayCustomSMTPServerName,
+                CustomSMTPPort: this.state.globalRelayCustomSMTPPort,
             };
         }
         return config;
@@ -49,6 +50,8 @@ export default class MessageExportSettings extends AdminSettings {
             state.globalRelaySMTPUsername = config.MessageExportSettings.GlobalRelaySettings.SMTPUsername;
             state.globalRelaySMTPPassword = config.MessageExportSettings.GlobalRelaySettings.SMTPPassword;
             state.globalRelayEmailAddress = config.MessageExportSettings.GlobalRelaySettings.EmailAddress;
+            state.globalRelayCustomSMTPServerName = config.MessageExportSettings.GlobalRelaySettings.CustomSMTPServerName;
+            state.globalRelayCustomSMTPPort = config.MessageExportSettings.GlobalRelaySettings.CustomSMTPPort;
         }
         return state;
     }
@@ -124,6 +127,7 @@ export default class MessageExportSettings extends AdminSettings {
                     values={[
                         {value: 'A9', text: Utils.localizeMessage('admin.complianceExport.globalRelayCustomerType.a9.description', 'A9/Type 9')},
                         {value: 'A10', text: Utils.localizeMessage('admin.complianceExport.globalRelayCustomerType.a10.description', 'A10/Type 10')},
+                        {value: 'CUSTOM', text: Utils.localizeMessage('admin.complianceExport.globalRelayCustomerType.custom.description', 'Custom')},
                     ]}
                     label={
                         <FormattedMessage
