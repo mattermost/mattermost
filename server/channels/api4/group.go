@@ -153,7 +153,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var group *model.GroupWithUserIds
-	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&group); err != nil || group == nil {
 		c.SetInvalidParamWithErr("group", err)
 		return
 	}
@@ -1256,7 +1256,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newMembers *model.GroupModifyMembers
-	if err := json.NewDecoder(r.Body).Decode(&newMembers); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&newMembers); err != nil || newMembers == nil {
 		c.SetInvalidParamWithErr("addGroupMembers", err)
 		return
 	}
@@ -1315,7 +1315,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var deleteBody *model.GroupModifyMembers
-	if err := json.NewDecoder(r.Body).Decode(&deleteBody); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&deleteBody); err != nil || deleteBody == nil {
 		c.SetInvalidParamWithErr("deleteGroupMembers", err)
 		return
 	}
