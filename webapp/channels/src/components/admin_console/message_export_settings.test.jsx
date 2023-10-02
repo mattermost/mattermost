@@ -82,6 +82,8 @@ describe('components/MessageExportSettings', () => {
                     SMTPUsername: 'globalRelayUser',
                     SMTPPassword: 'globalRelayPassword',
                     EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: '',
+                    CustomSMTPPort: '25',
                 },
             },
         };
@@ -126,6 +128,8 @@ describe('components/MessageExportSettings', () => {
                     SMTPUsername: 'globalRelayUser',
                     SMTPPassword: 'globalRelayPassword',
                     EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: '',
+                    CustomSMTPPort: '25',
                 },
             },
         };
