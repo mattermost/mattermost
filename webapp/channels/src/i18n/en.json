@@ -5004,7 +5004,7 @@
   "system_notice.remind_me": "Remind me Later",
   "system_notice.title": "Notice from Mattermost",
   "system_notice.title.gm_as_dm": "Updates to Group Messages",
-  "system_noticy.body.gm_as_dm": "You wil now be notified for all activity in your group messages along with a notification badge for every new message.{br}{br}You can configure this in notification preferences for each group message.",
+  "system_noticy.body.gm_as_dm": "You will now be notified for all activity in your group messages along with a notification badge for every new message.{br}{br}You can configure this in notification preferences for each group message.",
   "system_users_list.count": "{count, number} {count, plural, one {user} other {users}}",
   "system_users_list.countPage": "{startCount, number} - {endCount, number} {count, plural, one {user} other {users}} of {total, number} total",
   "system_users_list.countSearch": "{count, number} {count, plural, one {user} other {users}} of {total, number} total",

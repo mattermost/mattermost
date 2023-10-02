@@ -1283,6 +1283,7 @@ type LogSettings struct {
 	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingConfig  *string         `access:"environment_logging,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
+	MaxFieldSize           *int            `access:"environment_logging,write_restrictable,cloud_restrictable"`
 }
 
 func NewLogSettings() *LogSettings {
@@ -1346,6 +1347,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
+	}
+
+	if s.MaxFieldSize == nil {
+		s.MaxFieldSize = NewInt(2048)
 	}
 }
 
