@@ -110,6 +110,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		"notifications.log",
 		"cpu.prof",
 		"heap.prof",
+		"goroutines",
 	}
 	for _, fileData := range fileDatas {
 		require.NotNil(t, fileData)
@@ -132,6 +133,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		"cpu.prof",
 		"heap.prof",
 		"warning.txt",
+		"goroutines",
 	}
 	rFileNames = nil
 	for _, fileData := range fileDatas {
