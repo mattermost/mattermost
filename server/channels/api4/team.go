@@ -685,7 +685,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	var member model.TeamMember
-	if jsonErr := json.NewDecoder(r.Body).Decode(&member); jsonErr != nil || member == nil {
+	if jsonErr := json.NewDecoder(r.Body).Decode(&member); jsonErr != nil {
 		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJSON()", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
@@ -816,7 +816,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var appErr *model.AppError
 	var members []*model.TeamMember
-	if jsonErr := json.NewDecoder(r.Body).Decode(&members); jsonErr != nil || appErr == nil {
+	if jsonErr := json.NewDecoder(r.Body).Decode(&members); jsonErr != nil || members == nil {
 		c.SetInvalidParamWithErr("members", jsonErr)
 		return
 	}
