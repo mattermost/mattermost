@@ -933,8 +933,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "The primary team of which users on the server are members. When a primary team is set, the options to join other teams or leave the primary team are disabled.",
   "admin.experimental.experimentalPrimaryTeam.example": "E.g.: \"teamname\"",
   "admin.experimental.experimentalPrimaryTeam.title": "Primary Team:",
-  "admin.experimental.experimentalTimezone.desc": "Select the timezone used for timestamps in the user interface and email notifications. When true, the Timezone section is visible in the Settings and a time zone is automatically assigned in the next active session. When false, the Timezone setting is hidden in the Settings.",
-  "admin.experimental.experimentalTimezone.title": "Timezone:",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "Enable an updated SAML Library, which does not require the XML Security Library (xmlsec1) to be installed. Warning: Not all providers have been tested. If you experience issues, please contact support: <linkSupport>https://mattermost.com/support/</linkSupport>. Changing this setting requires a server restart before taking effect.",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "Use Improved SAML Library (Beta):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",

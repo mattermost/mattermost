@@ -18,9 +18,8 @@ export function searchAssociatedGroupsForReference(prefix, teamId, channelId, op
         )) {
             return {data: []};
         }
-
-        const config = getConfig(state);
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
+        
+        const isTimezoneEnabled = true;
 
         if (isCustomGroupsEnabled(state)) {
             const params = {
