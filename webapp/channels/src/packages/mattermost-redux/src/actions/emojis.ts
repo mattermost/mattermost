@@ -80,7 +80,7 @@ export function getCustomEmojisByName(names: string[]): ActionFunc {
         // If necessary, split up the list of names into batches based on api4.GetEmojisByNamesMax on the server
         const batchSize = 200;
 
-        let batches = [];
+        const batches = [];
         for (let i = 0; i < names.length; i += batchSize) {
             batches.push(names.slice(i, i + batchSize));
         }
