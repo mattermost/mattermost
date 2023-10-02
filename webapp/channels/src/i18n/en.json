@@ -608,6 +608,7 @@
   "admin.complianceExport.exportJobStartTime.title": "Compliance Export time:",
   "admin.complianceExport.globalRelayCustomerType.a10.description": "A10/Type 10",
   "admin.complianceExport.globalRelayCustomerType.a9.description": "A9/Type 9",
+  "admin.complianceExport.globalRelayCustomerType.custom.description": "Custom",
   "admin.complianceExport.globalRelayCustomerType.description": "Type of Global Relay customer account your organization has.",
   "admin.complianceExport.globalRelayCustomerType.title": "Global Relay Customer Account:",
   "admin.complianceExport.globalRelayEmailAddress.description": "The email address your Global Relay server monitors for incoming compliance exports.",
