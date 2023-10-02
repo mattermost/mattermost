@@ -450,8 +450,7 @@
         "SignaturePublicKeyFiles": []
     },
     "DisplaySettings": {
-        "CustomURLSchemes": [],
-        "ExperimentalTimezone": false
+        "CustomURLSchemes": []
     },
     "GuestAccountsSettings": {
         "Enable": true,
