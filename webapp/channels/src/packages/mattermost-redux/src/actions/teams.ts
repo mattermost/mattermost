@@ -739,6 +739,7 @@ export function joinTeam(inviteId: string, teamId: string): ActionFunc {
 export function setTeamIcon(teamId: string, imageData: File): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.setTeamIcon,
+        onSuccess: TeamTypes.PATCHED_TEAM,
         params: [
             teamId,
             imageData,
@@ -749,6 +750,7 @@ export function setTeamIcon(teamId: string, imageData: File): ActionFunc {
 export function removeTeamIcon(teamId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.removeTeamIcon,
+        onSuccess: TeamTypes.PATCHED_TEAM,
         params: [
             teamId,
         ],
