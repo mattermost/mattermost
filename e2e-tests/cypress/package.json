@@ -3,6 +3,7 @@
     "@babel/eslint-parser": "7.21.8",
     "@babel/eslint-plugin": "7.19.1",
     "@cypress/request": "2.88.11",
+    "@cypress/webpack-batteries-included-preprocessor": "^3.0.2",
     "@mattermost/client": "7.10.0",
     "@mattermost/types": "7.10.0",
     "@testing-library/cypress": "9.0.0",

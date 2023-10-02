@@ -3,6 +3,8 @@
 
 /* eslint-disable no-console */
 
+import webpackPreprocessor from '@cypress/webpack-batteries-included-preprocessor';
+
 const clientRequest = require('./client_request');
 const {
     dbGetActiveUserSessions,
@@ -71,6 +73,10 @@ module.exports = (on, config) => {
 
         return launchOptions;
     });
+
+    on('file:preprocessor', webpackPreprocessor({
+        typescript: require.resolve('typescript'),
+    }));
 
     return config;
 };
