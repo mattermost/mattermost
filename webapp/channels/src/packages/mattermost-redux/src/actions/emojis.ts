@@ -77,37 +77,43 @@ export function getCustomEmojisByName(names: string[]): ActionFunc {
             return {data: true};
         }
 
-        let data;
+        // If necessary, split up the list of names into batches based on api4.GetEmojisByNamesMax on the server
+        const batchSize = 200;
+
+        let batches = [];
+        for (let i = 0; i < names.length; i += batchSize) {
+            batches.push(names.slice(i, i + batchSize));
+        }
+
+        let results;
         try {
-            data = await Client4.getCustomEmojisByNames(names);
+            results = await Promise.all(batches.map((batch) => {
+                return Client4.getCustomEmojisByNames(batch);
+            }));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
 
+        const data = results.flat();
         const actions: AnyAction[] = [{
             type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
             data,
         }];
 
         if (data.length !== names.length) {
+            const foundNames = new Set(data.map((emoji) => emoji.name));
+
             for (const name of names) {
-                let found = false;
-
-                for (const emoji of data) {
-                    if (emoji.name === name) {
-                        found = true;
-                        break;
-                    }
+                if (foundNames.has(name)) {
+                    continue;
                 }
 
-                if (!found) {
-                    actions.push({
-                        type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST,
-                        data: name,
-                    });
-                }
+                actions.push({
+                    type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST,
+                    data: name,
+                });
             }
         }
 
