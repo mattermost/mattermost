@@ -26,11 +26,6 @@ function getTimezoneForUserProfile(profile: UserProfile) {
     };
 }
 
-export function isTimezoneEnabled(state: GlobalState) {
-    const {config} = state.entities.general;
-    return config.ExperimentalTimezone === 'true';
-}
-
 export const getCurrentTimezoneFull = createSelector(
     'getCurrentTimezoneFull',
     getCurrentUser,

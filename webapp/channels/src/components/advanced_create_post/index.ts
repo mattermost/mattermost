@@ -80,7 +80,6 @@ function makeMapStateToProps() {
         const currentUserId = getCurrentUserId(state);
         const userIsOutOfOffice = getStatusForUserId(state, currentUserId) === UserStatuses.OUT_OF_OFFICE;
         const badConnection = connectionErrorCount(state) > 1;
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
         const canPost = haveICurrentChannelPermission(state, Permissions.CREATE_POST);
         const useChannelMentions = haveICurrentChannelPermission(state, Permissions.USE_CHANNEL_MENTIONS);
@@ -127,7 +126,6 @@ function makeMapStateToProps() {
             rhsOpen: getIsRhsOpen(state),
             emojiMap: getEmojiMap(state),
             badConnection,
-            isTimezoneEnabled,
             shortcutReactToLastPostEmittedFrom,
             canPost,
             useChannelMentions,

@@ -73,7 +73,6 @@ function makeMapStateToProps() {
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enableGifPicker = config.EnableGifPicker === 'true';
         const badConnection = connectionErrorCount(state) > 1;
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const canPost = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST);
         const useChannelMentions = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
         const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
@@ -103,7 +102,6 @@ function makeMapStateToProps() {
             maxPostSize: parseInt(config.MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT,
             rhsExpanded: getIsRhsExpanded(state),
             badConnection,
-            isTimezoneEnabled,
             selectedPostFocussedAt: getSelectedPostFocussedAt(state),
             canPost,
             useChannelMentions,
