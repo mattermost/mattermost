@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import type {CSSProperties, RefObject} from 'react';
 import React, {PureComponent, createRef} from 'react';
 import {Tab, Tabs} from 'react-bootstrap';
@@ -90,17 +91,15 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
             }
         }
 
-        let pickerClass = 'emoji-picker';
-        if (this.props.placement === 'bottom') {
-            pickerClass += ' bottom';
-        }
-
         if (this.props.enableGifPicker && typeof this.props.onGifClick != 'undefined') {
             return (
                 <div
+                    id='emojiGifPicker'
                     ref={this.rootPickerNodeRef}
                     style={pickerStyle}
-                    className={pickerClass}
+                    className={classNames('a11y__popup', 'emoji-picker', {
+                        bottom: this.props.placement === 'bottom',
+                    })}
                 >
                     <Tabs
                         id='emoji-picker-tabs'
@@ -167,7 +166,9 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
             <div
                 id='emojiPicker'
                 style={pickerStyle}
-                className={`a11y__popup ${pickerClass} emoji-picker--single`}
+                className={classNames('a11y__popup', 'emoji-picker', 'emoji-picker--single', {
+                    bottom: this.props.placement === 'bottom',
+                })}
             >
                 <EmojiPickerHeader handleEmojiPickerClose={this.handleEmojiPickerClose}/>
                 <EmojiPicker

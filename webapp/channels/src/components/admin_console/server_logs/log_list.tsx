@@ -209,7 +209,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                     options: (
                         <button
                             type='submit'
-                            className='btn btn-inverted'
+                            className='btn btn-secondary btn-sm'
                         >
                             <FormattedMessage
                                 id='admin.logs.fullEvent'
@@ -282,7 +282,7 @@ export default class LogList extends React.PureComponent<Props, State> {
 
         const errorsButton: JSX.Element = (
             <button
-                className='btn btn-dangerous'
+                className='btn btn-tertiary btn-sm ml-2'
                 onClick={this.showErrors}
             >
                 <FormattedMessage
