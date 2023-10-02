@@ -252,7 +252,7 @@ func getEmojisByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(names) > GetEmojisByNamesMax {
-		c.Err = model.NewAppError("getEmojisByNames", "api.emoji.get_emojis_by_names_length.error", map[string]any{
+		c.Err = model.NewAppError("getEmojisByNames", "api.emoji.get_multiple_by_name_too_many.request_error", map[string]any{
 			"MaxNames": GetEmojisByNamesMax,
 		}, "", http.StatusBadRequest)
 		return
