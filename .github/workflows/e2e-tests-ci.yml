@@ -114,6 +114,9 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/e2e-smoketests
+        env:
+          TEST: cypress
+          ENABLED_DOCKER_SERVICES: postgres inbucket
         run: |
           make
       - name: ci/e2e-smoketests-store-results

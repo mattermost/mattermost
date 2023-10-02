@@ -63,6 +63,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         },
         TeamSettings: {
             EnableOpenServer: true,
+            MaxUsersPerTeam: 2000,
         },
     };
 };
