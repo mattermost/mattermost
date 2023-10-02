@@ -4,8 +4,6 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
-
-	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // Have the compiler confirm *StandardMentionParser implements MentionParser
@@ -17,20 +15,9 @@ type StandardMentionParser struct {
 	results *MentionResults
 }
 
-func makeStandardMentionParser(keywords MentionKeywords, groups map[string]*model.Group) *StandardMentionParser {
-	// TODO add groups to keywords before this
-	copiedKeywords := make(MentionKeywords)
-	for keyword, ids := range keywords {
-		copiedKeywords[keyword] = ids
-	}
-	for _, group := range groups {
-		if group.Name != nil {
-			copiedKeywords["@"+*group.Name] = append(copiedKeywords["@"+*group.Name], MentionableGroupID(group.Id))
-		}
-	}
-
+func makeStandardMentionParser(keywords MentionKeywords) *StandardMentionParser {
 	return &StandardMentionParser{
-		keywords: copiedKeywords,
+		keywords: keywords,
 
 		results: &MentionResults{},
 	}

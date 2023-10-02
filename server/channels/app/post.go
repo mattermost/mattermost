@@ -1753,8 +1753,8 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		return 0, err
 	}
 
-	keywords := addMentionKeywordsForUser(
-		MentionKeywords{},
+	keywords := MentionKeywords{}
+	keywords.AddUser(
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
@@ -1793,9 +1793,11 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		return 0, model.NewAppError("countThreadMentions", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
+	keywords.AddGroupsMap(groups)
+
 	for _, p := range posts {
 		if p.CreateAt >= timestamp {
-			mentions := getExplicitMentions(p, keywords, groups)
+			mentions := getExplicitMentions(p, keywords)
 			if _, ok := mentions.Mentions[user.Id]; ok {
 				count += 1
 			}
@@ -1836,8 +1838,8 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		return 0, 0, 0, err
 	}
 
-	keywords := addMentionKeywordsForUser(
-		MentionKeywords{},
+	keywords := MentionKeywords{}
+	keywords.AddUser(
 		user,
 		channelMember.NotifyProps,
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
@@ -1969,7 +1971,7 @@ func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords,
 	}
 
 	// Check for keyword mentions
-	mentions := getExplicitMentions(post, keywords, make(map[string]*model.Group))
+	mentions := getExplicitMentions(post, keywords)
 	if _, ok := mentions.Mentions[user.Id]; ok {
 		return true
 	}

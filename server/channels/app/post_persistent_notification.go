@@ -180,7 +180,9 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 			}
 		} else {
 			keywords := channelKeywords[channel.Id]
-			mentions = getExplicitMentions(post, keywords, channelGroupMap[channel.Id])
+			keywords.AddGroupsMap(channelGroupMap[channel.Id])
+
+			mentions = getExplicitMentions(post, keywords)
 			for groupID := range mentions.GroupMentions {
 				group := channelGroupMap[channel.Id][groupID]
 				_, err := a.insertGroupMentions(group, channel, profileMap, mentions)
@@ -233,7 +235,7 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 				continue
 			}
 			validProfileMap[userID] = user
-			channelKeywords[c.Id].AddUser(userID, "@"+user.Username)
+			channelKeywords[c.Id].AddUserID(userID, "@"+user.Username)
 		}
 		channelProfileMap[c.Id] = validProfileMap
 	}
