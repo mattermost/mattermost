@@ -3598,16 +3598,16 @@ func TestSetTeamIcon(t *testing.T) {
 
 	th.LoginTeamAdmin()
 
-	_, err = client.SetTeamIcon(context.Background(), team.Id, data)
+	_, _, err = client.SetTeamIcon(context.Background(), team.Id, data)
 	require.NoError(t, err)
 
-	resp, err := client.SetTeamIcon(context.Background(), model.NewId(), data)
+	_, resp, err := client.SetTeamIcon(context.Background(), model.NewId(), data)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginBasic()
 
-	resp, err = client.SetTeamIcon(context.Background(), team.Id, data)
+	_, resp, err = client.SetTeamIcon(context.Background(), team.Id, data)
 	require.Error(t, err)
 	if resp.StatusCode == http.StatusForbidden {
 		CheckForbiddenStatus(t, resp)
@@ -3619,7 +3619,7 @@ func TestSetTeamIcon(t *testing.T) {
 
 	client.Logout(context.Background())
 
-	resp, err = client.SetTeamIcon(context.Background(), team.Id, data)
+	_, resp, err = client.SetTeamIcon(context.Background(), team.Id, data)
 	require.Error(t, err)
 	if resp.StatusCode == http.StatusForbidden {
 		CheckForbiddenStatus(t, resp)
@@ -3632,7 +3632,7 @@ func TestSetTeamIcon(t *testing.T) {
 	teamBefore, appErr := th.App.GetTeam(team.Id)
 	require.Nil(t, appErr)
 
-	_, err = th.SystemAdminClient.SetTeamIcon(context.Background(), team.Id, data)
+	_, _, err = th.SystemAdminClient.SetTeamIcon(context.Background(), team.Id, data)
 	require.NoError(t, err)
 
 	teamAfter, appErr := th.App.GetTeam(team.Id)
@@ -3672,14 +3672,14 @@ func TestRemoveTeamIcon(t *testing.T) {
 	data, _ := testutils.ReadTestFile("test.png")
 	client.SetTeamIcon(context.Background(), team.Id, data)
 
-	_, err := client.RemoveTeamIcon(context.Background(), team.Id)
+	_, _, err := client.RemoveTeamIcon(context.Background(), team.Id)
 	require.NoError(t, err)
 	teamAfter, _ := th.App.GetTeam(team.Id)
 	require.Equal(t, teamAfter.LastTeamIconUpdate, int64(0), "should update LastTeamIconUpdate to 0")
 
 	client.SetTeamIcon(context.Background(), team.Id, data)
 
-	_, err = th.SystemAdminClient.RemoveTeamIcon(context.Background(), team.Id)
+	_, _, err = th.SystemAdminClient.RemoveTeamIcon(context.Background(), team.Id)
 	require.NoError(t, err)
 	teamAfter, _ = th.App.GetTeam(team.Id)
 	require.Equal(t, teamAfter.LastTeamIconUpdate, int64(0), "should update LastTeamIconUpdate to 0")
@@ -3687,12 +3687,12 @@ func TestRemoveTeamIcon(t *testing.T) {
 	client.SetTeamIcon(context.Background(), team.Id, data)
 	client.Logout(context.Background())
 
-	resp, err := client.RemoveTeamIcon(context.Background(), team.Id)
+	_, resp, err := client.RemoveTeamIcon(context.Background(), team.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic()
-	resp, err = client.RemoveTeamIcon(context.Background(), team.Id)
+	_, resp, err = client.RemoveTeamIcon(context.Background(), team.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
