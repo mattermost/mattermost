@@ -6,9 +6,8 @@ import {shallow} from 'enzyme';
 import AtMention from 'components/at_mention';
 import MarkdownImage from 'components/markdown_image';
 
-import EmojiMap from 'utils/emoji_map';
-
 import Constants from 'utils/constants';
+import EmojiMap from 'utils/emoji_map';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as TextFormatting from 'utils/text_formatting';
 

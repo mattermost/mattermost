@@ -110,12 +110,12 @@ import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import InteractiveDialog from 'components/interactive_dialog';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
-import WebSocketClient from 'client/web_websocket_client.jsx';
+import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';

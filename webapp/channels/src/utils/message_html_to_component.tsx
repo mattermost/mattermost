@@ -37,6 +37,12 @@ export type Options = Partial<{
     channelId: string;
 }>
 
+type ProcessingInstruction = {
+    replaceChildren: boolean;
+    shouldProcessNode: (node: any) => boolean;
+    processNode: (node: any, children?: any, index?: number) => any;
+}
+
 /*
  * Converts HTML to React components using html-to-react.
  * The following options can be specified:
@@ -63,13 +69,13 @@ export function messageHtmlToComponent(html: any, options: Options = {}) {
         return true;
     }
 
-    const processingInstructions = [
+    const processingInstructions: ProcessingInstruction[] = [
 
         // Workaround to fix MM-14931
         {
             replaceChildren: false,
             shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'input' && node.attribs.type === 'checkbox',
-            processNode: (node: any, children: any, index: number) => {
+            processNode: (node: any) => {
                 const attribs = node.attribs || {};
                 node.attribs.checked = Boolean(attribs.checked);
 
@@ -79,7 +85,7 @@ export function messageHtmlToComponent(html: any, options: Options = {}) {
         {
             replaceChildren: false,
             shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'span' && node.attribs['data-edited-post-id'] && node.attribs['data-edited-post-id'] === options.postId,
-            processNode: (node: any, children: any, index: number) => {
+            processNode: () => {
                 return options.postId && options.editedAt && options.editedAt > 0 ? (
                     <React.Fragment key={`edited-${options.postId}`}>
                         {' '}
@@ -266,7 +272,7 @@ export function messageHtmlToComponent(html: any, options: Options = {}) {
     processingInstructions.push({
         replaceChildren: false,
         shouldProcessNode: () => true,
-        processNode: processNodeDefinitions.processDefaultNode,
+        processNode: processNodeDefinitions.processDefaultNode as (node: any, children?: any, index?: number) => any,
     });
 
     return parser.parseWithInstructions(html, isValidNode, processingInstructions);

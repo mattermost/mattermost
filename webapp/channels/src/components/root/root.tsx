@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import webSocketClient from 'client/web_websocket_client.jsx';
 import deepEqual from 'fast-deep-equal';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
@@ -49,7 +50,6 @@ import SystemNotice from 'components/system_notice';
 import TeamSidebar from 'components/team_sidebar';
 import WindowSizeObserver from 'components/window_size_observer/WindowSizeObserver';
 
-import webSocketClient from 'client/web_websocket_client.jsx';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';

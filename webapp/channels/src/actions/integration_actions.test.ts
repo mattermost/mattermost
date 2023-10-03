@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getProfilesByIds} from 'mattermost-redux/actions/users';
-
 import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@mattermost/types/integrations';
+
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
 import * as Actions from 'actions/integration_actions.jsx';
 

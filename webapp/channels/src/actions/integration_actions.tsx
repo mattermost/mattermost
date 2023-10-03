@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@mattermost/types/integrations';
+
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
-
 import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@mattermost/types/integrations';
 
 const DEFAULT_PAGE_SIZE = 100;
 
@@ -17,7 +17,7 @@ export function loadIncomingHooksAndProfilesForTeam(teamId: string, page = 0, pe
         if (data) {
             dispatch(loadProfilesForIncomingHooks(data));
         }
-        return {data}
+        return {data};
     };
 }
 

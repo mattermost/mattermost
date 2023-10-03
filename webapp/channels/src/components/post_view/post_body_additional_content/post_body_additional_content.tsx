@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import webSocketClient from 'client/web_websocket_client.jsx';
 import React from 'react';
 
 import type {AppBinding} from '@mattermost/types/apps';
@@ -14,7 +15,6 @@ import PostImage from 'components/post_view/post_image';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
 
-import webSocketClient from 'client/web_websocket_client.jsx';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
