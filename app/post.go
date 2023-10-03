@@ -78,8 +78,8 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	// the post does NOT have from_webhook prop set (e.g. Zapier app), and
 	// the post does NOT have from_bot set (e.g. from discovering the user is a bot within CreatePost), and
 	// the post is NOT a reply post with CRT enabled
-	_, fromWebhook := post.GetProps()["from_webhook"]
-	_, fromBot := post.GetProps()["from_bot"]
+	_, fromWebhook := post.GetProps()[model.PostPropsFromWebhook]
+	_, fromBot := post.GetProps()[model.PostPropsFromBot]
 	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(c, post.UserId)
 	if !fromWebhook && !fromBot && !isCRTReply {
 		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
@@ -200,11 +200,11 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	if user.IsBot {
-		post.AddProp("from_bot", "true")
+		post.AddProp(model.PostPropsFromBot, "true")
 	}
 
 	if c.Session().IsOAuth {
-		post.AddProp("from_oauth_app", "true")
+		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
 	var ephemeralPost *model.Post
