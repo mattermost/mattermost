@@ -89,7 +89,7 @@ exports[`comoponents/EditChannelPurposeModal clear error on next 1`] = `
     componentClass="div"
   >
     <button
-      className="btn btn-link cancel-button"
+      className="btn btn-tertiary cancel-button"
       onClick={[Function]}
       type="button"
     >
@@ -99,7 +99,7 @@ exports[`comoponents/EditChannelPurposeModal clear error on next 1`] = `
       />
     </button>
     <button
-      className="btn btn-primary save-button"
+      className="btn btn-primary"
       disabled={false}
       onClick={[Function]}
       type="button"
@@ -202,7 +202,7 @@ exports[`comoponents/EditChannelPurposeModal match with modal error 1`] = `
     componentClass="div"
   >
     <button
-      className="btn btn-link cancel-button"
+      className="btn btn-tertiary cancel-button"
       onClick={[Function]}
       type="button"
     >
@@ -212,7 +212,7 @@ exports[`comoponents/EditChannelPurposeModal match with modal error 1`] = `
       />
     </button>
     <button
-      className="btn btn-primary save-button"
+      className="btn btn-primary"
       disabled={false}
       onClick={[Function]}
       type="button"
@@ -315,7 +315,7 @@ exports[`comoponents/EditChannelPurposeModal match with modal error with fake id
     componentClass="div"
   >
     <button
-      className="btn btn-link cancel-button"
+      className="btn btn-tertiary cancel-button"
       onClick={[Function]}
       type="button"
     >
@@ -325,7 +325,7 @@ exports[`comoponents/EditChannelPurposeModal match with modal error with fake id
       />
     </button>
     <button
-      className="btn btn-primary save-button"
+      className="btn btn-primary"
       disabled={false}
       onClick={[Function]}
       type="button"
@@ -418,7 +418,7 @@ exports[`comoponents/EditChannelPurposeModal should match for private channel 1`
     componentClass="div"
   >
     <button
-      className="btn btn-link cancel-button"
+      className="btn btn-tertiary cancel-button"
       onClick={[Function]}
       type="button"
     >
@@ -428,7 +428,7 @@ exports[`comoponents/EditChannelPurposeModal should match for private channel 1`
       />
     </button>
     <button
-      className="btn btn-primary save-button"
+      className="btn btn-primary"
       disabled={false}
       onClick={[Function]}
       type="button"
@@ -521,7 +521,7 @@ exports[`comoponents/EditChannelPurposeModal should match on init 1`] = `
     componentClass="div"
   >
     <button
-      className="btn btn-link cancel-button"
+      className="btn btn-tertiary cancel-button"
       onClick={[Function]}
       type="button"
     >
@@ -531,7 +531,7 @@ exports[`comoponents/EditChannelPurposeModal should match on init 1`] = `
       />
     </button>
     <button
-      className="btn btn-primary save-button"
+      className="btn btn-primary"
       disabled={false}
       onClick={[Function]}
       type="button"
@@ -632,7 +632,7 @@ exports[`comoponents/EditChannelPurposeModal should match submitted 1`] = `
       componentClass="div"
     >
       <button
-        className="btn btn-link cancel-button"
+        className="btn btn-tertiary cancel-button"
         onClick={[Function]}
         type="button"
       >
@@ -642,7 +642,7 @@ exports[`comoponents/EditChannelPurposeModal should match submitted 1`] = `
         />
       </button>
       <button
-        className="btn btn-primary save-button"
+        className="btn btn-primary"
         disabled={false}
         onClick={[Function]}
         type="button"
@@ -736,7 +736,7 @@ exports[`comoponents/EditChannelPurposeModal should match with display name 1`] 
     componentClass="div"
   >
     <button
-      className="btn btn-link cancel-button"
+      className="btn btn-tertiary cancel-button"
       onClick={[Function]}
       type="button"
     >
@@ -746,7 +746,7 @@ exports[`comoponents/EditChannelPurposeModal should match with display name 1`] 
       />
     </button>
     <button
-      className="btn btn-primary save-button"
+      className="btn btn-primary"
       disabled={false}
       onClick={[Function]}
       type="button"

@@ -3878,7 +3878,7 @@ export default class Client4 {
         );
     }
 
-    subscribeCloudProduct = (productId: string, shippingAddress?: Address, seats = 0, downgradeFeedback?: Feedback) => {
+    subscribeCloudProduct = (productId: string, shippingAddress?: Address, seats = 0, downgradeFeedback?: Feedback, customerPatch?: CloudCustomerPatch) => {
         const body = {
             product_id: productId,
             seats,
@@ -3886,6 +3886,10 @@ export default class Client4 {
         } as any;
         if (shippingAddress) {
             body.shipping_address = shippingAddress;
+        }
+
+        if (customerPatch) {
+            body.customer = customerPatch;
         }
         return this.doFetch<Subscription>(
             `${this.getCloudRoute()}/subscription`,
@@ -4204,6 +4208,26 @@ export default class Client4 {
             `${this.getCloudRoute()}/delete-workspace`,
             {method: 'delete', body: JSON.stringify(deletionRequest)},
         );
+    }
+
+    getGroupMessageMembersCommonTeams = (channelId: string) => {
+        return this.doFetchWithResponse<Team[]>(
+            `${this.getChannelRoute(channelId)}/common_teams`,
+            {method: 'get'},
+        )
+    }
+
+    convertGroupMessageToPrivateChannel = (channelId: string, teamId: string, displayName: string, name: string) => {
+        const body = {
+            channel_id: channelId,
+            team_id: teamId,
+            display_name: displayName,
+            name: name,
+        }
+        return this.doFetchWithResponse<Channel>(
+            `${this.getChannelRoute(channelId)}/convert_to_channel?team_id=${teamId}`,
+            {method: 'post', body: JSON.stringify(body)},
+        )
     }
 }
 

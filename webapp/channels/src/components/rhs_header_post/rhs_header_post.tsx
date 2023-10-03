@@ -208,7 +208,7 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
                     >
                         <button
                             type='button'
-                            className='sidebar--right__expand btn-icon'
+                            className='sidebar--right__expand btn btn-icon btn-sm'
                             aria-label='Expand'
                             onClick={this.props.toggleRhsExpanded}
                         >
@@ -231,7 +231,7 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
                         <button
                             id='rhsCloseButton'
                             type='button'
-                            className='sidebar--right__close btn-icon'
+                            className='sidebar--right__close btn btn-icon btn-sm'
                             aria-label='Close'
                             onClick={this.props.closeRightHandSide}
                         >

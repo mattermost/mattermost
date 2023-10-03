@@ -116,6 +116,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 return result.data ? result.data.map((channel) => channel.id) : [];
             },
             );
+            this.props.privateChannels.forEach((channel) => channelIDsForMemberCount.push(channel.id));
             if (channelIDsForMemberCount.length > 0) {
                 this.props.actions.getChannelsMemberCount(channelIDsForMemberCount);
             }
@@ -327,7 +328,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primaryButton', <i className='icon-plus'/>)}
+                {createNewChannelButton('btn-primary', <i className='icon-plus'/>)}
             </>
         );
 
@@ -369,7 +370,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 aria-labelledby='browseChannelsModalLabel'
                 compassDesign={true}
                 modalHeaderText={title}
-                headerButton={createNewChannelButton('outlineButton')}
+                headerButton={createNewChannelButton('btn-secondary btn-sm')}
                 autoCloseOnConfirmButton={false}
                 aria-modal={true}
                 enforceFocus={false}

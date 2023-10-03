@@ -361,7 +361,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                 if (options.length > pageEnd) {
                     nextButton = (
                         <button
-                            className='btn btn-link filter-control filter-control__next'
+                            className='btn btn-tertiary filter-control filter-control__next'
                             onClick={this.nextPage}
                         >
                             <FormattedMessage
@@ -375,7 +375,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                 if (this.state.page > 0) {
                     previousButton = (
                         <button
-                            className='btn btn-link filter-control filter-control__prev'
+                            className='btn btn-tertiary filter-control filter-control__prev'
                             onClick={this.prevPage}
                         >
                             <FormattedMessage
@@ -523,7 +523,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                                         this.props.backButtonClick();
                                     }
                                 }}
-                                className={classNames('btn', this.props.backButtonClass)}
+                                className={classNames('btn btn-tertiary', this.props.backButtonClass)}
                             >
                                 {this.props.backButtonText || localizeMessage('multiselect.backButton', 'Back')}
                             </button>
