@@ -20,23 +20,21 @@ export const HintToast: React.FC<Props> = ({children, onDismiss}: Props) => {
     };
 
     return (
-        <div className='hint-toast__wrapper'>
-            <div className='hint-toast'>
-                <div
-                    className='hint-toast__message'
-                >
-                    {children}
-                </div>
-                <div
-                    className='hint-toast__dismiss'
-                    onClick={handleDismiss}
-                    data-testid='dismissHintToast'
-                >
-                    <CloseIcon
-                        className='close-btn'
-                        id='dismissHintToast'
-                    />
-                </div>
+        <div className='hint-toast'>
+            <div
+                className='hint-toast__message'
+            >
+                {children}
+            </div>
+            <div
+                className='hint-toast__dismiss'
+                onClick={handleDismiss}
+                data-testid='dismissHintToast'
+            >
+                <CloseIcon
+                    className='close-btn'
+                    id='dismissHintToast'
+                />
             </div>
         </div>
     );

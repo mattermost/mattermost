@@ -7,6 +7,9 @@ import type {ComponentProps} from 'react';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 
+import {HintToast} from 'components/hint-toast/hint_toast';
+import ScrollToBottomToast from 'components/scroll_to_bottom_toast';
+
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {getHistory} from 'utils/browser_history';
 import {PostListRowListIds} from 'utils/constants';
@@ -45,6 +48,8 @@ describe('components/ToastWrapper', () => {
         scrollToUnreadMessages: jest.fn(),
         showSearchHintToast: true,
         onSearchHintDismiss: jest.fn(),
+        showScrollToBottomToast: false,
+        onScrollToBottomToastDismiss: jest.fn(),
         actions: {
             updateToastStatus: jest.fn(),
         },
@@ -609,6 +614,107 @@ describe('components/ToastWrapper', () => {
             const instance = wrapper.instance() as ToastWrapperClass;
 
             instance.hideSearchHintToast();
+
+            expect(dismissHandler).toHaveBeenCalled();
+        });
+    });
+
+    describe('Scroll-to-bottom toast', () => {
+        test('should not be shown when unread toast should be shown', () => {
+            const props = {
+                ...baseProps,
+                unreadCountInChannel: 10,
+                newRecentMessagesCount: 5,
+                showScrollToBottomToast: true,
+            };
+
+            const wrapper = shallowWithIntl(<ToastWrapper {...props}/>);
+
+            // Assert that component doesn't exist
+            const scrollToBottomToast = wrapper.find(ScrollToBottomToast);
+            expect(scrollToBottomToast.exists()).toBe(false);
+        });
+
+        test('should not be shown when history toast should be shown', () => {
+            const props = {
+                ...baseProps,
+                focusedPostId: 'asdasd',
+                atLatestPost: false,
+                atBottom: false,
+                showScrollToBottomToast: true,
+            };
+
+            const wrapper = shallowWithIntl(<ToastWrapper {...props}/>);
+
+            // Assert that component doesn't exist
+            const scrollToBottomToast = wrapper.find(ScrollToBottomToast);
+            expect(scrollToBottomToast.exists()).toBe(false);
+        });
+
+        test('should NOT be shown if showScrollToBottomToast is false', () => {
+            const props = {
+                ...baseProps,
+                showScrollToBottomToast: false,
+            };
+
+            const wrapper = shallowWithIntl(<ToastWrapper {...props}/>);
+
+            // Assert that component doesn't exist
+            const scrollToBottomToast = wrapper.find(ScrollToBottomToast);
+            expect(scrollToBottomToast.exists()).toBe(false);
+        });
+
+        test('should be shown when no other toasts are shown', () => {
+            const props = {
+                ...baseProps,
+                showSearchHintToast: false,
+                showScrollToBottomToast: true,
+            };
+
+            const wrapper = shallowWithIntl(<ToastWrapper {...props}/>);
+
+            // Assert that component exists
+            const scrollToBottomToast = wrapper.find(ScrollToBottomToast);
+            expect(scrollToBottomToast.exists()).toBe(true);
+        });
+
+        test('should be shown along side with Search hint toast', () => {
+            const props = {
+                ...baseProps,
+                showSearchHintToast: true,
+                showScrollToBottomToast: true,
+            };
+
+            const wrapper = shallowWithIntl(<ToastWrapper {...props}/>);
+
+            const toastsWrapper = wrapper.find('.toasts-wrapper');
+            expect(toastsWrapper).toBeDefined();
+
+            // Find ScrollToBottomToast and HintToast components within toastsWrapper
+            const scrollToBottomToast = toastsWrapper.find(ScrollToBottomToast);
+            const hintToast = toastsWrapper.find(HintToast);
+
+            // Assert that both components exist
+            expect(scrollToBottomToast.exists()).toBe(true);
+            expect(hintToast.exists()).toBe(true);
+
+            // Assert that both components are children of toastsWrapper
+            expect(scrollToBottomToast.parent()).toStrictEqual(toastsWrapper);
+            expect(hintToast.parent()).toStrictEqual(toastsWrapper);
+        });
+
+        test('should call the dismiss callback', () => {
+            const dismissHandler = jest.fn();
+            const props = {
+                ...baseProps,
+                showScrollToBottomToast: true,
+                onScrollToBottomToastDismiss: dismissHandler,
+            };
+
+            const wrapper = shallowWithIntl(<ToastWrapper {...props}/>);
+            const instance = wrapper.instance() as ToastWrapperClass;
+
+            instance.hideScrollToBottomToast();
 
             expect(dismissHandler).toHaveBeenCalled();
         });
