@@ -86,10 +86,10 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 	var userName string
 	if cfg.Fuzzy {
 		userEmail = "success+" + model.NewId() + "@simulator.amazonses.com"
-		userName = utils.FuzzName()
+		userName = "a" + utils.FuzzName()
 	} else {
 		userEmail = "success+" + model.NewId() + "@simulator.amazonses.com"
-		userName = utils.RandomName(cfg.NameLength, cfg.NameCharset)
+		userName = "a" + utils.RandomName(cfg.NameLength, cfg.NameCharset)
 	}
 
 	user := &model.User{

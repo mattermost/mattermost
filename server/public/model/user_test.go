@@ -91,11 +91,11 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId() + "^hello#"
+	user.Username = "a" + NewId() + "^hello#"
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId()
+	user.Username = "a" + NewId()
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
@@ -215,9 +215,9 @@ var usernames = []usernamesTest{
 	{"spin-punch", true, true},
 	{"sp", true, true},
 	{"s", true, true},
-	{"1spin-punch", true, true},
-	{"-spin-punch", true, true},
-	{".spin-punch", true, true},
+	{"1spin-punch", false, false},
+	{"-spin-punch", false, false},
+	{".spin-punch", false, false},
 	{"Spin-punch", false, false},
 	{"spin punch-", false, false},
 	{"spin_punch", true, true},
