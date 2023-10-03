@@ -135,7 +135,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -404,7 +404,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -578,7 +578,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -847,7 +847,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

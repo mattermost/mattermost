@@ -47,7 +47,7 @@ services:
       http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      ES_JAVA_OPTS: "-Xms512m -Xmx2G"
     healthcheck:
       test: [ "CMD", "bash", "-o", "pipefail", "-c", "curl --silent localhost:9200/_cat/health | awk '{ print $$4 }' | grep -qE '^green$$'" ]
       interval: 10s
@@ -68,6 +68,7 @@ services:
       KEYCLOAK_PASSWORD: mostest
       DB_VENDOR: h2
       KEYCLOAK_IMPORT: /setup/realm.json
+      JAVA_OPTS: "-Xms64m -Xmx2G -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
     volumes:
      - "./docker/keycloak:/setup"
     healthcheck:

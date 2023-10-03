@@ -234,7 +234,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -495,7 +495,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -759,7 +759,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -987,7 +987,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -1215,7 +1215,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -1476,7 +1476,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage

@@ -71,10 +71,10 @@ export function getUsers(state: GlobalState): IDMappedObjects<UserProfile> {
 
 // Calls
 
-export function getCalls(state: GlobalState): Record<string, UserProfile[]> {
+export function getProfilesInCalls(state: GlobalState): Record<string, UserProfile[]> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return state[CALLS_PLUGIN].voiceConnectedProfiles || {};
+    return state[CALLS_PLUGIN].profiles || state[CALLS_PLUGIN].voiceConnectedProfiles || {};
 }
 
 export function getCallsConfig(state: GlobalState): CallsConfig {
