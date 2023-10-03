@@ -816,7 +816,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var appErr *model.AppError
 	var members []*model.TeamMember
-	if jsonErr := json.NewDecoder(r.Body).Decode(&members); jsonErr != nil || members == nil {
+	if jsonErr := json.NewDecoder(r.Body).Decode(&members); jsonErr != nil {
 		c.SetInvalidParamWithErr("members", jsonErr)
 		return
 	}

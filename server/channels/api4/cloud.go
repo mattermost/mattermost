@@ -399,7 +399,7 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
 		sanitizedProducts := []model.UserFacingProduct{}
 		err = json.Unmarshal(byteProductsData, &sanitizedProducts)
-		if err != nil || sanitizedProducts == nil {
+		if err != nil {
 			c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
