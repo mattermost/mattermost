@@ -241,7 +241,7 @@ function channels(state: IDMappedObjects<Channel> = {}, action: GenericAction) {
     }
 }
 
-export function toClientChannel(serverChannel: ServerChannel): Channel {
+function toClientChannel(serverChannel: ServerChannel): Channel {
     const channel = {...serverChannel};
 
     Reflect.deleteProperty(channel, 'total_msg_count');
