@@ -9,8 +9,6 @@ import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {ChannelCategoryTypes, TeamTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import {General} from 'mattermost-redux/constants';
-import {toClientChannel} from 'mattermost-redux/reducers/entities/channels';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 import {removeItem} from 'mattermost-redux/utils/array_utils';
 
@@ -95,45 +93,38 @@ export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: Gener
 
         return changed ? nextState : state;
     }
-    case ChannelTypes.RECEIVED_CHANNEL: {
-        const receivedChannel: Channel = toClientChannel(action.data);
-        if (receivedChannel.type === General.PRIVATE_CHANNEL) {
-            // For GM to Private channel conversion feature
-            // In the case when someone converts your GM to a private channel and moves it to a team
-            // you're not currently on, we need to remove the channel from "direct messages" category
-            // and add it to "channels" category of target team. Even though the server sends a websocket event about updated category data,
-            // it does so only for the team the channel got moved into, and not every team a user is part of, for performance reasons.
-            // For every other team, we update the state here. Everything is correct ion server side, but we update state here
-            // to avoid re-fetching all categories again for all teams.
+    case ChannelTypes.GM_CONVERTED_TO_CHANNEL: {
+        // For GM to Private channel conversion feature
+        // In the case when someone converts your GM to a private channel and moves it to a team
+        // you're not currently on, we need to remove the channel from "direct messages" category
+        // and add it to "channels" category of target team. Even though the server sends a websocket event about updated category data,
+        // it does so only for the team the channel got moved into, and not every team a user is part of, for performance reasons.
+        // For every other team, we update the state here. Everything is correct on server side, but we update state here
+        // to avoid re-fetching all categories again for all teams.
 
-            const newState: IDMappedObjects<ChannelCategory> = {};
-            const categoryIDs = Object.keys(state);
-            categoryIDs.forEach((categoryID) => {
-                if (categoryID.startsWith('direct_messages_')) {
-                    // for DM category, remove the new channel from the category.
-                    newState[categoryID] = {
-                        ...state[categoryID],
-                        channel_ids: state[categoryID].channel_ids.filter((channelID) => channelID !== receivedChannel.id),
-                    };
-                } else if (categoryID.startsWith('channels_') && state[categoryID].team_id === receivedChannel.team_id && state[categoryID].channel_ids.indexOf(receivedChannel.id) < 0) {
-                    // We don't need to worry about adding the channel in the right order as this is only
-                    // an intermediate step, meant to handle teh edge case of missing the upcoming "update category"
-                    // websocket message, triggered on conversion of GM to private channel.
-                    newState[categoryID] = {
-                        ...state[categoryID],
-                        channel_ids: [...state[categoryID].channel_ids, receivedChannel.id],
-                    };
-                } else {
-                    newState[categoryID] = state[categoryID];
-                }
-            });
+        const receivedChannel = action.data as Channel;
+        const newState: IDMappedObjects<ChannelCategory> = {};
+        const categoryIDs = Object.keys(state);
 
-            return newState;
-        }
+        categoryIDs.forEach((categoryID) => {
+            if (categoryID.startsWith('channels_') && state[categoryID].team_id === receivedChannel.team_id && state[categoryID].channel_ids.indexOf(receivedChannel.id) < 0) {
+                // We don't need to worry about adding the channel in the right order as this is only
+                // an intermediate step, meant to handle the edge case of missing the upcoming "update category"
+                // websocket message, triggered on conversion of GM to private channel.
+                newState[categoryID] = {
+                    ...newState[categoryID],
+                    channel_ids: [...state[categoryID].channel_ids, receivedChannel.id],
+                };
+            } else {
+                newState[categoryID] = {
+                    ...state[categoryID],
+                    channel_ids: state[categoryID].channel_ids.filter((channelID) => channelID !== receivedChannel.id),
+                };
+            }
+        });
 
-        return state;
+        return newState;
     }
-
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
