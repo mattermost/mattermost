@@ -38,6 +38,7 @@ func makeJobServer(t *testing.T) (*JobServer, *storetest.Store, *mocks.MetricsIn
 		ConfigService: configService,
 		Store:         mockStore,
 		metrics:       mockMetrics,
+		logger:        mlog.CreateConsoleTestLogger(t),
 	}
 
 	return jobServer, mockStore, mockMetrics

@@ -164,7 +164,7 @@ const UserGroupsList = (props: Props) => {
                             stopPropagationOnToggle={true}
                             id={`customWrapper-${group.id}`}
                         >
-                            <button className='action-wrapper'>
+                            <button className='btn btn-icon btn-xs'>
                                 <i className='icon icon-dots-vertical'/>
                             </button>
                             <Menu

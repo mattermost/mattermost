@@ -36,6 +36,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 		wasMentioned         bool
 		isMuted              bool
 		expected             bool
+		isGM                 bool
 	}{
 		{
 			name:                 "When post is a System Message and has no mentions",
@@ -45,6 +46,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When post is a System Message and has mentions",
@@ -54,6 +56,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, no channel props is set and has no mentions",
@@ -63,6 +66,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, no channel props is set and has mentions",
@@ -72,6 +76,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, no channel props is set and has no mentions",
@@ -81,6 +86,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, no channel props is set and has mentions",
@@ -90,6 +96,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, no channel props is set and has no mentions",
@@ -99,6 +106,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, no channel props is set and has mentions",
@@ -108,6 +116,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, channel is DEFAULT and has no mentions",
@@ -117,6 +126,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, channel is DEFAULT and has mentions",
@@ -126,6 +136,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, channel is DEFAULT and has no mentions",
@@ -135,6 +146,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, channel is DEFAULT and has mentions",
@@ -144,6 +156,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, channel is DEFAULT and has no mentions",
@@ -153,6 +166,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, channel is DEFAULT and has mentions",
@@ -162,6 +176,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, channel is ALL and has no mentions",
@@ -171,6 +186,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, channel is ALL and has mentions",
@@ -180,6 +196,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, channel is ALL and has no mentions",
@@ -189,6 +206,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, channel is ALL and has mentions",
@@ -198,6 +216,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, channel is ALL and has no mentions",
@@ -207,6 +226,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, channel is ALL and has mentions",
@@ -216,6 +236,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, channel is MENTION and has no mentions",
@@ -225,6 +246,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, channel is MENTION and has mentions",
@@ -234,6 +256,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, channel is MENTION and has no mentions",
@@ -243,6 +266,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, channel is MENTION and has mentions",
@@ -252,6 +276,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, channel is MENTION and has no mentions",
@@ -261,6 +286,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, channel is MENTION and has mentions",
@@ -270,6 +296,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             true,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, channel is NONE and has no mentions",
@@ -279,6 +306,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, channel is NONE and has mentions",
@@ -288,6 +316,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, channel is NONE and has no mentions",
@@ -297,6 +326,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is MENTION, channel is NONE and has mentions",
@@ -306,6 +336,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, channel is NONE and has no mentions",
@@ -315,6 +346,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is NONE, channel is NONE and has mentions",
@@ -324,6 +356,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             false,
+			isGM:                 false,
 		},
 		{
 			name:                 "When default is ALL, and channel is MUTED",
@@ -333,6 +366,47 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         false,
 			isMuted:              true,
 			expected:             false,
+			isGM:                 false,
+		},
+		{
+			name:                 "For GM default for NONE is NONE",
+			userNotifySetting:    model.UserNotifyNone,
+			channelNotifySetting: model.ChannelNotifyDefault,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+			isGM:                 true,
+		},
+		{
+			name:                 "For GM, mentioned is only called if explicitly mentioned",
+			userNotifySetting:    model.UserNotifyNone,
+			channelNotifySetting: model.ChannelNotifyMention,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+			isGM:                 true,
+		},
+		{
+			name:                 "For GM default for MENTION is ALL",
+			userNotifySetting:    model.UserNotifyMention,
+			channelNotifySetting: model.ChannelNotifyDefault,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             true,
+			isGM:                 true,
+		},
+		{
+			name:                 "For GM, mentioned is only called if explicitly mentioned",
+			userNotifySetting:    model.UserNotifyNone,
+			channelNotifySetting: model.ChannelNotifyMention,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+			isGM:                 true,
 		},
 	}
 
@@ -352,7 +426,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			if tc.isMuted {
 				channelNotifyProps[model.MarkUnreadNotifyProp] = model.ChannelMarkUnreadMention
 			}
-			assert.Equal(t, tc.expected, DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, tc.wasMentioned))
+			assert.Equal(t, tc.expected, DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, tc.wasMentioned, tc.isGM))
 		})
 	}
 }

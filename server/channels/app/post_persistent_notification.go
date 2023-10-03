@@ -275,9 +275,9 @@ func (a *App) channelTeamMapsForPosts(posts []*model.Post) (map[string]*model.Ch
 
 func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error {
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
-	for id := range mentions.Mentions {
-		// Don't send notification to post owner
-		if id != post.UserId {
+	for id, v := range mentions.Mentions {
+		// Don't send notification to post owner nor GM mentions
+		if id != post.UserId && v > GMMention {
 			mentionedUsersList = append(mentionedUsersList, id)
 		}
 	}
@@ -307,7 +307,8 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 				status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post) {
+			isGM := channel.Type == model.ChannelTypeGroup
+			if ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
 				a.sendPushNotification(
 					notification,
 					user,

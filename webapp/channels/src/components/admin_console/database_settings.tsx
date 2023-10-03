@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {AdminConfig} from '@mattermost/types/config';
+
 import {recycleDatabaseConnection, ping} from 'actions/admin_actions';
 
 import ExternalLink from 'components/external_link';
@@ -12,6 +14,7 @@ import {DocLinks} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
+import type {BaseState} from './admin_settings';
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import MigrationsTable from './database';
@@ -19,8 +22,29 @@ import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-export default class DatabaseSettings extends AdminSettings {
-    constructor(props) {
+interface Props {
+    license: {
+        IsLicensed: string;
+    };
+    isDisabled: boolean;
+}
+
+interface State extends BaseState {
+    searchBackend: string;
+    maxIdleConns: number;
+    maxOpenConns: number;
+    trace: boolean;
+    disableDatabaseSearch: boolean;
+    queryTimeout: number;
+    connMaxLifetimeMilliseconds: number;
+    connMaxIdleTimeMilliseconds: number;
+    minimumHashtagLength: number;
+    dataSource: string;
+    driverName: string;
+}
+
+export default class DatabaseSettings extends AdminSettings<Props, State> {
+    constructor(props: Props) {
         super(props);
 
         this.state = {
@@ -29,7 +53,7 @@ export default class DatabaseSettings extends AdminSettings {
         };
     }
 
-    getConfigFromState = (config) => {
+    getConfigFromState = (config: AdminConfig) => {
         // driverName and dataSource are read-only from the UI
 
         config.SqlSettings.MaxIdleConns = this.parseIntNonZero(this.state.maxIdleConns);
@@ -55,7 +79,7 @@ export default class DatabaseSettings extends AdminSettings {
         return res.ActiveSearchBackend;
     }
 
-    getStateFromConfig(config) {
+    getStateFromConfig(config: AdminConfig) {
         return {
             driverName: config.SqlSettings.DriverName,
             dataSource: config.SqlSettings.DataSource,
@@ -207,6 +231,7 @@ export default class DatabaseSettings extends AdminSettings {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.MaxIdleConns')}
                     disabled={this.props.isDisabled}
+                    type='text'
                 />
                 <TextSetting
                     id='maxOpenConns'
@@ -227,6 +252,7 @@ export default class DatabaseSettings extends AdminSettings {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.MaxOpenConns')}
                     disabled={this.props.isDisabled}
+                    type='text'
                 />
                 <TextSetting
                     id='queryTimeout'
@@ -247,6 +273,7 @@ export default class DatabaseSettings extends AdminSettings {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.QueryTimeout')}
                     disabled={this.props.isDisabled}
+                    type='text'
                 />
                 <TextSetting
                     id='connMaxLifetimeMilliseconds'
@@ -267,6 +294,7 @@ export default class DatabaseSettings extends AdminSettings {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.ConnMaxLifetimeMilliseconds')}
                     disabled={this.props.isDisabled}
+                    type='text'
                 />
                 <TextSetting
                     id='connMaxIdleTimeMilliseconds'
@@ -287,6 +315,7 @@ export default class DatabaseSettings extends AdminSettings {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.ConnMaxIdleTimeMilliseconds')}
                     disabled={this.props.isDisabled}
+                    type='text'
                 />
                 <TextSetting
                     id='minimumHashtagLength'
@@ -317,6 +346,7 @@ export default class DatabaseSettings extends AdminSettings {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.MinimumHashtagLength')}
                     disabled={this.props.isDisabled}
+                    type='text'
                 />
                 <BooleanSetting
                     id='trace'

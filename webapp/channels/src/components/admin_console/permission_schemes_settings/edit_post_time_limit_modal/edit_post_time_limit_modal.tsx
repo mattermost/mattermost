@@ -159,7 +159,7 @@ export default function EditPostTimeLimitModal(props: Props) {
                 </div>
                 <button
                     type='button'
-                    className='btn btn-cancel'
+                    className='btn btn-tertiary'
                     onClick={props.onClose}
                 >
                     <FormattedMessage
@@ -170,7 +170,7 @@ export default function EditPostTimeLimitModal(props: Props) {
                 <button
                     id='linkModalCloseButton'
                     type='button'
-                    className='btn btn-default'
+                    className='btn btn-tertiary'
                     onClick={save}
                     disabled={saving}
                 >
