@@ -29,12 +29,14 @@ describe('Keyboard Shortcuts', () => {
         cy.get('body').cmdOrCtrlShortcut('K');
         cy.get('#quickSwitchInput').type('T');
 
+        // * Confirm the town-square channel is selected in the suggestion list
+        cy.get('#suggestionList').findByTestId('town-square').should('be.visible').and('have.class', 'suggestion--selected');
+
         // # Press down arrow
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.get('body').type('{downarrow}');
-        cy.get('body').type('{downarrow}');
 
-        // * Confirm the offtopic channel is selected in the suggestion list
+        // * Confirm the off-topic channel is selected in the suggestion list
         cy.get('#suggestionList').findByTestId('off-topic').should('be.visible').and('have.class', 'suggestion--selected');
 
         // # Press ENTER
