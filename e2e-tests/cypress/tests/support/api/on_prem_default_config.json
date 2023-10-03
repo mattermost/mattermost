@@ -608,11 +608,6 @@
         "RemoteImageProxyURL": "",
         "RemoteImageProxyOptions": ""
     },
-    "CloudSettings": {
-        "CWSURL": "https://customers.mattermost.com",
-        "CWSAPIURL": "https://portal.internal.prod.cloud.mattermost.com",
-        "CWSMock": false
-    },
     "ImportSettings": {
         "Directory": "./import",
         "RetentionDays": 30
