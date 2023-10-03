@@ -78,13 +78,14 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	var appErr *model.AppError
 	// We get the job again because ClaimJob changes the job status.
-	job, appErr = worker.jobServer.GetJob(job.Id)
+	newJob, appErr := worker.jobServer.GetJob(job.Id)
 	if appErr != nil {
 		mlog.Error("SimpleWorker: job execution error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
 		worker.setJobError(job, appErr)
+		return
 	}
+	job = newJob
 
 	err := worker.execute(job)
 	if err != nil {
