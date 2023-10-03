@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelTypes, UserTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {UserTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getMentionsAndStatusesForPosts,
@@ -636,6 +636,11 @@ describe('handleChannelUpdatedEvent', () => {
         entities: {
             channels: {
                 currentChannelId: 'channel',
+                channels: {
+                    channel: {
+                        id: 'channel',
+                    },
+                },
             },
             teams: {
                 currentTeamId: 'team',
@@ -656,10 +661,19 @@ describe('handleChannelUpdatedEvent', () => {
         const msg = {data: {channel: JSON.stringify(channel)}};
 
         testStore.dispatch(handleChannelUpdatedEvent(msg));
-
-        expect(testStore.getActions()).toEqual([
-            {type: ChannelTypes.RECEIVED_CHANNEL, data: channel},
-        ]);
+        expect(testStore.getActions()).toEqual([{
+            type: 'BATCHING_REDUCER.BATCH',
+            meta: {batch: true},
+            payload: [
+                {
+                    type: 'RECEIVED_CHANNEL',
+                    data: {
+                        id: 'channel',
+                        team_id: 'team',
+                    },
+                },
+            ],
+        }]);
     });
 
     test('should not change URL when current channel is updated', () => {

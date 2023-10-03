@@ -632,11 +632,11 @@ export function handleChannelUpdatedEvent(msg) {
         if (existingChannel) {
             // and it was a GM, converted to a private channel
             if (existingChannel.type === General.GM_CHANNEL && channel.type === General.PRIVATE_CHANNEL) {
-                actions.push({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
+                dispatch({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
             }
         }
 
-        dispatch(batchActions(actions));
+        doDispatch(batchActions(actions));
 
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
