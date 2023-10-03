@@ -170,7 +170,7 @@ function getDefaultStateFromProps(props: Props): State {
             isCustomKeysWithNotificationInputChecked = customKeysWithNotification.length > 0;
         }
 
-        if (props.user.notify_props.highlight_keys.length > 0) {
+        if (props.user.notify_props?.highlight_keys?.length > 0) {
             const highlightKeys = props.user.notify_props.highlight_keys.split(',').filter((key) => key.length > 0);
             highlightKeys.forEach((highlightKey) => {
                 customKeysWithHighlight.push({
