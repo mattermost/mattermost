@@ -8,13 +8,13 @@ import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {PageLoadContext} from '@mattermost/client/lib/client4';
 import {ServiceEnvironment} from '@mattermost/types/config';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
-import {PageLoadContext} from '@mattermost/client/lib/client4';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import {General} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -26,7 +26,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {loadRecentlyUsedCustomEmojis} from 'actions/emoji_actions';
 import * as GlobalActions from 'actions/global_actions';
-import {measurePageLoadTelemetry, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
+import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 import store from 'stores/redux_store.jsx';
 
@@ -429,7 +429,7 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     componentDidMount() {
-        Client4.temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
+        temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
         this.mounted = true;
 

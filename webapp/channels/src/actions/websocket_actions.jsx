@@ -76,14 +76,14 @@ import {
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getLicense, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamUrl, getTeam, getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamUrl, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamUrl, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
-import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin, getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
@@ -115,6 +115,8 @@ import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
+
+import {temporarilySetPageLoadContext} from './telemetry_actions';
 
 const dispatch = store.dispatch;
 const getState = store.getState;
@@ -206,7 +208,7 @@ export function reconnect() {
     // eslint-disable-next-line
     console.log('Reconnecting WebSocket');
 
-    Client4.temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
+    temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
 
     dispatch({
         type: GeneralTypes.WEBSOCKET_SUCCESS,

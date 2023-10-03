@@ -153,7 +153,6 @@ const HEADER_USER_AGENT = 'User-Agent';
 export const HEADER_X_CLUSTER_ID = 'X-Cluster-Id';
 const HEADER_X_CSRF_TOKEN = 'X-CSRF-Token';
 export const HEADER_X_VERSION_ID = 'X-Version-Id';
-const HEADER_X_PAGE_LOAD_CONTEXT = 'X-Page-Load-Context';
 const LOGS_PER_PAGE_DEFAULT = 10000;
 const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
@@ -161,11 +160,6 @@ export const DEFAULT_LIMIT_BEFORE = 30;
 export const DEFAULT_LIMIT_AFTER = 30;
 
 const GRAPHQL_ENDPOINT = '/api/v5/graphql';
-
-export enum PageLoadContext {
-    PAGE_LOAD = 'page_load',
-    RECONNECT = 'reconnect',
-}
 
 export default class Client4 {
     logToConsole = false;
@@ -188,7 +182,6 @@ export default class Client4 {
     };
     userRoles = '';
     telemetryHandler?: TelemetryHandler;
-    private pageLoadContext: PageLoadContext|null = null;
 
     getUrl() {
         return this.url;
@@ -227,6 +220,14 @@ export default class Client4 {
 
     setAcceptLanguage(locale: string) {
         this.defaultHeaders['Accept-Language'] = locale;
+    }
+
+    setHeader(header: string, value: string) {
+        this.defaultHeaders[header] = value;
+    }
+
+    removeHeader(header: string) {
+        delete this.defaultHeaders[header];
     }
 
     setEnableLogging(enable: boolean) {
@@ -528,10 +529,6 @@ export default class Client4 {
 
         if (newOptions.headers) {
             Object.assign(headers, newOptions.headers);
-        }
-
-        if (this.pageLoadContext) {
-            headers[HEADER_X_PAGE_LOAD_CONTEXT] = this.pageLoadContext;
         }
 
         return {
@@ -4207,17 +4204,6 @@ export default class Client4 {
             `${this.getCloudRoute()}/delete-workspace`,
             {method: 'delete', body: JSON.stringify(deletionRequest)},
         );
-    }
-
-    // This allows the server to know that a given HTTP request occurred during page load or reconnect.
-    // The server then uses this information to store metrics fields based on the request context.
-    // The setTimeout approach is a "best effort" approach that will produce false positives.
-    // A more accurate approach will result in more obtrusive code, which would add risk and maintenance cost.
-    temporarilySetPageLoadContext = (pageLoadContext: PageLoadContext | null) => {
-        this.pageLoadContext = pageLoadContext;
-        setTimeout(() => {
-            this.pageLoadContext = null;
-        }, 5000);
     }
 }
 
