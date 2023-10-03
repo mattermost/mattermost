@@ -632,7 +632,7 @@ export function handleChannelUpdatedEvent(msg) {
         if (existingChannel) {
             // and it was a GM, converted to a private channel
             if (existingChannel.type === General.GM_CHANNEL && channel.type === General.PRIVATE_CHANNEL) {
-                dispatch({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
+                actions.push({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
             }
         }
 

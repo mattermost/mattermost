@@ -676,6 +676,43 @@ describe('handleChannelUpdatedEvent', () => {
         }]);
     });
 
+    test('when GM is converted to private channel', () => {
+        const state = initialState;
+        state.entities.channels.channels.channel.type = Constants.GM_CHANNEL;
+
+        const testStore = configureStore(state);
+        const channel = {
+            id: 'channel',
+            team_id: 'team',
+            type: Constants.PRIVATE_CHANNEL,
+        };
+
+        const msg = {data: {channel: JSON.stringify(channel)}};
+        testStore.dispatch(handleChannelUpdatedEvent(msg));
+        expect(testStore.getActions()).toEqual([{
+            type: 'BATCHING_REDUCER.BATCH',
+            meta: {batch: true},
+            payload: [
+                {
+                    type: 'RECEIVED_CHANNEL',
+                    data: {
+                        id: 'channel',
+                        team_id: 'team',
+                        type: 'P',
+                    },
+                },
+                {
+                    type: 'GM_CONVERTED_TO_CHANNEL',
+                    data: {
+                        id: 'channel',
+                        team_id: 'team',
+                        type: 'P',
+                    },
+                },
+            ],
+        }]);
+    });
+
     test('should not change URL when current channel is updated', () => {
         const testStore = configureStore(initialState);
 
