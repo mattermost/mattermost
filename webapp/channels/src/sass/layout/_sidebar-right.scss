@@ -150,8 +150,6 @@
     }
 
     .sidebar--right__expand {
-        margin: 0 4px 0 0;
-
         i {
             top: 0;
         }
@@ -236,6 +234,7 @@
         white-space: nowrap;
 
         .btn-icon {
+            margin: 0 !important;
             font-size: 20px;
         }
 
@@ -243,6 +242,7 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
+            gap: 4px;
         }
     }
 
