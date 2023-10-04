@@ -5,6 +5,7 @@ package request
 
 import (
 	"context"
+	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -21,17 +22,16 @@ type Context struct {
 	userAgent      string
 	acceptLanguage string
 	logger         mlog.LoggerIFace
-	err            *model.AppError
 
 	context context.Context
 }
 
-func NewContext(ctx context.Context, requestId, ipAddress, path, userAgent, acceptLanguage string, session model.Session, t i18n.TranslateFunc) *Context {
+func NewContext(ctx context.Context, requestId, ipAddress, xForwardedFor, path, userAgent, acceptLanguage string, t i18n.TranslateFunc) *Context {
 	return &Context{
 		t:              t,
-		session:        session,
 		requestId:      requestId,
 		ipAddress:      ipAddress,
+		xForwardedFor:  xForwardedFor,
 		path:           path,
 		userAgent:      userAgent,
 		acceptLanguage: acceptLanguage,
@@ -45,6 +45,13 @@ func EmptyContext(logger mlog.LoggerIFace) *Context {
 		logger:  logger,
 		context: context.Background(),
 	}
+}
+
+// TestContext creates an empty context with a new logger to use in testing where a test helper is
+// not required.
+func TestContext(t *testing.T) *Context {
+	logger := mlog.CreateConsoleTestLogger(t)
+	return EmptyContext(logger)
 }
 
 func (c *Context) T(translationID string, args ...any) string {
@@ -117,14 +124,6 @@ func (c *Context) Logger() mlog.LoggerIFace {
 	return c.logger
 }
 
-func (c *Context) SetAppError(err *model.AppError) {
-	c.err = err
-}
-
-func (c *Context) AppError() *model.AppError {
-	return c.err
-}
-
 type CTX interface {
 	T(string, ...interface{}) string
 	Session() *model.Session
@@ -146,6 +145,4 @@ type CTX interface {
 	GetT() i18n.TranslateFunc
 	SetLogger(mlog.LoggerIFace)
 	Logger() mlog.LoggerIFace
-	SetAppError(*model.AppError)
-	AppError() *model.AppError
 }

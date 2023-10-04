@@ -102,6 +102,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         onChange={[Function]}
         placeholder="E.g.: \\"10\\""
         setByEnv={false}
+        type="text"
         value={10}
       />
       <AdminTextSetting
@@ -121,6 +122,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         onChange={[Function]}
         placeholder="E.g.: \\"10\\""
         setByEnv={false}
+        type="text"
         value={100}
       />
       <AdminTextSetting
@@ -140,6 +142,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         onChange={[Function]}
         placeholder="E.g.: \\"30\\""
         setByEnv={false}
+        type="text"
         value={10}
       />
       <AdminTextSetting
@@ -159,6 +162,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         onChange={[Function]}
         placeholder="E.g.: \\"3600000\\""
         setByEnv={false}
+        type="text"
         value={10}
       />
       <AdminTextSetting
@@ -178,6 +182,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         onChange={[Function]}
         placeholder="E.g.: \\"300000\\""
         setByEnv={false}
+        type="text"
         value={20}
       />
       <AdminTextSetting
@@ -202,6 +207,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         onChange={[Function]}
         placeholder="E.g.: \\"3\\""
         setByEnv={false}
+        type="text"
         value={10}
       />
       <BooleanSetting
@@ -385,7 +391,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

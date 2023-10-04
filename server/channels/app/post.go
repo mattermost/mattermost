@@ -98,8 +98,8 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	// the post does NOT have from_webhook prop set (e.g. Zapier app), and
 	// the post does NOT have from_bot set (e.g. from discovering the user is a bot within CreatePost), and
 	// the post is NOT a reply post with CRT enabled
-	_, fromWebhook := post.GetProps()["from_webhook"]
-	_, fromBot := post.GetProps()["from_bot"]
+	_, fromWebhook := post.GetProps()[model.PostPropsFromWebhook]
+	_, fromBot := post.GetProps()[model.PostPropsFromBot]
 	isCRTEnabled := a.IsCRTEnabledForUser(c, post.UserId)
 	isCRTReply := post.RootId != "" && isCRTEnabled
 	if !fromWebhook && !fromBot && !isCRTReply {
@@ -236,11 +236,11 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	if user.IsBot {
-		post.AddProp("from_bot", "true")
+		post.AddProp(model.PostPropsFromBot, "true")
 	}
 
 	if c.Session().IsOAuth {
-		post.AddProp("from_oauth_app", "true")
+		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
 	var ephemeralPost *model.Post
@@ -1337,6 +1337,15 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	}
 	a.Srv().Go(func() {
 		a.deleteFlaggedPosts(post.Id)
+	})
+
+	pluginPost := post.ForPlugin()
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
+			return true
+		}, plugin.MessageHasBeenDeletedID)
 	})
 
 	a.Srv().Go(func() {

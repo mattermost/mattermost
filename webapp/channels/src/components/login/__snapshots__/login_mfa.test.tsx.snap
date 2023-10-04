@@ -22,7 +22,7 @@ exports[`components/login/LoginMfa should match snapshot 1`] = `
         className="login-mfa-form-button-container"
       >
         <SaveButton
-          btnClass="btn-primary"
+          btnClass=""
           defaultMessage="Submit"
           disabled={true}
           extraClasses="login-mfa-form-button-submit large"

@@ -22,7 +22,7 @@ type AppIface interface {
 	RemoveFile(path string) *model.AppError
 }
 
-func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, store store.Store) *jobs.SimpleWorker {
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}

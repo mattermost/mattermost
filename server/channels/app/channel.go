@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -3476,6 +3478,231 @@ func (a *App) GetMemberCountsByGroup(ctx context.Context, channelID string, incl
 
 func (a *App) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {
 	return a.Srv().getDirectChannel(c, userID, otherUserID)
+}
+
+func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+	channel, appErr := a.GetChannel(c, channelID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if channel.Type != model.ChannelTypeGroup {
+		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.incorrect_channel_type", nil, "", http.StatusBadRequest)
+	}
+
+	users, appErr := a.GetUsersInChannel(&model.UserGetOptions{
+		PerPage:     model.ChannelGroupMaxUsers,
+		Page:        0,
+		InChannelId: channelID,
+		Inactive:    false,
+		Active:      true,
+	})
+
+	var userIDs = make([]string, len(users))
+	for i := 0; i < len(users); i++ {
+		userIDs[i] = users[i].Id
+	}
+
+	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.store_get_common_teams_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	teams := []*model.Team{}
+	if len(commonTeamIDs) > 0 {
+		teams, appErr = a.GetTeams(commonTeamIDs)
+	}
+
+	return teams, appErr
+}
+
+func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError) {
+	originalChannel, appErr := a.GetChannel(c, gmConversionRequest.ChannelID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	appErr = a.validateForConvertGroupMessageToChannel(c, convertedByUserId, originalChannel, gmConversionRequest)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	toUpdate := originalChannel.DeepCopy()
+	toUpdate.Type = model.ChannelTypePrivate
+	toUpdate.TeamId = gmConversionRequest.TeamID
+	toUpdate.Name = gmConversionRequest.Name
+	toUpdate.DisplayName = gmConversionRequest.DisplayName
+
+	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
+
+	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
+		InChannelId: gmConversionRequest.ChannelID,
+		Page:        0,
+		PerPage:     model.ChannelGroupMaxUsers,
+	}, false)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	_ = a.setSidebarCategoriesForConvertedGroupMessage(c, gmConversionRequest, users)
+	_ = a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId, users)
+	return updatedChannel, nil
+}
+
+func (a *App) setSidebarCategoriesForConvertedGroupMessage(c request.CTX, gmConversionRequest *model.GroupMessageConversionRequestBody, channelUsers []*model.User) *model.AppError {
+	// First we'll delete channel from everyone's sidebar. Only the members of GM
+	// can have it in sidebar, so we can delete the channel from all SidebarChannels entries.
+	err := a.Srv().Store().Channel().DeleteAllSidebarChannelForChannel(gmConversionRequest.ChannelID)
+	if err != nil {
+		return model.NewAppError(
+			"setSidebarCategoriesForConvertedGroupMessage",
+			"app.channel.gm_conversion_set_categories.delete_all.error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(err)
+	}
+
+	// Now that we've deleted existing entries, we can set the channel in default "Channels" category
+	// for all GM members
+	for _, user := range channelUsers {
+		categories, appErr := a.GetSidebarCategories(c, user.Id, &store.SidebarCategorySearchOpts{
+			TeamID: gmConversionRequest.TeamID,
+			Type:   model.SidebarCategoryChannels,
+		})
+
+		if appErr != nil {
+			mlog.Error("Failed to search sidebar categories for user for adding converted GM")
+			continue
+		}
+
+		if len(categories.Categories) < 1 {
+			// It is normal for user to not have the default category.
+			// The default "Channels" category is created when the user first logs in,
+			// and all their channels are moved to this category at the same time.
+			// So its perfectly okay for this condition to occur.
+			continue
+		}
+
+		// when we fetch the default "Channels" category from store layer,
+		// it auto-fills any channels the user has access to but aren't associated to a category in the database.
+		// So what we do is fetch the category, so we get an auto-filled data,
+		// then call update category to persist the data and send the websocket events.
+		channelsCategory := categories.Categories[0]
+		_, appErr = a.UpdateSidebarCategories(c, user.Id, gmConversionRequest.TeamID, []*model.SidebarCategoryWithChannels{channelsCategory})
+		if appErr != nil {
+			mlog.Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(err))
+		}
+	}
+
+	return nil
+}
+
+func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, originalChannel *model.Channel, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
+	commonTeams, appErr := a.GetGroupMessageMembersCommonTeams(c, originalChannel.Id)
+	if appErr != nil {
+		return appErr
+	}
+
+	teamFound := false
+	for _, team := range commonTeams {
+		if team.Id == gmConversionRequest.TeamID {
+			teamFound = true
+			break
+		}
+	}
+
+	if !teamFound {
+		return model.NewAppError(
+			"validateForConvertGroupMessageToChannel",
+			"app.channel.group_message_conversion.incorrect_team",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
+	if originalChannel.Type != model.ChannelTypeGroup {
+		return model.NewAppError(
+			"ConvertGroupMessageToChannel",
+			"app.channel.group_message_conversion.original_channel_not_gm",
+			nil,
+			"",
+			http.StatusNotFound,
+		)
+	}
+
+	channelMember, appErr := a.GetChannelMember(c, gmConversionRequest.ChannelID, convertedByUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	if channelMember == nil {
+		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.group_message_conversion.channel_member_missing", nil, "", http.StatusNotFound)
+	}
+
+	// apply dummy changes to check validity
+	clone := originalChannel.DeepCopy()
+	clone.Type = model.ChannelTypePrivate
+	clone.Name = gmConversionRequest.Name
+	clone.DisplayName = gmConversionRequest.DisplayName
+	return clone.IsValid()
+}
+
+func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelID, convertedByUserId string, channelUsers []*model.User) *model.AppError {
+	convertedByUser, appErr := a.GetUser(convertedByUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	userIDs := make([]string, len(channelUsers))
+	usernames := make([]string, len(channelUsers))
+	for i, user := range channelUsers {
+		userIDs[i] = user.Id
+		usernames[i] = user.Username
+	}
+
+	message := i18n.T(
+		"api.channel.group_message.converted.to_private_channel",
+		map[string]any{
+			"ConvertedByUsername": convertedByUser.Username,
+			"GMMembers":           utils.JoinList(usernames),
+		})
+
+	post := &model.Post{
+		ChannelId: channelID,
+		Message:   message,
+		Type:      model.PostTypeGMConvertedToChannel,
+		UserId:    convertedByUserId,
+	}
+
+	// these props are used for re-constructing a localized message on the client
+	post.AddProp("convertedByUserId", convertedByUser.Id)
+	post.AddProp("gmMembersDuringConversionIDs", userIDs)
+
+	channel, appErr := a.GetChannel(c, channelID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if _, appErr := a.CreatePost(c, post, channel, false, true); appErr != nil {
+		mlog.Error("Failed to create post for notifying about GM converted to private channel", mlog.Err(appErr))
+
+		return model.NewAppError(
+			"postMessageForConvertGroupMessageToChannel",
+			"app.channel.group_message_conversion.post_message.error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(appErr)
+	}
+
+	return nil
 }
 
 func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {

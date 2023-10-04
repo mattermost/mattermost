@@ -117,6 +117,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	group, appErr := c.App.GetGroup(c.Params.GroupId, &model.GetGroupOpts{
 		IncludeMemberCount: c.Params.IncludeMemberCount,
+		IncludeMemberIDs:   c.Params.IncludeMemberIDs,
 	}, restrictions)
 	if appErr != nil {
 		c.Err = appErr
@@ -998,6 +999,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		Source:                    source,
 		FilterHasMember:           c.Params.FilterHasMember,
 		IncludeTimezones:          includeTimezones,
+		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
 		IncludeArchived:           includeArchived,
 	}
 

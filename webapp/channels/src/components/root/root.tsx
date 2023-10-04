@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import deepEqual from 'fast-deep-equal';
-import throttle from 'lodash/throttle';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -27,7 +26,7 @@ import {loadRecentlyUsedCustomEmojis} from 'actions/emoji_actions';
 import * as GlobalActions from 'actions/global_actions';
 import {measurePageLoadTelemetry, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import AccessProblem from 'components/access_problem';
 import AnnouncementBarController from 'components/announcement_bar';
@@ -40,6 +39,7 @@ import OpenPricingModalPost from 'components/custom_open_pricing_modal_post_rend
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
+import MobileViewWatcher from 'components/mobile_view_watcher';
 import ModalController from 'components/modal_controller';
 import LaunchingWorkspace, {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
@@ -53,7 +53,7 @@ import webSocketClient from 'client/web_websocket_client.jsx';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
-import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
+import {StoragePrefixes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
@@ -134,7 +134,6 @@ function LoggedInRoute<T>(props: LoggedInRouteProps<T>) {
 const noop = () => {};
 
 export type Actions = {
-    emitBrowserWindowResized: (size?: string) => void;
     getFirstAdminSetupComplete: () => Promise<ActionResult>;
     getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
     migrateRecentEmojis: () => void;
@@ -165,10 +164,6 @@ interface State {
 }
 
 export default class Root extends React.PureComponent<Props, State> {
-    private desktopMediaQuery: MediaQueryList;
-    private smallDesktopMediaQuery: MediaQueryList;
-    private tabletMediaQuery: MediaQueryList;
-    private mobileMediaQuery: MediaQueryList;
     private mounted: boolean;
 
     // The constructor adds a bunch of event listeners,
@@ -210,14 +205,6 @@ export default class Root extends React.PureComponent<Props, State> {
         };
 
         this.a11yController = new A11yController();
-
-        // set initial window size state
-        this.desktopMediaQuery = window.matchMedia(`(min-width: ${Constants.DESKTOP_SCREEN_WIDTH + 1}px)`);
-        this.smallDesktopMediaQuery = window.matchMedia(`(min-width: ${Constants.TABLET_SCREEN_WIDTH + 1}px) and (max-width: ${Constants.DESKTOP_SCREEN_WIDTH}px)`);
-        this.tabletMediaQuery = window.matchMedia(`(min-width: ${Constants.MOBILE_SCREEN_WIDTH + 1}px) and (max-width: ${Constants.TABLET_SCREEN_WIDTH}px)`);
-        this.mobileMediaQuery = window.matchMedia(`(max-width: ${Constants.MOBILE_SCREEN_WIDTH}px)`);
-
-        this.updateWindowSize();
 
         store.subscribe(() => applyLuxonDefaults(store.getState()));
     }
@@ -436,20 +423,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.props.actions.registerCustomPostRenderer('custom_up_notification', OpenPricingModalPost, 'upgrade_post_message_renderer');
         this.props.actions.registerCustomPostRenderer('custom_pl_notification', OpenPluginInstallPost, 'plugin_install_post_message_renderer');
 
-        if (this.desktopMediaQuery.addEventListener) {
-            this.desktopMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
-            this.smallDesktopMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
-            this.tabletMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
-            this.mobileMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
-        } else if (this.desktopMediaQuery.addListener) {
-            this.desktopMediaQuery.addListener(this.handleMediaQueryChangeEvent);
-            this.smallDesktopMediaQuery.addListener(this.handleMediaQueryChangeEvent);
-            this.tabletMediaQuery.addListener(this.handleMediaQueryChangeEvent);
-            this.mobileMediaQuery.addListener(this.handleMediaQueryChangeEvent);
-        } else {
-            window.addEventListener('resize', this.handleWindowResizeEvent);
-        }
-
         measurePageLoadTelemetry();
         trackSelectorMetrics();
     }
@@ -457,20 +430,6 @@ export default class Root extends React.PureComponent<Props, State> {
     componentWillUnmount() {
         this.mounted = false;
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
-
-        if (this.desktopMediaQuery.removeEventListener) {
-            this.desktopMediaQuery.removeEventListener('change', this.handleMediaQueryChangeEvent);
-            this.smallDesktopMediaQuery.removeEventListener('change', this.handleMediaQueryChangeEvent);
-            this.tabletMediaQuery.removeEventListener('change', this.handleMediaQueryChangeEvent);
-            this.mobileMediaQuery.removeEventListener('change', this.handleMediaQueryChangeEvent);
-        } else if (this.desktopMediaQuery.removeListener) {
-            this.desktopMediaQuery.removeListener(this.handleMediaQueryChangeEvent);
-            this.smallDesktopMediaQuery.removeListener(this.handleMediaQueryChangeEvent);
-            this.tabletMediaQuery.removeListener(this.handleMediaQueryChangeEvent);
-            this.mobileMediaQuery.removeListener(this.handleMediaQueryChangeEvent);
-        } else {
-            window.removeEventListener('resize', this.handleWindowResizeEvent);
-        }
     }
 
     handleLogoutLoginSignal = (e: StorageEvent) => {
@@ -498,16 +457,6 @@ export default class Root extends React.PureComponent<Props, State> {
         }
     };
 
-    handleWindowResizeEvent = throttle(() => {
-        this.props.actions.emitBrowserWindowResized();
-    }, 100);
-
-    handleMediaQueryChangeEvent = (e: MediaQueryListEvent) => {
-        if (e.matches) {
-            this.updateWindowSize();
-        }
-    };
-
     setRootMeta = () => {
         const root = document.getElementById('root')!;
 
@@ -520,23 +469,6 @@ export default class Root extends React.PureComponent<Props, State> {
         }
     };
 
-    updateWindowSize = () => {
-        switch (true) {
-        case this.desktopMediaQuery.matches:
-            this.props.actions.emitBrowserWindowResized(WindowSizes.DESKTOP_VIEW);
-            break;
-        case this.smallDesktopMediaQuery.matches:
-            this.props.actions.emitBrowserWindowResized(WindowSizes.SMALL_DESKTOP_VIEW);
-            break;
-        case this.tabletMediaQuery.matches:
-            this.props.actions.emitBrowserWindowResized(WindowSizes.TABLET_VIEW);
-            break;
-        case this.mobileMediaQuery.matches:
-            this.props.actions.emitBrowserWindowResized(WindowSizes.MOBILE_VIEW);
-            break;
-        }
-    };
-
     render() {
         if (!this.state.configLoaded) {
             return <div/>;
@@ -544,6 +476,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         return (
             <RootProvider>
+                <MobileViewWatcher/>
                 <Switch>
                     <Route
                         path={'/error'}
