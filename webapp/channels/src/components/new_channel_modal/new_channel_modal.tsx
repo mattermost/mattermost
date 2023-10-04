@@ -160,6 +160,7 @@ const NewChannelModal = () => {
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const onCreateChannelError = ({server_error_id, message}: ServerError) => {
+        console.log(`onCreateChannelError server_error_id: ${server_error_id}`);
         switch (server_error_id) {
         case ServerErrorId.CHANNEL_URL_SIZE:
             setURLError(
@@ -267,6 +268,7 @@ const NewChannelModal = () => {
                     onDisplayNameChange={setDisplayName}
                     onURLChange={setURL}
                     onErrorStateChange={setChannelInputError}
+                    urlError={urlError}
                 />
                 <PublicPrivateSelector
                     className='new-channel-modal-type-selector'
