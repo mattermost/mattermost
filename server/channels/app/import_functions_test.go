@@ -734,7 +734,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do an invalid user in dry-run mode.
 	data := imports.UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr("a" + model.NewId()),
 	}
 	err = th.App.importUser(th.Context, &data, true)
 	require.Error(t, err, "Should have failed to import invalid user.")
@@ -749,7 +749,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do a valid user in dry-run mode.
 	data = imports.UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr("a" + model.NewId()),
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
 	appErr := th.App.importUser(th.Context, &data, true)
@@ -765,7 +765,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do an invalid user in apply mode.
 	data = imports.UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr("a" + model.NewId()),
 	}
 	err = th.App.importUser(th.Context, &data, false)
 	require.Error(t, err, "Should have failed to import invalid user.")
@@ -904,7 +904,7 @@ func TestImportImportUser(t *testing.T) {
 	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
-	username = model.NewId()
+	username = "a" + model.NewId()
 	data = imports.UserImportData{
 		Username:  &username,
 		Email:     ptrStr(model.NewId() + "@example.com"),
@@ -1325,7 +1325,7 @@ func TestImportImportUser(t *testing.T) {
 	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
 
 	// Check Notify Props get set on *create* user.
-	username = model.NewId()
+	username = "a" + model.NewId()
 	data = imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -1470,7 +1470,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
 	// Test importing deleted user with a valid team & valid channel name in apply mode.
-	username = model.NewId()
+	username = "a" + model.NewId()
 	deleteAt := model.GetMillis()
 	deletedUserData := &imports.UserImportData{
 		Username: &username,
@@ -1512,7 +1512,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
 	// Test importing deleted guest with a valid team & valid channel name in apply mode.
-	username = model.NewId()
+	username = "a" + model.NewId()
 	deleteAt = model.GetMillis()
 	deletedGuestData := &imports.UserImportData{
 		Username: &username,
