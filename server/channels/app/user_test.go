@@ -497,7 +497,7 @@ func TestCreateUserConflict(t *testing.T) {
 
 	user := &model.User{
 		Email:    "test@localhost",
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user, err := th.App.Srv().Store().User().Save(user)
 	require.NoError(t, err)
@@ -513,7 +513,7 @@ func TestCreateUserConflict(t *testing.T) {
 	// Same email
 	user = &model.User{
 		Email:    "test@localhost",
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	_, err = th.App.Srv().Store().User().Save(user)
 	require.Error(t, err)
@@ -565,7 +565,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// Create bot user
 		botuser := model.User{
 			Email:    "botuser@localhost",
-			Username: model.NewId(),
+			Username: "a" + model.NewId(),
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store().User().Save(&botuser)
@@ -609,7 +609,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// Create bot user
 		botuser := model.User{
 			Email:    "botuser@localhost",
-			Username: model.NewId(),
+			Username: "a" + model.NewId(),
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store().User().Save(&botuser)

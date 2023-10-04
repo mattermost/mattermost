@@ -779,7 +779,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Equal(t, userCount, userCount4, "Unexpected number of users")
 
 	// Do a valid user in apply mode.
-	username := model.NewId()
+	username := "a" + model.NewId()
 	testsDir, _ := fileutils.FindDir("tests")
 	data = imports.UserImportData{
 		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
@@ -1161,7 +1161,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
 
 	// Add a user with some preferences.
-	username = model.NewId()
+	username = "a" + model.NewId()
 	data = imports.UserImportData{
 		Username:           &username,
 		Email:              ptrStr(model.NewId() + "@example.com"),
@@ -1915,7 +1915,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 	defer th.TearDown()
 
 	// Create a valid new user with some, but not all, notify props populated.
-	username := model.NewId()
+	username := "a" + model.NewId()
 	data := imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -1976,7 +1976,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	// Create a user.
-	username := model.NewId()
+	username := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -2224,7 +2224,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Equal(t, "#hashtagmashupcity", post.Hashtags, "Hashtags not as expected: %s", post.Hashtags)
 
 	// Post with flags.
-	username2 := model.NewId()
+	username2 := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -2580,7 +2580,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create a user.
-	username := model.NewId()
+	username := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -2588,7 +2588,7 @@ func TestImportImportPost(t *testing.T) {
 	user, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	username2 := model.NewId()
+	username2 := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4255,7 +4255,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create a user3.
-	username := model.NewId()
+	username := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4264,7 +4264,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 	require.NotNil(t, user3)
 
-	username2 := model.NewId()
+	username2 := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4273,7 +4273,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 
 	// Create direct post users.
-	username3 := model.NewId()
+	username3 := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username3,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4400,7 +4400,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	defer os.RemoveAll(tmpFolder)
 
 	// Create a user.
-	username := model.NewId()
+	username := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4408,7 +4408,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	user1, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user1 from database.")
 
-	username2 := model.NewId()
+	username2 := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4531,7 +4531,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create users
-	username2 := model.NewId()
+	username2 := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4540,7 +4540,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 
 	// Create direct post users.
-	username3 := model.NewId()
+	username3 := "a" + model.NewId()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username3,
 		Email:    ptrStr(model.NewId() + "@example.com"),
