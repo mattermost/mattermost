@@ -278,7 +278,7 @@ function canAutomaticallyCloseBackticks(message: string) {
 
 export function isWithinCodeBlock(message: string, caretPosition: number): boolean {
     const match = message.substring(0, caretPosition).match(Constants.REGEX_CODE_BLOCK_OPTIONAL_LANGUAGE_TAG);
-  
+
     return Boolean(match && match.length % 2 !== 0);
 }
 

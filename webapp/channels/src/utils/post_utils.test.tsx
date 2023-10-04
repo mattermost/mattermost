@@ -1121,13 +1121,10 @@ describe('PostUtils.getPostURL', () => {
 
 describe('PostUtils.isWithinCodeBlock', () => {
     const CARET_MARKER = '•';
-    const TRIPLE_BACKTICKS = "```";
+    const TRIPLE_BACKTICKS = '```';
 
     const getCaretAndMsg = (textWithCaret: string): [number, string] => {
-        const normalizedText = textWithCaret
-            .split('\n')
-            .map((line) => line.replace(/^\s*\|/, ''))
-            .join('\n');
+        const normalizedText = textWithCaret.split('\n').map((line) => line.replace(/^\s*\|/, '')).join('\n');
 
         return [normalizedText.indexOf(CARET_MARKER), normalizedText];
     };
@@ -1259,7 +1256,7 @@ describe('PostUtils.isWithinCodeBlock', () => {
             |${TRIPLE_BACKTICKS}
         `);
 
-        const results = Array.from({ length: 10 }, () => PostUtils.isWithinCodeBlock(message, caretPosition));
+        const results = Array.from({length: 10}, () => PostUtils.isWithinCodeBlock(message, caretPosition));
 
         expect(results.every(Boolean)).toBe(true);
     });
