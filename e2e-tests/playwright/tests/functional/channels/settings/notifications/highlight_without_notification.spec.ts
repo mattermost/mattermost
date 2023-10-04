@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@e2e-support/test_fixture';
-import {getRandomId} from '@e2e-support/util';
 import {expect} from '@playwright/test';
 
+import {test} from '@e2e-support/test_fixture';
+import {getRandomId} from '@e2e-support/util';
+
 const keywords = [`AB${getRandomId()}`, `CD${getRandomId()}`, `EF${getRandomId()}`, `test message ${getRandomId()}`];
+
+const highlightWithoutNotificationClass = 'non-notification-highlight';
 
 test('MM-XX Should add the keyword when enter, comma or tab is pressed on the textbox', async ({pw, pages}) => {
     const {user} = await pw.initSetup();
@@ -28,7 +31,7 @@ test('MM-XX Should add the keyword when enter, comma or tab is pressed on the te
     await channelPage.accountSettingsModal.openNotificationsTab();
 
     // # Open keywords that get highlighted section
-    await channelPage.accountSettingsModal.notificationsSettings.openSectionKeywordsThatGetsHighlighted();
+    await channelPage.accountSettingsModal.notificationsSettings.expandSection('keysWithHighlight');
 
     const keywordsInput = await channelPage.accountSettingsModal.notificationsSettings.getKeywordsInput();
 
@@ -67,9 +70,6 @@ test('MM-XX Should highlight the keywords when a message is sent with the keywor
     await channelPage.goto();
     await channelPage.toBeVisible();
 
-    // # Post a message without the keyword
-    await channelPage.centerView.postCreate.postMessage('test');
-
     // # Open settings modal
     await channelPage.globalHeader.openSettings();
     await channelPage.accountSettingsModal.toBeVisible();
@@ -78,13 +78,13 @@ test('MM-XX Should highlight the keywords when a message is sent with the keywor
     await channelPage.accountSettingsModal.openNotificationsTab();
 
     // # Open keywords that get highlighted section
-    await channelPage.accountSettingsModal.notificationsSettings.openSectionKeywordsThatGetsHighlighted();
+    await channelPage.accountSettingsModal.notificationsSettings.expandSection('keysWithHighlight');
 
     // # Enter the keyword
     (await channelPage.accountSettingsModal.notificationsSettings.getKeywordsInput()).type(keywords[3]);
 
-    // # Save the settings
-    await channelPage.accountSettingsModal.notificationsSettings.clickOnSaveSection();
+    // # Save the keyword
+    await channelPage.accountSettingsModal.notificationsSettings.saveSection();
 
     // # Close the settings modal
     await channelPage.accountSettingsModal.closeModal();
@@ -96,9 +96,9 @@ test('MM-XX Should highlight the keywords when a message is sent with the keywor
 
     // * Verify that the keywords are highlighted
     await expect(lastPostWithHighlight.container.getByText(messageWithKeyword)).toBeVisible();
-    await expect(lastPostWithHighlight.container.getByText(keywords[3])).toHaveClass('non-notification-highlight');
+    await expect(lastPostWithHighlight.container.getByText(keywords[3])).toHaveClass(highlightWithoutNotificationClass);
 
-    // # Post a message without the keyword
+    // # Now post a message without the keyword
     const messageWithoutKeyword = 'This message does not contain the keyword';
     await channelPage.centerView.postCreate.postMessage(messageWithoutKeyword);
     const lastPostWithoutHighlight = await channelPage.centerView.getLastPost();
@@ -106,6 +106,6 @@ test('MM-XX Should highlight the keywords when a message is sent with the keywor
     // * Verify that the keywords are not highlighted
     await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).toBeVisible();
     await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).not.toHaveClass(
-        'non-notification-highlight'
+        highlightWithoutNotificationClass
     );
 });

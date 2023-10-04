@@ -3,9 +3,7 @@
 
 import {expect, Locator} from '@playwright/test';
 
-enum sectionKeys {
-    keysWithHighlight = 'keysWithHighlight',
-}
+type NotificationSettingsSection = 'keysWithHighlight' | 'keysWithNotification';
 
 export default class NotificationsSettings {
     readonly container: Locator;
@@ -18,16 +16,17 @@ export default class NotificationsSettings {
         await expect(this.container).toBeVisible();
     }
 
-    async openSectionKeywordsThatGetsHighlighted() {
-        await this.container.getByText('Keywords That Get Highlighted (without notifications)').click();
-
-        await this.verifySectionIsExpanded(sectionKeys.keysWithHighlight);
+    async expandSection(section: NotificationSettingsSection) {
+        if (section === 'keysWithHighlight') {
+            await this.container.getByText('Keywords That Get Highlighted (without notifications)').click();
+            await this.verifySectionIsExpanded('keysWithHighlight');
+        }
     }
 
-    async verifySectionIsExpanded(section: sectionKeys) {
+    async verifySectionIsExpanded(section: NotificationSettingsSection) {
         await expect(this.container.locator(`#${section}Edit`)).not.toBeVisible();
 
-        if (section === sectionKeys.keysWithHighlight) {
+        if (section === 'keysWithHighlight') {
             await expect(
                 this.container.getByText('Enter non case-sensitive keywords, press Tab or use commas to separate them:')
             ).toBeVisible();
@@ -44,7 +43,7 @@ export default class NotificationsSettings {
         return this.container.locator('input');
     }
 
-    async clickOnSaveSection() {
+    async saveSection() {
         await expect(this.container.getByText('Save')).toBeVisible();
         await this.container.getByText('Save').click();
     }
