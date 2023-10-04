@@ -113,7 +113,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
-	u1.Username = model.NewId()
+	u1.Username = "a" + model.NewId()
 	u1, err = ss.User().Save(u1)
 	require.NoError(t, err)
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
@@ -121,7 +121,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
-	u2.Username = model.NewId()
+	u2.Username = "a" + model.NewId()
 	u2, err = ss.User().Save(u2)
 	require.NoError(t, err)
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
@@ -247,7 +247,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
-	u1.Username = model.NewId()
+	u1.Username = "a" + model.NewId()
 	u1, err = ss.User().Save(u1)
 	require.NoError(t, err)
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
@@ -255,7 +255,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
-	u2.Username = model.NewId()
+	u2.Username = "a" + model.NewId()
 	u2, err = ss.User().Save(u2)
 	require.NoError(t, err)
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
@@ -417,7 +417,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 	// and two users that are a part of that team
 	user1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user1, err = ss.User().Save(user1)
 	require.NoError(t, err)
@@ -429,7 +429,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user2, err = ss.User().Save(user2)
 	require.NoError(t, err)
@@ -521,7 +521,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 	// and two users that are a part of that team
 	user1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user1, err = ss.User().Save(user1)
 	require.NoError(t, err)
@@ -533,7 +533,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user2, err = ss.User().Save(user2)
 	require.NoError(t, err)
@@ -627,7 +627,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 	// and two users that are a part of that team
 	user1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user1, err = ss.User().Save(user1)
 	require.NoError(t, err)
@@ -639,7 +639,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user2, err = ss.User().Save(user2)
 	require.NoError(t, err)
@@ -708,7 +708,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	// and three users that are a part of that team
 	user1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user1, err = ss.User().Save(user1)
 	require.NoError(t, err)
@@ -720,7 +720,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user2, err = ss.User().Save(user2)
 	require.NoError(t, err)
@@ -732,7 +732,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 
 	user3 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user3, err = ss.User().Save(user3)
 	require.NoError(t, err)
@@ -805,7 +805,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 	// need a user part of that team
 	user1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user1, err = ss.User().Save(user1)
 	require.NoError(t, err)
@@ -897,7 +897,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	// need a user part of that team
 	user1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user1, err = ss.User().Save(user1)
 	require.NoError(t, err)
@@ -1008,7 +1008,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	// need a user part of that team
 	user1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user1, err = ss.User().Save(user1)
 	require.NoError(t, err)
@@ -1093,7 +1093,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	// need a user part of that team
 	user1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user1, err = ss.User().Save(user1)
 	require.NoError(t, err)

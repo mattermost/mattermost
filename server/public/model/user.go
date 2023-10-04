@@ -423,7 +423,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Username == "" {
-		u.Username = NewId()
+		u.Username = "a" + NewId()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {

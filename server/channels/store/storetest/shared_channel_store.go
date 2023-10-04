@@ -997,7 +997,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, ss store.Store) {
 	var users []*model.User
 	for i := 0; i < 10; i++ { // need real users
 		u := &model.User{
-			Username:          model.NewId(),
+			Username:          "a" + model.NewId(),
 			Email:             model.NewId() + "@example.com",
 			LastPictureUpdate: model.GetMillis(),
 		}
@@ -1069,7 +1069,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, ss store.Store) {
 
 func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 	u1 := &model.User{
-		Username:          model.NewId(),
+		Username:          "a" + model.NewId(),
 		Email:             model.NewId() + "@example.com",
 		LastPictureUpdate: model.GetMillis() - 300000, // 5 mins
 	}
@@ -1077,7 +1077,7 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	u2 := &model.User{
-		Username:          model.NewId(),
+		Username:          "a" + model.NewId(),
 		Email:             model.NewId() + "@example.com",
 		LastPictureUpdate: model.GetMillis() + 300000,
 	}

@@ -362,7 +362,7 @@ func createTeamWithSchemeId(ss store.Store, schemeId *string) *model.Team {
 
 func createUser(ss store.Store) *model.User {
 	m := model.User{}
-	m.Username = model.NewId()
+	m.Username = "a" + model.NewId()
 	m.Email = m.Username + "@example.com"
 	user, _ := ss.User().Save(&m)
 	return user

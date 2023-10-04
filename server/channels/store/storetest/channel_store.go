@@ -1124,7 +1124,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 }
 
 func testChannelSaveMember(t *testing.T, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -1631,9 +1631,9 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 }
 
 func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -2180,7 +2180,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 }
 
 func testChannelUpdateMember(t *testing.T, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -2685,9 +2685,9 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 }
 
 func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -3221,7 +3221,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 }
 
 func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -3271,13 +3271,13 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
 }
 
 func testChannelRemoveMember(t *testing.T, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	channelID := model.NewId()
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
@@ -3318,13 +3318,13 @@ func testChannelRemoveMember(t *testing.T, ss store.Store) {
 }
 
 func testChannelRemoveMembers(t *testing.T, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(&model.User{Username: "a" + model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	channelID := model.NewId()
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()

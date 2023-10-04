@@ -121,7 +121,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
-	u1.Username = model.NewId()
+	u1.Username = "a" + model.NewId()
 
 	_, err := ss.User().Save(&u1)
 	require.NoError(t, err)

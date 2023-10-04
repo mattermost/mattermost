@@ -40,7 +40,7 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
 	require.NoError(t, err)
@@ -66,7 +66,7 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
 	require.NoError(t, err)
@@ -95,7 +95,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
 	require.NoError(t, err)
@@ -191,7 +191,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
 	require.NoError(t, err)
@@ -303,7 +303,7 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
 	require.NoError(t, err)
@@ -312,7 +312,7 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	user2 := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	}
 	user2Ptr, err := ss.User().Save(&user2)
 	require.NoError(t, err)

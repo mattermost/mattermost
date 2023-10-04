@@ -33,7 +33,7 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 	t.Cleanup(func() { cleanUpTOS(ss) })
 
 	u1 := model.User{}
-	u1.Username = model.NewId()
+	u1.Username = "a" + model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(&u1)
@@ -52,7 +52,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	t.Cleanup(func() { cleanUpTOS(ss) })
 
 	u1 := model.User{}
-	u1.Username = model.NewId()
+	u1.Username = "a" + model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(&u1)
@@ -72,7 +72,7 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	t.Cleanup(func() { cleanUpTOS(ss) })
 
 	u1 := model.User{}
-	u1.Username = model.NewId()
+	u1.Username = "a" + model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(&u1)
