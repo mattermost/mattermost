@@ -30,7 +30,7 @@ func JobLoggerFields(job *model.Job) []mlog.Field {
 	return []mlog.Field{
 		mlog.String("job_id", job.Id),
 		mlog.String("job_type", job.Type),
-		mlog.String("job_create_at", time.UnixMilli(job.CreateAt).String()),
+		mlog.Millis("job_create_at", job.CreateAt),
 	}
 }
 
