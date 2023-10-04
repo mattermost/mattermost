@@ -92,14 +92,14 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 	notificationInterface = f
 }
 
+var ipFilteringInterface func(*App) einterfaces.IPFilteringInterface
+
+func RegisterIPFilteringInterface(f func(*App) einterfaces.IPFilteringInterface) {
+	ipFilteringInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)
 	}
-}
-
-var IPFilteringInterface func(*App) einterfaces.IPFilteringInterface
-
-func RegisterIPFilteringInterface(f func(*App) einterfaces.IPFilteringInterface) {
-	IPFilteringInterface = f
 }

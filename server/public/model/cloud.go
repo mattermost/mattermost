@@ -335,7 +335,8 @@ func (df *Feedback) ToMap() map[string]any {
 }
 
 type PatchInstallationRequest struct {
-	AllowedIPRanges *AllowedIPRanges
+	AllowedIPRanges  *AllowedIPRanges
+	OverrideIPRanges *bool
 }
 
 type Installation struct {

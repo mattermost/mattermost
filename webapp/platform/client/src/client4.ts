@@ -61,6 +61,7 @@ import {
     AdminConfig,
     EnvironmentConfig,
     RequestLicenseBody,
+    AllowedIPRanges,
 } from '@mattermost/types/config';
 import {CustomEmoji} from '@mattermost/types/emojis';
 import {ServerError} from '@mattermost/types/errors';
@@ -4173,6 +4174,27 @@ export default class Client4 {
             },
         );
     };
+
+    getIPFilters = () => {
+        return this.doFetch(
+            `${this.getBaseRoute()}/ip_filtering`,
+            {method: 'get'},
+        )
+    }
+
+    getCurrentIP = () => {
+        return this.doFetch(
+            `${this.getBaseRoute()}/ip_filtering/my_ip`,
+            {method: 'get'},
+        )
+    }
+
+    applyIPFilters = (filters: AllowedIPRanges) => {
+        return this.doFetch(
+            `${this.getBaseRoute()}/ip_filtering`,
+            {method: 'post', body: JSON.stringify(filters)},
+        )
+    }
 
     submitTrueUpReview = () => {
         return this.doFetch(

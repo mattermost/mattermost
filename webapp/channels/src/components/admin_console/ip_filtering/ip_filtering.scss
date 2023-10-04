@@ -1,129 +1,366 @@
-.MainPanel {
-    display: flex;
-    padding: var(--spacing-xl, 20px);
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-xl, 20px);
+.IPFiltering {
+    height: 100%;
 
-    .EditSection {
-        background-color: var(--center-channel-bg, #FFF);
-        border-radius: 8px;
-        width: 920px;
+    .MainPanel {
+        display: flex;
+        padding: var(--spacing-xl, 20px);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xl, 20px);
+        height: 100%;
 
-        .TableSectionContent {
-            width: 920px;
-            height: 192px;
-            padding: 16px 20px;
-            background: white;
+        .EditSection {
+            background-color: var(--center-channel-bg, #FFF);
             border-radius: 8px;
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: flex-start;
+            width: 920px;
+            height: auto;
+            max-height: 100%;
 
-            .Table {
-                align-self: stretch;
-                height: 160px;
+            .TableSectionContent {
+                width: 920px;
+                padding: 16px 20px;
+                min-height: 150px;
+                background: white;
+                border-radius: 8px;
+                display: inline-flex;
+                flex-direction: column;
+
+                .Table {
+                    align-items: flex-start;
+                    align-self: stretch;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    align-items: flex-start;
+
+                    .HeaderRow {
+                        background-color: #f5f5f5;
+                        display: flex;
+                        padding: 10px 12px;
+                        align-items: center;
+                        gap: 10px;
+                        align-self: stretch;
+                        font-family: 'Open Sans';
+                        font-size: 14px;
+                        font-weight: 600;
+                        line-height: 20px;
+                        border-bottom: 1px solid var(--center-channel-color-16, rgba(63, 67, 80, 0.16));
+
+                        .FilterName,
+                        .IpAddressRange {
+                            color: #3f4350;
+                            font-size: 14px;
+                            font-family: 'Open Sans';
+                            line-height: 20px;
+                            word-wrap: break-word;
+                        }
+
+                        .FilterName {
+                            width: 291px;
+                            font-weight: 600;
+                        }
+
+                        .IpAddressRange {
+                            flex: 1 1 0;
+                        }
+                    }
+
+                    .Row {
+                        height: 40px;
+                        background: #fff;
+                        align-self: stretch;
+                        padding: 10px 12px;
+                        justify-content: flex-start;
+                        align-items: center;
+                        gap: 10px;
+                        display: inline-flex;
+                        border-bottom: 1px solid var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+
+                        .FilterName,
+                        .IpAddressRange {
+                            color: #3f4350;
+                            font-size: 14px;
+                            font-family: 'Open Sans';
+                            line-height: 20px;
+                            word-wrap: break-word;
+                        }
+
+                        .FilterName {
+                            width: 291px;
+                        }
+
+                        .IpAddressRange {
+                            flex: 1 1 0;
+                        }
+
+                        .Actions {
+                            // height: 32px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+
+                            >div {
+                                border-radius: 4px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                padding: 8px;
+
+                                &:hover {
+                                    background: var(--center-channel-color-8, rgba(63, 67, 80, 0.08))
+                                }
+
+                                &.edit {
+                                    color: var(--center-channel-color-72, rgba(63, 67, 80, 0.72));
+                                }
+
+                                &.delete {
+                                    color: var(--error-text, rgba(210, 75, 78, 1));
+                                }
+                            }
+
+
+                        }
+                    }
+                }
+            }
+
+            .NoFilters {
                 display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                padding: 32px 20px;
+
+                .Title {
+                    color: var(--center-channel-color, #3F4350);
+                    text-align: center;
+                    font-family: Metropolis;
+                    font-size: 20px;
+                    font-style: normal;
+                    font-weight: 600;
+                    line-height: 28px;
+                }
+
+                .Subtitle {
+                    max-width: 320px;
+                    color: var(--center-channel-color-72, rgba(63, 67, 80, 0.72));
+                    text-align: center;
+                    font-family: Open Sans;
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 20px;
+                    margin-top: 8px;
+                    .Button {
+                        color: var(--link-color, #1C58D9);
+                        font-family: Open Sans;
+                        font-size: 14px;
+                        height: 14px;
+                        font-style: normal;
+                        font-weight: 400;
+                        background: none;
+                        padding: 0;
+                    }
+                }
+            }
+
+            .AllowedIPAddressesSection {
+                width: 920px;
+                background: white;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                overflow: hidden;
+                display: inline-flex;
                 flex-direction: column;
                 justify-content: flex-start;
                 align-items: flex-start;
 
-                .HeaderRow {
-                    background-color: #f5f5f5;
+                .SectionHeaderContent {
+                    align-self: stretch;
+                    padding: 24px 32px;
+                    border-bottom: 1px solid rgba(63, 67, 80, 0.12);
                     display: flex;
-                    padding: 10px 12px;
-                    align-items: center;
-                    gap: 10px;
-                    align-self: stretch;
-                    font-family: 'Open Sans';
-                    font-size: 14px;
-                    font-weight: 600;
-                    line-height: 20px;
-                    border-bottom: 1px solid var(--center-channel-color-16, rgba(63, 67, 80, 0.16));
-
-                    .FilterName,
-                    .IpAddressRange {
-                        color: #3f4350;
-                        font-size: 14px;
-                        font-family: 'Open Sans';
-                        line-height: 20px;
-                        word-wrap: break-word;
-                    }
-
-                    .FilterName {
-                        width: 291px;
-                        font-weight: 600;
-                    }
-
-                    .IpAddressRange {
-                        flex: 1 1 0;
-                    }
-                }
-
-                .Row {
-                    background: #fff;
-                    align-self: stretch;
-                    padding: 10px 12px;
+                    flex-direction: column;
                     justify-content: flex-start;
-                    align-items: center;
-                    gap: 10px;
-                    display: inline-flex;
-                    border-bottom: 1px solid var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+                    align-items: flex-start;
+                    gap: 24px;
 
-                    .FilterName,
-                    .IpAddressRange {
-                        color: #3f4350;
-                        font-size: 14px;
-                        font-family: 'Open Sans';
-                        line-height: 20px;
-                        word-wrap: break-word;
+
+                    .Frame1281 {
+                        align-self: stretch;
+                        display: inline-flex;
+                        justify-content: flex-start;
+                        align-items: flex-start;
+                        gap: 32px;
+
+                        .TitleSubtitle {
+                            flex: 1 1 0;
+                            display: inline-flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: flex-start;
+
+                            .Title {
+                                color: #3F4350;
+                                font-size: 16px;
+                                font-family: Metropolis;
+                                font-weight: 600;
+                                line-height: 24px;
+                                word-wrap: break-word;
+                            }
+
+                            .Subtitle {
+                                align-self: stretch;
+                                color: #3F4350;
+                                font-size: 14px;
+                                font-family: 'Open Sans';
+                                font-weight: 400;
+                                line-height: 20px;
+                                word-wrap: break-word;
+                            }
+                        }
+
+                        .AddIPFilterButton {
+                            display: inline-flex;
+                            flex-direction: column;
+                            justify-content: flex-start;
+                            align-items: flex-end;
+                            gap: 16px;
+
+                            .Button {
+                                padding: 10px 16px;
+                                background: #1C58D9;
+                                border-radius: 4px;
+                                flex-direction: column;
+                                justify-content: flex-start;
+                                align-items: center;
+                                gap: 10px;
+                                display: flex;
+
+                                .Content {
+                                    justify-content: flex-start;
+                                    align-items: flex-start;
+                                    gap: 6px;
+                                    display: inline-flex;
+
+                                    .Icon {
+                                        justify-content: flex-start;
+                                        align-items: center;
+                                        gap: 10px;
+                                        display: flex;
+                                    }
+
+                                    .TextFrame {
+                                        padding-top: 1px;
+                                        padding-bottom: 1px;
+                                        justify-content: flex-start;
+                                        align-items: center;
+                                        display: flex;
+
+                                        .Label {
+                                            color: white;
+                                            font-size: 12px;
+                                            font-family: 'Open Sans';
+                                            font-weight: 600;
+                                            line-height: 9.50px;
+                                            word-wrap: break-word;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
-                    .FilterName {
-                        width: 291px;
-                    }
+                    .NotInRangeErrorPanel {
+                        width: 856px;
+                        padding: 16px;
+                        background-color: var(--error-text-16, rgba(210, 75, 78, 0.16));
+                        display: inline-flex;
+                        justify-content: flex-start;
+                        gap: 12px;
+                        border-radius: 4px;
+                        border: 1px solid var(--error-text-16, rgba(210, 75, 78, 0.16));
+                        background: var(--error-text-8, rgba(210, 75, 78, 0.08));
 
-                    .IpAddressRange {
-                        flex: 1 1 0;
+                        .Icon {
+                            color: var(--error-text, #D24B4E);
+                        }
+
+                        .Content {
+                            flex: 1 1 0;
+                            padding-right: 24px;
+                            flex-direction: column;
+                            justify-content: flex-start;
+                            align-items: flex-start;
+                            gap: 8px;
+                            display: inline-flex;
+
+                            .Title {
+                                align-self: stretch;
+                                color: #3F4350;
+                                font-size: 14px;
+                                font-family: 'Open Sans';
+                                font-weight: 600;
+                                line-height: 20px;
+                                word-wrap: break-word;
+                            }
+
+                            .Body {
+                                align-self: stretch;
+                                color: #3F4350;
+                                font-size: 14px;
+                                font-family: 'Open Sans';
+                                font-weight: 400;
+                                line-height: 20px;
+                                word-wrap: break-word;
+                            }
+
+                            .Button {
+                                padding: 0;
+                                background: none;
+                                color: var(--button-bg, rgba(28, 88, 217, 1));
+                                height: 16px;
+                            }
+
+                        }
+
                     }
                 }
             }
         }
 
-        .AllowedIPAddressesSection {
+        .EnableSectionContent {
             width: 920px;
-            height: 112px;
-            background: white;
-            border-top-left-radius: 4px;
-            border-top-right-radius: 4px;
-            overflow: hidden;
+            height: 92px;
+            padding: var(--spacing-xxl, 24px) 32px;
             display: inline-flex;
             flex-direction: column;
             justify-content: flex-start;
             align-items: flex-start;
+            gap: var(--spacing-xxl, 24px);
+            background-color: var(--center-channel-bg, #FFF);
+            border-radius: 8px;
 
-            .SectionHeaderContent {
+            .Frame1281 {
                 align-self: stretch;
-                height: 112px;
-                padding: 24px 32px;
-                border-bottom: 1px solid rgba(63, 67, 80, 0.12);
-                display: flex;
-                flex-direction: column;
+                display: inline-flex;
                 justify-content: flex-start;
                 align-items: flex-start;
-                gap: 24px;
+                gap: 32px;
 
-                .Frame1281 {
-                    align-self: stretch;
+                .TitleSubtitle {
+                    flex: 1 1 0;
                     display: inline-flex;
-                    justify-content: flex-start;
+                    flex-direction: column;
+                    justify-content: center;
                     align-items: flex-start;
-                    gap: 32px;
+                    gap: 24px;
 
-                    .TitleSubtitle {
-                        flex: 1 1 0;
-                        display: inline-flex;
+                    .Frame1286 {
+                        align-self: stretch;
+                        height: 44px;
+                        display: flex;
                         flex-direction: column;
                         justify-content: center;
                         align-items: flex-start;
@@ -148,150 +385,29 @@
                         }
                     }
 
-                    .Frame1282 {
-                        display: inline-flex;
-                        flex-direction: column;
-                        justify-content: flex-start;
-                        align-items: flex-end;
-                        gap: 16px;
+                }
 
-                        .Button {
-                            padding: 10px 16px;
-                            background: #1C58D9;
-                            border-radius: 4px;
-                            flex-direction: column;
-                            justify-content: flex-start;
-                            align-items: center;
-                            gap: 10px;
-                            display: flex;
-
-                            .Content {
-                                justify-content: flex-start;
-                                align-items: flex-start;
-                                gap: 6px;
-                                display: inline-flex;
-
-                                .Icon {
-                                    justify-content: flex-start;
-                                    align-items: center;
-                                    gap: 10px;
-                                    display: flex;
-                                }
-
-                                .TextFrame {
-                                    padding-top: 1px;
-                                    padding-bottom: 1px;
-                                    justify-content: flex-start;
-                                    align-items: center;
-                                    display: flex;
-
-                                    .Label {
-                                        color: white;
-                                        font-size: 12px;
-                                        font-family: 'Open Sans';
-                                        font-weight: 600;
-                                        line-height: 9.50px;
-                                        word-wrap: break-word;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                .SwitchSelector {
+                    width: 32px;
+                    height: 20px;
+                    flex-shrink: 0;
                 }
             }
         }
     }
 
-    .EnableSectionContent {
-        width: 920px;
-        height: 92px;
-        padding: var(--spacing-xxl, 24px) 32px;
-        display: inline-flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: flex-start;
-        gap: var(--spacing-xxl, 24px);
-        background-color: var(--center-channel-bg, #FFF);
-        border-radius: 8px;
+    .error-message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-        .Frame1281 {
-            align-self: stretch;
-            display: inline-flex;
-            justify-content: flex-start;
-            align-items: flex-start;
-            gap: 32px;
-
-            .TitleSubtitle {
-                flex: 1 1 0;
-                display: inline-flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: flex-start;
-                gap: 24px;
-
-                .Frame1286 {
-                    align-self: stretch;
-                    height: 44px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: flex-start;
-
-                    .Title {
-                        color: #3F4350;
-                        font-size: 16px;
-                        font-family: Metropolis;
-                        font-weight: 600;
-                        line-height: 24px;
-                        word-wrap: break-word;
-                    }
-
-                    .Subtitle {
-                        align-self: stretch;
-                        color: #3F4350;
-                        font-size: 14px;
-                        font-family: 'Open Sans';
-                        font-weight: 400;
-                        line-height: 20px;
-                        word-wrap: break-word;
-                    }
-                }
-            }
-
-            .Frame1282 {
-                display: inline-flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                align-items: flex-end;
-                gap: 16px;
-
-                .SwitchSelector {
-                    width: 32px;
-                    height: 20px;
-                    position: relative;
-
-                    .Track {
-                        width: 32px;
-                        height: 20px;
-                        left: 0;
-                        top: 0;
-                        position: absolute;
-                        background: #1C58D9;
-                        border-radius: 10px;
-                    }
-
-                    .Knob {
-                        width: 16px;
-                        height: 16px;
-                        left: 14px;
-                        top: 2px;
-                        position: absolute;
-                        background: white;
-                        box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.08);
-                        border-radius: 9999px;
-                    }
-                }
-            }
+        >svg {
+            margin-left: 7px;
+            margin-right: 7px;
         }
+
+        line-height: 20px;
+        font-size: 14px;
+        color: var(--error-text, #D24B4E);
     }
 }

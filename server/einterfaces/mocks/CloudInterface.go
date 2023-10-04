@@ -15,17 +15,29 @@ type CloudInterface struct {
 }
 
 // ApplyIPFilters provides a mock function with given fields: userID, ranges
-func (_m *CloudInterface) ApplyIPFilters(userID string, ranges *model.AllowedIPRanges) error {
+func (_m *CloudInterface) ApplyIPFilters(userID string, ranges *model.AllowedIPRanges) (*model.AllowedIPRanges, error) {
 	ret := _m.Called(userID, ranges)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *model.AllowedIPRanges) error); ok {
+	var r0 *model.AllowedIPRanges
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, *model.AllowedIPRanges) (*model.AllowedIPRanges, error)); ok {
+		return rf(userID, ranges)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.AllowedIPRanges) *model.AllowedIPRanges); ok {
 		r0 = rf(userID, ranges)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AllowedIPRanges)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(string, *model.AllowedIPRanges) error); ok {
+		r1 = rf(userID, ranges)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // BootstrapSelfHostedSignup provides a mock function with given fields: req

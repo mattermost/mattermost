@@ -990,3 +990,7 @@ export type AllowedIPRange = {
 }
 
 export type AllowedIPRanges = AllowedIPRange[];
+
+export type FetchIPResponse = {
+    IP: string;
+}

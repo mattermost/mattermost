@@ -15,6 +15,7 @@ import (
 func (api *API) InitIPFiltering() {
 	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(getIPFilters)).Methods("GET")
 	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(applyIPFilters)).Methods("POST")
+	api.BaseRoutes.IPFiltering.Handle("/my_ip", api.APISessionRequired(myIP)).Methods("GET")
 }
 
 func ensureIPFilteringInterface(c *Context, where string) bool {
@@ -62,7 +63,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ipFiltering := c.App.IPFiltering()
 
-	var allowedRanges *model.AllowedIPRanges
+	allowedRanges := &model.AllowedIPRanges{} // Initialize the allowedRanges variable
 	if err := json.NewDecoder(r.Body).Decode(allowedRanges); err != nil {
 		c.Err = model.NewAppError("applyIPFilters", "api.context.ip_filtering.apply_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
@@ -70,13 +71,40 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	audit.AddEventParameterAuditable(auditRec, "IPFilter", allowedRanges)
 
-	if err := ipFiltering.ApplyIPFilters(allowedRanges); err != nil {
+	updatedAllowedRanges, err := ipFiltering.ApplyIPFilters(allowedRanges)
+
+	if err != nil {
 		c.Err = model.NewAppError("applyIPFilters", "api.context.ip_filtering.apply_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	auditRec.Success()
 
-	w.WriteHeader(http.StatusCreated)
+	json, err := json.Marshal(updatedAllowedRanges)
+	if err != nil {
+		c.Err = model.NewAppError("applyIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	w.Write(json)
+}
+
+func myIP(c *Context, w http.ResponseWriter, r *http.Request) {
+	ensured := ensureIPFilteringInterface(c, "myIP")
+
+	if !ensured {
+		return
+	}
+
+	response := &model.GetIPAddressResponse{
+		IP: c.AppContext.IPAddress(),
+	}
+
+	json, err := json.Marshal(response)
+	if err != nil {
+		c.Err = model.NewAppError("myIP", "api.context.ip_filtering.get_my_ip.failed", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
 }

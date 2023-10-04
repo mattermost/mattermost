@@ -400,6 +400,10 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.initJobs()
 
+	if ipFilteringInterface != nil {
+		s.IPFiltering = ipFilteringInterface(app)
+	}
+
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {

@@ -1,0 +1,152 @@
+.SaveConfirmationModal {
+    
+    .modal-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 600px;
+
+        border: 1 px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: auto;
+        border-radius: 12px;
+        transform: translate(-50%, -50%) !important;
+    }
+
+    .modal-content {
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        .close {
+
+            &:hover,
+            &:active,
+            &:focus,
+            &:active:focus {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                opacity: 1;
+            }
+
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+            font-family: 'Open Sans',
+            sans-serif;
+        }
+
+        .title {
+            font-family: Metropolis, sans-serif;
+            font-size: 22px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 28px;
+            text-align: left;
+        }
+
+        display: block;
+        min-height: 48px;
+        padding-top: 26px;
+        padding-bottom: 0;
+        padding-left: 32px;
+        border: 0;
+        background: var(--center-channel-bg) !important;
+        border-radius: 12px;
+        color: var(--center-channel-color);
+    }
+
+    .modal-body {
+        overflow: hidden;
+        width: 100%;
+        flex-direction: column;
+        padding-top: 24px;
+        padding-right: 32px;
+        padding-bottom: 26px;
+        padding-left: 32px;
+        color: var(--center-channel-color, #3F4350);
+        font-family: Open Sans;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 20px;
+        
+            .disclaimer {
+                margin-top: 32px;
+                width: 536px;
+                height: 120px;
+                padding: 16px;
+                justify-content: flex-start;
+                align-items: flex-start;
+                gap: 12px;
+                display: inline-flex;
+                border-radius: 4px;
+                border: 1px solid rgba(87, 158, 255, 0.16);
+                background: rgba(87, 158, 255, 0.08);
+
+        
+                .Icon {
+                    justify-content: flex-start;
+                    align-items: center;
+                    gap: 10px;
+                    display: flex;
+                    svg {
+                        width: 20px;
+                        height: 20px;
+                        fill: var(--sidebar-text-active-border, rgba(93, 137, 234, 1));
+                    }
+                }
+
+                .Body {
+                    flex: 1 1 0;
+                    padding-right: 24px;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    align-items: flex-start;
+                    gap: 8px;
+                    display: inline-flex;
+
+                    .Title {
+                        align-self: stretch;
+                        color: #3F4350;
+                        font-size: 14px;
+                        font-family: 'Open Sans';
+                        font-weight: 600;
+                        line-height: 20px;
+                        word-wrap: break-word;
+                    }
+
+                    .Subtitle {
+                        color: #3F4350;
+                        font-size: 14px;
+                        font-family: 'Open Sans';
+                        font-weight: 400;
+                        line-height: 20px;
+                        word-wrap: break-word;
+                    }
+                }
+            }
+        }
+
+
+    .modal-footer {
+        border-radius: 12px;
+        border-top: none;
+        font-family: Open Sans;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 20px;
+
+        .btn-cancel {
+            padding: var(--spacing-s, 10px) var(--spacing-xl, 20px);
+            border-radius: 4px;
+            background: var(--button-bg-8, rgba(28, 88, 217, 0.08));
+            color: var(--button-bg, #1C58D9);
+        }
+
+        .btn-delete {
+            border-radius: 4px;
+            background: var(--denim-status-do-not-disturb, #D24B4E);
+            color: var(--button-color, #FFF);
+        }
+    }
+}
