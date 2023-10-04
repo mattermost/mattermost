@@ -1206,11 +1206,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         const autoResponderSection = this.createAutoResponderSection();
 
         return (
-            <div
-                id='notificationSettings'
-                role='tabpanel'
-                aria-labelledby='notificationsButton'
-            >
+            <div id='notificationSettings'>
                 <div className='modal-header'>
                     <button
                         id='closeButton'
