@@ -47,8 +47,8 @@ export default class ChannelsCenterView {
 
     /**
      * Return the Nth post in the Center from the top
-     * @param index 
-     * @returns 
+     * @param index
+     * @returns
      */
     async getNthPost(index: number) {
         const nthPost = this.container.getByTestId('postView').nth(index);

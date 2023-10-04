@@ -5,17 +5,9 @@ import {test} from '@e2e-support/test_fixture';
 import {getRandomId} from '@e2e-support/util';
 import {expect} from '@playwright/test';
 
-const keywords = [
-    `AB${getRandomId()}`,
-    `CD${getRandomId()}`,
-    `EF${getRandomId()}`,
-    `test message ${getRandomId()}`,
-];
+const keywords = [`AB${getRandomId()}`, `CD${getRandomId()}`, `EF${getRandomId()}`, `test message ${getRandomId()}`];
 
-test('MM-XX Should add the keyword when enter, comma or tab is pressed on the textbox', async ({
-    pw,
-    pages,
-}) => {
+test('MM-XX Should add the keyword when enter, comma or tab is pressed on the textbox', async ({pw, pages}) => {
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
@@ -37,9 +29,9 @@ test('MM-XX Should add the keyword when enter, comma or tab is pressed on the te
 
     // # Open keywords that get highlighted section
     await channelPage.accountSettingsModal.notificationsSettings.openSectionKeywordsThatGetsHighlighted();
-    
-    const keywordsInput = await channelPage.accountSettingsModal.notificationsSettings.getKeywordsInput()
-    
+
+    const keywordsInput = await channelPage.accountSettingsModal.notificationsSettings.getKeywordsInput();
+
     // # Enter keyword 1
     await keywordsInput.type(keywords[0]);
 
@@ -64,10 +56,7 @@ test('MM-XX Should add the keyword when enter, comma or tab is pressed on the te
     await expect(channelPage.accountSettingsModal.notificationsSettings.container.getByText(keywords[2])).toBeVisible();
 });
 
-test('MM-XX Should highlight the keywords when a message is sent with the keyword', async ({
-    pw,
-    pages,
-}) => {
+test('MM-XX Should highlight the keywords when a message is sent with the keyword', async ({pw, pages}) => {
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
@@ -101,7 +90,7 @@ test('MM-XX Should highlight the keywords when a message is sent with the keywor
     await channelPage.accountSettingsModal.closeModal();
 
     // # Post a message with the keyword
-    const messageWithKeyword = `This message contains the keyword ${keywords[3]}`
+    const messageWithKeyword = `This message contains the keyword ${keywords[3]}`;
     await channelPage.centerView.postCreate.postMessage(messageWithKeyword);
     const lastPostWithHighlight = await channelPage.centerView.getLastPost();
 
@@ -110,11 +99,13 @@ test('MM-XX Should highlight the keywords when a message is sent with the keywor
     await expect(lastPostWithHighlight.container.getByText(keywords[3])).toHaveClass('non-notification-highlight');
 
     // # Post a message without the keyword
-    const messageWithoutKeyword = 'This message does not contain the keyword'
+    const messageWithoutKeyword = 'This message does not contain the keyword';
     await channelPage.centerView.postCreate.postMessage(messageWithoutKeyword);
     const lastPostWithoutHighlight = await channelPage.centerView.getLastPost();
 
     // * Verify that the keywords are not highlighted
     await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).toBeVisible();
-    await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).not.toHaveClass('non-notification-highlight');
+    await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).not.toHaveClass(
+        'non-notification-highlight'
+    );
 });

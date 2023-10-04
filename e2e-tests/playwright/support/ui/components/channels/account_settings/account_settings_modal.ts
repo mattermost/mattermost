@@ -25,7 +25,7 @@ export default class AccountSettingsModal {
     async openNotificationsTab() {
         await expect(this.notificationsSettingsTab).toBeVisible();
         await this.notificationsSettingsTab.click();
-    
+
         await this.notificationsSettings.toBeVisible();
     }
 
@@ -34,7 +34,6 @@ export default class AccountSettingsModal {
 
         await expect(this.container).not.toBeVisible();
     }
-
 }
 
 export {AccountSettingsModal};

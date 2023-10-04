@@ -28,7 +28,6 @@ export default class GlobalHeader {
     async openSettings() {
         await this.accountSettingsButton.click();
     }
-
 }
 
 export {GlobalHeader};

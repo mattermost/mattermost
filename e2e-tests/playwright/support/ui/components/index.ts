@@ -7,7 +7,7 @@ import {ChannelsHeaderMobile} from './channels/header_mobile';
 import {ChannelsAppBar} from './channels/app_bar';
 import {ChannelsPostCreate} from './channels/post_create';
 import {ChannelsPost} from './channels/post';
-import {ChannelsCenterView} from './channels/center_view'
+import {ChannelsCenterView} from './channels/center_view';
 import {ChannelsSidebarLeft} from './channels/sidebar_left';
 import {ChannelsSidebarRight} from './channels/sidebar_right';
 import {DeletePostModal} from './channels/delete_post_modal';
