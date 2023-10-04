@@ -1,0 +1,38 @@
+[
+  {
+    "id": "system.message.name",
+    "translation": "प्रणाली"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "सन्देश धेरै लामो छ"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "वा"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "प्रमाणपत्र राख्न असमर्थ ।"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "प्रमाणपत्र खोल्न असमर्थ ।"
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "'प्रमाणपत्र' अन्तर्गत अनुरोधमा कुनै फाइल छैन।"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "प्लेबुकहरू"
+  },
+  {
+    "id": "Channels",
+    "translation": "च्यानलहरू"
+  },
+  {
+    "id": "Boards",
+    "translation": "बोर्डहरू"
+  }
+]
