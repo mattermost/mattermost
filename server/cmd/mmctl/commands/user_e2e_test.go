@@ -413,7 +413,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 
 	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
 		printer.Clean()
-		username := model.NewId()
+		username := "a" + model.NewId()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("password", "somepass", "")
@@ -444,7 +444,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.Run("Should create a user but w/o system-admin privileges", func() {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := "a" + model.NewId()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -463,7 +463,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForSystemAdminAndLocal("Should create new system-admin user given required params", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := "a" + model.NewId()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -482,7 +482,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForAllClients("Should create new user given required params", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := "a" + model.NewId()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -500,7 +500,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForSystemAdminAndLocal("Should create new user with the email already verified only for admin or local mode", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := "a" + model.NewId()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
