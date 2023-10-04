@@ -79,10 +79,7 @@ test('MM-XX Should highlight the keywords when a message is sent with the keywor
     await channelPage.toBeVisible();
 
     // # Post a message without the keyword
-    await channelPage.centerView.postCreate.postMessage('test test test');
-
-    // # Post a message with the keyword
-    await channelPage.centerView.postCreate.postMessage(`This message contains the keyword ${keywords[3]}`);
+    await channelPage.centerView.postCreate.postMessage('test');
 
     // # Open settings modal
     await channelPage.globalHeader.openSettings();
@@ -102,4 +99,22 @@ test('MM-XX Should highlight the keywords when a message is sent with the keywor
 
     // # Close the settings modal
     await channelPage.accountSettingsModal.closeModal();
+
+    // # Post a message with the keyword
+    const messageWithKeyword = `This message contains the keyword ${keywords[3]}`
+    await channelPage.centerView.postCreate.postMessage(messageWithKeyword);
+    const lastPostWithHighlight = await channelPage.centerView.getLastPost();
+
+    // * Verify that the keywords are highlighted
+    await expect(lastPostWithHighlight.container.getByText(messageWithKeyword)).toBeVisible();
+    await expect(lastPostWithHighlight.container.getByText(keywords[3])).toHaveClass('non-notification-highlight');
+
+    // # Post a message without the keyword
+    const messageWithoutKeyword = 'This message does not contain the keyword'
+    await channelPage.centerView.postCreate.postMessage(messageWithoutKeyword);
+    const lastPostWithoutHighlight = await channelPage.centerView.getLastPost();
+
+    // * Verify that the keywords are not highlighted
+    await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).toBeVisible();
+    await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).not.toHaveClass('non-notification-highlight');
 });
