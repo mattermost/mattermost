@@ -29,6 +29,12 @@ export default class AccountSettingsModal {
         await this.notificationsSettings.toBeVisible();
     }
 
+    async closeModal() {
+        await this.container.getByLabel('Close').click();
+
+        await expect(this.container).not.toBeVisible();
+    }
+
 }
 
 export {AccountSettingsModal};
