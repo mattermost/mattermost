@@ -10,80 +10,255 @@ import (
 )
 
 const (
-	WebsocketEventTyping                              = "typing"
-	WebsocketEventPosted                              = "posted"
-	WebsocketEventPostEdited                          = "post_edited"
-	WebsocketEventPostDeleted                         = "post_deleted"
-	WebsocketEventPostUnread                          = "post_unread"
-	WebsocketEventChannelConverted                    = "channel_converted"
-	WebsocketEventChannelCreated                      = "channel_created"
-	WebsocketEventChannelDeleted                      = "channel_deleted"
-	WebsocketEventChannelRestored                     = "channel_restored"
-	WebsocketEventChannelUpdated                      = "channel_updated"
-	WebsocketEventChannelMemberUpdated                = "channel_member_updated"
-	WebsocketEventChannelSchemeUpdated                = "channel_scheme_updated"
-	WebsocketEventDirectAdded                         = "direct_added"
-	WebsocketEventGroupAdded                          = "group_added"
-	WebsocketEventNewUser                             = "new_user"
-	WebsocketEventAddedToTeam                         = "added_to_team"
-	WebsocketEventLeaveTeam                           = "leave_team"
-	WebsocketEventUpdateTeam                          = "update_team"
-	WebsocketEventDeleteTeam                          = "delete_team"
-	WebsocketEventRestoreTeam                         = "restore_team"
-	WebsocketEventUpdateTeamScheme                    = "update_team_scheme"
-	WebsocketEventUserAdded                           = "user_added"
-	WebsocketEventUserUpdated                         = "user_updated"
-	WebsocketEventUserRoleUpdated                     = "user_role_updated"
-	WebsocketEventMemberroleUpdated                   = "memberrole_updated"
-	WebsocketEventUserRemoved                         = "user_removed"
-	WebsocketEventPreferenceChanged                   = "preference_changed"
-	WebsocketEventPreferencesChanged                  = "preferences_changed"
-	WebsocketEventPreferencesDeleted                  = "preferences_deleted"
-	WebsocketEventEphemeralMessage                    = "ephemeral_message"
-	WebsocketEventStatusChange                        = "status_change"
-	WebsocketEventHello                               = "hello"
-	WebsocketAuthenticationChallenge                  = "authentication_challenge"
-	WebsocketEventReactionAdded                       = "reaction_added"
-	WebsocketEventReactionRemoved                     = "reaction_removed"
-	WebsocketEventResponse                            = "response"
-	WebsocketEventEmojiAdded                          = "emoji_added"
-	WebsocketEventChannelViewed                       = "channel_viewed"
-	WebsocketEventMultipleChannelsViewed              = "multiple_channels_viewed"
-	WebsocketEventPluginStatusesChanged               = "plugin_statuses_changed"
-	WebsocketEventPluginEnabled                       = "plugin_enabled"
-	WebsocketEventPluginDisabled                      = "plugin_disabled"
-	WebsocketEventRoleUpdated                         = "role_updated"
-	WebsocketEventLicenseChanged                      = "license_changed"
-	WebsocketEventConfigChanged                       = "config_changed"
-	WebsocketEventOpenDialog                          = "open_dialog"
-	WebsocketEventGuestsDeactivated                   = "guests_deactivated"
-	WebsocketEventUserActivationStatusChange          = "user_activation_status_change"
-	WebsocketEventReceivedGroup                       = "received_group"
-	WebsocketEventReceivedGroupAssociatedToTeam       = "received_group_associated_to_team"
-	WebsocketEventReceivedGroupNotAssociatedToTeam    = "received_group_not_associated_to_team"
-	WebsocketEventReceivedGroupAssociatedToChannel    = "received_group_associated_to_channel"
+	// A Typing event is sent whenever a user is typing in a channel or thread. It's sent to all users with permission
+	// to read that channel or thread.
+	WebsocketEventTyping = "typing"
+
+	// A Posted event is sent whenever a post is created. It's sent to all users with permission to read that post.
+	WebsocketEventPosted = "posted"
+	// A PostEdited event is sent whenever a post is updated. It's sent to all users with permission to read that post.
+	WebsocketEventPostEdited = "post_edited"
+	// A PostDeleted event is sent whenever a post is deleted. It's sent to all users with permission to read that post.
+	WebsocketEventPostDeleted = "post_deleted"
+	// A PostUnread event is sent when a post is marked as unread by a user. It's sent to only that user.
+	WebsocketEventPostUnread = "post_unread"
+
+	// A ChannelConverted event is sent whenever a channel is converted from a public to a private channel or vice
+	// versa. It's sent to all users with permission to read that channel.
+	WebsocketEventChannelConverted = "channel_converted"
+	// A ChannelCreated event is sent whenever a channel is created. It's sent to the user who created the channel.
+	WebsocketEventChannelCreated = "channel_created"
+	// A ChanelDeleted event is sent whenever a channel is archived or permanently deleted. It's sent to all members of
+	// that channel.
+	WebsocketEventChannelDeleted = "channel_deleted"
+	// A ChannelRestored event is sent whenever a channel is unarchived. It's sent to all members of that channel.
+	WebsocketEventChannelRestored = "channel_restored"
+	// A ChannelUpdated event is sent whenever most fields of a [channel] are updated. It's sent to all members of that
+	// channel.
+	WebsocketEventChannelUpdated = "channel_updated"
+
+	// A ChannelMemberUpdated event is sent whenever any fields of a user's [ChannelMember] is modified such as if
+	// their channel-specific notification settings change or that channel is muted. It's sent to only that user.
+	WebsocketEventChannelMemberUpdated = "channel_member_updated"
+
+	// A ChannelSchemeUpdated event is sent whenever the permissions for a channel are modified. It's sent to
+	// members of that channel.
+	WebsocketEventChannelSchemeUpdated = "channel_scheme_updated"
+
+	// A DirectAdded event is sent whenever a direct channel between two users is created. This typically happens when
+	// one of those users opens the DM channel for the first time. It's sent to both members of the new channel.
+	WebsocketEventDirectAdded = "direct_added"
+	// A GroupAdded event is sent whenever a group channel between a group of users is created. It's sent to all
+	// members of the new channel.
+	WebsocketEventGroupAdded = "group_added"
+
+	// A NewUser event is sent whenever a new user is created. It's sent to all users.
+	WebsocketEventNewUser = "new_user"
+
+	// An AddedToTeam event is sent when a user joins or is added to a team. It's sent to the user who joined or was
+	// added.
+	WebsocketEventAddedToTeam = "added_to_team"
+	// A LeaveTeam event is sent whenever a user leaves or is removed from a team. It's sent to the user who left or
+	// was removed and to every member of that team.
+	WebsocketEventLeaveTeam = "leave_team"
+
+	// An UpdateTeam event is sent whenever most fields of a [Team] are updated. It's sent to all members of that team.
+	WebsocketEventUpdateTeam = "update_team"
+	// A DeleteTeam event is sent whenever a team is soft or permanently deleted. It's sent to all members of that
+	// team.
+	WebsocketEventDeleteTeam = "delete_team"
+	// A RestoreTeam event is sent whenever a soft deleted team is restored. It's sent to all members of that team.
+	WebsocketEventRestoreTeam = "restore_team"
+
+	// A TeamSchemeUpdated event is sent whenever the permissions for a team are modified. It's sent to all members of
+	// that team.
+	WebsocketEventUpdateTeamScheme = "update_team_scheme"
+
+	// A UserAdded event is sent whenever a user joins or is added to a channel. It's sent to all members of that
+	// channel.
+	WebsocketEventUserAdded = "user_added"
+
+	// A UserUpdated event is sent whenever most fields of a [User] are updated. It's sent to all users.
+	WebsocketEventUserUpdated = "user_updated"
+
+	// A UserRoleUpdated event is sent whenever a user's system-wide roles ([User.Roles]) are modified. It's sent only
+	// to that user.
+	WebsocketEventUserRoleUpdated = "user_role_updated"
+
+	// A MemberRoleUpdated event is sent whenever a user's team-specific roles ([TeamMember.Roles]) are modified. It's
+	// sent only to that user.
+	WebsocketEventMemberroleUpdated = "memberrole_updated"
+
+	// A UserRemoved event is sent whenever a user leaves or is removed from a channel. It's sent to all members of
+	// that channel.
+	WebsocketEventUserRemoved = "user_removed"
+
+	// A PreferenceChanged event is sent whenever a [Preference] is added or modified for a user. Currently only used by
+	// the `/collapse` and `/expand` slash commands. It's sent only to that user.
+	WebsocketEventPreferenceChanged = "preference_changed"
+	// A PreferencesChanged event is sent whenever one or more [Preference]s are added or modified for a user. It's
+	// sent only to that user.
+	WebsocketEventPreferencesChanged = "preferences_changed"
+	// A PreferencesDeleted event is sent whenever one or more [Preferences]s are deleted for a user. It's sent only to
+	// that user.
+	WebsocketEventPreferencesDeleted = "preferences_deleted"
+
+	// An EphemeralMessage event is sent whenever the server wants a client to show the user a temporary message as if
+	// it were a post. For example, this can happen in response to a slash command or for post reminders. It's sent
+	// only to that user.
+	WebsocketEventEphemeralMessage = "ephemeral_message"
+
+	// A StatusChange event is sent to a user whenever their status changes. It's sent only to that user.
+	WebsocketEventStatusChange = "status_change"
+
+	// A Hello event is sent whenever a client reconnects to the server after having missed one or more messages. It's
+	// only sent to the affected client.
+	WebsocketEventHello = "hello"
+
+	// A ReactionAdded event is sent whenever an emoji reaction is added to a post. It's sent to all users with
+	// permission to read that post.
+	WebsocketEventReactionAdded = "reaction_added"
+	// A ReactionRemoved event is sent whenever an emoji reaction is removed from a post. It's sent to all users with
+	// permission to read that post.
+	WebsocketEventReactionRemoved = "reaction_removed"
+
+	// A Response event is used by [WebSocketClient] for responses to messages sent to the server. It is not sent to
+	// clients normally.
+	WebsocketEventResponse = "response"
+
+	// An EmojiAdded event is sent whenever a custom emoji is created. It's sent to all users.
+	WebsocketEventEmojiAdded = "emoji_added"
+
+	// Deprecated: WebsocketEventChannelViewed has been replaced by WebsocketEventMultipleChannelsViewed as of
+	// Mattermost 9.0.
+	WebsocketEventChannelViewed = "channel_viewed"
+	// A MultipleChannelsViewed event is sent whenever a user reads one or more channels, marking them entirely as read.
+	// It's sent only to that user.
+	WebsocketEventMultipleChannelsViewed = "multiple_channels_viewed"
+
+	// A PluginStatusesChanged event is sent whenever a plugin is installed or uninstalled. It's sent only to system
+	// administrators.
+	WebsocketEventPluginStatusesChanged = "plugin_statuses_changed"
+	// A PluginEnabled event is sent whenever a plugin is enabled. It's sent to all users.
+	WebsocketEventPluginEnabled = "plugin_enabled"
+	// A PluginDisabled event is sent whenever a plugin is disabled. It's sent to all users.
+	WebsocketEventPluginDisabled = "plugin_disabled"
+
+	// A RoleUpdated event is sent whenever the permissions of a role is updated. It's sent to all users.
+	WebsocketEventRoleUpdated = "role_updated"
+
+	// A LicenseChanged event is sent whenever the server's license is changed. It's sent to all users.
+	WebsocketEventLicenseChanged = "license_changed"
+	// A ConfigChanged event is sent whenever the server's config is changed. It's sent to all users.
+	WebsocketEventConfigChanged = "config_changed"
+
+	// An OpenDialog event is sent whenever an integration wants a client to show a user an interactive dialog. For
+	// example, this can happen in response to an integration action. It's sent only to that user.
+	WebsocketEventOpenDialog = "open_dialog"
+
+	// A GuestsDeactivated event is sent whenever guest accounts are disabled on the server. It's sent to all users.
+	WebsocketEventGuestsDeactivated = "guests_deactivated"
+
+	// A UserActivationStatusChange event is sent whenever a user's account is activated or deactivated. It's sent to
+	// all users.
+	WebsocketEventUserActivationStatusChange = "user_activation_status_change"
+
+	// A ReceivedGroup event is sent whenever a user group ([Group]) is created, modified, or deleted. It's sent to all
+	// users.
+	WebsocketEventReceivedGroup = "received_group"
+	// A ReceivedGroupAssociatedToTeam event is sent whenever an LDAP group is associated to a team. It's sent to all
+	// members of that team.
+	WebsocketEventReceivedGroupAssociatedToTeam = "received_group_associated_to_team"
+	// A ReceivedGroupAssociatedToTeam event is sent whenever an LDAP group is unassociated to a team. It's sent to all
+	// members of that team.
+	WebsocketEventReceivedGroupNotAssociatedToTeam = "received_group_not_associated_to_team"
+	// A ReceivedGroupAssociatedToChannel event is sent whenever an LDAP group is associated to a channel. It's sent
+	// to all members of that channel.
+	WebsocketEventReceivedGroupAssociatedToChannel = "received_group_associated_to_channel"
+	// A ReceivedGroupAssociatedToChannel event is sent whenever an LDAP group is unassociated to a channel. It's sent
+	// to all members of that channel.
 	WebsocketEventReceivedGroupNotAssociatedToChannel = "received_group_not_associated_to_channel"
-	WebsocketEventGroupMemberDelete                   = "group_member_deleted"
-	WebsocketEventGroupMemberAdd                      = "group_member_add"
-	WebsocketEventSidebarCategoryCreated              = "sidebar_category_created"
-	WebsocketEventSidebarCategoryUpdated              = "sidebar_category_updated"
-	WebsocketEventSidebarCategoryDeleted              = "sidebar_category_deleted"
-	WebsocketEventSidebarCategoryOrderUpdated         = "sidebar_category_order_updated"
-	WebsocketWarnMetricStatusReceived                 = "warn_metric_status_received"
-	WebsocketWarnMetricStatusRemoved                  = "warn_metric_status_removed"
-	WebsocketEventCloudPaymentStatusUpdated           = "cloud_payment_status_updated"
-	WebsocketEventCloudSubscriptionChanged            = "cloud_subscription_changed"
-	WebsocketEventThreadUpdated                       = "thread_updated"
-	WebsocketEventThreadFollowChanged                 = "thread_follow_changed"
-	WebsocketEventThreadReadChanged                   = "thread_read_changed"
-	WebsocketFirstAdminVisitMarketplaceStatusReceived = "first_admin_visit_marketplace_status_received"
-	WebsocketEventDraftCreated                        = "draft_created"
-	WebsocketEventDraftUpdated                        = "draft_updated"
-	WebsocketEventDraftDeleted                        = "draft_deleted"
-	WebsocketEventAcknowledgementAdded                = "post_acknowledgement_added"
-	WebsocketEventAcknowledgementRemoved              = "post_acknowledgement_removed"
-	WebsocketEventPersistentNotificationTriggered     = "persistent_notification_triggered"
+	// A GroupMemberDelete event is sent whenever one or more users are removed from a user group. It's sent to each of
+	// those users.
+	WebsocketEventGroupMemberDelete = "group_member_deleted"
+	// A GroupMemberAdd event is sent whenever one or more users are added to a user group. It's sent to each of those
+	// users.
+	WebsocketEventGroupMemberAdd = "group_member_add"
+
+	// A SidebarCategoryCreated event is sent whenever a new channel sidebar category is created. It's sent only to the
+	// affected user.
+	WebsocketEventSidebarCategoryCreated = "sidebar_category_created"
+	// A SidebarCategoryCreated event is sent whenever a channel sidebar category is is modified or has a channel
+	// added to or removed from it. It's sent only to the affected user.
+	WebsocketEventSidebarCategoryUpdated = "sidebar_category_updated"
+	// A SidebarCategoryDeleted event is sent whenever a channel sidebar category is deleted. It's sent only to the
+	// affected user.
+	WebsocketEventSidebarCategoryDeleted = "sidebar_category_deleted"
+	// A SidebarCategoryOrderUpdated event is sent whenever a user reorders the categories in their channel sidebar.
+	// It's only sent to that user.
+	WebsocketEventSidebarCategoryOrderUpdated = "sidebar_category_order_updated"
+
+	// WebsocketWarnMetricStatusReceived events are not used.
+	WebsocketWarnMetricStatusReceived = "warn_metric_status_received"
+	// A WarnMetricStatusRemoved event is sent whenever a system admin acknowledges and removes a warning announcement
+	// in the web app. It's sent to all users.
+	WebsocketEventWarnMetricStatusRemoved = "warn_metric_status_removed"
+	// Deprecated: Use WebsocketEventWarnMetricStatusRemoved instead.
+	WebsocketWarnMetricStatusRemoved = WebsocketEventWarnMetricStatusRemoved
+
+	// A CloudPaymentStatusUpdated event is sent on a Mattermost Cloud server when a payment is made. It's sent to all
+	// users.
+	WebsocketEventCloudPaymentStatusUpdated = "cloud_payment_status_updated"
+	// A CloudSubscriptionChanged event is sent on a Mattermost Cloud server whenever the license is changed. It's sent
+	// to all users.
+	WebsocketEventCloudSubscriptionChanged = "cloud_subscription_changed"
+
+	// A ThreadUpdated event is sent whenever to a user whenever a followed thread is updated such as if a user replies
+	// to it. It's sent to only that user.
+	WebsocketEventThreadUpdated = "thread_updated"
+	// A ThreadFollowChanged event is sent to a user whenever they manually follow or unfollow a thread. It's sent only
+	// to that user.
+	WebsocketEventThreadFollowChanged = "thread_follow_changed"
+	// A ThreadReadChanged event is sent to a user when one of the following happens:
+	//  - If they read a thread or mark a thread as unread, a ThreadReadChanged event is sent with a thread ID and
+	//    related metadata in the body.
+	//  - If they mark a channel as read, all threads in that channel are marked as read, and a ThreadReadChanged event
+	//    with the channel ID in its [WebsocketBroadcast] is sent.
+	//  - If they mark all threads on a team as read, all threads in that team are marked as read, and a
+	//    ThreadReadChanged event with the team ID in its [WebsocketBroadcast] is sent.
+	//
+	//  These are sent only to that user.
+	WebsocketEventThreadReadChanged = "thread_read_changed"
+
+	// A FirstAdminVisitMarketplaceStatusReceived event is sent the first time an admin visits the App Marketplace in
+	// the web app. It's sent to all users.
+	WebsocketEventFirstAdminVisitMarketplaceStatusReceived = "first_admin_visit_marketplace_status_received"
+	// Deprecated: Use WebsocketEventFirstAdminVisitMarketplaceStatusReceived
+	WebsocketFirstAdminVisitMarketplaceStatusReceived = WebsocketEventFirstAdminVisitMarketplaceStatusReceived
+
+	// A DraftCreated event is sent whenever a user creates or modifies a server-synced post draft. It's sent only to
+	// that user.
+	WebsocketEventDraftCreated = "draft_created"
+	// DraftUpdated events are not used.
+	WebsocketEventDraftUpdated = "draft_updated"
+	// A DraftDeleted event is sent whenever a user deletes a server-synced post draft. It's sent only to that user.
+	WebsocketEventDraftDeleted = "draft_deleted"
+
+	// An AcknowledgementAdded event is sent whenever a user acknowledges a post. It's sent to all members of that
+	// channel.
+	WebsocketEventAcknowledgementAdded = "post_acknowledgement_added"
+	// An AcknowledgementRemoved event is sent whenever a user removes acknowledgement from a post. It's sent to all
+	// members of that channel.
+	WebsocketEventAcknowledgementRemoved = "post_acknowledgement_removed"
+	// A PersistentNotificationTriggered event is sent whenever a user should receive a recurring notification for a
+	// priority message. It's sent only to that user.
+	WebsocketEventPersistentNotificationTriggered = "persistent_notification_triggered"
+
+	// A HostedCustomerSignupProgressUpdated event is sent when a self-hosted Mattermost user is purchasing a license
+	// from within the web app. It's sent only to that user.
 	WebsocketEventHostedCustomerSignupProgressUpdated = "hosted_customer_signup_progress_updated"
+
+	WebsocketAuthenticationChallenge = "authentication_challenge"
 )
 
 type WebSocketMessage interface {
