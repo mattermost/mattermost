@@ -2206,9 +2206,9 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 			return nil, appErr
 		}
 
-		if team.Type == model.TeamOpen {
+		if team.AllowOpenInvite {
 			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPublicTeams)
-		} else if team.Type == model.TeamInvite {
+		} else {
 			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPrivateTeams)
 		}
 	} else {
@@ -2242,12 +2242,16 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		HasJoinedChannel:   channelMemberErr == nil,
 	}
 	if team != nil {
-		_, teamMemberErr := a.GetTeamMember(team.Id, userID)
+		teamMember, teamMemberErr := a.GetTeamMember(team.Id, userID)
 
+		teamType := model.TeamInvite
+		if team.AllowOpenInvite {
+			teamType = model.TeamOpen
+		}
 		info.TeamId = team.Id
-		info.TeamType = team.Type
+		info.TeamType = teamType
 		info.TeamDisplayName = team.DisplayName
-		info.HasJoinedTeam = teamMemberErr == nil
+		info.HasJoinedTeam = teamMemberErr == nil && teamMember.DeleteAt == 0
 	}
 	return &info, nil
 }

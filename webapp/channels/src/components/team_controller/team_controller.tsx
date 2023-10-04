@@ -213,6 +213,8 @@ function TeamController(props: Props) {
         return null;
     }
 
+    const teamLoaded = team?.name.toLowerCase() === teamNameParam?.toLowerCase();
+
     return (
         <Switch>
             <Route
@@ -236,7 +238,7 @@ function TeamController(props: Props) {
                     )}
                 />
             ))}
-            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded}/>
+            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}/>
         </Switch>
     );
 }
