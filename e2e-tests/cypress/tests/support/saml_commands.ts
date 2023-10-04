@@ -8,11 +8,30 @@ import * as TIMEOUTS from '../fixtures/timeouts';
 import {ChainableT} from '../types';
 import {stubClipboard} from '../utils';
 
+// based on ../../../../fixtures/saml_users.json
+interface SamlUser {
+    username: string;
+    password: string;
+    email: string;
+    firstname: string;
+    lastname: string;
+    userType: string;
+    isGuest: boolean | undefined;
+}
+
+interface TestSettings {
+    loginButtonText: string;
+    siteName: string;
+    siteUrl: string;
+    teamName: string;
+    user: SamlUser | null;
+}
+
 /**
  * checkCreateTeamPage checks that the create team page is loaded
- * @param {Object} settings - Settings object
+ * @param {TestSettings} settings - Settings object
  */
-function checkCreateTeamPage(settings) {
+function checkCreateTeamPage(settings: TestSettings) {
     if (settings.user.userType === 'Guest' || settings.user.isGuest) {
         cy.findByText('Create a team').scrollIntoView().should('not.exist');
     } else {
@@ -23,7 +42,7 @@ Cypress.Commands.add('checkCreateTeamPage', checkCreateTeamPage);
 
 /**
  * doSamlLogin logs into the system using SAML
- * @param {Object} settings - Settings object
+ * @param {TestSettings} settings - Settings object
  */
 function doSamlLogin(settings) {
     // # Go to login page
@@ -38,7 +57,7 @@ Cypress.Commands.add('doSamlLogin', doSamlLogin);
 
 /**
  * doSamlLogout logs out of the system and checks that the login page is loaded
- * @param {Object} settings - Settings object
+ * @param {TestSettings} settings - Settings object
  */
 function doSamlLogout(settings) {
     cy.checkLeftSideBar(settings);
@@ -51,7 +70,7 @@ Cypress.Commands.add('doSamlLogout', doSamlLogout);
 
 /**
  * getInvitePeopleLink gets the invite people link from the invite people modal
- * @param {Object} settings - Settings object
+ * @param {TestSettings} settings - Settings object
  * @returns {String} - The invite people link
  */
 function getInvitePeopleLink(settings): ChainableT<any> {
@@ -75,10 +94,10 @@ Cypress.Commands.add('getInvitePeopleLink', getInvitePeopleLink);
 /**
  * setTestSettings sets the test settings
  * @param {string} loginButtonText - The text of the login button
- * @param {Object} config - The config object
- * @returns {Object} - The test settings
+ * @param {AdminConfig} config - The config object
+ * @returns {TestSettings} - The test settings
  */
-function setTestSettings(loginButtonText: string, config: AdminConfig): any {
+function setTestSettings(loginButtonText: string, config: AdminConfig): TestSettings {
     return {
         loginButtonText,
         siteName: config.TeamSettings.SiteName,
