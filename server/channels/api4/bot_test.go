@@ -515,9 +515,9 @@ func TestPatchBot(t *testing.T) {
 
 		var botPatch *model.BotPatch
 
-		_, resp, err := th.Client.PatchBot(context.Background(), createdBot.UserId, botPatch)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		_, resp1, err1 := th.Client.PatchBot(context.Background(), createdBot.UserId, botPatch)
+		require.Error(t, err1)
+		CheckBadRequestStatus(t, resp1)
 	})
 }
 
