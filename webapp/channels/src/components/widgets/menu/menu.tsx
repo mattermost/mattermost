@@ -117,7 +117,7 @@ export default class Menu extends React.PureComponent<Props> {
     };
 
     public render() {
-        const {children, openUp, id, listId, ariaLabel, customStyles} = this.props;
+        const {children, openUp, openLeft, id, listId, ariaLabel, customStyles} = this.props;
         let styles: CSSProperties = {};
         if (customStyles) {
             styles = customStyles;
@@ -137,6 +137,7 @@ export default class Menu extends React.PureComponent<Props> {
                     className={classNames(
                         'Menu__content dropdown-menu',
                         {
+                            openLeft,
                             openUp,
                         },
                         this.props.className,
