@@ -98,8 +98,8 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	// the post does NOT have from_webhook prop set (e.g. Zapier app), and
 	// the post does NOT have from_bot set (e.g. from discovering the user is a bot within CreatePost), and
 	// the post is NOT a reply post with CRT enabled
-	_, fromWebhook := post.GetProps()["from_webhook"]
-	_, fromBot := post.GetProps()["from_bot"]
+	_, fromWebhook := post.GetProps()[model.PostPropsFromWebhook]
+	_, fromBot := post.GetProps()[model.PostPropsFromBot]
 	isCRTEnabled := a.IsCRTEnabledForUser(c, post.UserId)
 	isCRTReply := post.RootId != "" && isCRTEnabled
 	if !fromWebhook && !fromBot && !isCRTReply {
@@ -236,11 +236,11 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	if user.IsBot {
-		post.AddProp("from_bot", "true")
+		post.AddProp(model.PostPropsFromBot, "true")
 	}
 
 	if c.Session().IsOAuth {
-		post.AddProp("from_oauth_app", "true")
+		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
 	var ephemeralPost *model.Post
@@ -625,10 +625,10 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
-	post.SanitizeProps()
+func (a *App) UpdatePost(c *request.Context, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+	receivedUpdatedPost.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -641,21 +641,21 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 			return nil, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
-	oldPost := postLists.Posts[post.Id]
+	oldPost := postLists.Posts[receivedUpdatedPost.Id]
 
 	var err *model.AppError
 	if oldPost == nil {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.DeleteAt != 0 {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": post.Id}, "", http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": receivedUpdatedPost.Id}, "", http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.IsSystemMessage() {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -670,17 +670,17 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 
 	newPost := oldPost.Clone()
 
-	if newPost.Message != post.Message {
-		newPost.Message = post.Message
+	if newPost.Message != receivedUpdatedPost.Message {
+		newPost.Message = receivedUpdatedPost.Message
 		newPost.EditAt = model.GetMillis()
-		newPost.Hashtags, _ = model.ParseHashtags(post.Message)
+		newPost.Hashtags, _ = model.ParseHashtags(receivedUpdatedPost.Message)
 	}
 
 	if !safeUpdate {
-		newPost.IsPinned = post.IsPinned
-		newPost.HasReactions = post.HasReactions
-		newPost.FileIds = post.FileIds
-		newPost.SetProps(post.GetProps())
+		newPost.IsPinned = receivedUpdatedPost.IsPinned
+		newPost.HasReactions = receivedUpdatedPost.HasReactions
+		newPost.FileIds = receivedUpdatedPost.FileIds
+		newPost.SetProps(receivedUpdatedPost.GetProps())
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
@@ -688,19 +688,19 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err = a.FillInPostProps(c, post, nil); err != nil {
+	if err = a.FillInPostProps(c, newPost, nil); err != nil {
 		return nil, err
 	}
 
-	if post.IsRemote() {
-		oldPost.RemoteId = model.NewString(*post.RemoteId)
+	if receivedUpdatedPost.IsRemote() {
+		oldPost.RemoteId = model.NewString(*receivedUpdatedPost.RemoteId)
 	}
 
 	var rejectionReason string
 	pluginContext := pluginContext(c)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
-		return post != nil
+		return receivedUpdatedPost != nil
 	}, plugin.MessageWillBeUpdatedID)
 	if newPost == nil {
 		return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
