@@ -4412,7 +4412,6 @@
   "pricing_modal.addons.dedicatedK8sCluster": "Dedykowany klaster Kubernetes",
   "pricing_modal.addons.missionCritical": "Krytyczny dla misji 24x7",
   "pricing_modal.addons.premiumSupport": "Wsparcie premium",
-  "pricing_modal.addons.professionalPlusSupport": "Wsparcie Professional-Plus",
   "pricing_modal.addons.title": "Dostępne Dodatki",
   "pricing_modal.addons.uptimeGuarantee": "Gwarancja 99% czasu sprawności",
   "pricing_modal.briefing.customUserGroups": "Niestandardowe grupy użytkowników",
