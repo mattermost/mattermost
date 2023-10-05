@@ -46,6 +46,8 @@ type FeatureFlags struct {
 	EnableExportDirectDownload bool
 
 	StreamlinedMarketplace bool
+
+	CloudIPFiltering bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -62,6 +64,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.StreamlinedMarketplace = true
+	f.CloudIPFiltering = false
 }
 
 // ToMap returns the feature flags as a map[string]string

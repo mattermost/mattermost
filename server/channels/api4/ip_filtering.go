@@ -19,7 +19,7 @@ func (api *API) InitIPFiltering() {
 }
 
 func ensureIPFilteringInterface(c *Context, where string) bool {
-	if c.App.IPFiltering() == nil {
+	if c.App.IPFiltering() == nil || !c.App.Config().FeatureFlags.CloudIPFiltering {
 		c.Err = model.NewAppError(where, "api.context.ip_filtering.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return false
 	}
