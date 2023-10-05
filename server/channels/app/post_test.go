@@ -559,7 +559,15 @@ func TestPostChannelMentions(t *testing.T) {
 		TeamId:      th.BasicTeam.Id,
 	}, false)
 	require.Nil(t, err)
+	channelToMention2, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Mention Test2",
+		Name:        "mention-test2",
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(th.Context, channelToMention)
+	defer th.App.PermanentDeleteChannel(th.Context, channelToMention2)
 
 	_, err = th.App.AddUserToChannel(th.Context, user, channel, false)
 	require.Nil(t, err)
@@ -581,15 +589,20 @@ func TestPostChannelMentions(t *testing.T) {
 		},
 	}, post.GetProp("channel_mentions"))
 
-	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
+	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention2.Name)
 	result, err := th.App.UpdatePost(th.Context, post, false)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
-		"mention-test": map[string]any{
-			"display_name": "Mention Test",
+		"mention-test2": map[string]any{
+			"display_name": "Mention Test2",
 			"team_name":    th.BasicTeam.Name,
 		},
 	}, result.GetProp("channel_mentions"))
+
+	result.Message = "no more mentions!"
+	result, err = th.App.UpdatePost(th.Context, result, false)
+	require.Nil(t, err)
+	assert.Nil(t, result.GetProp("channel_mentions"))
 }
 
 func TestImageProxy(t *testing.T) {

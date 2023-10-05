@@ -52,7 +52,6 @@ button {
         padding: 0;
         background-color: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 24px;
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
@@ -66,39 +65,48 @@ button {
         }
 
         i {
-            font-size: inherit;
+            font-size: 24px;
         }
 
         &.btn-xs {
             width: 24px;
             height: 24px;
-            font-size: 14.4px;
 
             &.btn-compact {
                 width: 20px;
                 height: 20px;
+            }
+
+            i {
+                font-size: 14.4px;
             }
         }
 
         &.btn-sm {
             width: 32px;
             height: 32px;
-            font-size: 18px;
 
             &.btn-compact {
                 width: 28px;
                 height: 28px;
+            }
+
+            i {
+                font-size: 18px;
             }
         }
 
         &.btn-lg {
             width: 48px;
             height: 48px;
-            font-size: 31.2px;
 
             &.btn-compact {
                 width: 36px;
                 height: 36px;
+            }
+
+            i {
+                font-size: 31.2px;
             }
         }
     }
