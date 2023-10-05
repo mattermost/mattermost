@@ -106,7 +106,7 @@ const languages = {
         value: 'vi',
         name: 'Tiếng Việt (Beta)',
         order: 12,
-        url: tr,
+        url: vi,
     },
     tr: {
         value: 'tr',
