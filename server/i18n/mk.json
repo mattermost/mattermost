@@ -1,0 +1,946 @@
+[
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Градски Плоштад"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Грешка во додавање на кориник/ци на каналот."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v додаден во каналот од %v."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v додаден во каналот како гостин од %v."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket е потребно"
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Неможе да се сними сертификат фајл."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Грешка при бришење на сертификатот."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP не е достапен."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Складиштето за слики не е подесено."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Грешка во читање на лог фајлот."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Неможе да се избрише бренд сликата, неможе да се најде."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Неможеше да се сними сертификат фајл."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Грешка во парсирање на мултиформско барање"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Не може да се отвори сертификат фајл."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Нема фајл под 'certificate' во барањето."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Нема фајл под 'certificate' во барањето."
+  },
+  {
+    "id": "September",
+    "translation": "Септември"
+  },
+  {
+    "id": "October",
+    "translation": "Октомври"
+  },
+  {
+    "id": "November",
+    "translation": "Ноември"
+  },
+  {
+    "id": "May",
+    "translation": "Мај"
+  },
+  {
+    "id": "March",
+    "translation": "Март"
+  },
+  {
+    "id": "June",
+    "translation": "Јуни"
+  },
+  {
+    "id": "July",
+    "translation": "Јули"
+  },
+  {
+    "id": "January",
+    "translation": "Јануари"
+  },
+  {
+    "id": "February",
+    "translation": "Февруари"
+  },
+  {
+    "id": "December",
+    "translation": "Декември"
+  },
+  {
+    "id": "Channels",
+    "translation": "Канали"
+  },
+  {
+    "id": "Boards",
+    "translation": "Табли"
+  },
+  {
+    "id": "August",
+    "translation": "Август"
+  },
+  {
+    "id": "April",
+    "translation": "Април"
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Создавањето на ботови е оневозможено."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Назад во {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Неможеше да се уплоадира фајлот. Фајлот е преголем."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Неможеше да се уплоадира сликата. Складиштето за слики не е конфигурирано."
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Нема фајл под 'image' во барањето."
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Празна низа под 'image' во барањето."
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Испробување на емаил подесувања"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP серверот, портата, или корисничкото име се сменети. Внесете ја СМТП лозинката за да се испроба коненцијата."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Сервер е потребен"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Изгледа дека вашиот Mattermost емаил не е исправно подесен!"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Недостаток на тип на соддржина."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Невалиден тип на содржина."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Невалиден сертификат текст."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 не е конфигуриран или поддржан на овој сервер."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Грешка додека се градеше Service Provider метадата."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Неуспешно беше ресетирањето на AuthData полето во Email."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Неуспех додека се парсираше метадата информацијата добиена од Идентитет Провајдер во сертификат."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Неможеше да се приземе метадата од Идентитет Провајдер УРЛ."
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Невалидни канали."
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "Виндоус 8.1+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "macOS 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "Верзија 14.1+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "Верзија 91+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "Верзија 95+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "Верзија 106+"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "или"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Неможе да се најде корисникот."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[корисничко име] 'порака'"
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Се случи грешка при праќањето на порака кон корисникот."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Се случи грешка при создавањето на директната порака."
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Прати Директна Порака до корисникот"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "јас"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[порака]"
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "Изврши акција"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "одлогирање"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Одлогирај се од Mattermost"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "напушти"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Се случи грешка при напуштањето на каналот."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Напушти го тековниот канал"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "удри"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "приклучи се"
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Невалиден канал."
+  },
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "Неможеше да се најде корисникот."
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "Неможеше да се најде каналот."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "порака"
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Ве молам додадете ме на тимовите и каналите во кои што сакате да учествувам. За да го направите тоа, користете браузер или Mattermost десктоп апликацијата."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Неможеше да се парсира повеќеделна форма."
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Работни Книги"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Неуспеа да се додаде корисникот во каналот зашто тие се отстранети од тимот."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Неуспеа да се додаде корисникот во каналот."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Членство во каналот е одбиено на следните корисници поради групни ограничувања: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Недостига Identity Provider SSO Services јазол во XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Недостига Identity Provider Key Descriptors јазол во XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Недостига Identity Provider SSO Descriptors јазол во XML."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Вашата лиценца не поддржува групи"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Овој канал беше променет во Приватен Канал."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Овој канал беше променет во Јавен Канал и може да се придружи од сите членови на тимот."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Неможе да се додаде корисникот на овој тип на канал."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Директен канал неможе да се креира помеѓу овие корисничи поради тоа што немаат ништо заедничко."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Мора да се користи createDirectChannel АПИ сервис за креирање на канали за директни пораки."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "Еден од наведените корисници не постои."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Канали за групни пораки мора да имаат најмалце 3 и најмногу 8 корисници."
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Невалиден кориснички ИД за креација на директен канал."
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Оф-топик"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Неможе да се создаде повеќе од {{.MaxChannelsPerTeam}} за тековниот тим."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Неуспех при ажурирање на каналот."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Вашата лиценца не поддржува модерација на канали"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Грешка при поништување на кеш"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Неможеше да се преместат канали за директни или групни пораки"
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v го напушти каналот."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Вие сте единствениот останат член, пробајте да го отстраните Приватниот Канал наместо да го напуштите."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Неможе да се напушти канал за директни пораки."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Неможеше да се напушти стандардниот канал {{.Channel}}."
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v се приклучи во каналот."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Немате соодветни дозволи."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v се приклучи во каналот како гостин."
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Вашата лиценца не поддржува канална модерација"
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Неможеше да се избришат канали за директни или групни пораки"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "Каналот бил архивиран или избришен."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Неможеше да се избрише стандарниот канал {{.Channel}}."
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v го архивираше каналот."
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Неуспеа да се поврати корисникот при ажурирање на заглавието на каналот"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s го избриша заглавието на каналот (беше: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Неуспех при постирање на ажурирана порака за заглавието на каналот"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s го ажурираше екранското име од: %s во: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Неуспех при повратување на корисник при ажурирање на полето за екранско име на каналот"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Неуспех при постирање на ажурирана порака за екранско име"
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Неуспех при постирање на ажурирања порака за приватноста на каналот."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "неуспех при додадање корисници во групни-тимови и груни-канали"
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Неуспеа да се извади корисникот од каналот ограничен со група."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Неусепа да се извади корисникот од каналот."
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Неуспеа да се извади корисникот од стандардниот канал {{.Channel}}."
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Неуспеа да се постира пораката за приклучување/напуштување"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s го промени заглавието на каналот од: %s во: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s го промени заглавието на каналот во: %s"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Не може да се преименува канал за групни пораки."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Не може да се преименува канал за директни пораки."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Не може да се отстрани корсникот од овој тип на канал."
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v отстранет од каналот."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Не можете да потврдите во архивиран канал."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Не можете да избришете потврда откако 5 минути се поминати."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Не можете да отстраните потврда во архириван канал."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Невалиден членска промена на каналот. Неможете да ја додавате или отстраните гостинската улога."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Типот на каналот не може да се промени."
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Проба да се направи невалидно ажурирање на стандардниот канал {{.Channel}}."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "Каналот беше архивиран или избришан."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} го деархивираше каналот."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Не може да се деархивира каналот. Каналот не е архивиран."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Отстранувањето на членовите на каналот е одбиено на следните корисници поради групни ограничувања: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Не можеше да се промени шемата на каналот поради тоа што наведената шема не е шема за канал."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Вашата лиценца не поддржува промена на шема на каналот"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Стандардниот канал не може да се направи приватен."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Наведената улога е управувана од шема и затоа не може да се примени директно на членот на каналот."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Невалидена промена на членовите на каналот: Корисникот мора да биде или гостин или корисник, но не двете."
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Неможе да се препати порта 80 на порта 443 додека се слуша на порта %s: исклучете Forward80To443 ако користите прокси сервер"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Мора да се вклучи Forward80To443 кога се користи LetsEncrypt"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Не успеа да се прати лиценца за имејли за обновување"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Неуспех при генерирање на линк за обновување на лиценцата"
+  },
+  {
+    "id": "api.scheme.patch_scheme.license.error",
+    "translation": "Вашата лиценца не поддржува ажурирање на шеми за дозволи"
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Внатрешна грешка при клауд апи барање."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "Наведената улога е менаџирана од Шема и поради тоа неможе да се аплицира директно на Член на Тимот."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Невалидно ажурирање на член на тимот: Не можете да додадете или отстранете гостинската улога рачно."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Не може да се создаде тимот бидејќи се достигна ограничувањето за тимови"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Грешка при процесирање барањето на CWS."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Веќе е известен администраторот"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Вашата лиценца не поддржува клауд барања."
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Недостигаат потребни полиња за да се прати имејлот за деликвенција."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Веб кука настанот не беше обработен. Или недостига или не е валиден."
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "Наредба со активирач '{{.Trigger}}' не успеа."
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Наредба '{{.Trigger}}' не успеа да постира одговор. Молиме контактирајте го вашиот Системски Администратор."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Овој збор за активирање веќе се користи. Молиме изберете друг збор."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Наредбите се оневозможени од системскиот администратор."
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Наведениот корисник не е член на наведениот канал."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "Интеграциите се ограничени само за администратори."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Не може да се врати тимот бидејќи ограничувањето за тимови беше достигнато"
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "Наредбата за зборот за активирање недостасува водечката коса црта"
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "Командата со активирач на '{{.Trigger}}' врати одговор {{.Status}}."
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "Командата со активирач на '{{.Trigger}}' врати празен одговор."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Невалиден приказ на тимски член. Мора да биде 'full_name', 'nickname_full_name' или 'username'."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "заглавје"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Текстот мора да биде наведен со командата /header."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[текст]"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Уреди го заглавјето на каналот"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Грешка при добавување на сегашниот канал."
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Вие сте сега отсутни"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "отсутен"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Подесете го вашиот статус како отсутен"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Прати имејл покана до вашиот Mattermost тим"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "Не беше најдена команда со активирач."
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Команда со активирач '{{.Trigger}}' не беше пронајдена. Да пратите порака што почнува со \"/\", пробајте да додадете празно место на почетокот на пораката."
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "Не беа најдени канали."
+  },
+  {
+    "id": "app.channel.get_channels.get.app_error",
+    "translation": "Неможе да се превземат каналите."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Не може да се превземат бројките на каналот."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Не може да се превземат каналите за наведената шема."
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Каналот не постои."
+  },
+  {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Не може да се најдат постојани канали."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Не може да се превземат сите директни канали."
+  },
+  {
+    "id": "app.channel.get_all_channels_count.app_error",
+    "translation": "Не може да се избројат сите канали."
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "Имејл не беше подесен, покани не беа испратени"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Имејл поканите се исклучени, не беше пратено"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Грешка при ажурирањето на заглавјето на каналот."
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Немате соодветни привилегии за да го уредите заглавјето на каналот."
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Не можеше да се ажурираат командите низ тимовите."
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Имејл покани испратени"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Молиме наведете еден или повеќе валидни имејл адреси"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "покани_луѓе"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Создавање на корисници е исклучено на овој сервер, не се пратија покани"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[ime@domen.com.mk ...]"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "При праќање на емејл покан(а/и) имаше грешка"
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Уреди ја целта на каналот"
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Грешка при превземање на сегашниот канал."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Внесениот текст надминува лимитот за карактери. Заглабјето на каналот е лимитирано на {{.MaxLength}} карактери."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Грешка при преземање на тековниот канал."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Внесениот текст го надминува лимитот на карактери. Целта на каналот е лимитирано на {{.MaxLength}} карактери."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Грешка при ажурирањето на целта на каналот."
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Немате соодветни дозволи за уредување на целта на каналот."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "цел"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Пораката мора да е наведена со командата /purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[текст]"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Не може да се постави цел за каналите за директни пораки. Kористете /header за да го поставите заглавието наместо."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "преименувај"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Порака мора да се наведе со /rename командата."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[текст]"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Не може да се преименуваат каналите за директни пораки."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Преименувај го каналот"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Грешка при добавување на сегашниот канал."
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "\"Не вознемирувај\" ги оневозможува известувањата за десктоп и мобилен."
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "\"Не вознемирувај\" е вклучено. Нема да добивате известувања за десктоп или мобилен додека не се исклучи \"Не вознемирувај\"."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "нв"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Вашиот статус е подесен на „{{.EmojiName}} {{.StatusMessage}}“. Можете да го промените вашиот статус од статус поповерот во насловот на страничната лента на каналот."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "статус"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Подесете или исчистете го вашиот статус"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Вашиот статус е исчистен."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Грешка при чистење на статусот."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Грешка при подесување на статусот."
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Линкови со слики сега стандардно се склопуваат"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "склопи"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Вклучете автоматско склопување на прегледи на слики"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "код"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Порака мора да се наведе со /code командата."
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[текст]"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Прикажете го текстот како коден блок"
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Грешка при ажурирање на тековниот канал."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Името на каналот мора да биде {{.Length}} или повеќе карактери."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Името на каналот мора да биде {{.Length}} или помалку карактери."
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Немате соодветни дозволи за преименување на каналот."
+  }
+]
