@@ -14,12 +14,13 @@ import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import Markdown from 'components/markdown';
 import CombinedSystemMessage from 'components/post_view/combined_system_message';
+import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_conversion_message';
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
 
-function renderUsername(value: string): ReactNode {
+export function renderUsername(value: string): ReactNode {
     const username = (value[0] === '@') ? value : `@${value}`;
 
     const options = {
@@ -425,6 +426,13 @@ export function renderSystemMessage(post: Post, currentTeam: Team, channel: Chan
                 allUsernames={allUsernames}
                 messageData={messageData}
             />
+        );
+    } else if (post.type === Posts.POST_TYPES.GM_CONVERTED_TO_CHANNEL) {
+        // This is rendered via a separate component instead of registering in
+        // systemMessageRenderers because we need to format a list with keeping i18n support
+        // which cannot be done outside a react component.
+        return (
+            <GMConversionMessage post={post}/>
         );
     }
 

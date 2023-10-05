@@ -155,11 +155,11 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             cy.findByRole('heading', {name: modalName});
 
             // * Verify the accessibility support in search input
-            cy.findByRole('textbox', {name: 'Search for people'}).
+            cy.findByRole('textbox', {name: 'Search for people or groups'}).
                 should('have.attr', 'aria-autocomplete', 'list');
 
             // # Search for a text and then check up and down arrow
-            cy.findByRole('textbox', {name: 'Search for people'}).
+            cy.findByRole('textbox', {name: 'Search for people or groups'}).
                 typeWithForce('u').
                 wait(TIMEOUTS.HALF_SEC).
                 typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
@@ -184,7 +184,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 });
 
             // # Search for an invalid text and check if reader can read no results
-            cy.findByRole('textbox', {name: 'Search for people'}).
+            cy.findByRole('textbox', {name: 'Search for people or groups'}).
                 typeWithForce('somethingwhichdoesnotexist').
                 wait(TIMEOUTS.HALF_SEC);
 
