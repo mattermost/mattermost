@@ -70,7 +70,7 @@ type Hub struct {
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
 
-	broadcastHooks map[string]*BroadcastHook
+	broadcastHooks map[string]BroadcastHook
 }
 
 // newWebHub creates a new Hub.
@@ -121,7 +121,7 @@ func (ps *PlatformService) HubStop() {
 	}
 }
 
-func (ps *PlatformService) HubsUseBroadcastHooks(hooks map[string]*BroadcastHook) {
+func (ps *PlatformService) HubsUseBroadcastHooks(hooks map[string]BroadcastHook) {
 	for _, hub := range ps.hubs {
 		hub.broadcastHooks = hooks
 	}

@@ -5,9 +5,9 @@ package platform
 
 import "github.com/mattermost/mattermost/server/public/model"
 
-type BroadcastHook struct {
-	HasChanges func(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) bool
-	Process    func(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) *model.WebSocketEvent
+type BroadcastHook interface {
+	HasChanges(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) bool
+	Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) *model.WebSocketEvent
 }
 
 func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn) *model.WebSocketEvent {

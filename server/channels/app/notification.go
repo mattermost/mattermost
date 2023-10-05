@@ -518,11 +518,12 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		}
 	}
 
-	if len(mentionedUsersList) > 0 || len(notificationsForCRT.Desktop) > 0 {
-		message.GetBroadcast().AddHook(AddMentionsAndFollowers, map[string]any{
-			"mentions":  mentionedUsersList,
-			"followers": notificationsForCRT.Desktop,
-		})
+	if len(mentionedUsersList) > 0 {
+		UseAddMentionsHook(message, mentionedUsersList)
+	}
+
+	if len(notificationsForCRT.Desktop) > 0 {
+		UseAddFollowersHook(message, notificationsForCRT.Desktop)
 	}
 
 	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
