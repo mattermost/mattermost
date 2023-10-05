@@ -90,6 +90,7 @@ describe('Group Message Conversion To Private Channel', () => {
                 team_id: testTeam2.id,
                 user_id: u.id,
             }));
+
             cy.apiAddUsersToTeam(testTeam2.id, teamMembers).then(() => {
                 cy.apiCreateGroupChannel([testUser1.id, testUser2.id, testUser3.id, testUser4.id]).then(({channel}) => {
                     gm2 = channel;
@@ -107,6 +108,40 @@ describe('Group Message Conversion To Private Channel', () => {
 
                     cy.url().should('contain', `/${testTeam2.name}/channels/converted-channel-2`);
                     cy.get('.SidebarChannel:contains("Converted Channel 2")').get('.icon.icon-lock-outline').should('be.visible');
+                });
+            });
+        });
+    });
+
+    it('When users have no common team', () => {
+        let testUser5;
+        let gm3;
+        let testTeam3;
+
+        cy.apiCreateUser({prefix: 'other'}).then(({user}) => {
+            testUser5 = user;
+
+            cy.apiCreateTeam('gmconversionteam3', 'GM Conversion Team 3').then(({team}) => {
+                testTeam3 = team;
+                console.log(testTeam3);
+
+                const teamMembers = [{
+                    team_id: testTeam3.id,
+                    user_id: testUser5.id,
+                }];
+
+                cy.apiAddUsersToTeam(testTeam3.id, teamMembers).then(() => {
+
+                    cy.apiCreateGroupChannel([testUser1.id, testUser2.id, testUser3.id, testUser5.id]).then(({channel}) => {
+
+                        gm3 = channel;
+
+                        // Open the GM
+                        cy.visit(`/${testTeam1.name}/messages/${gm3.name}`);
+                        cy.get('#channelHeaderDropdownButton').click();
+                        cy.findByText('Convert to Private Channel').click();
+                        cy.findByText('Unable to convert to a channel because group members are part of different teams').wait(2000);
+                    });
                 });
             });
         });
