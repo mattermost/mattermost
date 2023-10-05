@@ -167,7 +167,7 @@ type Actions = {
     getChannelTimezones: (channelId: string) => ActionResult;
     scrollPostListToBottom: () => void;
     emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
-    getChannelMemberCountsByGroup: (channelId: string, includeTimezones: boolean) => void;
+    getChannelMemberCountsByGroup: (channelId: string) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
 }

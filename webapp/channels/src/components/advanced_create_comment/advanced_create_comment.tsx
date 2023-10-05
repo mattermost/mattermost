@@ -161,9 +161,6 @@ export type Props = {
     // Determines if the RHS is in expanded state
     rhsExpanded: boolean;
 
-    // Determines if timezones are enabled on the server.
-    isTimezoneEnabled: boolean;
-
     // The last time, if any, the selected post changed. Will be 0 if no post is selected.
     selectedPostFocussedAt: number;
 
@@ -186,7 +183,7 @@ export type Props = {
     scrollToBottom?: () => void;
 
     // Group member mention
-    getChannelMemberCountsByGroup: (channelID: string, isTimezoneEnabled: boolean) => void;
+    getChannelMemberCountsByGroup: (channelID: string) => void;
     groupsWithAllowReference: Map<string, Group> | null;
     channelMemberCountsByGroup: ChannelMemberCountsByGroup;
     focusOnMount?: boolean;
@@ -350,7 +347,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     }
 
     getChannelMemberCountsByGroup = () => {
-        const {useLDAPGroupMentions, useCustomGroupMentions, channelId, isTimezoneEnabled, searchAssociatedGroupsForReference, getChannelMemberCountsByGroup, draft, currentTeamId} = this.props;
+        const {useLDAPGroupMentions, useCustomGroupMentions, channelId, searchAssociatedGroupsForReference, getChannelMemberCountsByGroup, draft, currentTeamId} = this.props;
 
         if ((useLDAPGroupMentions || useCustomGroupMentions) && channelId) {
             const mentions = mentionsMinusSpecialMentionsInText(draft.message);
@@ -358,7 +355,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             if (mentions.length === 1) {
                 searchAssociatedGroupsForReference(mentions[0], currentTeamId, channelId);
             } else if (mentions.length > 1) {
-                getChannelMemberCountsByGroup(channelId, isTimezoneEnabled);
+                getChannelMemberCountsByGroup(channelId);
             }
         }
     };
@@ -582,7 +579,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             channelMembersCount,
             enableConfirmNotificationsToChannel,
             useChannelMentions,
-            isTimezoneEnabled,
             groupsWithAllowReference,
             channelMemberCountsByGroup,
             useLDAPGroupMentions,
@@ -643,10 +639,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 }
             }
 
-            if (isTimezoneEnabled) {
-                const {data} = await this.props.getChannelTimezones(this.props.channelId);
-                channelTimezoneCount = data ? data.length : 0;
-            }
+            const {data} = await this.props.getChannelTimezones(this.props.channelId);
+            channelTimezoneCount = data ? data.length : 0;
         }
 
         if (!useChannelMentions && hasSpecialMentions) {

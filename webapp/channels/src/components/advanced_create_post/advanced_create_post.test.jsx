@@ -104,7 +104,6 @@ function advancedCreatePost({
     currentUsersLatestPost = currentUsersLatestPostProp,
     canUploadFiles = true,
     emojiMap = new EmojiMap(new Map()),
-    isTimezoneEnabled = false,
     useLDAPGroupMentions = true,
     useCustomGroupMentions = true,
     canPost = true,
@@ -139,7 +138,6 @@ function advancedCreatePost({
             emojiMap={emojiMap}
             badConnection={false}
             shouldShowPreview={false}
-            isTimezoneEnabled={isTimezoneEnabled}
             canPost={canPost}
             useChannelMentions={true}
             useLDAPGroupMentions={useLDAPGroupMentions}
@@ -642,7 +640,6 @@ describe('components/advanced_create_post', () => {
                     ...actionsProp,
                     getChannelTimezones: jest.fn(() => Promise.resolve({data: [1, 2, 3, 4]})),
                 },
-                isTimezoneEnabled: true,
                 currentChannelMembersCount: 9,
             }),
         );
@@ -672,7 +669,6 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(
             advancedCreatePost({
                 getChannelTimezones: jest.fn(() => Promise.resolve([])),
-                isTimezoneEnabled: false,
             }),
         );
 
