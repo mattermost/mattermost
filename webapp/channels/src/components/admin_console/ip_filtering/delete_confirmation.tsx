@@ -11,7 +11,6 @@ type Props = {
     filterToDelete?: AllowedIPRange;
 }
 
-
 export default function DeleteConfirmationModal({ onClose, onConfirm, filterToDelete }: Props) {
     const {formatMessage} = useIntl();
     return (

@@ -52,6 +52,7 @@ export default function SaveConfirmationModal({ onClose, onConfirm, title, subti
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
                 </Button>
                 <Button
+                    data-testid="save-confirmation-button"
                     type="button"
                     className="btn-delete"
                     onClick={() => onConfirm?.()}

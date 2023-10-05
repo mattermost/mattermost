@@ -3,7 +3,7 @@ import { Button, Modal } from 'react-bootstrap';
 import Input, { CustomMessageInputType } from 'components/widgets/inputs/input/input';
 import { AllowedIPRange } from '@mattermost/types/config';
 
-import './add_edit_ip_filter_modal.scss'
+import './add_edit_ip_filter_modal.scss';
 import InfoIcon from 'components/widgets/icons/info_icon';
 import { useIntl } from 'react-intl';
 
@@ -114,6 +114,7 @@ export default function IPFilteringAddOrEditModal({ onClose, onSave, existingRan
                     Cancel
                 </Button>
                 <Button
+                    data-testid="save-add-edit-button"
                     type="button"
                     className="btn-save"
                     onClick={handleSave}
