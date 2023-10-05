@@ -240,15 +240,19 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 
 var err error
 
-func BenchmarkEncodeJSON(b *testing.B) {
+func BenchmarkEncodeEvent(b *testing.B) {
 	message := NewWebSocketEvent(WebsocketEventUserAdded, "", "channelID", "", nil, "")
 	message.Add("user_id", "userID")
 	message.Add("team_id", "teamID")
 
 	ev := message.PrecomputeJSON()
 
+	var seq int64
 	enc := json.NewEncoder(io.Discard)
+	// This tries to emulate the event encoding step.
 	for i := 0; i < b.N; i++ {
+		ev = ev.SetSequence(seq)
 		err = ev.Encode(enc)
+		seq++
 	}
 }

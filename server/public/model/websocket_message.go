@@ -268,9 +268,8 @@ func (ev *WebSocketEvent) SetBroadcast(broadcast *WebsocketBroadcast) *WebSocket
 }
 
 func (ev *WebSocketEvent) SetSequence(seq int64) *WebSocketEvent {
-	evCopy := ev.Copy()
-	evCopy.sequence = seq
-	return evCopy
+	ev.sequence = seq
+	return ev
 }
 
 func (ev *WebSocketEvent) IsValid() bool {
