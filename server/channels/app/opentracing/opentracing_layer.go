@@ -17661,7 +17661,7 @@ func (a *OpenTracingAppLayer) UpdatePasswordSendEmail(c request.CTX, user *model
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdatePost(c *request.Context, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePost")
 
@@ -17673,7 +17673,7 @@ func (a *OpenTracingAppLayer) UpdatePost(c *request.Context, post *model.Post, s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdatePost(c, post, safeUpdate)
+	resultVar0, resultVar1 := a.app.UpdatePost(c, receivedUpdatedPost, safeUpdate)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
