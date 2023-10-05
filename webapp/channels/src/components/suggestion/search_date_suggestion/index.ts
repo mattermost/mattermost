@@ -16,8 +16,7 @@ import SearchDateSuggestion from './search_date_suggestion';
 function mapStateToProps(state: GlobalState) {
     const timezone = getCurrentTimezone(state);
     const locale = getCurrentLocale(state);
-
-    let currentDate = getCurrentDateForTimezone(timezone);
+    const currentDate = getCurrentDateForTimezone(timezone);
 
     return {
         currentDate,
