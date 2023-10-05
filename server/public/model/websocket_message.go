@@ -134,6 +134,9 @@ const (
 	WebsocketEventChannelViewed = "channel_viewed"
 	// A MultipleChannelsViewed event is sent whenever a user reads one or more channels, marking them entirely as read.
 	// It's sent only to that user.
+	//
+	// This event is only sent when a previously-unread channel becomes read, unlike [WebsocketEventChannelViewed]
+	// which would be sent even when a user views a previously-read channel.
 	WebsocketEventMultipleChannelsViewed = "multiple_channels_viewed"
 
 	// A PluginStatusesChanged event is sent whenever a plugin is installed or uninstalled. It's sent only to system
