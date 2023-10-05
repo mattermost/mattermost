@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @channel
 
-describe('Group Message', () => {
+describe('Group Message Conversion To Private Channel', () => {
     let testTeam1;
     let testTeam2;
 

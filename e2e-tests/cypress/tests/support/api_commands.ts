@@ -477,6 +477,7 @@ declare global {
              * This API assume that the user is logged in and has cookie to access
              */
             apiUnpinPosts: typeof apiUnpinPosts;
+            apiConvertGMToPrivateChannel: typeof apiConvertGMToPrivateChannel;
 
             /**
             * Creates a command directly via API
