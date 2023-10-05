@@ -20,7 +20,7 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface)
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+		defer jobServer.HandleJobPanic(logger, job)
 
 		return app.ComputeLastAccessiblePostTime()
 	}

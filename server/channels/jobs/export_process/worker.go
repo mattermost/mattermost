@@ -27,7 +27,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 
 	isEnabled := func(cfg *model.Config) bool { return true }
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+		defer jobServer.HandleJobPanic(logger, job)
 
 		opts := model.BulkExportOpts{
 			CreateArchive: true,

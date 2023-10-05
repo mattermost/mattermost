@@ -21,7 +21,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		return app.IsPersistentNotificationsEnabled()
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+		defer jobServer.HandleJobPanic(logger, job)
 		return app.SendPersistentNotifications()
 	}
 	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)

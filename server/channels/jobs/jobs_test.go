@@ -501,6 +501,7 @@ func TestUpdateInProgressJobData(t *testing.T) {
 
 func TestHandleJobPanic(t *testing.T) {
 	t.Run("no panic", func(t *testing.T) {
+		logger := mlog.CreateConsoleTestLogger(t)
 		jobServer, _, _ := makeJobServer(t)
 
 		job := &model.Job{
@@ -509,7 +510,7 @@ func TestHandleJobPanic(t *testing.T) {
 		}
 
 		f := func() {
-			defer jobServer.HandleJobPanic(job)
+			defer jobServer.HandleJobPanic(logger, job)
 			fmt.Println("OK")
 		}
 
@@ -518,6 +519,7 @@ func TestHandleJobPanic(t *testing.T) {
 	})
 
 	t.Run("with panic string", func(t *testing.T) {
+		logger := mlog.CreateConsoleTestLogger(t)
 		jobServer, mockStore, metrics := makeJobServer(t)
 
 		job := &model.Job{
@@ -526,7 +528,7 @@ func TestHandleJobPanic(t *testing.T) {
 		}
 
 		f := func() {
-			defer jobServer.HandleJobPanic(job)
+			defer jobServer.HandleJobPanic(logger, job)
 			panic("not OK")
 		}
 
@@ -538,6 +540,7 @@ func TestHandleJobPanic(t *testing.T) {
 	})
 
 	t.Run("with panic error", func(t *testing.T) {
+		logger := mlog.CreateConsoleTestLogger(t)
 		jobServer, mockStore, metrics := makeJobServer(t)
 
 		job := &model.Job{
@@ -546,7 +549,7 @@ func TestHandleJobPanic(t *testing.T) {
 		}
 
 		f := func() {
-			defer jobServer.HandleJobPanic(job)
+			defer jobServer.HandleJobPanic(logger, job)
 			panic(fmt.Errorf("not OK"))
 		}
 

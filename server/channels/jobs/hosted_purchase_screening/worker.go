@@ -29,7 +29,7 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeSto
 		return !license.IsCloud()
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+		defer jobServer.HandleJobPanic(logger, job)
 
 		now := time.Now()
 		screenTimeValue, err := screenTimeStore.GetByName(model.SystemHostedPurchaseNeedsScreening)

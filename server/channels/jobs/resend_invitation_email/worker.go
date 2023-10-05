@@ -89,7 +89,7 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 	logger := rseworker.logger.With(jobs.JobLoggerFields(job)...)
 	logger.Debug("Worker: Received a new candidate job.")
-	defer rseworker.jobServer.HandleJobPanic(job)
+	defer rseworker.jobServer.HandleJobPanic(logger, job)
 
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis {

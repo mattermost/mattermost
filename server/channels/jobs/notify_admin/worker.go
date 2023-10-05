@@ -24,7 +24,7 @@ func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, 
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+		defer jobServer.HandleJobPanic(logger, job)
 
 		appErr := app.DoCheckForAdminNotifications(false)
 		if appErr != nil {
@@ -42,7 +42,7 @@ func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, ap
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+		defer jobServer.HandleJobPanic(logger, job)
 
 		appErr := app.DoCheckForAdminNotifications(true)
 		if appErr != nil {
@@ -60,7 +60,7 @@ func MakeInstallPluginNotifyWorker(jobServer *jobs.JobServer, app AppIface) *job
 		return true
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+		defer jobServer.HandleJobPanic(logger, job)
 
 		appErr := app.DoCheckForAdminNotifications(false)
 		if appErr != nil {

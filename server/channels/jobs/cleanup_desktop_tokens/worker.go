@@ -28,7 +28,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store) *jobs.SimpleWorker
 		return true
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+		defer jobServer.HandleJobPanic(logger, job)
 
 		return store.DesktopTokens().DeleteOlderThan(time.Now().Add(-maxAge).Unix())
 	}

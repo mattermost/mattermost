@@ -30,7 +30,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *job
 		return true
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		jobServer.HandleJobPanic(job)
+		jobServer.HandleJobPanic(logger, job)
 
 		var err error
 		var fromTS int64

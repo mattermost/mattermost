@@ -219,13 +219,11 @@ func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
 
 // HandleJobPanic is used to handle panics during the execution of a job. It logs the panic and sets the status for the job.
 // After handling, the method repanics! This method is supposed to be `defer`'d at the start of the job.
-func (srv *JobServer) HandleJobPanic(job *model.Job) {
+func (srv *JobServer) HandleJobPanic(logger mlog.LoggerIFace, job *model.Job) {
 	r := recover()
 	if r == nil {
 		return
 	}
-
-	logger := srv.logger.With(JobLoggerFields(job)...)
 
 	sb := &strings.Builder{}
 	pprof.Lookup("goroutine").WriteTo(sb, 2)

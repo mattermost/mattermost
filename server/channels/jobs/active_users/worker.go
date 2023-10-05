@@ -18,7 +18,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, getMetrics func() 
 		return *cfg.MetricsSettings.Enable
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+		defer jobServer.HandleJobPanic(logger, job)
 
 		count, err := store.User().Count(model.UserCountOptions{IncludeDeleted: false})
 		if err != nil {
