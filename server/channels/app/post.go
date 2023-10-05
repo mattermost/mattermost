@@ -2206,10 +2206,19 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 			return nil, appErr
 		}
 
-		if team.AllowOpenInvite {
-			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPublicTeams)
-		} else {
-			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPrivateTeams)
+		teamMember, appErr := a.GetTeamMember(channel.TeamId, c.Session().UserId)
+		if appErr == nil {
+			if teamMember.DeleteAt == 0 {
+				hasPermissionToAccessTeam = true
+			}
+		}
+
+		if !hasPermissionToAccessTeam {
+			if team.AllowOpenInvite {
+				hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPublicTeams)
+			} else {
+				hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPrivateTeams)
+			}
 		}
 	} else {
 		// This happens in case of DMs and GMs.

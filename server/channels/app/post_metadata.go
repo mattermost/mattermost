@@ -615,7 +615,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
 		referencedPostID := requestURL[len(requestURL)-26:]
 
-		referencedPost, appErr := a.GetSinglePost(referencedPostID, false)
+		referencedPost, appErr := a.GetPostIfAuthorized(c, referencedPostID, c.Session(), false)
 		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil {
 			return nil, nil, nil, appErr
