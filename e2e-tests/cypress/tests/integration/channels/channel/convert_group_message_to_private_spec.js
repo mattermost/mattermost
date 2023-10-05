@@ -131,9 +131,7 @@ describe('Group Message Conversion To Private Channel', () => {
                 }];
 
                 cy.apiAddUsersToTeam(testTeam3.id, teamMembers).then(() => {
-
                     cy.apiCreateGroupChannel([testUser1.id, testUser2.id, testUser3.id, testUser5.id]).then(({channel}) => {
-
                         gm3 = channel;
 
                         // Open the GM
@@ -143,6 +141,23 @@ describe('Group Message Conversion To Private Channel', () => {
                         cy.findByText('Unable to convert to a channel because group members are part of different teams').wait(2000);
                     });
                 });
+            });
+        });
+    });
+
+    it('websocket event should update channel category correctly when in channel', () => {
+        cy.apiCreateGroupChannel([testUser1.id, testUser2.id, testUser3.id]).then(({channel}) => {
+            gm = channel;
+
+            console.log(gm.name);
+
+            // Open the GM
+            cy.visit(`/${testTeam1.name}/messages/${gm.name}`);
+
+            // convert via API call
+            const timestamp = Date.now();
+            cy.apiConvertGMToPrivateChannel(gm.id, testTeam2.id, `Channel ${timestamp}`, `c-${timestamp}`).then(() => {
+                cy.url().should('contain', `${testTeam2.name}/channels/c-${timestamp}`);
             });
         });
     });

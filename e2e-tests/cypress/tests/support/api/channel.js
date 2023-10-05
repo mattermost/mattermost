@@ -186,3 +186,19 @@ Cypress.Commands.add('apiCreateArchivedChannel', (name, displayName, type = 'O',
         return cy.wrap(channel);
     });
 });
+
+Cypress.Commands.add('apiConvertGMToPrivateChannel', (channelId, teamId, displayName, name) => {
+    const body = {
+        channel_id: channelId,
+        team_id: teamId,
+        display_name: displayName,
+        name,
+    };
+
+    return cy.request({
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        url: `/api/v4/channels/${channelId}/convert_to_channel?team_id=${teamId}`,
+        method: 'POST',
+        body,
+    });
+});
