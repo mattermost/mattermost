@@ -112,7 +112,7 @@ export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: Gener
                 // an intermediate step, meant to handle the edge case of missing the upcoming "update category"
                 // websocket message, triggered on conversion of GM to private channel.
                 newState[categoryID] = {
-                    ...newState[categoryID],
+                    ...state[categoryID],
                     channel_ids: [...state[categoryID].channel_ids, receivedChannel.id],
                 };
             } else {
