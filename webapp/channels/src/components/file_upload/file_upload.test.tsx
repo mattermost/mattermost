@@ -232,7 +232,11 @@ describe('components/FileUpload', () => {
         const event = new Event('paste');
         event.preventDefault = jest.fn();
         const getAsString = jest.fn();
-        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}], types: ['text/plain'], getData: () => {}};
+        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}],
+            types: ['text/plain'],
+            getData: () => {
+                return '';
+            }};
 
         const wrapper = shallowWithIntl(
             <FileUpload
