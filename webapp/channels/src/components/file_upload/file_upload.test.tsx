@@ -8,7 +8,7 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {General} from 'mattermost-redux/constants';
 
-import FileUpload from 'components/file_upload/file_upload';
+import FileUpload, {createFileFromItem} from 'components/file_upload/file_upload';
 import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
@@ -415,5 +415,77 @@ describe('components/FileUpload', () => {
 
         expect(baseProps.onUploadError).toHaveBeenCalledTimes(1);
         expect(baseProps.onUploadError).toHaveBeenCalledWith(null);
+    });
+});
+
+describe('createFileFromItem', () => {
+    test('should return a file from a clipboard item', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                name: 'test1.png',
+                type: 'image/png',
+            })),
+            type: 'image/png',
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromItem(item, jest.fn()) as File;
+        expect(file).toBeInstanceOf(File);
+        expect(file.name).toEqual('test1.png');
+        expect(file.type).toEqual('image/png');
+    });
+
+    test('should return null if getAsFile is not a file', () => {
+        const item = {
+            getAsFile: jest.fn(() => null),
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromItem(item, jest.fn());
+        expect(file).toBeNull();
+    });
+
+    test('Should return correct file name when file name is not available', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                type: 'image/jpeg',
+            })),
+            type: 'image/jpeg',
+        } as unknown as DataTransferItem;
+        const formatMessage = jest.fn(() => 'pasted');
+
+        const now = new Date();
+
+        const file = createFileFromItem(item, formatMessage) as File;
+
+        expect(file).toBeInstanceOf(File);
+        expect(file.name).toBe(`pasted${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}.jpeg`);
+        expect(file.type).toBe('image/jpeg');
+    });
+
+    test('Should return correct file extension when file name contains extension', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                name: 'test.jpeg',
+            })),
+            type: 'image/jpeg',
+        } as unknown as DataTransferItem;
+        const formatMessage = jest.fn(() => 'pasted');
+
+        const file = createFileFromItem(item, formatMessage) as File;
+
+        expect(file.name).toContain('.jpeg');
+    });
+
+    test('Should return correct file extension when file name doesnt contains extension', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                type: 'image/JPEG',
+            })),
+            type: 'image/jpeg',
+        } as unknown as DataTransferItem;
+        const formatMessage = jest.fn(() => 'pasted');
+
+        const file = createFileFromItem(item, formatMessage) as File;
+
+        expect(file.name).toContain('.jpeg');
     });
 });

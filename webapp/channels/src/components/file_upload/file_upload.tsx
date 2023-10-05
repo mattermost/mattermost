@@ -449,10 +449,10 @@ export class FileUpload extends PureComponent<Props, State> {
     containsEventTarget = (targetElement: HTMLInputElement | null, eventTarget: EventTarget | null) => targetElement && targetElement.contains(eventTarget as Node);
 
     /**
-     * This paste handler is used to attach file uploads from the clipboard and filter out any plain text pastes.
+     * This paste handler sole responsibility is to detect if the clipboard data contains "files" and pass them to the upload file handler.
      */
     pasteUpload = (e: ClipboardEvent) => {
-        // If the clipboard data doesn't or it contains plain text, do nothing and let the browser and other handlers.
+        // If the clipboard data doesn't contain anything or it contains plain text, do nothing and let the browser and other handlers do their thing.
         if (!e.clipboardData || !e.clipboardData.items || hasPlainText(e.clipboardData)) {
             return;
         }
@@ -470,44 +470,21 @@ export class FileUpload extends PureComponent<Props, State> {
 
         if (fileClipboardItems.length > 0) {
             if (!this.props.canUploadFiles) {
-                this.props.onUploadError(localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+                this.props.onUploadError(this.props.intl.formatMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
                 return;
             }
 
             e.preventDefault();
 
             const fileList = fileClipboardItems.
-                map((fileClipboardItem) => this.createFileFromItem(fileClipboardItem)).
-                filter((file) => file !== null) as File[];
+                map((fileClipboardItem) => createFileFromItem(fileClipboardItem, this.props.intl.formatMessage)).
+                filter((file): file is NonNullable<typeof file> => file !== null);
 
             if (fileList.length > 0) {
                 this.checkPluginHooksAndUploadFiles(fileList);
                 this.props.onFileUploadChange();
             }
         }
-    };
-
-    createFileFromItem = (item: DataTransferItem): File | null => {
-        const file = item.getAsFile();
-
-        if (!file) {
-            return null;
-        }
-
-        const now = new Date();
-        const hour = now.getHours().toString().padStart(2, '0');
-        const minute = now.getMinutes().toString().padStart(2, '0');
-
-        let ext = '';
-        if (file.name && file.name.includes('.')) {
-            ext = file.name.slice(file.name.lastIndexOf('.'));
-        } else if (item.type.includes('/')) {
-            ext = '.' + item.type.split('/')[1].toLowerCase();
-        }
-
-        const name = file.name || this.props.intl.formatMessage(holders.pasted) + now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate() + ' ' + hour + '-' + minute + ext;
-
-        return new File([file as Blob], name, {type: file?.type});
     };
 
     keyUpload = (e: KeyboardEvent) => {
@@ -732,12 +709,42 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         return (
-
             <div className={uploadsRemaining <= 0 ? ' style--none btn-file__disabled' : 'style--none'}>
                 {bodyAction}
             </div>
         );
     }
+}
+
+export function createFileFromItem(item: DataTransferItem, formatMessage: IntlShape['formatMessage']): File | null {
+    const file = item.getAsFile();
+
+    if (!file) {
+        return null;
+    }
+
+    let ext = '';
+    if (file.name && file.name.includes('.')) {
+        ext = file.name.slice(file.name.lastIndexOf('.'));
+    } else if (item.type.includes('/')) {
+        ext = '.' + item.type.slice(item.type.lastIndexOf('/') + 1).toLowerCase();
+    }
+
+    let name = '';
+    if (file.name) {
+        name = file.name;
+    } else {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const hour = now.getHours().toString().padStart(2, '0');
+        const minute = now.getMinutes().toString().padStart(2, '0');
+
+        name = `${formatMessage(holders.pasted)}${year}-${month}-${date} ${hour}-${minute}${ext}`;
+    }
+
+    return new File([file as Blob], name, {type: file.type});
 }
 
 const wrappedComponent = injectIntl(FileUpload, {forwardRef: true});
