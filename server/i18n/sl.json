@@ -1,0 +1,4698 @@
+[
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "Uporabnika ni mogoče najti "
+  },
+  {
+    "id": "web.incoming_webhook.text.app_error",
+    "translation": "Ni besedila"
+  },
+  {
+    "id": "web.incoming_webhook.permissions.app_error",
+    "translation": "Neprimerna dovoljenja za kanale"
+  },
+  {
+    "id": "web.incoming_webhook.parse.app_error",
+    "translation": "Dohodnih podatkov ni mogoče razbrati"
+  },
+  {
+    "id": "web.incoming_webhook.invalid.app_error",
+    "translation": "Neveljavna metoda"
+  },
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "Administrator je onemogočil vhodne spletne zanke."
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "Kanala ni bilo mogoče najti"
+  },
+  {
+    "id": "web.get_access_token.internal_saving.app_error",
+    "translation": "Podatkov za dostop uporabnika ni mogoče posodobiti."
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Dohodnih podatkov ni mogoče razbrati"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Ukaza ni bilo mogoče najti"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "Sistem"
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Pogojev storitve ni mogoče izbrisati."
+  },
+  {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "Ni mogoče najti obstoječega računa, ki se ujema z vašimi poverilnicami. Ta ekipa lahko potrebuje vabilo lastnika ekipe za pridružitev."
+  },
+  {
+    "id": "store.sql_team.save_member.exists.app_error",
+    "translation": "Član ekipe s tem ID-jem že obstaja"
+  },
+  {
+    "id": "app.emoji.delete.no_results",
+    "translation": "Ne moremo najti čustvenega simbola za brisanje"
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "Čustvenih simbolov ni mogoče izbrisati"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "Ukaza ni mogoče dobiti"
+  },
+  {
+    "id": "app.channel_member_history.log_leave_event.internal_error",
+    "translation": "Zgodovina članov kanala ni bila posneta. Posodobitev obstoječega posnetka pridružitve ni uspela"
+  },
+  {
+    "id": "app.channel_member_history.log_join_event.internal_error",
+    "translation": "Zgodovina članov kanala ni bila posneta"
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "Kanala ni mogoče posodobiti"
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "Dosegli ste omejitev števila dovoljenih kanalov."
+  },
+  {
+    "id": "store.sql_channel.save_channel.exists.app_error",
+    "translation": "Kanal s tem imenom že obstaja v isti skupini"
+  },
+  {
+    "id": "store.sql_channel.save_channel.existing.app_error",
+    "translation": "Za obstoječi kanal se mora izvesti posodobitev"
+  },
+  {
+    "id": "store.sql_channel.save.direct_channel.app_error",
+    "translation": "Uporabite SaveDirectChannel za ustvarjanje neposrednega kanala"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "Arhiviranega kanala ne morete spremeniti"
+  },
+  {
+    "id": "app.channel.get_deleted.missing.app_error",
+    "translation": "Izbrisani kanali ne obstajajo"
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Obstoječega izbrisanega kanala ni mogoče najti"
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "Ni bilo najdenih kanalov"
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Kanal ne obstaja"
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "Ni mogoče najti obstoječega kanala"
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "Prišlo je do napake pri shranjevanju revizije"
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "Prišlo je do napake pri brisanju revizij"
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "Pri iskanju revizij smo naleteli na napako"
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Manjkajoči ZA naslov."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Manjka predmet e-pošte."
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Ni mogoče dobiti javne povezave za datoteko. Datoteka mora biti dodana k objavi, ki jo trenutno uporabnik lahko bere."
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Javne povezave so onemogočene"
+  },
+  {
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Statusa uporabnika ni mogoče nastaviti. Neznan status uporabnika."
+  },
+  {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "Pogoji storitve GitLab so posodobljeni. Prosimo, pojdite na gitlab.com, da jih sprejmete in se nato poskusite znova prijaviti v Mattermost."
+  },
+  {
+    "id": "model.websocket_client.connect_fail.app_error",
+    "translation": "Ni mogoče vzpostaviti povezave s strežnikom WebSocket."
+  },
+  {
+    "id": "model.utils.decode_json.app_error",
+    "translation": "ni bilo mogoče dekodirati"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "Neveljaven žeton za dostop"
+  },
+  {
+    "id": "model.user_access_token.is_valid.id.app_error",
+    "translation": "Neveljavna ID vrednost."
+  },
+  {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Neveljaven opis, mora imeti 255 ali manj znakov"
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Uporabniško ime se mora začeti s črko in mora vsebovati od 3 do 22 znakov, vključno s številkami, malimi črkami in simboli \".\", \"-\" in \"_\"."
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Posodobi na mora biti veljaven čas"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene velike črke in vsaj enega simbola (npr. \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene velike črke, vsaj ene številke in vsaj enega simbola (npr. \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znake, sestavljene iz vsaj ene velike črke in vsaj ene številke."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znake, sestavljene iz vsaj ene velike črke."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj enega simbola (npr. \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene številke in vsaj enega simbola (npr. \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene številke."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znake, sestavljene iz vsaj ene male črke, vsaj ene velike črke in vsaj enega simbola (npr. \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene male črke, vsaj ene velike črke, vsaj ene številke in vsaj enega simbola (npr.: ~! @ # $% ^ & * () \")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znake, sestavljene iz vsaj ene male črke in vsaj ene velike črke."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene male črke in vsaj enega simbola (npr. \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene male črke, vsaj ene številke in vsaj enega simbola (npr.: \"~! @ # $% ^ & * ()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znake, sestavljene iz vsaj ene male črke in vsaj ene številke."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene male črke."
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov."
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Neveljavno uporabniško ime."
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Neveljavno uporabniško ime."
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Neveljavno uporabniško ime."
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Neveljavno uporabniško ime."
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Neveljavna e-pošta"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Neveljaven žeton."
+  },
+  {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Neveljaven potek veljavnosti žetona"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "Neveljaven ID ekipe"
+  },
+  {
+    "id": "model.team.is_valid.url.app_error",
+    "translation": "Neveljaven URL identifikator"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "Posodobi na mora biti veljaven čas"
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "Neveljavna vrsta"
+  },
+  {
+    "id": "model.team.is_valid.reserved.app_error",
+    "translation": "Ta URL ni na voljo. Poskusite drugega."
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "Neveljavno ime"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "Neveljaven ID"
+  },
+  {
+    "id": "model.team.is_valid.email.app_error",
+    "translation": "Neveljavna e-pošta"
+  },
+  {
+    "id": "model.team.is_valid.domains.app_error",
+    "translation": "Neveljavne dovoljene domene"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Neveljaven opis"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "Neveljavno ime podjetja"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "Ime mora vsebovati 2 ali več malih alfanumeričnih znakov"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "Neveljaven ID objave"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "Neveljavno ime čustvenega simbola"
+  },
+  {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.preference.is_valid.value.app_error",
+    "translation": "Vrednost je predolga"
+  },
+  {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Neveljavna tema"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "Neveljavno ime"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.preference.is_valid.category.app_error",
+    "translation": "Neveljavna kategorija"
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "Posodobi na mora biti veljaven čas"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "Neveljavna vrsta"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "Neveljaven root ID"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "Neveljavni rekviziti"
+  },
+  {
+    "id": "model.post.is_valid.original_id.app_error",
+    "translation": "Neveljaven original ID"
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "Neveljavno sporočilo"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "Neveljaven ID"
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "Neveljavna imena datotek"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Neveljavni ID-ji datotek. Upoštevajte, da so prenosi omejeni na največ 5 datotek. Za dodatne datoteke uporabite dodatne objave."
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "Neveljaven ID kanala"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Neveljaven ID vtičnika, mora vsebovati več kot {{.Min}} in največ {{.Max}} znakov."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Neveljaven ključ, mora vsebovati več kot {{.Min}} in največ {{.Max}} znakov."
+  },
+  {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "Pri poskusu izvajanja tega ukaza je prišlo do napake."
+  },
+  {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "Neveljavno uporabniško ime."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "Neveljavni URLji. Morajo biti veljavni URLji in se začeti s http:// ali https://"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "Posodobi na mora biti veljaven čas"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "Neveljaven žeton."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "Neveljaven ID ekipe"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "Neveljaven ID"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "Neveljaven naslov"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "Neveljaven opis"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "Neveljaven ID kanala"
+  },
+  {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Neveljavna ikona"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "Posodobi na mora biti veljaven čas"
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "Neveljavno ime"
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "URL za ikone mora biti veljaven URL in se začeti s http:// ali https://."
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "Domača stran mora imeti veljaven URL in se začeti s http:// ali https://."
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "Neveljaven opis"
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "Neveljaven ID ustvarjalca"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.oauth.is_valid.client_secret.app_error",
+    "translation": "Neveljavna skrivnost odjemalca"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "Neveljaven URL. Mora biti veljaven URL in se začeti s http:// ali https://"
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "Neveljaven ID aplikacije"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "URL metapodatkov povezave mora biti nastavljen"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Neveljaven tip metapodatkov povezave"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Časovni žig metapodatkov povezave mora biti različen od nič in zaokrožen na najbližjo uro"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Podatki metapodatkov povezave se ne ujemajo s podanim tipom"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Podatki o metapodatkih povezav ne morejo biti ničelni"
+  },
+  {
+    "id": "model.license_record.is_valid.id.app_error",
+    "translation": "Neveljavna vrednost za ID pri prenosu licence."
+  },
+  {
+    "id": "model.license_record.is_valid.create_at.app_error",
+    "translation": "Neveljavna vrednost za create_at pri prenosu licence."
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Neveljaven tip opravila"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Neveljavno stanje opravila"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Neveljaven ID opravila"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Neveljavno uporabniško ime."
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "Posodobi na mora biti veljaven čas"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "Neveljaven ID ekipe"
+  },
+  {
+    "id": "model.incoming_hook.parse_data.app_error",
+    "translation": "Dohodnih podatkov ni mogoče razbrati"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "Neveljaven ID"
+  },
+  {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "Neveljavna ikona objave"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "Neveljaven naslov"
+  },
+  {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "Neveljaven opis"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "Neveljaven ID kanala"
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "Neveljavna e-pošta"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "Neveljavna e-pošta"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Neveljaven ID kanala"
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Neveljaven ID kanala"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "neveljavna lastnost ID skupine za člana skupine"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "neveljavna lastnost ID uporabnika za člana skupine"
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "neveljavna lastnost ID skupine za člana skupine"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "neveljavna posodobitev za lastnost za skupino"
+  },
+  {
+    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
+    "translation": "Migracija ni uspela zaradi neveljavnih podatkov o napredku."
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "Neveljaven MFA žeton."
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Več-faktorsko preverjanje pristnosti je bilo onemogočeno na tem strežniku."
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "Napaka pri ustvarjanju kode QR"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "Neveljaven MFA žeton."
+  },
+  {
+    "id": "mattermost.bulletin.subject",
+    "translation": "Mattermost varnostni bilten"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "Ni mogoče najti kanalov"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "URL ni mogoče razčleniti"
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Stanja opravila ni bilo mogoče nastaviti na napako"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Ni možno zahtevati preklica za opravilo, ki ni v stanju, ki ga je mogoče preklicati."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Napaka pri podpisovanju trigger ID za interaktivni dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Preverjanje podpisa ni uspelo zaradi ID-ja sprožilca za interaktivno pogovorno okno."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Dekodiranje base64 podpisa ID-ja sprožilca za interaktivno pogovorno okno ni uspelo."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Manjkajo zahtevani podatki za Trigger ID interaktivnega dialoga."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "ID sprožilca za interaktivno pogovorno okno je potekel. ID-ji prožilcev so na voljo za največ {{.Seconds}} sekund."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Dekodiranje base64 podpisa ID-ja sprožilca za interaktivno pogovorno okno ni uspelo."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Napaka pri dekodiranju base64 za trigger ID za interaktivni dialog."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML 2.0 ni podprt ali nastavljen na strežniku."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "Napaka pri izdelavi Service Provider Metadata."
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "Vaša licenca ne podpira overjanja SAML."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Pri preverjanju odgovora ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "Med razčlenjevanjem odgovora ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "Od ponudnika identitete smo prejeli prazen odgovor"
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "Prijava SAML ni bila uspešna, ker je prišlo do napake pri dešifriranju odgovora ponudnika identitete. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "Prijava SAML ni bila uspešna, ker odgovor ponudnika identitete ni šifriran. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "Prijava SAML ni bila uspešna, ker zasebnega ključa ponudnika storitev ni bilo mogoče najti. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Datoteke za javno potrdilo ponudnika identitete ni bilo mogoče najti. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "Prijava SAML ni bila uspešna, ker šifriranje ni omogočeno. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Med kodiranjem zahteve za ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "Pri sprožitvi zahteve do ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "Prijava SAML ni uspela, ker je eden od atributov napačen. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Uporabniško ime že uporablja drug Mattermost uporabnik."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "Uporabnika ni mogoče najti v datoteki uporabnikov."
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "E-pošto že uporablja drug uporabnik SAML."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Uporabnika na strežniku AD / LDAP ni mogoče najti: "
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Uporabnikov AD / LDAP z navedenim poljem ni mogoče preseliti. Zaznan je bil podvojen vnos. Odstranite vsa dvojna besedila in poskusite znova."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "Ni mogoče odpreti začasne datoteke za izvoz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "E-poštnega sporočila iz začasne datoteke ni mogoče dobiti"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "Podatkov o izvozni začasni datoteki ni mogoče dobiti"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "Ni mogoče nastaviti e-poštni Za naslov."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "Ni možno prebrati informacij o e-pošti."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "E-poštnega sporočila ni mogoče napisati."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "E-poštnega sporočila ni mogoče nastaviti."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "Ni mogoče nastaviti e-poštni Od naslov."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Podatkov o datoteki eml ni mogoče ustvariti."
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "Datoteke eml ni mogoče ustvariti."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Datoteke zip ni mogoče zapreti."
+  },
+  {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "Priloge ni mogoče dodati izvozu CSV."
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "napaka pri pridobivanju skupin za uporabnika"
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "z ujemajočim uid-om ni bilo najdenih skupin"
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "napaka pri pridobivanju članov skupine"
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "napaka pri pridobivanju ldap skupin"
+  },
+  {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "napaka pri pridobivanju skupine ldap"
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Neveljaven filter AD / LDAP"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Neveljaven filter AD / LDAP"
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Neveljaven filter AD / LDAP"
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "translation": "Iskanje uporabnikov v AD / LDAP ni uspelo. Preverite, ali se strežnik Mattermost lahko poveže z vašim strežnikom AD / LDAP in poskusite znova."
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "napaka pri pridobivanju skupin"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "Ni mogoče dobiti vseh uporabnikov, ki uporabljajo AD / LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "Uporabnik ni registriran na strežniku AD / LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "Vaš račun AD/LDAP nima dovoljenja za uporabo tega strežnika Mattermost. Prosite skrbnika sistema, da preveri filter uporabnikov AD/LDAP."
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "Ni mogoče vzpostaviti povezave s strežnikom AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "Iskanje strežnika AD/LDAP ni uspelo"
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "Podano uporabniško ime se ujema z več uporabniki"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "Funkcija AD/LDAP je onemogočena s trenutno licenco. O nadgradnji licence za podjetje se obrnite na skrbnika sistema."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "Neveljavno geslo"
+  },
+  {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "Povezava s strežnikom AD/LDAP ni možna. Preverite BindUsername in BindPassword."
+  },
+  {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "AD/LDAP je onemogočen ali licenca ne podpira AD/LDAP."
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "Uporabnika LDAP ni mogoče ustvariti."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "URL Elasticsearch strežnika ali uporabniško ime je spremenjeno. Če želite preskusiti povezavo, ponovno vnesite geslo Elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "Vaša licenca ne podpira Elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "Elasticsearch je onemogočen."
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "Elasticsearch je že ustavljen"
+  },
+  {
+    "id": "ent.elasticsearch.start.already_started.app_error",
+    "translation": "Elasticsearch je že zagnan"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+    "translation": "Napaka pri dekodiranju rezultatov iskanja"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "Iskanje ni bilo mogoče dokončati"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "Napaka pri dekodiranju rezultatov iskanja"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "Iskanje ni bilo mogoče dokončati"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "Podatkov o rezultatih iskanja ni bilo mogoče razčleniti"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "Elasticsearch iskanje je onemogočeno na tem strežniku"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Napaka pri dekodiranju rezultatov iskanja"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "Iskanje ni bilo mogoče dokončati"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "Elasticsearch iskanje je onemogočeno na tem strežniku"
+  },
+  {
+    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+    "translation": "Napaka pri pridobivanju Elasticsearch indeksov"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Indeks Elasticsearch ni bil izbrisan"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch ni zagnan"
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Objave ni bilo mogoče indeksirati"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Objave ni bilo mogoče indeksirati"
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Posodobitev kanala ni uspela"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "Elasticsearch iskanje ni omogočeno na tem strežniku"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Objave ni bilo mogoče izbrisati"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Objave ni bilo mogoče izbrisati"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Posodobitev kanala ni uspela"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "Napaka pri pridobivanju Elasticsearch indeksov"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "Napaka pri brisanju Elasticsearch indeksa"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Nastavitev odjemalca Elasticsearch ni uspela"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "Vaša licenca ne podpira hrambe podatkov."
+  },
+  {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "Izvoz skladnosti ni uspel za opravilo '{{.JobName}}' na '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_export.template_watcher.appError",
+    "translation": "Ni možno naložiti predlog za izvoz. Prosim poizkusite ponovno."
+  },
+  {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "Funkcija skladnosti je onemogočena s trenutno licenco. O nadgradnji licence za podjetje se obrnite na skrbnika sistema."
+  },
+  {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "Začasne izvozne datoteke ni mogoče odpreti."
+  },
+  {
+    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "translation": "Naložena datoteka je bila odstranjena iz izvoza Global Relay, ker je bila prevelika za pošiljanje."
+  },
+  {
+    "id": "ent.compliance.csv.zip.creation.appError",
+    "translation": "Izvozne datoteke zip ni mogoče ustvariti."
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Datoteke eml ni mogoče ustvariti."
+  },
+  {
+    "id": "ent.compliance.csv.post.export.appError",
+    "translation": "Objave ni mogoče izvoziti."
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "Navedena shema ni veljavna"
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Sheme ni mogoče ustvariti"
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "Shem ni bilo mogoče trajno izbrisati"
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Ni mogoče dobiti sheme"
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Reakcije ni mogoče shraniti"
+  },
+  {
+    "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "translation": "Ni mogoče dobiti vseh reakcij s tem imenom čustvenega simbola"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Iskanje je bilo na tem strežniku onemogočeno. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "Datoteke eml ni mogoče ustvariti."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "translation": "Metapodatkov ni mogoče pretvoriti v json."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.export.appError",
+    "translation": "Datoteke z metapodatki ni mogoče dodati v datoteko zip."
+  },
+  {
+    "id": "ent.compliance.csv.header.export.appError",
+    "translation": "Glave ni mogoče dodati izvozu CSV."
+  },
+  {
+    "id": "ent.compliance.csv.file.creation.appError",
+    "translation": "Ni mogoče ustvariti začasne izvozne datoteke CSV."
+  },
+  {
+    "id": "ent.compliance.csv.attachment.export.appError",
+    "translation": "Priloge ni mogoče dodati izvozu CSV."
+  },
+  {
+    "id": "ent.compliance.csv.attachment.copy.appError",
+    "translation": "Priloge ni mogoče kopirati v datoteko zip."
+  },
+  {
+    "id": "ent.compliance.bad_export_type.appError",
+    "translation": "Neznana izhodna oblika {{.ExportType}}"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "Sistemska konzola je nastavljena samo za branje, če je omogočena visoka razpoložljivost, razen če je v konfiguracijski datoteki onemogočeno ReadOnlyConfig."
+  },
+  {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "Konfiguracija gruče se je spremenila za id = {{.id}}. Gruča lahko postane nestabilna in potreben je ponovni zagon. Če želite zagotoviti, da je gruča pravilno konfigurirana, morate nemudoma znova izvesti ponovni zagon."
+  },
+  {
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "Uporabnikov SAML ni mogoče dobiti."
+  },
+  {
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "Uporabnikov ni mogoče dobiti."
+  },
+  {
+    "id": "brand.save_brand_image.save_image.app_error",
+    "translation": "Slikovne datoteke ni mogoče zapisati v shrambo datotek. Preverite povezavo in poskusite znova."
+  },
+  {
+    "id": "brand.save_brand_image.open.app_error",
+    "translation": "Ne morem prenesti slike blagovne znamke po meri. Prepričajte se, da je velikost slike manjša od 2 MB in poskusite znova."
+  },
+  {
+    "id": "brand.save_brand_image.encode.app_error",
+    "translation": "Slikovnih podatkov ni mogoče pretvoriti v format PNG. Prosim poskusite ponovno."
+  },
+  {
+    "id": "brand.save_brand_image.decode.app_error",
+    "translation": "Podatkov o sliki ni mogoče dekodirati."
+  },
+  {
+    "id": "bleveengine.search_users_in_team.error",
+    "translation": "Iskanje ni bilo mogoče dokončati"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.uchan.error",
+    "translation": "Iskanje ni bilo mogoče dokončati"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.nuchan.error",
+    "translation": "Iskanje ni bilo mogoče dokončati"
+  },
+  {
+    "id": "bleveengine.search_posts.error",
+    "translation": "Iskanje ni bilo mogoče dokončati"
+  },
+  {
+    "id": "bleveengine.search_channels.error",
+    "translation": "Iskanje ni bilo mogoče dokončati"
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "Objave ni bilo mogoče indeksirati"
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "Objave ni bilo mogoče indeksirati"
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "Posodobitev kanala ni uspela"
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "Objave ni bilo mogoče izbrisati"
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "Objave ni bilo mogoče izbrisati"
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "Posodobitev kanala ni uspela"
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "Neveljaven ali manjkajoč žeton"
+  },
+  {
+    "id": "app.user_access_token.disabled",
+    "translation": "Osebni žetoni za dostop so onemogočeni na tem strežniku. Za podrobnosti se obrnite na skrbnika sistema."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Ta ekipa je dosegla največje dovoljeno število računov. Obrnite se na skrbnika sistema, da nastavite višjo omejitev."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Datum namestitve ni bil razčlenjen"
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Prišlo je do napake pri kodiranju JSON za interaktivni dialog."
+  },
+  {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "Ta končna točka API ni dostopna, ker zahtevane migracije še niso dokončane."
+  },
+  {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "Zagotovljena vloga ne obstaja"
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Napaka med zapuščanjem kanala."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Napaka med zapuščanjem kanala."
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Vstavki in / ali prenosi vtičnikov so onemogočeni."
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Vtičnika ni mogoče izbrisati"
+  },
+  {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Vtičnik ni nameščen"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Vtičnika iz začasne mape ni mogoče premakniti v končno mapo. Drugi vtičnik morda uporablja isto ime mape."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Vtičniki so onemogočeni. Za podrobnosti preverite svoje dnevnike."
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Manifesta za izvoženi vtičnik ni mogoče najti"
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "ID vtičnika mora biti vsaj {{.Min}} znakov, največ {{.Max}} znakov in se ujema z {{.Regex}}."
+  },
+  {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "Vtičnika ni mogoče namestiti. Vtičnik z istim ID-jem je že nameščen in ga ni mogoče odstraniti."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "Vtičnika ni mogoče namestiti. Vtičnik z istim ID-jem je že nameščen."
+  },
+  {
+    "id": "app.plugin.install.app_error",
+    "translation": "Vtičnika ni mogoče namestiti."
+  },
+  {
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "Stanj vtičnika ni mogoče dobiti"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Aktivnih vtičnikov ni mogoče dobiti"
+  },
+  {
+    "id": "app.plugin.get_cluster_plugin_statuses.app_error",
+    "translation": "Stanj vtičnikov iz gruče ni mogoče dobiti."
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Prišlo je do napake datotečnega sistema"
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Vtičniki so onemogočeni. Za podrobnosti preverite svoje dnevnike."
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Pri brisanju certifikata je prišlo do napake."
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Vtičnika ni mogoče deaktivirati"
+  },
+  {
+    "id": "app.plugin.config.app_error",
+    "translation": "Napaka pri shranjevanju stanja vtičnika v config"
+  },
+  {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "Konfiguracijo vtičnika v datoteki config.json morate ročno posodobiti, ko uporabljate program ReadOnlyConfig z omogočenim združevanjem v gruče."
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "[{{ .SiteName }}] Obvestilo v {{ .TeamName}} dne {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{ .SiteName }}] Novo sporočilo skupine dne {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{ .SiteName }}] Novo sporočilo skupine v {{ .ChannelName}} dne {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "[{{.SiteName}}] Novo obvestilo od {{.SenderDisplayName}} dne {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Ime ekipe manjka v uporabnikovem članstvu v ekipi."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Neveljavne vloge za uporabnikovo članstvo v ekipi."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "Manjkajo zahteve za lastnost uporabnika: uporabniško ime."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "Uporabniško ime ni veljavno."
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "Vloge uporabnika niso veljavne."
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Neveljavna slika profila."
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "Položaj uporabnika je predolg."
+  },
+  {
+    "id": "app.import.validate_user_import_data.password_length.error",
+    "translation": "Uporabniško geslo ima neveljavno dolžino."
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "Vzdevek uporabnika je predolg."
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "Priimek za uporabnika je predolg."
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "Ime uporabnika je predolgo."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "Manjka zahtevana lastnost uporabnika: e-pošta."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "Uporabnikova e-pošta ima neveljavno dolžino."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "Uporabnikova AuthData je predolga."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "Uporabnikova AuthData in geslo se med seboj izključujeta."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Neveljavne vloge za članstvo uporabnika v kanalu."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "Neveljaven mobilni NotifyProps za članstvo uporabnikovega kanala."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Neveljaven MarkUnread NotifyProps za članstvo uporabnika kanala."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Neveljavne vloge za članstvo uporabnika v kanalu."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "V uporabniškem članskem kanalu manjka ime kanala."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "Manjka zahtevana lastnost ekipe: type."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "Vrsta ekipe ni veljavna."
+  },
+  {
+    "id": "app.import.validate_team_import_data.scheme_invalid.error",
+    "translation": "Neveljavno ime sheme za ekipo."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "Ime ekipevsebuje rezervirane besede."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "Manjka zahtevana lastnost ekipe: name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "Ime ekipe je predolgo."
+  },
+  {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "Vrstica za uvoz podatkov ima vrsto \"objava\", vendar ima predmet objave vrednost null."
+  },
+  {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "Vrstica za uvoz podatkov ima tip \"čustvenega simbola\", vrednost objekta emoji pa je null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "Vrstica za uvoz podatkov ima tip \"direct_post\", vendar ima objekt direct_post vrednost null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "Vrstica za uvoz podatkov ima tip \"direct_channel\", vendar ima objekt direct_channel vrednost null."
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "Vrstica za uvoz podatkov ima tip \"channel\", vendar ima objekt kanala vrednost null."
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Napaka pri pridobitvi kanala skupine"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "Ni bilo mogoče dobiti neposrednega kanala"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Posodobitev neposredne glave kanala ni uspela"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Napaka pri kreiranju skupinskega kanala"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Napaka pri kreiranju direktnega kanala"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "Napaka pri uvažanju kanala. Skupine z imenom \"{{.TeamName}}\" ni bilo mogoče najti."
+  },
+  {
+    "id": "app.import.import_channel.scheme_wrong_scope.error",
+    "translation": "Kanal mora biti dodeljen shemi, ki je določena v kanalu."
+  },
+  {
+    "id": "app.import.import_channel.scheme_deleted.error",
+    "translation": "Ni možno uporabiti izbrisano shemo za nastavitev kanala."
+  },
+  {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Napaka pri branju uvozne slikovne datoteke emoji. Emoji z imenom: \"{{.EmojiName}}\""
+  },
+  {
+    "id": "app.import.bulk_import.unsupported_version.error",
+    "translation": "Nepravilna ali manjkajoča različica v datoteki za uvoz podatkov. Poskrbite, da je različica prvi objekt v uvozni datoteki in poskusite znova."
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "Napaka pri dekodiranju JSON vrstice."
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "Napaka pri branju datoteke za uvoz."
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "Napaka pri nalaganju datoteke: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "Napaka pri branju datoteke: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "Pri pisanju izvoznih podatkov je prišlo do napake."
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s je posodobil sporočilo kanala v: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s je posodobil sporočilo kanala iz: %s v: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "Napaka pridobivanja uporabnika med posodabljanjem namena kanala %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s je odstranil sporočila kanala (prej: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Sporočila o namenu kanala ni bilo mogoče objaviti"
+  },
+  {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "Kanala ni mogoče premakniti, razen če so vsi člani že člani ciljne ekipe."
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "Kanala ni mogoče shraniti"
+  },
+  {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Potrebno je specificirati ID ekipe za kreiranje kanala"
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "Kanala ni mogoče shraniti"
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "Objave ni mogoče izbrisati"
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "Objave ni mogoče posodobiti"
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "Objav ni mogoče dobiti"
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "Objave ni mogoče dobiti"
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "Objave ni mogoče shraniti"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Neuspešna povezava: {{.Error}}"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "Napačen parameter {{.Name}}"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Ni mogoče posodobiti spletnih zank čez ekipe"
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "Potrebno je nastaviti trigger_words ali channel_id"
+  },
+  {
+    "id": "api.user.verify_email.broken_token.app_error",
+    "translation": "Neveljavno preverjanje vrste e-poštnega žetona."
+  },
+  {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "Neveljavna povezava za potrditev e-pošte."
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "Ni možno naložiti profilne slike"
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "Napaka pri nalaganju slike. Datoteka je prevelika."
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "Datoteke ni mogoče naložiti. Shramba ni nastavljena."
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "Ni mogoče prebrati multipart obrazca"
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "Slikovne datoteke ni bilo mogoče odpreti"
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "Ni datoteke v polju 'slika' v zahtevi"
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "Profilne slike ni možno kodirati"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "Ni mogoče dekodirati profilne slike"
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Prazen seznam v polju 'image' v zahtevi"
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "Vneseno e-poštno sporočilo ne pripada sprejeti domeni. Obrnite se na skrbnika ali se prijavite z drugim naslovom e-pošte."
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "Vneseno e-poštno sporočilo ne pripada sprejeti domeni. Obrnite se na skrbnika ali se prijavite z drugim naslovom e-pošte."
+  },
+  {
+    "id": "api.user.update_password.valid_account.app_error",
+    "translation": "Sprememba gesla ni možna, ker ni mogoče najti velljavnega uporabniškega računa"
+  },
+  {
+    "id": "api.user.update_password.oauth.app_error",
+    "translation": "Geslo za posodobitev ni uspelo, ker je uporabnik prijavljen preko storitve OAuth"
+  },
+  {
+    "id": "api.user.update_password.menu",
+    "translation": "uporablja meni za nastavitve"
+  },
+  {
+    "id": "api.user.update_password.incorrect.app_error",
+    "translation": "Vnešeno \"staro geslo\" ni pravilno. Prosim preverite, da je Caps Lock izklopljen in poizkusite znova."
+  },
+  {
+    "id": "api.user.update_password.failed.app_error",
+    "translation": "Posodobitev gesla ni uspela"
+  },
+  {
+    "id": "api.user.update_password.context.app_error",
+    "translation": "Geslo za posodobitev ni uspelo, ker se kontekst user_id ni ujemal z rekviziti user_id"
+  },
+  {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Uporabnika iz uporabniškega objekta {{.Service}} ni bilo mogoče dobiti"
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "Nimate ustreznih dovoljenj"
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "Ni možno onemogočiti lastnega uporabniškega računa, ker ta možnost ni omogočena. Prosim kontaktirajte svoje skrbnika sistema."
+  },
+  {
+    "id": "api.user.send_verify_email_and_forget.failed.error",
+    "translation": "Neuspešno pošiljanje e-pošte za preverjanje"
+  },
+  {
+    "id": "api.user.send_sign_in_change_email_and_forget.error",
+    "translation": "Neuspešno pošiljanje e-pošte za posodobitev e-pošte"
+  },
+  {
+    "id": "api.user.send_password_reset.sso.app_error",
+    "translation": "Gesla za račune SSO ni mogoče ponastaviti"
+  },
+  {
+    "id": "api.user.send_password_reset.send.app_error",
+    "translation": "Neuspešno pošiljanje e-pošte za ponastavitev gesla"
+  },
+  {
+    "id": "api.user.send_email_change_verify_email_and_forget.error",
+    "translation": "Neuspešno pošiljanje e-pošte za spremenitev e-pošte za preverjanje"
+  },
+  {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Neuspešno pošiljanje e-pošte za deaktiviranje računa"
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 ni podprt ali nastavljen na strežniku."
+  },
+  {
+    "id": "api.user.reset_password.sso.app_error",
+    "translation": "Gesla za račune SSO ni mogoče ponastaviti"
+  },
+  {
+    "id": "api.user.reset_password.method",
+    "translation": "uporablja povezavo za ponastavitev gesla"
+  },
+  {
+    "id": "api.user.reset_password.link_expired.app_error",
+    "translation": "Povezava za ponastavitev gesla je potekla."
+  },
+  {
+    "id": "api.user.reset_password.invalid_link.app_error",
+    "translation": "Povezava za ponastavitev gesla ni veljavna."
+  },
+  {
+    "id": "api.user.reset_password.broken_token.app_error",
+    "translation": "Žeton za ponastavitev gesla ni veljaven."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_available.app_error",
+    "translation": "Prenos za preverjanje pristnosti ni konfiguriran ali na voljo v tem strežniku."
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "Geslo za posodobitev ni uspelo, ker se kontekst user_id ni ujemal s podanim ID-jem uporabnika"
+  },
+  {
+    "id": "api.user.login_ldap.not_available.app_error",
+    "translation": "AD / LDAP ni na voljo na tem strežniku"
+  },
+  {
+    "id": "api.user.login_by_oauth.parse.app_error",
+    "translation": "Podatkov za avtorizacijo ni bilo mogoče razčleniti iz uporabniškega objekta {{.Service}}"
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "{{.Service}} SSO prek OAuth 2.0 ni na voljo na tem strežniku"
+  },
+  {
+    "id": "api.user.login.use_auth_service.app_error",
+    "translation": "Prosim prijavite se z {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "Prijava ni uspela, ker e-poštni naslov ni bil preverjen"
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "Prijava ni uspela, ker je bil vaš račun deaktiviran. Obrnite se na skrbnika."
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "vaša licenca ne podpira skupin ldap"
+  },
+  {
+    "id": "api.user.login.client_side_cert.license.app_error",
+    "translation": "Poskušali ste uporabiti poskusno funkcijo ClientSideCertEnable brez veljavne licence podjetja"
+  },
+  {
+    "id": "api.user.login.client_side_cert.certificate.app_error",
+    "translation": "Poskušali ste se prijaviti z eksperimentalno funkcijo ClientSideCert, ne da bi zagotovili veljaven certifikat"
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "Polje za vnos gesla ne sme biti prazno"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "Ta uporabniški račun ne uporablja AD / LDAP"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "AD / LDAP ni na voljo na tem strežniku"
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Uporabnika ni mogoče dobiti po e-pošti."
+  },
+  {
+    "id": "api.user.email_to_oauth.not_available.app_error",
+    "translation": "Prenos za preverjanje pristnosti ni konfiguriran ali na voljo v tem strežniku."
+  },
+  {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "AD / LDAP ni na voljo na tem strežniku"
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "Prijavna povezava ni veljavna"
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "Povezava za prijavo je potekla"
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "Prijava uporabnikov z e-pošto je onemogočena."
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "Ta strežnik ne dovoljuje odprtih prijav. Če želite prejeti vabilo, se pogovorite z vašim skrbnikom."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "vaša licenca ne podpira skupin ldap"
+  },
+  {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "Ustvarjanje uporabnikov je onemogočeno."
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "Vneseno e-poštno sporočilo ne pripada sprejeti domeni. Obrnite se na skrbnika ali se prijavite z drugim naslovom e-pošte."
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "Ni mogoče dodati začetne slike uporabnika na privzeto sliko profila"
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "Privzete slike profila ni mogoče kodirati"
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "Ni možno ustvariti privzete pisave za sliko profila"
+  },
+  {
+    "id": "api.user.create_oauth_user.create.app_error",
+    "translation": "Uporabnika ni bilo mogoče ustvariti iz uporabniškega objekta {{.Service}}"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "S tem e-poštnim naslovom že obstaja račun, ki uporablja način prijave, ki ni {{.Service}}. Prijavite se z uporabo {{.Auth}}."
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "neveljavna lastnost vira za skupino"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "neveljavna lastnost oddaljenega ID za skupino"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "neveljavno ime lastnosti za skupino"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "neveljavna lastnost prikaznega imena za skupino"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "neveljavna lastnost opisa za skupino"
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "neveljavna posodobitev za lastnost za skupino"
+  },
+  {
+    "id": "model.file_info.is_valid.user_id.app_error",
+    "translation": "Neveljavna vrednost ID uporabnika."
+  },
+  {
+    "id": "model.file_info.is_valid.update_at.app_error",
+    "translation": "Neveljavna vrednost za update_at."
+  },
+  {
+    "id": "model.file_info.is_valid.post_id.app_error",
+    "translation": "Neveljavna vrednost za ID objave."
+  },
+  {
+    "id": "model.file_info.is_valid.path.app_error",
+    "translation": "Neveljavna vrednost za pot."
+  },
+  {
+    "id": "model.file_info.is_valid.id.app_error",
+    "translation": "Neveljavna ID vrednost."
+  },
+  {
+    "id": "model.file_info.is_valid.create_at.app_error",
+    "translation": "Neveljavna vrednost za create_at."
+  },
+  {
+    "id": "model.file_info.get.gif.app_error",
+    "translation": "Gif datoteke ni mogoče dekodirati."
+  },
+  {
+    "id": "model.emoji.user_id.app_error",
+    "translation": "Neveljaven ID ustvarjalca"
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "Posodobi na mora biti veljaven čas"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "Ime mora vsebovati od 1 do 64 malih alfanumeričnih znakov"
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "Neveljaven ID čustvenega simbola"
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Neveljavna vrednost za časovno omejitev pisanja."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "URL spletne vtičnice mora biti veljaven URL in začeti z ws:// ali wss://"
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Neveljavna vrednost za varnost povezave do spletnega strežnika."
+  },
+  {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "Čas med posodobitvami tipkanja uporabnikov ne sme biti manjši od 1000 milisekund."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Neveljaven prikaz za ekipo. Mora biti 'polno_ime', 'vzdevek_polno_ime' ali 'uporabniško ime'"
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Neveljavna časovna omejitev poizvedbe za nastavitve SQL. Mora biti pozitivno število."
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "Neveljavna največja odprta povezava za nastavitve SQL. Mora biti pozitivno število."
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "Neveljavna najvišja povezava v stanju pripravljenosti za nastavitve SQL. Mora biti pozitivno število."
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "Neveljavno ime gonilnika za nastavitve SQL. Mora biti »mysql« ali »postgres«"
+  },
+  {
+    "id": "model.config.is_valid.sql_data_src.app_error",
+    "translation": "Neveljaven vir podatkov za nastavitve SQL. Mora biti nastavljen."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Neveljavna življenjska doba povezave za nastavitve SQL. Mora biti negativno število."
+  },
+  {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Ime strani mora biti manjše ali enako {{.MaxLength}} znakov."
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "Združevanje e-poštnih sporočil ni mogoče omogočiti, če ni nastavljen SiteURL."
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "Neveljaven URL. Mora biti veljaven URL in se začeti s http:// ali https://"
+  },
+  {
+    "id": "model.config.is_valid.saml_username_attribute.app_error",
+    "translation": "Neveljaven atribut uporabniškega imena. Mora biti nastavljen."
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "Manjka javno potrdilo ponudnika storitev. Ali ste ga pozabili naložiti?"
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "Manjka zasebni ključ ponudnika storitev. Ali ste ga pozabili naložiti?"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_url.app_error",
+    "translation": "URL SAML SSO mora biti veljaven URL in začeti s http:// ali https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
+    "translation": "URL izdajatelja identitete ponudnika mora biti veljaven URL in se začeti s http:// ali https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "Manjka javno potrdilo ponudnika identitete. Ali ste ga pozabili naložiti?"
+  },
+  {
+    "id": "model.config.is_valid.saml_email_attribute.app_error",
+    "translation": "Neveljaven atribut e-pošte. Mora biti nastavljen."
+  },
+  {
+    "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
+    "translation": "URL za prijavo ponudnika storitev mora biti veljaven URL in začeti s http:// ali https://."
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "Neveljavna omejitev neposrednega sporočila. Mora biti »vsaka« ali »skupina«"
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Neveljavna vrednost časovne omejitve branja."
+  },
+  {
+    "id": "model.config.is_valid.rate_sec.app_error",
+    "translation": "Neveljavna velikost pomnilnika za nastavitve omejitve hitrosti. Mora biti pozitivno število"
+  },
+  {
+    "id": "model.config.is_valid.rate_mem.app_error",
+    "translation": "Neveljavna velikost pomnilnika za nastavitve omejitve hitrosti. Mora biti pozitivno število"
+  },
+  {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Najmanjša dolžina gesla mora biti celo število, ki je večje ali enako {{.MinLength}} in je manjše ali enako {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "Neveljavno najvišje število uporabnikov na ekipo za nastavitve ekipe. Mora biti pozitivno število."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Neveljavno najvišje število obvestil na kanal za nastavitve ekipe. Mora biti pozitivno število."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Neveljavna velikost datoteke za nastavitve datotek. Mora biti celo število, ki je večje od nič."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Neveljavno najvišje število kanalov na ekipo za nastavitve ekipe. Mora biti pozitivno število."
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "Neveljavno najvišje število uporabnikov na ekipo za nastavitve ekipe. Mora biti pozitivno število."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Razpoložljivi jeziki morajo vsebovati privzeti jezik odjemalca"
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "Polje AD / LDAP \"Atribut uporabniško ime\" je obvezno."
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "Neveljaven časovni interval sinhronizacije. Mora biti vsaj eno minuto."
+  },
+  {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "AD / LDAP polje \"AD / LDAP strežnik\" je obvezno."
+  },
+  {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "Neveljavna varnost povezave za nastavitve AD/LDAP. Mora biti '', 'TLS' ali 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Neveljavna največja velikost strani."
+  },
+  {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "Polje AD / LDAP \"Atribut uporabniško ime\" je obvezno."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "Polje AD / LDAP \"Atribut uporabniško ime\" je obvezno."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "Polje AD / LDAP \"Atribut uporabniško ime\" je obvezno."
+  },
+  {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "AD/LDAP polje \"BaseDN\" je obvezno."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Nepravilni neprebrani kanali za nastavitve storitev. Mora biti 'disabled', 'default_on' ali 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.file_salt.app_error",
+    "translation": "Neveljaven salt za povabila za nastavitve e-pošte. Mora biti sestavljen iz 32 znakov ali več."
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "Neveljavno ime gonilnika za nastavitve datoteke.  Mora biti »lokalno« ali »amazons3«"
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "Neveljavna varnost povezave za nastavitve e-pošte. Mora biti '', 'TLS' ali 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.display.custom_url_schemes.app_error",
+    "translation": "Shema URL-ja po meri {{.Scheme}} je neveljavna. Sheme URL-jev po meri se morajo začeti s črko in vsebovati le črke, številke in vezaj (-)."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "Hramba sporočila mora biti en dan ali več."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "Hranjenje datotek mora biti en dan ali več."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "Čas začetka dela za hrambo podatkov mora biti 24-urni časovni žig v obliki HH: MM."
+  },
+  {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Ko je združevanje v gruče omogočeno, ni mogoče omogočiti pošiljanja po e-pošti."
+  },
+  {
+    "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
+    "translation": "Če dovolite piškotke za poddomene, morate nastaviti SiteURL."
+  },
+  {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "Neveljaven ID"
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "Neveljaven opis"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Neveljaven root ID"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Neveljaven ID ukaza"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Neveljaven ID ukaza"
+  },
+  {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Neveljaven ID kanala"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "Neveljaven URL. Mora biti veljaven URL in se začeti s http: // ali https: //"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "Neveljaven URL"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "Posodobi na mora biti veljaven čas"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "Neveljaven sprožilec"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "Neveljaven žeton."
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "Neveljaven ID ekipe"
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "Neveljavna metoda"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "Neveljaven ID"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "Neveljaven naslov"
+  },
+  {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "Neveljaven opis"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.cluster.is_valid.type.app_error",
+    "translation": "Tip mora biti nastavljen"
+  },
+  {
+    "id": "model.cluster.is_valid.name.app_error",
+    "translation": "ClusterName mora biti nastavljen"
+  },
+  {
+    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "translation": "LastPingAt mora biti nastavljen"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "Neveljaven ID"
+  },
+  {
+    "id": "model.cluster.is_valid.hostname.app_error",
+    "translation": "Hostname mora biti nastavljen"
+  },
+  {
+    "id": "model.cluster.is_valid.create_at.app_error",
+    "translation": "CreateAt mora biti nastavljen"
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "Neveljaven označite neprebrano raven"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Neveljavna raven potisnega obvestila"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "Neveljavna raven obveščanja"
+  },
+  {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Neveljavna vrednost e-poštnega obvestila"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "Neveljaven ID kanala"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "Posodobi na mora biti veljaven čas"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "Neveljavna vrsta"
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "Neveljavni namen"
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "Neveljaven ID"
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "Neveljavna glava"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "Neveljavno ime za prikaz"
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "Neveljaven ID ustvarjalca"
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "Neveljavno uporabniško ime."
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Neveljaven ID ustvarjalca"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "Neveljaven opis"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "Neveljaven ID ustvarjalca"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "Neveljaven ID ustvarjalca"
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "Neveljavno stanje"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "Neveljaven obseg"
+  },
+  {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Neveljavna vrsta odgovora"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "Neveljaven preusmeritveni uri"
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "Poteče v mora biti nastavljen"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "Ustvari na mora biti veljaven čas"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "Neveljaven ID odjemalca"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "Neveljavna avtorizacijska koda"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "Neveljaven žeton osveževanja"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "Neveljaven preusmeritveni uri"
+  },
+  {
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "Neveljaven ID odjemalca"
+  },
+  {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "Neveljaven žeton za dostop"
+  },
+  {
+    "id": "migrations.worker.run_migration.unknown_key",
+    "translation": "Opravila migracije ni mogoče zagnati zaradi neznanega ključa za migracijo."
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.parse.app_error",
+    "translation": "Podatkov za avtorizacijo ni bilo mogoče razčleniti iz uporabniškega objekta {{.Service}}"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Prazna e-pošta"
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "Prijava ni uspela zaradi neveljavnega gesla"
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Neveljaven MFA žeton."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "Vaš račun je zaklenjen zaradi preveč poskusov neuspešnega gesla. Ponastavite geslo."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "Ponudnik storitve OAuth ni podprt"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "Zahteva za žeton ni uspela"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "Zahteva za žeton do {{.Service}} ni uspela"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Ponudnik storitve OAuth je poslal neveljaven odgovor"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "Manjka žeton za dostop"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "Neveljavno stanje"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "Slab tip žetona"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "Napačen odgovor na zahtevo za žeton"
+  },
+  {
+    "id": "api.user.add_direct_channels_and_forget.failed.error",
+    "translation": "Nastavitev neposrednega kanala za uporabnika user_id={{. UserId}}, team_id={{. TeamId}}, err={{.Error}}"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA ni na voljo za to vrsto računa"
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "[{{.SiteName}}] Pridružili ste se {{.ServerURL}}"
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "Pridružili ste se {{.ServerURL}}"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Potrdite svoj e-poštni naslov tako, da kliknete spodaj."
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Potrdite vašo e-pošto"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "Za najboljšo izkušnjo prenesite aplikacije za PC, Mac, iOS in Android iz:"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{.SiteName}}] Potrjevanje e-pošte"
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "Pridružili ste se {{.ServerURL}}"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Potrdite svoj e-poštni naslov tako, da kliknete spodaj."
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Potrdite vašo e-pošto"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "[{{.SiteName}}] Vaše uporabniško ime je bilo spremenjeno"
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "Posodobili ste uporabniško ime"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Vaše uporabniško ime za {{.TeamDisplayName}} je bilo spremenjeno v {{.NewUsername}}."
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "[{{.SiteName}}] Osebni dostopni žeton je dodan v vaš račun"
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "V račun je dodan žeton za osebni dostop"
+  },
+  {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "Na račun {{.SiteURL}} je bil dodan žeton za osebni dostop. Uporabite ga lahko za dostop do {{.SiteName}} z vašim računom."
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{.SiteName}}] Način prijave je bila posodobljen"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Posodobili ste način prijave"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "e-pošta in geslo"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Svojo metodo za prijavo na {{.SiteName}} ste posodobili na {{.Method}}."
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "[{{.SiteName}}] Ponastavite geslo"
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "Zahtevali ste ponastavitev gesla"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Ponastavite geslo"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Pojdi na objavo"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "[{{ .SiteName }}] Vaše geslo je bilo spremenjeno"
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "Vaše geslo je bilo spremenjeno"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "Vaše geslo je bilo posodobljeno za {{.TeamDisplayName}} na {{.TeamURL}} od {{.Method}}."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Več faktorsko preverjanje pristnosti je bilo odstranjeno"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Več faktorsko preverjanje pristnosti je bilo odstranjeno iz vašega računa na {{.SiteURL}}."
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "[{{.SiteName}}] Vaša MFA je bila posodobljena"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Dodano je bilo več faktorsko preverjanje pristnosti"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Na račun {{.SiteURL}} je bilo dodano več faktorsko preverjanje pristnosti."
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "[{{.SiteName}}] {{.SenderName}} vas je povabil, da se pridružite ekipi {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{.SiteName}}] {{.SenderName}} vas je povabil, da se pridružite ekipi {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "Bili ste povabljeni"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Pridruži se ekipi"
+  },
+  {
+    "id": "api.templates.email_warning",
+    "translation": "Če niste storili te spremembe, prosim kontaktirajte skrbnika sistema."
+  },
+  {
+    "id": "api.templates.email_organization",
+    "translation": "Poslano od"
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "{{.SiteName}} ekipa"
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "Z lepimi pozdravi,"
+  },
+  {
+    "id": "api.templates.email_info1",
+    "translation": "Za kakršnakoli vprašanja, nam pošljite kadarkoli sporočilo:"
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "Če želite spremeniti nastavitve obvestil, se prijavite na spletno mesto svoje ekipe in odprite Nastavitve računa > Obvestila."
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "[{{.SiteName}}] Preverite novi e-poštni naslov"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "Spremenili ste vašo e-pošto"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "Če želite dokončati posodabljanje e-poštnega naslova za {{.TeamDisplayName}}, kliknite spodnjo povezavo, da potrdite, da je to pravi naslov."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Potrdite vašo e-pošto"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "[{{ .SiteName }}] Vaša e-pošta je bila spremenjena"
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "Spremenili ste vašo e-pošto"
+  },
+  {
+    "id": "api.templates.email_change_body.info",
+    "translation": "Vaš e-poštni naslov za {{.TeamDisplayName}} je bil spremenjen v {{.NewEmail}}."
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Vaš uporabniški račun na {{ .ServerURL }} je bil onemogočen"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "Če ta sprememba ni bila storjena z vaše strani ali če želite ponvono omogočiti vaš uporabniški račun, prosim kontaktirajte vašega skrbnika sistema."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Vaš uporabniški račun je bil onemogočen na {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "Onemogočili ste vaš uporabniški račun na {{ .SiteURL }}."
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "Sheme ni mogoče nastaviti za ekipo, ker priložena shema ni ekipna shema."
+  },
+  {
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "Vaša licenca ne podpira posodabljanja sheme ekipe"
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Sistemska konfiguracija ne dovoljuje omejevanja skupine na {{.Domain}}. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Navedeni uporabnik ni član določene ekipe."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "Pri posodabljanju ikone skupine je prišlo do napake"
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Ikone skupine ni bilo mogoče shraniti"
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Ikono ekipe ni mogoče naložiti. Datoteka je prevelika."
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Ikone ekipe ni mogoče naložiti. Shramba slik ni konfigurirana."
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Ni mogoče prebrati multipart obrazca"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Slikovne datoteke ni bilo mogoče odpreti"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Ni datoteke v polju 'slika' v zahtevi"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "Pri pridobivanju ekipe je prišlo do napake"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Ikone skupine ni bilo mogoče kodirati"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Ikone skupine ni bilo mogoče dekodirati"
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Prazen seznam v polju 'image' v zahtevi"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v je bil odstranjen iz ekipe."
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "Uporabnik ni del ekipe."
+  },
+  {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "Pri pridobivanju ekipe je prišlo do napake"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Ta kanal je bil premaknjen v to skupino iz %v."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Sporočila o premikanju kanala ni bilo mogoče objaviti."
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "%v je zapustil ekipo."
+  },
+  {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v se je pridružil ekipi."
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "Ustvarjanje ekipe je bilo onemogočeno. Za podrobnosti se obrnite na skrbnika sistema."
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "Ne najdem nikogar za pošiljanje povabila."
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "Naslednji e-poštni naslovi ne pripadajo sprejeti domeni: {{.Addresses}}. Za podrobnosti se obrnite na skrbnika sistema."
+  },
+  {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Vabila po e-pošti so onemogočena."
+  },
+  {
+    "id": "api.team.import_team.unavailable.app_error",
+    "translation": "Okvarjena zahteva: polje velikost datoteke ne obstaja."
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "Ni mogoče prebrati multipart obrazca"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Datoteke ni bilo mogoče odpreti"
+  },
+  {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Napačna zahteva: polje importFrom ni prisotno."
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "\r\nZapiski:\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- V strežniških zapisih se lahko najdejo dodatne napake.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "- Slack bot sporočila trenutno niso podprta.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "- Nekatera sporočila morda niso bila uvožena, ker jih ta uvoznik ni podprl.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.log",
+    "translation": "Mattermost Slack dnevnik uvoza\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "Ni možno uvoziti Slack uporabnika: {{.Username}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "Uporabnik {{.Username}} nima e-poštnega naslova v Slack izvozu. Uporabljen je {{.Email}} kot placeholder. Uporabnik mora posodobiti svoj e-poštni naslov, ko se bo prijavil v sistem.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Slack uporabnik je združen z obstoječim Mattermost uporabnikom z ujemajočo e-pošto {{.Email}} in uporabniškim imenom {{.Username}}, vendar ni bilo možno dodati uporabnika v njegovo ekipo.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Slack uporabnik je združen z obstoječim Mattermost uporabnikom z ujemajočo e-pošto {{.Email}} in uporabniškim imenom {{.Username}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email_pwd",
+    "translation": "Slack uporabnik s sledečo e-pošto {{.Email}} in geslom {{.Password}} je bil uvožen.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "\r\nUstvarjeni uporabniki:\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.merge",
+    "translation": "Slack kanal {{.DisplayName}} že obstaja kot aktiven Mattermost kanal. Oba kanala sta sedaj združena.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed",
+    "translation": "Ni možno uvoziti Slack kanala {{.DisplayName}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "Ni možno dodati Slack uporabnika {{.Username}} v kanal.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "\r\nDodani kanali:\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Ne morem uvoziti uporabnika Integration/Slack Bot {{.User username}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack uporabnik s sledečo e-pošto {{.Email}} in geslom {{.Password}} je bil uvožen.\r\n"
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "Napaka pri zagonu strežnika, napaka:%v"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "Omejitve hitrosti ni mogoče inicializirati."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Shrambe pomnilnika za omejevanje hitrosti ni mogoče inicializirati. Preverite nastavitve konfiguracije MemoryStoreSize."
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Vrata 80 ni mogoče posredovati v vrata 443 med poslušanjem vrat %s: onemogočite funkcijo Forward80To443, če uporabljate proxy strežnik"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Ko uporabljate funkcijo LetsEncrypt, morate omogočiti funkcijo Forward80To443"
+  },
+  {
+    "id": "api.scheme.patch_scheme.license.error",
+    "translation": "Vaša licenca ne podpira shem dovoljenj za posodobitve"
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "Ni mogoče dobiti ekip za shemo, ker podana shema ni ekipna shema."
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "Ni mogoče dobiti kanalov za shemo, ker podana shema ni kanalna shema."
+  },
+  {
+    "id": "api.scheme.delete_scheme.license.error",
+    "translation": "Vaša licenca ne podpira shem dovoljenj za brisanje"
+  },
+  {
+    "id": "api.scheme.create_scheme.license.error",
+    "translation": "Vaša licenca ne podpira nadgradnjo sheme kanala."
+  },
+  {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "Vaša licenca ne podpira nadgradnjo sheme kanala."
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "Reakcije ne morete shraniti za drugega uporabnika."
+  },
+  {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reakcija ni veljavna."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "V arhiviranem kanalu ne morete reagirati."
+  },
+  {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "Reakcije ne morete odstraniti v arhiviranem kanalu."
+  },
+  {
+    "id": "api.preference.update_preferences.set.app_error",
+    "translation": "Ni možno nastaviti uporabniških nastavitev."
+  },
+  {
+    "id": "api.preference.preferences_category.get.app_error",
+    "translation": "Ni možno pridobiti uporabnikovih nastavitev."
+  },
+  {
+    "id": "api.preference.delete_preferences.delete.app_error",
+    "translation": "Ni možno izbrisati uporabnikovih nastavitev."
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "Objave ni mogoče dobiti"
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Sistemskega sporočila ni mogoče posodobiti"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Urejanje objave je dovoljeno samo za {{.timeLimit}} sekund. Za podrobnosti se obrnite na skrbnika sistema."
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "Že izbrisan id={{. PostId}}"
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "Obstoječe objave ali komentarja za posodobitev ni mogoče najti."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": "ti je poslal sporočilo."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " je priložil datoteko."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_general_message",
+    "translation": " je objavil sporočilo."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
+    "translation": " vas je omenil."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " je komentiral nit, v kateri ste sodelovali."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " je komentiral vašo objavo."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " obvestil kanal."
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Povzetek v emailu je bil izklopljen s strani administratorja."
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "few": "",
+      "one": "{{.Count}} poslana slika: {{.Filenames}}",
+      "other": "",
+      "two": "{{.Count}} poslanih slik: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "few": "",
+      "one": "{{.Count}} poslana datoteka: {{.Filenames}}",
+      "other": "",
+      "two": "{{.Count}} poslanih datotek: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Napaka pri integraciji akcije"
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "Neveljaven ID akcije"
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here je onemogočen, ker ima kanal več kot {{.Users}} uporabnikov."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel je onemogočen, ker ima kanal več kot {{.Users}} uporabnikov."
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all je onemogočen, ker ima kanal več kot {{.Users}} uporabnikov."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Objava je zavrnjena, ker drugi odjemalec dela isto zahtevo."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Prvotne objave ni bilo mogoče prenesti po podvajanju odjemalca, ki ponavlja isto zahtevo."
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "Napaka pri ustvarjanju objave"
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "Neveljaven RootId parameter"
+  },
+  {
+    "id": "api.post.create_post.channel_root_id.app_error",
+    "translation": "Neveljaven ChannelId za parameter RootId"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "Ni mogoče objaviti v izbrisanem kanalu."
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Manjkajoča datoteka v večnivojski/formi zahtevi"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Datoteke ni mogoče odpreti v večnivojski/formi zahtevi"
+  },
+  {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "Datotečni niz je prazen v večnivojski/formi zahtevi"
+  },
+  {
+    "id": "api.outgoing_webhook.disabled.app_error",
+    "translation": "Administrator je onemogočil odhodne webhooks."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "Prijavna povezava ni veljavna"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "Povezava za prijavo je potekla"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "Prijava uporabnika je onemogočena."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "Napaka pri pridobivanju dostopnega žetona iz podatkovne zbirke pred brisanjem"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "Napaka pri brisanju žetona za dostop iz podatkovne zbirke"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "Napaka pri brisanju seje iz podatkovne zbirke"
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "Skrbnik sistema je izklopil ponudnika storitev OAuth2."
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Neveljaven žeton stanja"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant: Neveljaven žeton osveževanja"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request: Priložen redirect_uri se ne ujema z avtorizacijsko kodo redirect_uri"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request: Manjkajoči refresh_token"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "invalid_request: Manjkajoča koda"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error: Prišlo je do notranje napake strežnika pri vlečenju uporabnika iz baze podatkov"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error: Med shranjevanjem seje v bazo podatkov je prišlo do notranje napake strežnika"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error: Prišlo je do notranje napake strežnika pri shranjevanju dostopnega žetona v bazo podatkov"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error: Pri dostopanju do baze podatkov je prišlo do notranje napake strežnika"
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant: Neveljavna ali potekla koda avtorizacije"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "Skrbnik sistema je izklopil ponudnika storitev OAuth2."
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client: Neveljavne poverilnice odjemalca"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: Slab grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request: Manjkajoči client_secret"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: Slab client_id"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "Skrbnik sistema je izklopil ponudnika storitev OAuth2."
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "Skrbnik sistema je izklopil ponudnika storitev OAuth2."
+  },
+  {
+    "id": "api.oauth.allow_oauth.redirect_callback.app_error",
+    "translation": "invalid_request: Priložena redirect_uri se ni ujemala z registriranim callback_url"
+  },
+  {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "Neuspešno pošiljanje e-pošte za deaktiviranje računa"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "Nov format konfiguracije klienta še ni podprt. Nastavi format=old v poizvedbi."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "Ta licenca podpira samo uporabnike {{.Users}}, če ima vaš sistem {{.Count}} edinstvenih uporabnikov. Unikatni uporabniki se preštejejo ločeno po e-poštnem naslovu. Celotno število uporabnikov lahko vidite v poročilih spletnega mesta -> Prikaži statistiko."
+  },
+  {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "ID aktivne licence se ni shranil pravilno."
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "Licenca se ni shranila pravilno."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "Ni mogoče odpreti licence"
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "Ni datoteke v polju 'license' v zahtevi"
+  },
+  {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "Skupnih unikatnih uporabnikov ni mogoče prešteti."
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "Neveljavna licenca."
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "Licenca je potekla ali pa se še ni začela."
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Prazen seznam v polju 'license' v zahtevi"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "vaša licenca ne podpira skupin ldap"
+  },
+  {
+    "id": "api.ldap_groups.existing_group_name_error",
+    "translation": "član skupine že obstaja"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "Skupina ldap ni bila najdena"
+  },
+  {
+    "id": "api.io_error",
+    "translation": "vhod/izhod napaka"
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Neveljavno uporabniško ime."
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_error",
+    "translation": "Administrator je onemogočil incoming webhooks."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "Ime ekipe vsebuje neveljavne znake."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "Manjka zahtevana lastnost ekipe: display_name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "Skupina display_name ni znotraj dovoljenih omejitev dolžine."
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "Opis ekipe je predolg."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
+    "translation": "Za shemo s tem obsegom so bile zagotovljene napačne vloge."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
+    "translation": "Neznano področje sheme."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.null_scope.error",
+    "translation": "Obseg sheme je obvezen."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "Neveljavno ime sheme."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "Neveljavno ime za prikaz sheme."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "Neveljaven opis sheme."
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "Neveljavno ime vloge."
+  },
+  {
+    "id": "app.import.validate_role_import_data.invalid_permission.error",
+    "translation": "Neveljavno dovoljenje za vlogo."
+  },
+  {
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "Neveljavno ime za prikaz vloge."
+  },
+  {
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "Neveljaven opis vloge."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "Manjka zahtevana lastnost odgovora: Uporabnik."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Manjka zahtevana lastnost odgovora: Sporočilo."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "Lastnost objave sporočila je daljša od največje dovoljene dolžine."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "Lastnost reakcije CreateAt ne sme biti enaka nič."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Manjka zahtevana lastnost odgovora: create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Manjka zahtevana lastnost reakcije: Uporabnik."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Manjka zahtevana lastnost reakcije: EmojiName."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "Lastnost reakcije EmojiName je daljša od največje dovoljene dolžine."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "Lastnost reakcije CreateAt ne sme biti enaka nič."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Manjka zahtevana lastnost reakcije: create_at."
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Manjka zahtevana lastnost objave: Uporabnik."
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "Manjka zahtevana lastnost objave: Ekipa."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "Manjka zahtevana lastnost objave: Message."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "Lastnost objave sporočila je daljša od največje dovoljene dolžine."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "Lastnost objave CreateAt ne sme biti nič."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "Manjka zahtevana lastnost objave: create_at."
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "Manjkajoče zahtevane lastnosti objave: Kanal."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Uvoženo polje znaka emotikona manjka ali je prazno."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Uvoženo polje slik emotikona manjka ali je prazno."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Uvoz emoji podatkov je prazen."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Manjka zahtevana neposredna lastnost objave: uporabnik"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Direktno objavo lahko označijo samo člani kanala, v katerem je. \"{{.Username}}\" ni član."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Manjkajoča zahteva za direktno objavo: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Sporočilo je predolgo"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "CreateAt mora biti večji od 0"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Manjka zahtevana neposredna lastnost objave: create_at"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "Seznam članov neposrednega objavnega kanala vsebuje preveč elementov"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "Seznam članov neposrednega objavnega kanala vsebuje premalo elementov"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Manjka zahtevana neposredna lastnost objave: channel_members"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Samo člani lahko dodajo neposredni kanal med priljubljene. \"{{.Username}}\" ni član."
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "Seznam neposrednih članov kanala vsebuje preveč elementov"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "Seznam neposrednih članov kanala vsebuje premalo elementov"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Manjka zahtevana lastnost direktnega kanala: members"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Glava neposrednega kanala je predolga"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "Manjka zahtevana lastnost kanala: type."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "Vrsta kanala je neveljavna."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "Manjka zahtevana lastnost kanala: team"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.scheme_invalid.error",
+    "translation": "Neveljavno ime sheme za kanal."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "Namen kanala je predolg."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "Manjka zahtevana lastnost kanala: name"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "Ime kanala je predolgo."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "Ime kanala vsebuje neveljavne znake."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "Glava kanala je predolga."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "Kanal display_name ni znotraj dovoljenih omejitev dolžine."
+  },
+  {
+    "id": "app.import.process_import_data_file_version_line.invalid_version.error",
+    "translation": "Ni možno prebrati različice datoteke za uvoz podatkov."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Napaka pri uvozu članstva kanala uporabnika. Nastavitev ni bilo mogoče shraniti."
+  },
+  {
+    "id": "app.import.import_user.save_preferences.error",
+    "translation": "Napaka pri uvozu uporabnikovih nastavitev. Nastavitev ni bilo mogoče shraniti."
+  },
+  {
+    "id": "app.import.import_team.scheme_wrong_scope.error",
+    "translation": "Ekipa mora biti dodeljena shemi, ki je določena za ekipo."
+  },
+  {
+    "id": "app.import.import_team.scheme_deleted.error",
+    "translation": "Ni možno uporabiti izbrisane sheme za nastavitev ekipe."
+  },
+  {
+    "id": "app.import.import_scheme.scope_change.error",
+    "translation": "Paketni uvoz ne more spremeniti obsega že obstoječe sheme."
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "Napaka pri uvozu objave. Uporabnika z uporabniškim imenom \"{{.Username}}\" ni bilo mogoče najti."
+  },
+  {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Napaka pri uvozu objave. Nastavitev ni bilo mogoče shraniti."
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "Napaka pri uvozu objave. Kanala z imenom \"{{.ChannelName}}\" ni bilo mogoče najti."
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "Vrstica za uvoz podatkov ima neznano vrsto \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "Vrstica za uvoz podatkov ima tip \"uporabnik\", vendar ima uporabniški objekt vrednost null."
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "Vrstica za podatke o uvozu ima vrsto »ekipa«, vendar ima predmet ekipe vrednost null."
+  },
+  {
+    "id": "app.import.import_line.null_scheme.error",
+    "translation": "Vrstica za uvoz podatkov ima tip \"shema\", vendar ima objekt sheme vrednost null."
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "Datoteke {{.filename}} ni mogoče naložiti. Dolžina {{.Length}} bajtov presega največje dovoljeno število {{.Limit}} bajtov."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Slike ni mogoče naložiti. Shramba slik ni nastavljena."
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Datoteke ni mogoče naložiti. Napaka pri branju ali razčlenjevanju podatkov zahtevka."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "Datoteke ni mogoče naložiti. Napaka pri branju vrednosti za {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "Datotek/e ni mogoče naložiti. Več navzkrižnih ID-jev kanalov."
+  },
+  {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "Dimenzije {{.Filename}} ({{.Width}} do {{.Height}} pikslov) presegajo omejitve"
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "Slika dimenzijsko prevelika: {{.Filename}}"
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "Datotek/e ni mogoče naložiti. Morate imeti {{.NumClientIds}} client_id za {{.NumFiles}} datotek."
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "Napaka med branjem lokalne strežniške shrambe"
+  },
+  {
+    "id": "api.file.no_driver.app_error",
+    "translation": "Ni izbran gonilnik datotek."
+  },
+  {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Ni mogoče dobiti javne povezave za datoteko. Datoteka mora biti dodana k objavi, ki jo trenutno uporabnik lahko bere."
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "Javne povezave so onemogočene"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Datoteke nima sličice"
+  },
+  {
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "Datoteka nima predogleda"
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "Javna povezave ne izgleda veljavna"
+  },
+  {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Priponke so onemogočene na strežniku."
+  },
+  {
+    "id": "api.emoji.upload.open.app_error",
+    "translation": "Čustvenega simbola ni mogoče ustvariti. Pri poskusu odpiranja priložene slike je prišlo do napake."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Čustvenih simbolov ni mogoče ustvariti. Slika mora biti manjša od {{.MaxWidth}} in {{.MaxHeight}}."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Seška ni mogoče narediti. Kodiranje datoteke GIF ni bilo mogoče."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Smeška ni mogoče narediti. Branje GIF datoteke ni bilo mogoče."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Smeška ni mogoče narediti. Kodiranje slike za emoji ni bilo mogoče."
+  },
+  {
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Smeška ni mogoče narediti. Dekodiranje slike ni bilo uspešno."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "Format datoteke je lahko le PNG, JPEG ali GIF."
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "Shramba ni pravilno nastavljena. Nastavi lokalno ali S3 shrambo."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "Ne morem prebrati slike za emoji."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Ne morem prebrati slike za emoji."
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Lastne emojije je izklopil administrator."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Slika za emoji prevelika. Max 1 MB."
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "Ni mogoče narediti emojia. Napačna zahteva."
+  },
+  {
+    "id": "api.emoji.create.other_user.app_error",
+    "translation": "Neveljaven ID uporabnika."
+  },
+  {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "Emoji z istim imenom že obstaja."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "few": "[{{.SiteName}}] Nova obvestila za {{.Month}} {{.Day}}, {{.Year}}",
+      "one": "[{{.SiteName}}] Novo obvezilo za {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "",
+      "two": "[{{.SiteName}}] Novi obvestili za {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Povzetek v emailu je bil izklopljen s strani administratorja"
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "Predpomnilnik za prejamanje povzetkov aktivnosti je poln. Povečajte EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Vnesite besedilo za Pogoji storitve po meri."
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "Funkcija Pogoji storitve po meri je onemogočena"
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "Seja ni OAuth ampak žeton je bil podan v spletni poizvedbi"
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "Neveljavna ali potekla seja, prijavite se znova."
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "Nimate ustreznih dovoljenj"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Preverjanje v dveh korakih je obvezno na tem strežniku."
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Nepravilen ali napačen parameter {{.Name}} v URLju zahtevka"
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "Neveljaven token seje {{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "Napačen parameter {{.Name}}"
+  },
+  {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Napačno ali manjkajoče polje {{.Name}} v body zahtevka"
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "Strani ni mogoče najti."
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "Nov format konfiguracije klienta še ni podprt. Nastavi format=old v poizvedbi."
+  },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "skomig"
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[sporočilo]"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Doda ¯\\_(ツ)_/¯ sporočilu"
+  },
+  {
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "Naprava ne podpira ukaza za bližnjice"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "bližnjice"
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Prikaži seznam bližnjic"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "Naprava ne podpira settings ukaza"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "nastavitve"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Odpri nastavitve računa"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "Naprava ne podpira ukaza za iskanje"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "išči"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Išči med sporočili"
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} ni član tega kanala."
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Nimate ustreznih pravic za odstranitev člana."
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "odstrani"
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "Uporabnika ni možno najti. Uporabnika je lahko onemogočil skrbnik sistema."
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "Sporočilo mora biti podano z /remove ali /kick ukazom."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[username]"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "Osebe ne morete odstraniti iz neposrednega kanala za sporočila."
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Odstrani člana iz kanala"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "odpri"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Zdaj si dosegljiv"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "dosegljiv"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Nastavi vaše stanje na dosegljiv"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "Sedaj ste nedosegljivi"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "nedosegljiv"
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Nastavi stanje na nedosegljiv"
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "Kanal ni več utišan."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} ni več utišan."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "Obvestil kanala {{.Channel}} ne boste prejemali dokler ne izključite utišanje kanala."
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "Obvestil kanala {{.Channel}} ne boste prejemali dokler ne izključite utišanje kanala."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Kanala {{.Channel}} ni mogoče utišati ker niste član kanala."
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "Podanega kanala ni bilo mogoče najti. Prosim uporabite [channel handle](https://about.mattermost.com/default-channel-handle-documentation) za identifikacijo kanalov."
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "utišaj"
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "~[kanal]"
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "{{.Channel}} ni možno najti. Prosim uporabite [channel handle](https://about.mattermost.com/default-channel-handle-documentation) za identifikacijo kanalov."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Izklopi obvesčanje za namizni računalnik, elektronsko sporočilo in potisna obvestila za trenutni kanal ali določen [channel]."
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "Nimate ustreznih pravic za neposredno sporočilo temu uporabniku."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "sporočilo"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Uporabnika ni mogoče najti."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[uporabnik] 'sporočilo'"
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Napaka med komunikacijo z uporabnikom."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Napaka med ustvarjanjem direktnega sporočila."
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Pošlji neposredno sporočilo uporabniku"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "jaz"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[sporočilo]"
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "Izvedi dejanje"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "odjavi"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Odjava iz Mattermost-a"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "zapusti"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Napaka med zapuščanjem kanala."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Zapusti trenutni kanal"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "kick"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "vstopi"
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "Kanala ni bilo mogoče najti"
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "Napaka med prikazom kanalov."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "~[kanal]"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Prišlo je do napake med vstopom v kanal."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "Pridruži se odprtemu kanalu"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Nimate zadostnih pravic za povabilo novih uporabnikov na ta strežnik."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "{{.Username}} ni član tega kanala."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} je že v kanalu."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} je dodan v {{.Channel}} kanal."
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "{{.Channel}} ni možno najti. Prosim uporabite naziv kanala za identifikacijo kanalov."
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "Nimate zadostnih pravic dodati {{.User}} v {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "povabilo"
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "Uporabnika ni možno najti. Skrbnik sistema je lahko uporabnika onemogočil. "
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Manjka uporabniško ime in kanal."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[uporabnisko_ime] ~[kanal]"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Prišlo je do napake med vstopom v kanal."
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "Ni možno dodati osebe v kanal direktnega sporočila."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Povabi uporabnika v kanal"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "{{.Channel}} ni možno najti. Prosim uporabite [channel handle](https://about.mattermost.com/default-channel-handle-documentation) za identifikacijo kanalov."
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Napaka pridobivanja trenutnega kanala."
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "pomoč"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Odpri Mattermost pomoč"
+  },
+  {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "Nimate potrebnih pravic za izdelavo novega sporočila skupine."
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "sporočilo"
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Sporočila v skupini so omejena na minimalno {{.MinUsers}} uporabnikov."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Sporočila v skupini so omejena na maksimalno {{.MaxUsers}} uporabnikov."
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "few": "Uporabnikov ni bilo mogoče najti: {{.Users}}",
+      "one": "Uporabnika ni bilo mogoče najti: {{.Users}}",
+      "other": "",
+      "two": "Uporabnika ni bilo mogoče najti: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'sporočilo'"
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Napaka med ustvarjanjem skupinskega sporočila."
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Napaka med komunikacijo z uporabnikom."
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Pošlje skupinsko sporočilo določenim uporabnikom"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "Prišlo je do napake pri razširjanju predogledov"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Slikovne povezave so prikazane po privzetem"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "razširi"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Izklopi samodejno zlaganje slikovnih povezav"
+  },
+  {
+    "id": "api.command_echo.name",
+    "translation": "echo"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "Sporočilo mora biti podano z /echo ukazom."
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "'sporočilo' [zakasnitev v sekundah]"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "Velika količina echo sporočil, ni mogoče obdelati zahteve"
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "Pošlji sporočilo iz tvojega računa z zakasnitvijo"
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Zakasnitev mora biti manjša kot 10000 sekund"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Ne moti je omogočen. Dokler je omogočen ne boste prejemali potisnih obvestil."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "Ne moti izklopi vsa potisna obvestila."
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Slike so zložene po privzetem"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "zloži"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Vklopi samodejno zlaganje predogleda slik"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "koda"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Sporočilo mora biti podano z /code ukazom."
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Prikaži tekst kot kodo"
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Napaka pri posodabljanju imena kanala."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Ime kanala mora biti dolgo {{.Length}} ali več znakov"
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Ime kanala mora biti dolgo {{.Length}} ali manj znakov"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Nimate ustreznih pravic za preimenovanje kanala."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "preimenuj"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Sporočilo mora biti podano z /rename ukazom."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Kanala za neposredno sporočanje ni mogoče urejati."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Preimenuj kanal"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Napaka pridobivanja trenutnega kanala."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Napaka pridobivanja trenutnega kanala."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Napaka pri posodabljanju kanala."
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Nimate ustreznih pravic za urejanje namena kanala."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "namen"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Sporočilo mora biti podano s /purpose ukazom."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Ni mogoče nastaviti namena za neposredne kanale. Uporabi /header za nastavitev teme."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Uredi namen kanala"
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Napaka pridobivanja trenutnega kanala."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Napaka pri posodabljanju trenutnega kanala."
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Nimate ustreznih pravic za urejanje teme kanala."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "sporočilo kanala"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Tekst mora biti podan z /header ukazom."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Uredi sporočilo kanala"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Napaka pridobivanja trenutnega kanala."
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Trenutno ste odsotni"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "odsoten"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Nastavi stanje na odsoten"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Ni mogoče posodobiti ukaze na več ekipah"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Vabila poslana"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Napiši enega ali več veljavnih email naslovov"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "povabi_ljudi"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Ustvarjanje novih uporabnikov je izklopljeno, vabila niso poslana"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[ime@domena.si ...]"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Napaka pri pošiljanju vabil"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "Email ni nastavljen, vabila niso bila poslana"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Elektronska vabila so onemogočena, vabilo ni poslano"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Pošlji vabilo tvoji Mattermost ekipi"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "Ukazna akcija ni bila najdena"
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Ukaz z akcijo '{{.Trigger}}' ni najden. Sporočilom, ki se začnejo z \"/\", dodajte presledek na začetek."
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "Ukaz z akcijo '{{.Trigger}}' je vrnil {{.Status}}"
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "Ni datoteke v polju 'file' v zahtevi"
+  },
+  {
+    "id": "api.team.import_team.integer.app_error",
+    "translation": "Velikost datoteke ni tipa integer"
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Prazen seznam v polju 'file' v zahtevi"
+  },
+  {
+    "id": "api.team.get_team_icon.read_file.app_error",
+    "translation": "Datoteke z ikono ekipe ni mogoče prebrati."
+  },
+  {
+    "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
+    "translation": "Neveljavno ime gonilnika za nastavitve datoteke.  Mora biti »lokalno« ali »amazons3«"
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "Povabilo je neveljavno, ker to ni odprta ekipa."
+  },
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "Nimate ustreznih pravic za urejanje teme kanala."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "vaša licenca ne podpira skupin ldap"
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Za dodajanje uporabnika v skupino je potreben parameter."
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v dodan v ekipo - %v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "Uporabnika ni možno najti"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.app_error",
+    "translation": "Ni možno odpreti Slack izvozne zip datoteke.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "Ekipe ni možno uvoziti.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.open.app_error",
+    "translation": "Ni možno odpreti datoteke: {{.Filename}}.\r\n"
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "Ukaz z akcijo '{{.Trigger}}' je vrnil prazen odgovor"
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "Ukaz z akcijo '{{.Trigger}}' neuspešen"
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Ukaz '{{.Trigger}}' ni uspel odgovoriti. Obrnite se na skrbnika sistema."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Akcijska beseda je že v uporabi. Izberite novo besedo."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Administrator je onemogočil ukaze."
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Uporabnik ni član kanala."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "Integracije so bile omejene le na administratorje."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "Podana vloga je uporavljana s strani sheme privilegijev in zato ne more biti neposredno dodeljeno članu ekipe."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Ni možno nastaviti shemo na kanalu, ker dobavljena shema ni shema kanala."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Vaša licenca ne podpira nadgradnjo sheme kanala"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Podana vloga je upravljana s strani sheme privilegijev in zato ne more biti neposredno dodeljeno članu kanala"
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Neveljaven poskus posodobitve privzetega kanala {{.Channel}}"
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "Kanal je bil arhiviran ali izbrisan"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Ne morete preimenovati skupinskega sporočilnega kanala"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Neposrednega sporočilnega kanala ni mogoče preimenovati"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Uporabnika ni mogoče dodati v kanal te vrste"
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v je bil odstranjen iz kanala."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Uporabnika ni možno odstraniti iz kanala"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Ni mogoče odstraniti uporabnika iz privzetega kanala {{.Channel}}"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Napaka pri objavi prihod/odhod sporočila"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s je posodobil sporočilo kanala v: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s je posodobil sporočilo kanala iz: %s v: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Napaka pridobivanja uporabnika med posodabljanjem sporočila kanala"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s je odstranil sporočila kanala (prej: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Napaka pri sporočanju o spremembi glavnega sporočila"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s je posodobil ime kanala iz: %s v: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Napaka pridobivanja uporabnika med posodabljanjem imena kanala"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Napaka pri objavljanju sporočila o spremembi imena kanala"
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Napaka pri objavi sporočila o posodobitvi zasebnosti kanala."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Posodobitev kanala ni uspela"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Vaša licenca ne podpira hrambe podatkov."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v je zapustil kanal."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Zadnji si, poskusi odstraniti kanal Privatni kanal namesto zapuščanja."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Ni mogoče zapustiti neposrednega kanala"
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Ni mogoče zapustiti privzetega kanala {{.Channel}}"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v se je pridružil kanalu."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Nimate ustreznih dovoljenj"
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Vaša licenca ne podpira hrambe podatkov."
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Kanalov skupine ali direktnih sporočil ni mogoče brisati"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "Kanal je bil arhiviran ali izbrisan"
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Privzetega kanala ni mogoče izbrisati {{.Channel}}"
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v je arhiviral kanal."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "En od navedenih uporabnikov ne obstaja"
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Kanali za skupinski pogovor imajo lahko najmanj 3 in največ 8 uporabnikov"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Napačen ID uporabnika za ustvarjanje neposrednega kanala"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Trg"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Off-Topic"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Ni mogoče ustvariti več kot {{.MaxChannelsPerTeam}} kanalov za trenutno ekipo"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Uporabiti morate createDirectChannel API servis za ustvarjanje neposrednih kanalov"
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "vaša licenca ne podpira skupin ldap"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Ta kanal je bil spremenjen v zasebni kanal."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Ta kanal je bil spremenjen v javni kanal in do njega lahko dostopa vsak član ekipe."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Uporabnika ni mogoče dodati v kanal te vrste"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Napaka pri dodajanju uporabnika v kanal, ker je bil odstranjen iz ekipe."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Napaka pri dodajanju uporabnika v kanal"
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v dodan v kanal - %v"
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v dodan v kanal - %v"
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Prosim dodajte me ekipam in kanalom, v katerih želite da sodelujem. Če želite to narediti, uporabite brskalnik ali Mattermost Desktop App."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Kreiranje robotka je bilo onemogočeno."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Napaka pri nalaganju. Datoteka je prevelika."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Slike ni mogoče naložiti. Shramba slik ni nastavljena."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Ni mogoče prebrati multipart obrazca"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Ni datoteke v polju 'slika' v zahtevi"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Prazen seznam v polju 'image' v zahtevi"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket je zahtevan"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Preizkus nastavitve Email"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP nastavitve za strežnik, vrata ali uporabniško ime so se spremenile. Za preizkus znova vnesite SMTP geslo."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP strežnik je obvezen"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Email nastavitve so pravilne!"
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 ni podprt ali nastavljen na strežniku."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Napaka pri izdelavi Service Provider Metadata."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Ni mogoče shraniti certifikata."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Pri brisanju certifikata je prišlo do napake."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Shramba slik ni nastavljena."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Napaka pri branju dnevnika."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Ni možno izbrisati slike znamke. Slika ni bila najdena."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Ni mogoče shraniti certifikata."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Ni mogoče odpreti datoteke s certifikatom."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Ni datoteke v 'certificate' v zahtevi."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "V zahtevi ni datoteke 'certificate'."
+  },
+  {
+    "id": "September",
+    "translation": "september"
+  },
+  {
+    "id": "October",
+    "translation": "oktober"
+  },
+  {
+    "id": "November",
+    "translation": "november"
+  },
+  {
+    "id": "May",
+    "translation": "maj"
+  },
+  {
+    "id": "March",
+    "translation": "marec"
+  },
+  {
+    "id": "June",
+    "translation": "junij"
+  },
+  {
+    "id": "July",
+    "translation": "julij"
+  },
+  {
+    "id": "January",
+    "translation": "januar"
+  },
+  {
+    "id": "February",
+    "translation": "februar"
+  },
+  {
+    "id": "December",
+    "translation": "december"
+  },
+  {
+    "id": "August",
+    "translation": "avgust"
+  },
+  {
+    "id": "April",
+    "translation": "april"
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Ime mora vsebovati od 1 do 64 malih alfanumeričnih znakov"
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP ni na voljo."
+  }
+]
