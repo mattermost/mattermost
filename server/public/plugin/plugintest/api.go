@@ -3639,15 +3639,33 @@ func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppEr
 	return r0
 }
 
-// SendPluginPushNotification provides a mock function with given fields: notification
-func (_m *API) SendPluginPushNotification(notification *model.PluginPushNotification) error {
-	ret := _m.Called(notification)
+// SendPushNotification provides a mock function with given fields: notification, userID
+func (_m *API) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	ret := _m.Called(notification, userID)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.PluginPushNotification) error); ok {
-		r0 = rf(notification)
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.PushNotification, string) *model.AppError); ok {
+		r0 = rf(notification, userID)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SetFileSearchableContent provides a mock function with given fields: fileID, content
+func (_m *API) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	ret := _m.Called(fileID, content)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+		r0 = rf(fileID, content)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0

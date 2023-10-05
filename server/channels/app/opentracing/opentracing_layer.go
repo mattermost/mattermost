@@ -22,10 +22,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -37,6 +37,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/opentracing/opentracing-go/ext"
+
 	spanlog "github.com/opentracing/opentracing-go/log"
 )
 
@@ -1074,7 +1075,7 @@ func (a *OpenTracingAppLayer) CanNotifyAdmin(trial bool) bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CancelJob(jobId string) *model.AppError {
+func (a *OpenTracingAppLayer) CancelJob(c *request.Context, jobId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CancelJob")
 
@@ -1086,7 +1087,7 @@ func (a *OpenTracingAppLayer) CancelJob(jobId string) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CancelJob(jobId)
+	resultVar0 := a.app.CancelJob(c, jobId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1818,6 +1819,28 @@ func (a *OpenTracingAppLayer) ConvertBotToUser(c request.CTX, bot *model.Bot, us
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ConvertGroupMessageToChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.ConvertGroupMessageToChannel(c, convertedByUserId, gmConversionRequest)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ConvertUserToBot")
@@ -2174,7 +2197,7 @@ func (a *OpenTracingAppLayer) CreateIncomingWebhookForChannel(creatorId string, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateJob(job *model.Job) (*model.Job, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateJob(c *request.Context, job *model.Job) (*model.Job, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateJob")
 
@@ -2186,7 +2209,7 @@ func (a *OpenTracingAppLayer) CreateJob(job *model.Job) (*model.Job, *model.AppE
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateJob(job)
+	resultVar0, resultVar1 := a.app.CreateJob(c, job)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4539,6 +4562,28 @@ func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool, now int64, p
 	a.app.FinishSendAdminNotifyPost(trial, now, pluginBasedData)
 }
 
+func (a *OpenTracingAppLayer) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateAndSaveDesktopToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GenerateAndSaveDesktopToken(createAt, user)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateMfaSecret")
@@ -4600,7 +4645,7 @@ func (a *OpenTracingAppLayer) GeneratePublicLink(siteURL string, info *model.Fil
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GenerateSupportPacket() []model.FileData {
+func (a *OpenTracingAppLayer) GenerateSupportPacket(c *request.Context) []model.FileData {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateSupportPacket")
 
@@ -4612,7 +4657,7 @@ func (a *OpenTracingAppLayer) GenerateSupportPacket() []model.FileData {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GenerateSupportPacket()
+	resultVar0 := a.app.GenerateSupportPacket(c)
 
 	return resultVar0
 }
@@ -6643,6 +6688,28 @@ func (a *OpenTracingAppLayer) GetGroupMemberUsersSortedPage(groupID string, page
 	return resultVar0, resultVar1, resultVar2
 }
 
+func (a *OpenTracingAppLayer) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMessageMembersCommonTeams")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetGroupMessageMembersCommonTeams(c, channelID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupSyncable")
@@ -6968,7 +7035,7 @@ func (a *OpenTracingAppLayer) GetIncomingWebhooksPageByUser(userID string, page 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetJob(id string) (*model.Job, *model.AppError) {
+func (a *OpenTracingAppLayer) GetJob(c *request.Context, id string) (*model.Job, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJob")
 
@@ -6980,7 +7047,7 @@ func (a *OpenTracingAppLayer) GetJob(id string) (*model.Job, *model.AppError) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetJob(id)
+	resultVar0, resultVar1 := a.app.GetJob(c, id)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -6990,29 +7057,7 @@ func (a *OpenTracingAppLayer) GetJob(id string) (*model.Job, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobs")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetJobs(offset, limit)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (a *OpenTracingAppLayer) GetJobsByType(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByType")
 
@@ -7024,7 +7069,7 @@ func (a *OpenTracingAppLayer) GetJobsByType(jobType string, offset int, limit in
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetJobsByType(jobType, offset, limit)
+	resultVar0, resultVar1 := a.app.GetJobsByType(c, jobType, offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7034,7 +7079,7 @@ func (a *OpenTracingAppLayer) GetJobsByType(jobType string, offset int, limit in
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
+func (a *OpenTracingAppLayer) GetJobsByTypePage(c *request.Context, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByTypePage")
 
@@ -7046,7 +7091,7 @@ func (a *OpenTracingAppLayer) GetJobsByTypePage(jobType string, page int, perPag
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetJobsByTypePage(jobType, page, perPage)
+	resultVar0, resultVar1 := a.app.GetJobsByTypePage(c, jobType, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7056,7 +7101,7 @@ func (a *OpenTracingAppLayer) GetJobsByTypePage(jobType string, page int, perPag
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetJobsByTypes(jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (a *OpenTracingAppLayer) GetJobsByTypes(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByTypes")
 
@@ -7068,7 +7113,7 @@ func (a *OpenTracingAppLayer) GetJobsByTypes(jobTypes []string, offset int, limi
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetJobsByTypes(jobTypes, offset, limit)
+	resultVar0, resultVar1 := a.app.GetJobsByTypes(c, jobTypes, offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7078,7 +7123,7 @@ func (a *OpenTracingAppLayer) GetJobsByTypes(jobTypes []string, offset int, limi
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetJobsByTypesPage(jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+func (a *OpenTracingAppLayer) GetJobsByTypesPage(c *request.Context, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByTypesPage")
 
@@ -7090,29 +7135,7 @@ func (a *OpenTracingAppLayer) GetJobsByTypesPage(jobType []string, page int, per
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetJobsByTypesPage(jobType, page, perPage)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsPage")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetJobsPage(page, perPage)
+	resultVar0, resultVar1 := a.app.GetJobsByTypesPage(c, jobType, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7613,7 +7636,7 @@ func (a *OpenTracingAppLayer) GetOAuthImplicitRedirect(userID string, authReques
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service string, teamID string, action string, redirectTo string, loginHint string, isMobile bool) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service string, teamID string, action string, redirectTo string, loginHint string, isMobile bool, desktopToken string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthLoginEndpoint")
 
@@ -7625,7 +7648,7 @@ func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(w http.ResponseWriter, r *ht
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOAuthLoginEndpoint(w, r, service, teamID, action, redirectTo, loginHint, isMobile)
+	resultVar0, resultVar1 := a.app.GetOAuthLoginEndpoint(w, r, service, teamID, action, redirectTo, loginHint, isMobile, desktopToken)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7635,7 +7658,7 @@ func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(w http.ResponseWriter, r *ht
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service string, teamID string) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service string, teamID string, desktopToken string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthSignupEndpoint")
 
@@ -7647,7 +7670,7 @@ func (a *OpenTracingAppLayer) GetOAuthSignupEndpoint(w http.ResponseWriter, r *h
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOAuthSignupEndpoint(w, r, service, teamID)
+	resultVar0, resultVar1 := a.app.GetOAuthSignupEndpoint(w, r, service, teamID, desktopToken)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11685,7 +11708,7 @@ func (a *OpenTracingAppLayer) InstallPlugin(pluginFile io.ReadSeeker, replace bo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) InvalidateAllEmailInvites() *model.AppError {
+func (a *OpenTracingAppLayer) InvalidateAllEmailInvites(c *request.Context) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateAllEmailInvites")
 
@@ -11697,7 +11720,7 @@ func (a *OpenTracingAppLayer) InvalidateAllEmailInvites() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.InvalidateAllEmailInvites()
+	resultVar0 := a.app.InvalidateAllEmailInvites(c)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -11707,7 +11730,7 @@ func (a *OpenTracingAppLayer) InvalidateAllEmailInvites() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) InvalidateAllResendInviteEmailJobs() *model.AppError {
+func (a *OpenTracingAppLayer) InvalidateAllResendInviteEmailJobs(c *request.Context) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateAllResendInviteEmailJobs")
 
@@ -11719,7 +11742,7 @@ func (a *OpenTracingAppLayer) InvalidateAllResendInviteEmailJobs() *model.AppErr
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.InvalidateAllResendInviteEmailJobs()
+	resultVar0 := a.app.InvalidateAllResendInviteEmailJobs(c)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16116,6 +16139,28 @@ func (a *OpenTracingAppLayer) SetDefaultProfileImage(c request.CTX, user *model.
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SetFileSearchableContent(fileID string, data string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetFileSearchableContent")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SetFileSearchableContent(fileID, data)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPhase2PermissionsMigrationStatus")
@@ -16691,7 +16736,7 @@ func (a *OpenTracingAppLayer) SwitchOAuthToEmail(email string, password string, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SyncLdap(includeRemovedMembers bool) {
+func (a *OpenTracingAppLayer) SyncLdap(c *request.Context, includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncLdap")
 
@@ -16703,7 +16748,7 @@ func (a *OpenTracingAppLayer) SyncLdap(includeRemovedMembers bool) {
 	}()
 
 	defer span.Finish()
-	a.app.SyncLdap(includeRemovedMembers)
+	a.app.SyncLdap(c, includeRemovedMembers)
 }
 
 func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
@@ -17661,7 +17706,7 @@ func (a *OpenTracingAppLayer) UpdatePasswordSendEmail(c request.CTX, user *model
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdatePost(c *request.Context, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePost")
 
@@ -17673,7 +17718,7 @@ func (a *OpenTracingAppLayer) UpdatePost(c *request.Context, post *model.Post, s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdatePost(c, post, safeUpdate)
+	resultVar0, resultVar1 := a.app.UpdatePost(c, receivedUpdatedPost, safeUpdate)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -18574,6 +18619,28 @@ func (a *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID s
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.UserIsInAdminRoleGroup(userID, syncableID, syncableType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) ValidateDesktopToken(token string, expiryTime int64) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ValidateDesktopToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.ValidateDesktopToken(token, expiryTime)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

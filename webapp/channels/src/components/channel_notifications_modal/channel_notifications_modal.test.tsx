@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
-import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import type {ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserNotifyProps} from '@mattermost/types/users';
 
 import ChannelNotificationsModal from 'components/channel_notifications_modal/channel_notifications_modal';
 
-import {UserNotifyProps} from '@mattermost/types/users';
-import {ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
+import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/channel_notifications_modal/ChannelNotificationsModal', () => {
     const baseProps: ComponentProps<typeof ChannelNotificationsModal> = {
@@ -48,6 +49,37 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
     test('should match snapshot', () => {
         const wrapper = shallow(
             <ChannelNotificationsModal {...baseProps}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot for GMs', () => {
+        const wrapper = shallow(
+            <ChannelNotificationsModal
+                {...{
+                    ...baseProps,
+                    channel: TestHelper.getChannelMock({
+                        id: 'channel_id',
+                        display_name: 'channel_display_name',
+                        type: 'G',
+                    }),
+                    channelMember: {
+                        notify_props: {
+                            ...baseProps.channelMember!.notify_props,
+                            desktop: NotificationLevels.MENTION,
+                            push: NotificationLevels.MENTION,
+                        },
+                    } as unknown as ChannelMembership,
+                    currentUser: TestHelper.getUserMock({
+                        id: 'current_user_id',
+                        notify_props: {
+                            desktop: NotificationLevels.MENTION,
+                            desktop_threads: NotificationLevels.ALL,
+                        } as UserNotifyProps,
+                    }),
+                }}
+            />,
         );
 
         expect(wrapper).toMatchSnapshot();

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -258,7 +258,7 @@ export default class InteractiveDialog extends React.PureComponent {
                         <button
                             id='interactiveDialogCancel'
                             type='button'
-                            className='btn btn-link cancel-button'
+                            className='btn btn-tertiary cancel-button'
                             onClick={this.onHide}
                         >
                             <FormattedMessage

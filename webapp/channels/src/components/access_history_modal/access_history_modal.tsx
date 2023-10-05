@@ -5,9 +5,10 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Audit} from '@mattermost/types/audits';
+
 import AuditTable from 'components/audit_table';
 import LoadingScreen from 'components/loading_screen';
-import {Audit} from '@mattermost/types/audits';
 
 type Props = {
     onHide: () => void;
@@ -77,7 +78,7 @@ const AccessHistoryModal = ({
                 <button
                     id='closeModalButton'
                     type='button'
-                    className='btn btn-link'
+                    className='btn btn-tertiary'
                 >
                     <FormattedMessage
                         id='general_button.close'

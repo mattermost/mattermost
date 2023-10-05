@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
 import {Modal} from 'react-bootstrap';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import warningIcon from 'images/icons/warning-icon.svg';
 
 import './gather_intent.scss';
-import {FormDataState} from './useGatherIntent';
+import type {FormDataState} from './useGatherIntent';
 
 export interface GatherIntentModalProps {
     onClose: () => void;

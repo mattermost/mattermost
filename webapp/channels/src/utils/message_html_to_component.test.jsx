@@ -3,12 +3,12 @@
 
 import {shallow} from 'enzyme';
 
-import Constants from 'utils/constants';
+import AtMention from 'components/at_mention';
+import MarkdownImage from 'components/markdown_image';
 
+import Constants from 'utils/constants';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as TextFormatting from 'utils/text_formatting';
-import MarkdownImage from 'components/markdown_image';
-import AtMention from 'components/at_mention';
 
 describe('messageHtmlToComponent', () => {
     test('plain text', () => {

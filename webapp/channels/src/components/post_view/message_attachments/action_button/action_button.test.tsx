@@ -4,7 +4,7 @@
 import React from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import {render, screen, userEvent} from 'tests/react_testing_utils';

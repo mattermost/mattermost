@@ -2,23 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useMemo} from 'react';
-
 import {Modal} from 'react-bootstrap';
-
 import {FormattedMessage} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
+import LocalizedIcon from 'components/localized_icon';
+
+import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
-import {Group} from '@mattermost/types/groups';
+
+import type {ModalData} from 'types/actions';
 
 import 'components/user_groups_modal/user_groups_modal.scss';
-import {ModalData} from 'types/actions';
-import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import LocalizedIcon from 'components/localized_icon';
-import {t} from 'utils/i18n';
 
 export type Props = {
     onExited: () => void;
@@ -103,7 +103,7 @@ const AddUsersToGroupModal = (props: Props) => {
             <Modal.Header closeButton={true}>
                 <button
                     type='button'
-                    className='modal-header-back-button btn-icon'
+                    className='modal-header-back-button btn btn-icon'
                     aria-label='Close'
                     onClick={goBack}
                 >

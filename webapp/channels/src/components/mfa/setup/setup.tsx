@@ -4,14 +4,14 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LocalizedInput from 'components/localized_input/localized_input';
-import ExternalLink from 'components/external_link';
+
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
 type MFAControllerState = {
     enforceMultifactorAuthentication: boolean;

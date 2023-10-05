@@ -6,11 +6,11 @@ import {useIntl, FormattedMessage, FormattedNumber} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {Constants, ItemStatus} from 'utils/constants';
-
-import Input from 'components/widgets/inputs/input/input';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+import Input from 'components/widgets/inputs/input/input';
+
+import {Constants, ItemStatus} from 'utils/constants';
 
 import './seats_calculator.scss';
 

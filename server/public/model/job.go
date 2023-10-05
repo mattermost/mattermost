@@ -6,6 +6,8 @@ package model
 import (
 	"net/http"
 	"time"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -36,6 +38,7 @@ const (
 	JobTypeInstallPluginNotifyAdmin     = "install_plugin_notify_admin"
 	JobTypeHostedPurchaseScreening      = "hosted_purchase_screening"
 	JobTypeS3PathMigration              = "s3_path_migration"
+	JobTypeCleanupDesktopTokens         = "cleanup_desktop_tokens"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -66,6 +69,7 @@ var AllJobTypes = [...]string{
 	JobTypeExtractContent,
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
+	JobTypeCleanupDesktopTokens,
 }
 
 type Job struct {
@@ -78,6 +82,8 @@ type Job struct {
 	Status         string    `json:"status"`
 	Progress       int64     `json:"progress"`
 	Data           StringMap `json:"data"`
+
+	Logger *mlog.Logger `json:"-"`
 }
 
 func (j *Job) Auditable() map[string]interface{} {
@@ -118,15 +124,23 @@ func (j *Job) IsValid() *AppError {
 	return nil
 }
 
+// InitLogger attaches an annotated logger to a Job.
+// It should always be called after creating a new Job to ensure `Job.Logger` it set.
+func (j *Job) InitLogger(logger mlog.LoggerIFace) {
+	j.Logger = logger.With(
+		mlog.String("job_id", j.Id),
+		mlog.String("job_type", j.Type),
+		mlog.String("create_at", time.UnixMilli(j.CreateAt).String()),
+	)
+}
+
+func (j *Job) LogClone() any {
+	return j.Auditable()
+}
+
 type Worker interface {
 	Run()
 	Stop()
 	JobChannel() chan<- Job
 	IsEnabled(cfg *Config) bool
-}
-
-type Scheduler interface {
-	Enabled(cfg *Config) bool
-	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
-	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)
 }

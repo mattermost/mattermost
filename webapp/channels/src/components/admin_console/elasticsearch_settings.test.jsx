@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import SaveButton from 'components/save_button';
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
+import SaveButton from 'components/save_button';
 
 jest.mock('actions/admin_actions.jsx', () => {
     return {

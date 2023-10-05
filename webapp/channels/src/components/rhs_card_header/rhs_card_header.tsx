@@ -4,17 +4,17 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import LocalizedIcon from 'components/localized_icon';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-
-import {RhsState} from 'types/store/rhs';
+import LocalizedIcon from 'components/localized_icon';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
 
 import Constants, {RHSStates} from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {RhsState} from 'types/store/rhs';
 
 type Props = {
     previousRhsState?: RhsState;
@@ -167,7 +167,7 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                     >
                         <button
                             type='button'
-                            className='sidebar--right__expand btn-icon'
+                            className='sidebar--right__expand btn btn-icon btn-sm'
                             aria-label='Expand'
                             onClick={this.props.actions.toggleRhsExpanded}
                         >
@@ -188,7 +188,7 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                     >
                         <button
                             type='button'
-                            className='sidebar--right__close btn-icon'
+                            className='sidebar--right__close btn btn-icon btn-sm'
                             aria-label='Close'
                             onClick={this.props.actions.closeRightHandSide}
                         >

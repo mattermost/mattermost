@@ -4,13 +4,14 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {Channel, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelType} from '@mattermost/types/channels';
+
+import EditChannelHeaderModal from 'components/edit_channel_header_modal/edit_channel_header_modal';
+import type {default as EditChannelHeaderModalClass} from 'components/edit_channel_header_modal/edit_channel_header_modal';
+import Textbox from 'components/textbox';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
-
 import Constants from 'utils/constants';
-import EditChannelHeaderModal, {default as EditChannelHeaderModalClass} from 'components/edit_channel_header_modal/edit_channel_header_modal';
-import Textbox from 'components/textbox';
 import * as Utils from 'utils/utils';
 
 const KeyCodes = Constants.KeyCodes;
