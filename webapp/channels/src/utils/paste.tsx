@@ -10,6 +10,7 @@ export function parseHtmlTable(html: string): HTMLTableElement | null {
 }
 
 export function getHtmlTable(clipboardData: DataTransfer): HTMLTableElement | null {
+    // Check if clipboard data has html as one of its types
     if (Array.from(clipboardData.types).indexOf('text/html') === -1) {
         return null;
     }
@@ -40,6 +41,20 @@ export function isGitHubCodeBlock(tableClassName: string): boolean {
 export function isTextUrl(clipboardData: DataTransfer): boolean {
     const clipboardText = clipboardData.getData('text/plain');
     return clipboardText.startsWith('http://') || clipboardText.startsWith('https://');
+}
+
+/**
+ * Checks if the clipboard data contains plain text from list of types.
+**/
+export function hasPlainText(clipboardData: DataTransfer): boolean {
+    if (Array.from(clipboardData.types).includes('text/plain')) {
+        const clipboardText = clipboardData.getData('text/plain');
+        if (clipboardText.trim().length > 0) {
+            return true;
+        }
+        return false;
+    }
+    return false;
 }
 
 function isTableWithoutHeaderRow(table: HTMLTableElement): boolean {

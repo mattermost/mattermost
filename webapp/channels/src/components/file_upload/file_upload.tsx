@@ -24,6 +24,7 @@ import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import dragster from 'utils/dragster';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {hasPlainText} from 'utils/paste';
 import {
     isIosChrome,
     isMobileApp,
@@ -447,10 +448,12 @@ export class FileUpload extends PureComponent<Props, State> {
 
     containsEventTarget = (targetElement: HTMLInputElement | null, eventTarget: EventTarget | null) => targetElement && targetElement.contains(eventTarget as Node);
 
+    /**
+     * This paste handler is used to attach file uploads from the clipboard and filter out any plain text pastes.
+     */
     pasteUpload = (e: ClipboardEvent) => {
-        const {formatMessage} = this.props.intl;
-
-        if (!e.clipboardData || !e.clipboardData.items || e.clipboardData.getData('text/html')) {
+        // If the clipboard data doesn't or it contains plain text, do nothing and let the browser and other handlers.
+        if (!e.clipboardData || !e.clipboardData.items || hasPlainText(e.clipboardData)) {
             return;
         }
 
@@ -461,18 +464,11 @@ export class FileUpload extends PureComponent<Props, State> {
 
         this.props.onUploadError(null);
 
-        const items = [];
-        for (let i = 0; i < e.clipboardData.items.length; i++) {
-            const item = e.clipboardData.items[i];
+        const fileClipboardItems = Array.
+            from(e.clipboardData.items).
+            filter((item) => item.kind === 'file');
 
-            if (item.kind !== 'file') {
-                continue;
-            }
-
-            items.push(item);
-        }
-
-        if (items && items.length > 0) {
+        if (fileClipboardItems.length > 0) {
             if (!this.props.canUploadFiles) {
                 this.props.onUploadError(localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
                 return;
@@ -480,37 +476,38 @@ export class FileUpload extends PureComponent<Props, State> {
 
             e.preventDefault();
 
-            const files = [];
+            const fileList = fileClipboardItems.
+                map((fileClipboardItem) => this.createFileFromItem(fileClipboardItem)).
+                filter((file) => file !== null) as File[];
 
-            for (let i = 0; i < items.length; i++) {
-                const file = items[i].getAsFile();
-
-                if (!file) {
-                    continue;
-                }
-
-                const now = new Date();
-                const hour = now.getHours().toString().padStart(2, '0');
-                const minute = now.getMinutes().toString().padStart(2, '0');
-
-                let ext = '';
-                if (file.name && file.name.includes('.')) {
-                    ext = file.name.substr(file.name.lastIndexOf('.'));
-                } else if (items[i].type.includes('/')) {
-                    ext = '.' + items[i].type.split('/')[1].toLowerCase();
-                }
-
-                const name = file.name || formatMessage(holders.pasted) + now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate() + ' ' + hour + '-' + minute + ext;
-
-                const newFile: File = new File([file], name, {type: file.type});
-                files.push(newFile);
-            }
-
-            if (files.length > 0) {
-                this.checkPluginHooksAndUploadFiles(files);
+            if (fileList.length > 0) {
+                this.checkPluginHooksAndUploadFiles(fileList);
                 this.props.onFileUploadChange();
             }
         }
+    };
+
+    createFileFromItem = (item: DataTransferItem): File | null => {
+        const file = item.getAsFile();
+
+        if (!file) {
+            return null;
+        }
+
+        const now = new Date();
+        const hour = now.getHours().toString().padStart(2, '0');
+        const minute = now.getMinutes().toString().padStart(2, '0');
+
+        let ext = '';
+        if (file.name && file.name.includes('.')) {
+            ext = file.name.slice(file.name.lastIndexOf('.'));
+        } else if (item.type.includes('/')) {
+            ext = '.' + item.type.split('/')[1].toLowerCase();
+        }
+
+        const name = file.name || this.props.intl.formatMessage(holders.pasted) + now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate() + ' ' + hour + '-' + minute + ext;
+
+        return new File([file as Blob], name, {type: file?.type});
     };
 
     keyUpload = (e: KeyboardEvent) => {

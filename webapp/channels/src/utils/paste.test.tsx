@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseHtmlTable, getHtmlTable, formatMarkdownMessage, formatGithubCodePaste, formatMarkdownLinkMessage, isTextUrl} from './paste';
+import {parseHtmlTable, getHtmlTable, formatMarkdownMessage, formatGithubCodePaste, formatMarkdownLinkMessage, isTextUrl, hasPlainText} from './paste';
 
 const validClipboardData: any = {
     items: [1],
@@ -219,5 +219,55 @@ describe('isTextUrl', () => {
         };
 
         expect(isTextUrl(clipboardData)).toBe(false);
+    });
+});
+
+describe('hasPlainText', () => {
+    test('Should return true when clipboard data has plain text', () => {
+        const clipboardData = {
+            ...validClipboardData,
+            types: ['text/plain'],
+            getData: () => {
+                return 'plain text';
+            },
+        };
+
+        expect(hasPlainText(clipboardData)).toBe(true);
+    });
+
+    test('Should return true when clipboard data has plain text along with other types', () => {
+        const clipboardData = {
+            ...validClipboardData,
+            types: ['text/html', 'text/plain'],
+            getData: () => {
+                return 'plain text';
+            },
+        };
+
+        expect(hasPlainText(clipboardData)).toBe(true);
+    });
+
+    test('Should return false when clipboard data has empty text', () => {
+        const clipboardData = {
+            ...validClipboardData,
+            types: ['text/html', 'text/plain'],
+            getData: () => {
+                return '';
+            },
+        };
+
+        expect(hasPlainText(clipboardData)).toBe(false);
+    });
+
+    test('Should return false when clipboard data doesnt not have plain text type', () => {
+        const clipboardData = {
+            ...validClipboardData,
+            types: ['text/html'],
+            getData: () => {
+                return 'plain text without type';
+            },
+        };
+
+        expect(hasPlainText(clipboardData)).toBe(false);
     });
 });
