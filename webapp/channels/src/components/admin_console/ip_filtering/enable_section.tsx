@@ -19,7 +19,7 @@ const EnableSectionContent: React.FC<Props> = ({ filterToggle, setFilterToggle }
                             {formatMessage({ id: 'admin.ip_filtering.enable_ip_filtering', defaultMessage: 'Enable IP Filtering' })}
                         </div>
                         <div className="Subtitle">
-                            {formatMessage({ id: 'admin.ip_filtering.enable_ip_filtering_description', defaultMessage: 'Enable IP Filtering to limit access to your workspace by IP addresses.' })}
+                            {formatMessage({ id: 'admin.ip_filtering.enable_ip_filtering_description', defaultMessage: 'Limit access to your workspace by IP address. {learnmore}' }, {learnmore: (<a href="https://docs.mattermost.com/deployment/ip-address-filtering.html" target="_blank">{formatMessage({ id: 'admin.ip_filtering.learn_more', defaultMessage: 'Learn more in the docs' })}</a>)})}
                         </div>
                     </div>
                 </div>

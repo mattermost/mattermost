@@ -74,7 +74,7 @@ const EditSection: React.FC<EditSectionProps> = ({
                                 {formatMessage({ id: 'admin.ip_filtering.edit_section_description_line_1', defaultMessage: 'Create rules to allow access to the workspace for specified IP addresses only.' })}
                             </div>
                             <div className="Subtitle">
-                                {formatMessage({ id: 'admin.ip_filtering.edit_section_description_line_2', defaultMessage: 'NOTE: If no rules are added, all IP addresses will be allowed.' })}
+                                {formatMessage({ id: 'admin.ip_filtering.edit_section_description_line_2', defaultMessage: '{strong} If no rules are added, all IP addresses will be allowed.' }, {strong: (<strong>{formatMessage({ id: 'admin.ip_filtering.edit_section_description_line_2_strong', defaultMessage: 'NOTE:' })}</strong>) })}
                             </div>
                         </div>
                         <div className="AddIPFilterButton">
