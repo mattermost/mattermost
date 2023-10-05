@@ -4252,8 +4252,6 @@
   "postypes.custom_open_pricing_modal_post_renderer.upgrade_professional": "Upgrade naar Professional",
   "postypes.custom_open_pricing_modal_post_renderer.userRequests": "{userRequests} vroegen toegang tot deze functie",
   "postypes.custom_open_pricing_modal_post_renderer.view_options": "Bekijk de upgrade-opties",
-  "pricing_modal.addons.247Coverage": "24x7 bereikbaar",
-  "pricing_modal.addons.4hourL1L2Response": "4 uur L1&L2 reactie",
   "pricing_modal.addons.USSupport": "Enkel US gelokaliseerde helpdesk",
   "pricing_modal.addons.dedicatedDB": "Aparte databank",
   "pricing_modal.addons.dedicatedDeployment": "Aparte virtuele beveiligde cloudimplementatie (Cloud)",

@@ -4517,8 +4517,6 @@
   "postypes.custom_open_pricing_modal_post_renderer.upgrade_professional": "Atnaujinti į profesionalų",
   "postypes.custom_open_pricing_modal_post_renderer.userRequests": "{userRequests} paprašė prieigos prie šios funkcijos",
   "postypes.custom_open_pricing_modal_post_renderer.view_options": "Peržiūrėti atnaujinimo parinktis",
-  "pricing_modal.addons.247Coverage": "24x7 aprėptis",
-  "pricing_modal.addons.4hourL1L2Response": "4 valandos &L1 ir L2 atsakymas",
   "pricing_modal.addons.USSupport": "Pagalba tik JAV",
   "pricing_modal.addons.dedicatedDB": "Speciali duomenų bazė",
   "pricing_modal.addons.dedicatedDeployment": "Specialus virtualus saugus debesies diegimas (debesis)",

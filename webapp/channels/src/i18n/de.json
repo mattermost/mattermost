@@ -4385,8 +4385,6 @@
   "postypes.custom_open_pricing_modal_post_renderer.upgrade_professional": "Hochstufen auf Professional",
   "postypes.custom_open_pricing_modal_post_renderer.userRequests": "{userRequests} haben Zugriff auf diese Funktion angefragt",
   "postypes.custom_open_pricing_modal_post_renderer.view_options": "Zeige Upgrade Optionen",
-  "pricing_modal.addons.247Coverage": "2x7 Abdeckung",
-  "pricing_modal.addons.4hourL1L2Response": "4 Stunden L1&L2 Antwortzeit",
   "pricing_modal.addons.USSupport": "Rein U.S.-basierte Unterstützung",
   "pricing_modal.addons.dedicatedDB": "Dedizierte Datenbank",
   "pricing_modal.addons.dedicatedDeployment": "Dedizierte virtuelle sichere Cloud Installation (Cloud)",

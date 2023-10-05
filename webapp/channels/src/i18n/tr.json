@@ -4398,8 +4398,6 @@
   "postypes.custom_open_pricing_modal_post_renderer.upgrade_professional": "Professional tarifesine geçin",
   "postypes.custom_open_pricing_modal_post_renderer.userRequests": "{userRequests} bu özelliğe erişmek istedi",
   "postypes.custom_open_pricing_modal_post_renderer.view_options": "Üst tarife seçeneklerini görüntüle",
-  "pricing_modal.addons.247Coverage": "7/24 sürekli",
-  "pricing_modal.addons.4hourL1L2Response": "4 saat içinde L1 ve L2 yanıtı",
   "pricing_modal.addons.USSupport": "Yalnızca Birleşik Devletler'den destek",
   "pricing_modal.addons.dedicatedDB": "Size özel veri tabanı",
   "pricing_modal.addons.dedicatedDeployment": "Size özel sanal güvenli bulut kurulumu (Cloud)",

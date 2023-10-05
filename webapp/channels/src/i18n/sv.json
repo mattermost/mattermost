@@ -4403,8 +4403,6 @@
   "postypes.custom_open_pricing_modal_post_renderer.upgrade_professional": "Uppgradera till Professional",
   "postypes.custom_open_pricing_modal_post_renderer.userRequests": "{userRequests} begärde tillgång till denna funktion",
   "postypes.custom_open_pricing_modal_post_renderer.view_options": "Visa uppgraderingsalternativ",
-  "pricing_modal.addons.247Coverage": "24x7 täckning",
-  "pricing_modal.addons.4hourL1L2Response": "4 timmars responstid L1&L2",
   "pricing_modal.addons.USSupport": "Endast U.S.-basera support",
   "pricing_modal.addons.dedicatedDB": "Dedicerad databas",
   "pricing_modal.addons.dedicatedDeployment": "Dedicerad virtuell säker molnanvändning (Cloud)",

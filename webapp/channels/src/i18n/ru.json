@@ -4403,8 +4403,6 @@
   "postypes.custom_open_pricing_modal_post_renderer.upgrade_professional": "Повышение до Professional",
   "postypes.custom_open_pricing_modal_post_renderer.userRequests": "{userRequests} запросил доступ к этой функции",
   "postypes.custom_open_pricing_modal_post_renderer.view_options": "Посмотреть варианты обновления",
-  "pricing_modal.addons.247Coverage": "поддержка 24x7",
-  "pricing_modal.addons.4hourL1L2Response": "ответ в течение 4-х часов на L1&L2 запросы",
   "pricing_modal.addons.USSupport": "Поддержка только на территории США",
   "pricing_modal.addons.dedicatedDB": "Выделенная база данных",
   "pricing_modal.addons.dedicatedDeployment": "Выделенное виртуальное безопасное облачное развертывание (Cloud)",

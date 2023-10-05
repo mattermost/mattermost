@@ -3953,8 +3953,6 @@
   "postypes.custom_open_pricing_modal_post_renderer.upgrade_professional": "Váltson a Professional kiadásra",
   "postypes.custom_open_pricing_modal_post_renderer.userRequests": "{userRequests} hozzáférést kért ehhez a funkcióhoz",
   "postypes.custom_open_pricing_modal_post_renderer.view_options": "Csomag váltási lehetőségek megtekintése",
-  "pricing_modal.addons.247Coverage": "24x7 lefedettség",
-  "pricing_modal.addons.4hourL1L2Response": "4 órás L1&L2 válaszidő",
   "pricing_modal.addons.USSupport": "Csak USA csapat általi támogatás",
   "pricing_modal.addons.dedicatedDB": "Dedikált adatbázis",
   "pricing_modal.addons.dedicatedDeployment": "Dedikált virtuális biztonságos felhő telepítés (Cloud)",

@@ -4398,8 +4398,6 @@
   "postypes.custom_open_pricing_modal_post_renderer.upgrade_professional": "Professionalへアップグレード",
   "postypes.custom_open_pricing_modal_post_renderer.userRequests": "{userRequests} がこの機能へのアクセスをリクエストしました",
   "postypes.custom_open_pricing_modal_post_renderer.view_options": "アップグレードオプションを見る",
-  "pricing_modal.addons.247Coverage": "24x7 coverage",
-  "pricing_modal.addons.4hourL1L2Response": "4 hour L1&L2 response",
   "pricing_modal.addons.USSupport": "米国内のみのサポート",
   "pricing_modal.addons.dedicatedDB": "専用データベース",
   "pricing_modal.addons.dedicatedDeployment": "専用の仮想セキュアクラウドへのデプロイ（クラウド）",

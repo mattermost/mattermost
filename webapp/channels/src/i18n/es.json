@@ -3930,8 +3930,6 @@
   "postypes.custom_open_pricing_modal_post_renderer.availableOn": " - disponible en el {feature}",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} miembros",
   "postypes.custom_open_pricing_modal_post_renderer.unknown": "@unknown",
-  "pricing_modal.addons.247Coverage": "Cobertura 24x7",
-  "pricing_modal.addons.4hourL1L2Response": "4 horas respuesta L1 y L2",
   "pricing_modal.addons.dedicatedDB": "Base de datos dedicada",
   "pricing_modal.addons.premiumSupport": "Soporte premium",
   "pricing_modal.addons.title": "Complementos disponibles",
