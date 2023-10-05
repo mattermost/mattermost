@@ -53,8 +53,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps): StateProps {
     const config = getConfig(state);
     const channel = getChannel(state, post?.channel_id || '');
 
-    let timeZone: TimestampProps['timeZone'] = getCurrentTimezone(state);
-    
+    const timeZone: TimestampProps['timeZone'] = getCurrentTimezone(state);
     const postOwner = post ? isPostOwner(state, post) : undefined;
 
     const isMilitaryTime = getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);

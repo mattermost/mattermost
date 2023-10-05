@@ -3,7 +3,6 @@
 
 import timezones from 'timezones.json';
 
-import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';

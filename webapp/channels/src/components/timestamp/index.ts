@@ -25,7 +25,7 @@ type Props = {
 }
 
 export function mapStateToProps(state: GlobalState, ownProps: Props) {
-    let timeZone: TimestampProps['timeZone'] = getUserCurrentTimezone(ownProps.userTimezone ?? getCurrentTimezoneFull(state)) ?? undefined;
+    const timeZone: TimestampProps['timeZone'] = getUserCurrentTimezone(ownProps.userTimezone ?? getCurrentTimezoneFull(state)) ?? undefined;
     let hourCycle: TimestampProps['hourCycle'];
     let hour12: TimestampProps['hour12'];
 
