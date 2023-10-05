@@ -5,6 +5,7 @@ package app
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 )
@@ -30,14 +31,23 @@ func (h *addMentionsBroadcastHook) HasChanges(msg *model.WebSocketEvent, webConn
 		return false
 	}
 
-	mentions, _ := args["mentions"].(model.StringArray)
+	mentions, ok := args["mentions"].(model.StringArray)
+	if !ok {
+		mlog.Warn("Invalid mentions value passed to addMentionsBroadcastHook", mlog.Any("mentions", args["mentions"]))
+		return false
+	}
 
 	// This hook will only modify the event if the current user is mentioned by the post
 	return pUtils.Contains[string](mentions, webConn.UserId)
 }
 
 func (h *addMentionsBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) *model.WebSocketEvent {
-	mentions, _ := args["mentions"].(model.StringArray)
+	mentions, ok := args["mentions"].(model.StringArray)
+	if !ok {
+		mlog.Warn("Invalid mentions value passed to addMentionsBroadcastHook", mlog.Any("mentions", args["mentions"]))
+		return msg
+	}
+
 	hasMention := false
 	if len(mentions) > 0 {
 		hasMention = pUtils.Contains(mentions, webConn.UserId)
@@ -64,14 +74,23 @@ func (h *addFollowersBroadcastHook) HasChanges(msg *model.WebSocketEvent, webCon
 		return false
 	}
 
-	followers, _ := args["followers"].(model.StringArray)
+	followers, ok := args["followers"].(model.StringArray)
+	if !ok {
+		mlog.Warn("Invalid followers value passed to addFollowersBroadcastHook", mlog.Any("followers", args["followers"]))
+		return false
+	}
 
 	// This hook will only modify the event if the current user is following the post
 	return pUtils.Contains[string](followers, webConn.UserId)
 }
 
 func (h *addFollowersBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) *model.WebSocketEvent {
-	followers, _ := args["followers"].(model.StringArray)
+	followers, ok := args["followers"].(model.StringArray)
+	if !ok {
+		mlog.Warn("Invalid followers value passed to addFollowersBroadcastHook", mlog.Any("followers", args["followers"]))
+		return msg
+	}
+
 	isFollower := false
 	if len(followers) > 0 {
 		isFollower = pUtils.Contains(followers, webConn.UserId)
