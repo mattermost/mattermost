@@ -477,7 +477,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
 	})
 
-	t.Run("Should stop processing at first reject", func(t *testing.T) {
+	t.Run("Should update", func(t *testing.T) {
 		setupMultiPluginAPITest(t, []string{
 			`
 				package main
@@ -539,9 +539,9 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 
 		post.Message = "new message"
 		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
-		require.Nil(t, updatedPost)
-		require.NotNil(t, err)
-		require.Equal(t, "new message 1 2", err.Id)
+		require.Nil(t, err)
+		require.NotNil(t, updatedPost)
+		require.Equal(t, "new message 1 2", updatedPost.Message)
 	})
 }
 
