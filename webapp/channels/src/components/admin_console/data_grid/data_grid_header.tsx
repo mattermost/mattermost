@@ -12,8 +12,9 @@ export type Props = {
     columns: Column[];
 }
 
-class DataGridHeader extends React.Component<Props> {
-    renderHeaderElement(col: Column) {
+
+const DataGridHeader: React.FC<Props> = ({ columns }: Props) => {
+    const renderHeaderElement = (col: Column) => {
         const style: CSSProperties = {};
         if (col.width) {
             style.flexGrow = col.width;
@@ -28,15 +29,13 @@ class DataGridHeader extends React.Component<Props> {
                 {col.name}
             </div>
         );
-    }
+    };
 
-    render() {
-        return (
-            <div className='DataGrid_header'>
-                {this.props.columns.map((col) => this.renderHeaderElement(col))}
-            </div>
-        );
-    }
-}
+    return (
+        <div className='DataGrid_header'>
+            {columns.map((col) => renderHeaderElement(col))}
+        </div>
+    );
+};
 
 export default DataGridHeader;
