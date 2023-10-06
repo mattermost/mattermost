@@ -1869,7 +1869,7 @@ const AdminDefinition = {
                         label: t('admin.log.AdvancedLoggingJSONTitle'),
                         label_default: 'Advanced Logging:',
                         help_text: t('admin.log.AdvancedLoggingJSONDescription'),
-                        help_text_default: 'The JSON configuration for Advanced Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format is uses.',
+                        help_text_default: 'The JSON configuration for Advanced Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.',
                         help_text_markdown: false,
                         help_text_values: {
                             link: (msg) => (
