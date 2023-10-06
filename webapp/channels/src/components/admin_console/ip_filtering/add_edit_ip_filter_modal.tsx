@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { Button, Modal } from 'react-bootstrap';
-import Input, { CustomMessageInputType } from 'components/widgets/inputs/input/input';
-import { AllowedIPRange } from '@mattermost/types/config';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useState} from 'react';
+import {Button, Modal} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
+
+import type {AllowedIPRange} from '@mattermost/types/config';
+
+import ExternalLink from 'components/external_link';
+import InfoIcon from 'components/widgets/icons/info_icon';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+import Input from 'components/widgets/inputs/input/input';
 
 import './add_edit_ip_filter_modal.scss';
-import InfoIcon from 'components/widgets/icons/info_icon';
-import { useIntl } from 'react-intl';
 
 type Props = {
     onClose?: () => void;
@@ -19,7 +26,7 @@ function validateCIDR(cidr: string) {
     return cidrRegex.test(cidr);
 }
 
-export default function IPFilteringAddOrEditModal({ onClose, onSave, existingRange, currentIP }: Props) {
+export default function IPFilteringAddOrEditModal({onClose, onSave, existingRange, currentIP}: Props) {
     const {formatMessage} = useIntl();
     const [name, setName] = useState(existingRange?.Description || '');
     const [cidr, setCIDR] = useState(existingRange?.CIDRBlock || '');
@@ -41,19 +48,19 @@ export default function IPFilteringAddOrEditModal({ onClose, onSave, existingRan
         }
 
         onClose?.();
-    }
+    };
 
     const handleCIDRChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const cidr = e.target.value;
         setCIDR(cidr);
         setCidrError(null);
-    }
+    };
 
     const validateCIDRInput = () => {
         if (!validateCIDR(cidr)) {
-            setCidrError({ type: 'error', value: 'Invalid CIDR' });
+            setCidrError({type: 'error', value: 'Invalid CIDR'});
         }
-    }
+    };
 
     return (
         <Modal
@@ -69,14 +76,14 @@ export default function IPFilteringAddOrEditModal({ onClose, onSave, existingRan
             </Modal.Header>
             <Modal.Body>
                 <div className='body'>
-                    <div className="current_ip_notice">
-                        <div className="Content">
-                            <span><InfoIcon />{formatMessage({id: 'admin.ip_filtering.your_current_ip_is', defaultMessage: 'Your current IP address is {ip}'}, {ip: currentIP})}</span>
+                    <div className='current_ip_notice'>
+                        <div className='Content'>
+                            <span><InfoIcon/>{formatMessage({id: 'admin.ip_filtering.your_current_ip_is', defaultMessage: 'Your current IP address is {ip}'}, {ip: currentIP})}</span>
                         </div>
                     </div>
-                    <div className="inputs">
+                    <div className='inputs'>
                         <div>
-                            {formatMessage({ id: 'admin.ip_filtering.name', defaultMessage: 'Name' })}
+                            {formatMessage({id: 'admin.ip_filtering.name', defaultMessage: 'Name'})}
                             <Input
                                 type='text'
                                 name='name'
@@ -87,36 +94,56 @@ export default function IPFilteringAddOrEditModal({ onClose, onSave, existingRan
                                 useLegend={false}
                             />
                         </div>
-                        <div>{formatMessage({ id: 'admin.ip_filtering.allow_following_range', defaultMessage: 'Allow the following range of IP Addresses' })}
-                        <Input
-                            type='text'
-                            name='ip_address_range'
-                            onChange={handleCIDRChange}
-                            onBlur={validateCIDRInput}
-                            value={cidr}
-                            placeholder={'Enter IP Range'}
-                            required={true}
-                            useLegend={false}
-                            customMessage={cidrError}
-                        />
+                        <div>{formatMessage({id: 'admin.ip_filtering.allow_following_range', defaultMessage: 'Allow the following range of IP Addresses'})}
+                            <Input
+                                type='text'
+                                name='ip_address_range'
+                                onChange={handleCIDRChange}
+                                onBlur={validateCIDRInput}
+                                value={cidr}
+                                placeholder={'Enter IP Range'}
+                                required={true}
+                                useLegend={false}
+                                customMessage={cidrError}
+                            />
                         </div>
                         {/* TODO: get proper PL for more info link out */}
-                        <p>{formatMessage({id: 'admin.ip_filtering.more_info', defaultMessage: 'Enter ranges in CIDR format (e.g. 192.168.0.1/8). {link}'}, {link: <a href='https://docs.mattermost.com/deployment/ip-address-filtering.html' target='_blank' rel='noopener noreferrer'>{formatMessage({id: 'admin.ip_filtering.more_info_link', defaultMessage: 'More info'})}</a>})}</p>
+                        <p>
+                            {
+                                formatMessage(
+                                    {
+                                        id: 'admin.ip_filtering.more_info',
+                                        defaultMessage: 'Enter ranges in CIDR format (e.g. 192.168.0.1/8). {link}',
+                                    },
+                                    {
+                                        link: (
+                                            <ExternalLink
+                                                href='https://docs.mattermost.com/deployment/ip-address-filtering.html'
+                                                target='_blank'
+                                                rel='noopener noreferrer'
+                                            >
+                                                {formatMessage({id: 'admin.ip_filtering.more_info_link', defaultMessage: 'More info'})}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                )
+                            }
+                        </p>
                     </div>
                 </div>
             </Modal.Body>
             <Modal.Footer>
                 <Button
-                    type="button"
-                    className="btn-cancel"
+                    type='button'
+                    className='btn-cancel'
                     onClick={() => onClose?.()}
                 >
-                    Cancel
+                    {'Cancel'}
                 </Button>
                 <Button
-                    data-testid="save-add-edit-button"
-                    type="button"
-                    className="btn-save"
+                    data-testid='save-add-edit-button'
+                    type='button'
+                    className='btn-save'
                     onClick={handleSave}
                     disabled={cidrError !== null}
                 >

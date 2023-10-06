@@ -2310,7 +2310,7 @@
   "admin.sidebar.highAvailability": "High Availability",
   "admin.sidebar.imageProxy": "Image Proxy",
   "admin.sidebar.integrations": "Integrations",
-  "admin.sidebar.ip_filtering": "",
+  "admin.sidebar.ip_filtering": "IP Filtering",
   "admin.sidebar.ldap": "AD/LDAP",
   "admin.sidebar.license": "Edition and License",
   "admin.sidebar.localization": "Localization",

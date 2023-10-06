@@ -1,7 +1,11 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import React from 'react';
-import { AllowedIPRange } from '@mattermost/types/config';
-import { Button, Modal } from 'react-bootstrap';
-import { useIntl } from 'react-intl';
+import {Button, Modal} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
+
+import type {AllowedIPRange} from '@mattermost/types/config';
 
 import './delete_confirmation.scss';
 
@@ -11,7 +15,7 @@ type Props = {
     filterToDelete?: AllowedIPRange;
 }
 
-export default function DeleteConfirmationModal({ onClose, onConfirm, filterToDelete }: Props) {
+export default function DeleteConfirmationModal({onClose, onConfirm, filterToDelete}: Props) {
     const {formatMessage} = useIntl();
     return (
         <Modal
@@ -28,27 +32,27 @@ export default function DeleteConfirmationModal({ onClose, onConfirm, filterToDe
             <Modal.Body>
                 {formatMessage({
                     id: 'admin.ip_filtering.delete_confirmation_body',
-                    defaultMessage: 'Are you sure you want to delete IP filter {filter}? Users with IP addresses outside of this range won\'t be able to access the workspace when IP Filtering is enabled'
+                    defaultMessage: 'Are you sure you want to delete IP filter {filter}? Users with IP addresses outside of this range won\'t be able to access the workspace when IP Filtering is enabled',
                 },
-                    { filter: (<strong>{filterToDelete?.Description}</strong>) }
+                {filter: (<strong>{filterToDelete?.Description}</strong>)},
                 )}
             </Modal.Body>
             <Modal.Footer>
                 <Button
-                    type="button"
-                    className="btn-cancel"
+                    type='button'
+                    className='btn-cancel'
                     onClick={() => onClose?.()}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
                 </Button>
                 <Button
-                    type="button"
-                    className="btn-delete"
+                    type='button'
+                    className='btn-delete'
                     onClick={() => onConfirm?.(filterToDelete!)}
                 >
                     {formatMessage({id: 'admin.ip_filtering.delete_filter', defaultMessage: 'Delete filter'})}
                 </Button>
             </Modal.Footer>
         </Modal>
-    )
+    );
 }

@@ -1,5 +1,9 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {render, fireEvent} from '@testing-library/react';
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+
 import SaveConfirmationModal from './save_confirmation_modal';
 
 describe('SaveConfirmationModal', () => {
@@ -14,14 +18,14 @@ describe('SaveConfirmationModal', () => {
     });
 
     test('renders the title and subtitle', () => {
-        const { getByText } = render(
+        const {getByText} = render(
             <SaveConfirmationModal
                 onClose={onCloseMock}
                 onConfirm={onConfirmMock}
                 title={title}
                 subtitle={subtitle}
                 buttonText={buttonText}
-            />
+            />,
         );
 
         expect(getByText(title)).toBeInTheDocument();
@@ -29,7 +33,7 @@ describe('SaveConfirmationModal', () => {
     });
 
     test('renders the disclaimer if includeDisclaimer is true', () => {
-        const { getByText } = render(
+        const {getByText} = render(
             <SaveConfirmationModal
                 onClose={onCloseMock}
                 onConfirm={onConfirmMock}
@@ -37,21 +41,21 @@ describe('SaveConfirmationModal', () => {
                 subtitle={subtitle}
                 buttonText={buttonText}
                 includeDisclaimer={true}
-            />
+            />,
         );
 
         expect(getByText('Using the Customer Portal to restore access')).toBeInTheDocument();
     });
 
     test('calls onClose when the cancel button is clicked', () => {
-        const { getByText } = render(
+        const {getByText} = render(
             <SaveConfirmationModal
                 onClose={onCloseMock}
                 onConfirm={onConfirmMock}
                 title={title}
                 subtitle={subtitle}
                 buttonText={buttonText}
-            />
+            />,
         );
 
         fireEvent.click(getByText('Cancel'));
@@ -60,14 +64,14 @@ describe('SaveConfirmationModal', () => {
     });
 
     test('calls onConfirm when the confirm button is clicked', () => {
-        const { getByText } = render(
+        const {getByText} = render(
             <SaveConfirmationModal
                 onClose={onCloseMock}
                 onConfirm={onConfirmMock}
                 title={title}
                 subtitle={subtitle}
                 buttonText={buttonText}
-            />
+            />,
         );
 
         fireEvent.click(getByText(buttonText));

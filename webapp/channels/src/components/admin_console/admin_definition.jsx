@@ -69,6 +69,7 @@ import {
 import FeatureFlags from './feature_flags.tsx';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
+import IPFiltering from './ip_filtering';
 import LicenseSettings from './license_settings';
 import MessageExportSettings from './message_export_settings.jsx';
 import OpenIdConvert from './openid_convert';
@@ -89,7 +90,6 @@ import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
-import IPFiltering from './ip_filtering';
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';

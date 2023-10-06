@@ -1,5 +1,9 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+
 import EnableSectionContent from './enable_section';
 
 describe('EnableSectionContent', () => {
@@ -21,7 +25,7 @@ describe('EnableSectionContent', () => {
         expect(screen.getByText('Enable IP Filtering')).toBeInTheDocument();
         expect(screen.getByText('Enable IP Filtering to limit access to your workspace by IP addresses.')).toBeInTheDocument();
         expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
-        expect(screen.getByRole('button', { pressed: true })).toBeInTheDocument();
+        expect(screen.getByRole('button', {pressed: true})).toBeInTheDocument();
     });
 
     test('clicking the toggle calls setFilterToggle', () => {
@@ -49,7 +53,7 @@ describe('EnableSectionContent', () => {
         expect(screen.getByText('Enable IP Filtering')).toBeInTheDocument();
         expect(screen.getByText('Enable IP Filtering to limit access to your workspace by IP addresses.')).toBeInTheDocument();
         expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
-        expect(screen.getByRole('button', { pressed: false })).toBeInTheDocument();
+        expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
     });
 });
 

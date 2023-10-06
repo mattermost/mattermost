@@ -1,5 +1,9 @@
-import { AllowedIPRange } from '@mattermost/types/config';
-import { isIPAddressInRanges } from './ip_filtering_utils';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import type {AllowedIPRange} from '@mattermost/types/config';
+
+import {isIPAddressInRanges} from './ip_filtering_utils';
 
 describe('isIPAddressInRanges', () => {
     const allowedIPRanges = [

@@ -1,7 +1,12 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+
+import type {AllowedIPRange} from '@mattermost/types/config';
+
 import EditSection from './edit_section';
-import { AllowedIPRange } from '@mattermost/types/config';
 
 describe('EditSection', () => {
     const ipFilters = [
@@ -36,7 +41,7 @@ describe('EditSection', () => {
 
         expect(screen.getByText('Allowed IP Addresses')).toBeInTheDocument();
         expect(screen.getByText('Create rules to allow access to the workspace for specified IP addresses only.')).toBeInTheDocument();
-        expect(screen.getByText('NOTE: If no rules are added, all IP addresses will be allowed.')).toBeInTheDocument();
+        expect(screen.getByText('If no rules are added, all IP addresses will be allowed.')).toBeInTheDocument();
         expect(screen.getByText('Add Filter')).toBeInTheDocument();
         expect(screen.getByText('Filter Name')).toBeInTheDocument();
         expect(screen.getByText('IP Address Range')).toBeInTheDocument();
@@ -76,9 +81,8 @@ describe('EditSection', () => {
 
         fireEvent.mouseEnter(screen.getByText('Test Filter'));
         fireEvent.click(screen.getByRole('button', {
-            name: /Edit/i
+            name: /Edit/i,
         }));
-
 
         expect(setEditFilter).toHaveBeenCalledTimes(1);
         expect(setEditFilter).toHaveBeenCalledWith(ipFilters[0]);
@@ -98,7 +102,7 @@ describe('EditSection', () => {
 
         fireEvent.mouseEnter(screen.getByText('Test Filter'));
         fireEvent.click(screen.getByRole('button', {
-            name: /Delete/i
+            name: /Delete/i,
         }));
 
         expect(handleConfirmDeleteFilter).toHaveBeenCalledTimes(1);
@@ -109,7 +113,7 @@ describe('EditSection', () => {
         render(
             <EditSection
                 ipFilters={ipFilters}
-                currentUsersIP="192.168.1.1"
+                currentUsersIP='192.168.1.1'
                 setShowAddModal={setShowAddModal}
                 setEditFilter={setEditFilter}
                 handleConfirmDeleteFilter={handleConfirmDeleteFilter}
