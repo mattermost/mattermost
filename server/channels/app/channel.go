@@ -1935,14 +1935,6 @@ func (a *App) GetChannelsForTeamForUser(c request.CTX, teamID string, userID str
 	return a.Srv().getChannelsForTeamForUser(c, teamID, userID, opts)
 }
 
-func (a *App) GetChannelsForTeamForUserWithCursor(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetChannelsWithCursor(teamID, userID, opts, afterChannelID)
-	if err != nil {
-		return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return list, nil
-}
-
 func (a *App) GetChannelsForUser(c request.CTX, userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store().Channel().GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 	if err != nil {

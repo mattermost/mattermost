@@ -1480,27 +1480,6 @@ func (s *RetryLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (ma
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetChannelsWithCursor(teamId, userId, opts, afterChannelID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 
 	tries := 0
@@ -1827,27 +1806,6 @@ func (s *RetryLayerChannelStore) GetMembersForUser(teamID string, userID string)
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetMembersForUser(teamID, userID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelStore) GetMembersForUserWithCursor(userID string, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetMembersForUserWithCursor(userID, teamID, opts)
 		if err == nil {
 			return result, nil
 		}

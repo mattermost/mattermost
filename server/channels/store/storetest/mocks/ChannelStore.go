@@ -974,32 +974,6 @@ func (_m *ChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]
 	return r0, r1
 }
 
-// GetChannelsWithCursor provides a mock function with given fields: teamId, userId, opts, afterChannelID
-func (_m *ChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
-	ret := _m.Called(teamId, userId, opts, afterChannelID)
-
-	var r0 model.ChannelList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *model.ChannelSearchOpts, string) (model.ChannelList, error)); ok {
-		return rf(teamId, userId, opts, afterChannelID)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, *model.ChannelSearchOpts, string) model.ChannelList); ok {
-		r0 = rf(teamId, userId, opts, afterChannelID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.ChannelList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, *model.ChannelSearchOpts, string) error); ok {
-		r1 = rf(teamId, userId, opts, afterChannelID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetChannelsWithTeamDataByIds provides a mock function with given fields: channelIds, includeDeleted
 func (_m *ChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 	ret := _m.Called(channelIds, includeDeleted)
@@ -1435,32 +1409,6 @@ func (_m *ChannelStore) GetMembersForUser(teamID string, userID string) (model.C
 
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamID, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetMembersForUserWithCursor provides a mock function with given fields: userID, teamID, opts
-func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
-	ret := _m.Called(userID, teamID, opts)
-
-	var r0 model.ChannelMembers
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error)); ok {
-		return rf(userID, teamID, opts)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) model.ChannelMembers); ok {
-		r0 = rf(userID, teamID, opts)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.ChannelMembers)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) error); ok {
-		r1 = rf(userID, teamID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
