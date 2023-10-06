@@ -68,7 +68,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	codeChallenge := html.EscapeString(r.URL.Query().Get("code_challenge"))
 	if codeChallenge != "" {
 		token, tokenErr := c.App.CreateCodeChallengeToken(codeChallenge)
-		if err != nil {
+		if tokenErr != nil {
 			c.Err = tokenErr
 			return
 		}
