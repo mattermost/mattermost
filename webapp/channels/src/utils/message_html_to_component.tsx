@@ -62,8 +62,8 @@ export function messageHtmlToComponent(html: any, options: Options = {}) {
         return null;
     }
 
-    const parser = Parser();
-    const processNodeDefinitions = ProcessNodeDefinitions();
+    const parser = new (Parser as any)();
+    const processNodeDefinitions = new (ProcessNodeDefinitions as any)();
 
     function isValidNode() {
         return true;

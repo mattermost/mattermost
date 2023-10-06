@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import WebSocketClient from 'client/web_websocket_client';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -43,6 +42,7 @@ import store from 'stores/redux_store';
 
 import SubMenuModal from 'components/widgets/menu/menu_modals/submenu_modal/submenu_modal';
 
+import WebSocketClient from 'client/web_websocket_client';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostTypes, RHSStates, ModalIdentifiers, PreviousViewedTypes} from 'utils/constants';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';

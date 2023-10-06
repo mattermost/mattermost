@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import WebSocketClient from 'client/web_websocket_client';
 import React from 'react';
 import {Redirect} from 'react-router-dom';
 import semver from 'semver';
@@ -15,6 +14,7 @@ import BrowserStore from 'stores/browser_store';
 
 import LoadingScreen from 'components/loading_screen';
 
+import WebSocketClient from 'client/web_websocket_client';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {getBrowserTimezone} from 'utils/timezone';
