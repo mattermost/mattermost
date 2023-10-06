@@ -11,7 +11,7 @@ type AdminDefinitionConfigSchemaComponent = {
     component: Component;
 }
 
-export type ConsoleAccess = {read: any; write: any}
+export type ConsoleAccess = {read: {[key: string]: boolean}; write: {[key: string]: boolean}}
 
 type Validator = (value: any) => ValidationResult
 
