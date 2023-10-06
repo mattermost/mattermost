@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import Scrollbars from 'react-custom-scrollbars';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {TeamMembership} from '@mattermost/types/teams';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
+import LocalizedInput from 'components/localized_input/localized_input';
 import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
-import LocalizedInput from 'components/localized_input/localized_input';
 
 import {t} from 'utils/i18n';
 
@@ -248,7 +249,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 nextButton = (
                     <button
                         id='searchableUserListNextBtn'
-                        className='btn btn-link filter-control filter-control__next'
+                        className='btn btn-tertiary filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                     >
@@ -264,7 +265,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 previousButton = (
                     <button
                         id='searchableUserListPrevBtn'
-                        className='btn btn-link filter-control filter-control__prev'
+                        className='btn btn-tertiary filter-control filter-control__prev'
                         onClick={this.previousPage}
                     >
                         <FormattedMessage

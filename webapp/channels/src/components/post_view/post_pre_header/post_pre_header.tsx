@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-
-import {t} from 'utils/i18n';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
+
+import {t} from 'utils/i18n';
 
 export type Props = {
     intl: IntlShape;

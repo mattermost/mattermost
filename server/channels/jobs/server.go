@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
@@ -17,6 +18,7 @@ type JobServer struct {
 	ConfigService configservice.ConfigService
 	Store         store.Store
 	metrics       einterfaces.MetricsInterface
+	logger        mlog.LoggerIFace
 
 	// mut is used to protect the following fields from concurrent access.
 	mut        sync.Mutex
@@ -24,11 +26,12 @@ type JobServer struct {
 	schedulers *Schedulers
 }
 
-func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {
+func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface, logger mlog.LoggerIFace) *JobServer {
 	srv := &JobServer{
 		ConfigService: configService,
 		Store:         store,
 		metrics:       metrics,
+		logger:        logger,
 	}
 	srv.initWorkers()
 	srv.initSchedulers()
@@ -47,7 +50,7 @@ func (srv *JobServer) initSchedulers() {
 		clusterLeaderChanged: make(chan bool, 1),
 		jobs:                 srv,
 		isLeader:             true,
-		schedulers:           make(map[string]model.Scheduler),
+		schedulers:           make(map[string]Scheduler),
 		nextRunTimes:         make(map[string]*time.Time),
 	}
 
@@ -58,7 +61,11 @@ func (srv *JobServer) Config() *model.Config {
 	return srv.ConfigService.Config()
 }
 
-func (srv *JobServer) RegisterJobType(name string, worker model.Worker, scheduler model.Scheduler) {
+func (srv *JobServer) Logger() mlog.LoggerIFace {
+	return srv.logger
+}
+
+func (srv *JobServer) RegisterJobType(name string, worker model.Worker, scheduler Scheduler) {
 	srv.mut.Lock()
 	defer srv.mut.Unlock()
 	if worker != nil {

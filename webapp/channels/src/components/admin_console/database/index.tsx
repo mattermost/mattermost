@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
-
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {getAppliedSchemaMigrations} from 'mattermost-redux/actions/admin';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import MigrationsTable from './migrations_table';
 

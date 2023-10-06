@@ -3,8 +3,10 @@
 
 import {useState} from 'react';
 
-import {NotifyAdminRequest} from '@mattermost/types/cloud';
+import type {NotifyAdminRequest} from '@mattermost/types/cloud';
+
 import {Client4} from 'mattermost-redux/client';
+
 import {trackEvent} from 'actions/telemetry_actions';
 
 export const NotifyStatus = {

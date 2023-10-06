@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 
 import FilterList from './filter_list';
 import './filter.scss';
@@ -232,7 +232,7 @@ class Filter extends React.PureComponent<Props, State> {
 
                     <button
                         type='button'
-                        className='Filter_apply style--none btn btn-primary'
+                        className='btn btn-primary btn-sm Filter_apply'
                         disabled={!this.state.optionsModified}
                         onClick={this.onFilter}
                     >

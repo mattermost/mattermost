@@ -98,9 +98,7 @@ type WebConn struct {
 	deadQueuePointer int
 	// active indicates whether there is an open websocket connection attached
 	// to this webConn or not.
-	// It is not used as an atomic, because there is no need to.
-	// So do not use this outside the web hub.
-	active bool
+	active atomic.Bool
 	// reuseCount indicates how many times this connection has been reused.
 	// This is used to differentiate between a fresh connection and
 	// a reused connection.
@@ -220,7 +218,6 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		UserId:             cfg.Session.UserId,
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
-		active:             cfg.Active,
 		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
@@ -228,6 +225,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		lastLogTimeSlow:    time.Now(),
 		lastLogTimeFull:    time.Now(),
 	}
+	wc.active.Store(cfg.Active)
 
 	wc.SetSession(&cfg.Session)
 	wc.SetSessionToken(cfg.Session.Token)
@@ -295,7 +293,7 @@ func (wc *WebConn) GetConnectionID() string {
 // are inactive or not.
 func areAllInactive(conns []*WebConn) bool {
 	for _, conn := range conns {
-		if conn.active {
+		if conn.active.Load() {
 			return false
 		}
 	}
@@ -474,7 +472,7 @@ func (wc *WebConn) writePump() {
 				continue
 			}
 
-			if len(wc.send) >= sendFullWarn && time.Since(wc.lastLogTimeFull) > websocketSuppressWarnThreshold {
+			if wc.active.Load() && len(wc.send) >= sendFullWarn && time.Since(wc.lastLogTimeFull) > websocketSuppressWarnThreshold {
 				logData := []mlog.Field{
 					mlog.String("user_id", wc.UserId),
 					mlog.String("conn_id", wc.GetConnectionID()),
@@ -726,8 +724,8 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		switch msg.EventType() {
 		case model.WebsocketEventTyping,
 			model.WebsocketEventStatusChange,
-			model.WebsocketEventChannelViewed:
-			if time.Since(wc.lastLogTimeSlow) > websocketSuppressWarnThreshold {
+			model.WebsocketEventMultipleChannelsViewed:
+			if wc.active.Load() && time.Since(wc.lastLogTimeSlow) > websocketSuppressWarnThreshold {
 				mlog.Warn(
 					"websocket.slow: dropping message",
 					mlog.String("user_id", wc.UserId),

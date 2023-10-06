@@ -1,6 +1,269 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/channel_notifications_modal/ExpandView should match snapshot, DESKTOP on expanded view 1`] = `
+exports[`components/channel_notifications_modal/ExpandView gms should match snapshot, DESKTOP on expanded view when mentions is selected 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send desktop notifications"
+              id="channel_notifications.sendDesktop"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label
+              className=""
+            >
+              <input
+                checked={false}
+                id="channelNotificationAllActivity"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="all"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="all"
+                section="desktop"
+              />
+            </label>
+          </div>
+          <div
+            className="radio"
+          >
+            <label
+              className=""
+            >
+              <input
+                checked={true}
+                id="channelNotificationMentions"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="mention"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="mention"
+                section="desktop"
+              />
+            </label>
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                id="channelNotificationNever"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="none"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="none"
+                section="desktop"
+              />
+            </label>
+          </div>
+        </fieldset>
+        <div
+          className="mt-5"
+        >
+          <ExtraInfo
+            section="desktop"
+          />
+        </div>
+        <React.Fragment>
+          <hr />
+          <fieldset>
+            <legend
+              className="form-legend"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Notification sound"
+                id="channel_notifications.sound"
+              />
+            </legend>
+            <div
+              className="radio"
+            >
+              <label
+                className=""
+              >
+                <input
+                  checked={false}
+                  id="channelDesktopSoundOn"
+                  name="channelDesktopSound"
+                  type="radio"
+                  value="on"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="On"
+                  id="channel_notifications.sound.on.title"
+                />
+              </label>
+            </div>
+            <div
+              className="radio"
+            >
+              <label>
+                <input
+                  checked={false}
+                  id="channelDesktopSoundOff"
+                  name="channelDesktopSound"
+                  type="radio"
+                  value="off"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Off"
+                  id="channel_notifications.sound.off.title"
+                />
+              </label>
+            </div>
+            <div
+              className="mt-5"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Notification sounds are available on Firefox, Edge, Safari, Chrome and Mattermost Desktop Apps."
+                id="channel_notifications.sound_info"
+              />
+            </div>
+          </fieldset>
+        </React.Fragment>
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title={
+    <SectionTitle
+      isExpanded={true}
+      onClickResetButton={[MockFunction]}
+      section="desktop"
+    />
+  }
+  updateSection={[MockFunction]}
+/>
+`;
+
+exports[`components/channel_notifications_modal/ExpandView gms should match snapshot, PUSH on expanded view when mentions is selected 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send mobile push notifications"
+              id="channel_notifications.sendMobilePush"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label
+              className=""
+            >
+              <input
+                checked={false}
+                id="channelNotificationAllActivity"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="all"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="all"
+                section="push"
+              />
+            </label>
+          </div>
+          <div
+            className="radio"
+          >
+            <label
+              className=""
+            >
+              <input
+                checked={true}
+                id="channelNotificationMentions"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="mention"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="mention"
+                section="push"
+              />
+            </label>
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                id="channelNotificationNever"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="none"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="none"
+                section="push"
+              />
+            </label>
+          </div>
+        </fieldset>
+        <div
+          className="mt-5"
+        >
+          <ExtraInfo
+            section="push"
+          />
+        </div>
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title={
+    <SectionTitle
+      isExpanded={true}
+      onClickResetButton={[MockFunction]}
+      section="push"
+    />
+  }
+  updateSection={[MockFunction]}
+/>
+`;
+
+exports[`components/channel_notifications_modal/ExpandView normal channels should match snapshot, DESKTOP on expanded view 1`] = `
 <SettingItemMax
   containerStyle=""
   infoPosition="bottom"
@@ -160,7 +423,206 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
 />
 `;
 
-exports[`components/channel_notifications_modal/ExpandView should match snapshot, MARK_UNREAD on expanded view 1`] = `
+exports[`components/channel_notifications_modal/ExpandView normal channels should match snapshot, DESKTOP on expanded view when mentions is selected 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send desktop notifications"
+              id="channel_notifications.sendDesktop"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label
+              className=""
+            >
+              <input
+                checked={false}
+                id="channelNotificationAllActivity"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="all"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="all"
+                section="desktop"
+              />
+            </label>
+          </div>
+          <div
+            className="radio"
+          >
+            <label
+              className=""
+            >
+              <input
+                checked={true}
+                id="channelNotificationMentions"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="mention"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="mention"
+                section="desktop"
+              />
+            </label>
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                id="channelNotificationNever"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="none"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="none"
+                section="desktop"
+              />
+            </label>
+          </div>
+        </fieldset>
+        <div
+          className="mt-5"
+        >
+          <ExtraInfo
+            section="desktop"
+          />
+        </div>
+        <React.Fragment>
+          <hr />
+          <fieldset>
+            <legend
+              className="form-legend"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Thread reply notifications"
+                id="user.settings.notifications.threads.desktop"
+              />
+            </legend>
+            <div
+              className="checkbox"
+            >
+              <label>
+                <input
+                  checked={true}
+                  id="desktopThreadsNotificationAllActivity"
+                  name="desktopThreadsNotificationLevel"
+                  onChange={[MockFunction]}
+                  type="checkbox"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Notify me about threads I'm following"
+                  id="user.settings.notifications.threads.allActivity"
+                />
+              </label>
+              <br />
+            </div>
+            <div
+              className="mt-5"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="When enabled, any reply to a thread you're following will send a desktop notification."
+                id="user.settings.notifications.threads"
+              />
+            </div>
+          </fieldset>
+        </React.Fragment>
+        <React.Fragment>
+          <hr />
+          <fieldset>
+            <legend
+              className="form-legend"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Notification sound"
+                id="channel_notifications.sound"
+              />
+            </legend>
+            <div
+              className="radio"
+            >
+              <label
+                className=""
+              >
+                <input
+                  checked={false}
+                  id="channelDesktopSoundOn"
+                  name="channelDesktopSound"
+                  type="radio"
+                  value="on"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="On"
+                  id="channel_notifications.sound.on.title"
+                />
+              </label>
+            </div>
+            <div
+              className="radio"
+            >
+              <label>
+                <input
+                  checked={false}
+                  id="channelDesktopSoundOff"
+                  name="channelDesktopSound"
+                  type="radio"
+                  value="off"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Off"
+                  id="channel_notifications.sound.off.title"
+                />
+              </label>
+            </div>
+            <div
+              className="mt-5"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Notification sounds are available on Firefox, Edge, Safari, Chrome and Mattermost Desktop Apps."
+                id="channel_notifications.sound_info"
+              />
+            </div>
+          </fieldset>
+        </React.Fragment>
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title={
+    <SectionTitle
+      isExpanded={true}
+      onClickResetButton={[MockFunction]}
+      section="desktop"
+    />
+  }
+  updateSection={[MockFunction]}
+/>
+`;
+
+exports[`components/channel_notifications_modal/ExpandView normal channels should match snapshot, MARK_UNREAD on expanded view 1`] = `
 <SettingItemMax
   containerStyle=""
   infoPosition="bottom"
@@ -234,7 +696,7 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
 />
 `;
 
-exports[`components/channel_notifications_modal/ExpandView should match snapshot, PUSH on expanded view 1`] = `
+exports[`components/channel_notifications_modal/ExpandView normal channels should match snapshot, PUSH on expanded view 1`] = `
 <SettingItemMax
   containerStyle=""
   infoPosition="bottom"
@@ -319,6 +781,148 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
             section="push"
           />
         </div>
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title={
+    <SectionTitle
+      isExpanded={true}
+      onClickResetButton={[MockFunction]}
+      section="push"
+    />
+  }
+  updateSection={[MockFunction]}
+/>
+`;
+
+exports[`components/channel_notifications_modal/ExpandView normal channels should match snapshot, PUSH on expanded view when mentions is selected 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send mobile push notifications"
+              id="channel_notifications.sendMobilePush"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label
+              className=""
+            >
+              <input
+                checked={false}
+                id="channelNotificationAllActivity"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="all"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="all"
+                section="push"
+              />
+            </label>
+          </div>
+          <div
+            className="radio"
+          >
+            <label
+              className=""
+            >
+              <input
+                checked={true}
+                id="channelNotificationMentions"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="mention"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="mention"
+                section="push"
+              />
+            </label>
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                id="channelNotificationNever"
+                name="channelNotifications"
+                onChange={[MockFunction]}
+                type="radio"
+                value="none"
+              />
+              <Describe
+                globalNotifyLevel="default"
+                memberNotifyLevel="none"
+                section="push"
+              />
+            </label>
+          </div>
+        </fieldset>
+        <div
+          className="mt-5"
+        >
+          <ExtraInfo
+            section="push"
+          />
+        </div>
+        <React.Fragment>
+          <hr />
+          <fieldset>
+            <legend
+              className="form-legend"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Thread reply notifications"
+                id="user.settings.notifications.threads.push"
+              />
+            </legend>
+            <div
+              className="checkbox"
+            >
+              <label>
+                <input
+                  checked={true}
+                  id="pushThreadsNotificationAllActivity"
+                  name="pushThreadsNotificationLevel"
+                  onChange={[MockFunction]}
+                  type="checkbox"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Notify me about threads I'm following"
+                  id="user.settings.notifications.push_threads.allActivity"
+                />
+              </label>
+              <br />
+            </div>
+            <div
+              className="mt-5"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="When enabled, any reply to a thread you're following will send a mobile push notification."
+                id="user.settings.notifications.push_threads"
+              />
+            </div>
+          </fieldset>
+        </React.Fragment>
       </div>,
     ]
   }

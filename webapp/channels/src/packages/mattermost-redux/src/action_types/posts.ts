@@ -47,7 +47,6 @@ export default keyMirror({
     RECEIVED_REACTION: null,
     RECEIVED_REACTIONS: null,
     REACTION_DELETED: null,
-    RECEIVED_OPEN_GRAPH_METADATA: null,
 
     ADD_MESSAGE_INTO_HISTORY: null,
     RESET_HISTORY_INDEX: null,

@@ -4036,10 +4036,6 @@
     "translation": "無效的建立者 ID"
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "無法將 gif 解碼."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "無效的建立時間"
   },

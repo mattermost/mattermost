@@ -379,8 +379,8 @@ func TestHubConnIndexInactive(t *testing.T) {
 	wc1 := &WebConn{
 		Platform: th.Service,
 		UserId:   model.NewId(),
-		active:   true,
 	}
+	wc1.active.Store(true)
 	wc1.SetConnectionID("conn1")
 	wc1.SetSession(&model.Session{})
 
@@ -388,16 +388,16 @@ func TestHubConnIndexInactive(t *testing.T) {
 	wc2 := &WebConn{
 		Platform: th.Service,
 		UserId:   model.NewId(),
-		active:   true,
 	}
+	wc2.active.Store(true)
 	wc2.SetConnectionID("conn2")
 	wc2.SetSession(&model.Session{})
 
 	wc3 := &WebConn{
 		Platform: th.Service,
 		UserId:   wc2.UserId,
-		active:   false,
 	}
+	wc3.active.Store(false)
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
 

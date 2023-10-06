@@ -50,7 +50,10 @@ const (
 	deprecatedGetCollectionMetadataByIdsID    = 32
 	deprecatedGetTopicMetadataByIdsID         = 33
 	ConfigurationWillBeSavedID                = 34
-	ServeMetricsID                            = 35
+	NotificationWillBePushedID                = 35
+	UserHasBeenDeactivatedID                  = 36
+	MessageHasBeenDeletedID                   = 37
+	ServeMetricsID                            = 38
 	TotalHooksID                              = iota
 )
 
@@ -167,6 +170,13 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+
+	// MessageHasBeenDeleted is invoked after the message has been deleted from the database.
+	// Note that this method will be called for posts deleted by plugins, including the plugin that
+	// deleted the post.
+	//
+	// Minimum server version: 9.1
+	MessageHasBeenDeleted(c *Context, post *model.Post)
 
 	// ChannelHasBeenCreated is invoked after the channel has been committed to the database.
 	//
@@ -286,10 +296,28 @@ type Hooks interface {
 	// Minimum server version: 8.0
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 
+	// NotificationWillBePushed is invoked before a push notification is sent to the push
+	// notification server.
+	//
+	// To reject a notification, return an non-empty string describing why the notification was rejected.
+	// To modify the notification, return the replacement, non-nil *model.PushNotification and an empty string.
+	// To allow the notification without modification, return a nil *model.PushNotification and an empty string.
+	//
+	// Note that this method will be called for push notifications created by plugins, including the plugin that
+	// created the notification.
+	//
+	// Minimum server version: 9.0
+	NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+
+	// UserHasBeenDeactivated is invoked when a user is deactivated.
+	//
+	// Minimum server version: 9.1
+	UserHasBeenDeactivated(c *Context, user *model.User)
+
 	// ServeMetrics allows plugins to expose their own metrics endpoint through
 	// the server's metrics HTTP listener (e.g. "localhost:8067").
 	// Requests destined to the /plugins/{id}/metrics path will be routed to the plugin.
 	//
-	// Minimum server version: 9.0
+	// Minimum server version: 9.2
 	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
 }
