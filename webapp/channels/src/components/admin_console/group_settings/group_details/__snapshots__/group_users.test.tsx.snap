@@ -222,9 +222,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -452,9 +450,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -682,9 +678,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -872,9 +866,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -1102,9 +1094,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -1374,9 +1364,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
