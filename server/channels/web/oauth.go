@@ -34,6 +34,7 @@ func (w *Web) InitOAuth() {
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/login", w.APIHandler(loginWithOAuth)).Methods("GET")
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.APIHandler(mobileLoginWithOAuth)).Methods("GET")
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.APIHandler(signupWithOAuth)).Methods("GET")
+	w.MainRouter.Handle("/sso/token", w.APIHandler(getTokenFromVerifier)).Methods("POST")
 
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
 	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
@@ -336,10 +337,26 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else
 		// New mobile version
 		if isMobile && hasRedirectURL {
-			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
-				model.SessionCookieToken: c.AppContext.Session().Token,
-				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
-			})
+			codeChallengeToken := ""
+			if val, ok := props["code_challenge_token"]; ok {
+				codeChallengeToken = val
+			}
+
+			if codeChallengeToken != "" {
+				if err := c.App.UpdateCodeChallengeToken(codeChallengeToken, c.AppContext.Session()); err != nil {
+					utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
+					return
+				}
+
+				redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+					model.SsoChallengeToken: codeChallengeToken,
+				})
+			} else {
+				redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+					model.SessionCookieToken: c.AppContext.Session().Token,
+					model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
+				})
+			}
 			utils.RenderMobileAuthComplete(w, redirectURL)
 			return
 		} else { // For web
@@ -400,7 +417,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken)
+	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken, "")
 	if err != nil {
 		c.Err = err
 		return
@@ -416,6 +433,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
+	codeChallenge := html.EscapeString(r.URL.Query().Get("code_challenge"))
 
 	if redirectURL != "" && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectURL) {
 		err := model.NewAppError("mobileLoginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
@@ -429,7 +447,17 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true, "")
+	codeChallengeToken := ""
+	if codeChallenge != "" {
+		token, err := c.App.CreateCodeChallengeToken(codeChallenge)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		codeChallengeToken = token.Token
+	}
+
+	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true, "", codeChallengeToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -478,4 +506,26 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
 		targetURL = "/" + targetURL
 	}
 	return siteURLPrefix + targetURL
+}
+
+func getTokenFromVerifier(c *Context, w http.ResponseWriter, r *http.Request) {
+	requestData := model.MapFromJSON(r.Body)
+
+	token := requestData["token"]
+	codeVerifier := requestData["code_verifier"]
+	extra, err := c.App.VerifyCodeChallengeTokenAndGetSessionToken(token, codeVerifier)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.App.Srv().Store().Token().Delete(token)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+
+	if err := json.NewEncoder(w).Encode(extra); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

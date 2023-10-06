@@ -9692,6 +9692,22 @@ func (s *TimerLayerTokenStore) Save(recovery *model.Token) error {
 	return err
 }
 
+func (s *TimerLayerTokenStore) UpdateExtra(token string, extra string) error {
+	start := time.Now()
+
+	err := s.TokenStore.UpdateExtra(token, extra)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.UpdateExtra", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error) {
 	start := time.Now()
 

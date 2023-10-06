@@ -41,6 +41,20 @@ func (s SqlTokenStore) Save(token *model.Token) error {
 	return nil
 }
 
+func (s SqlTokenStore) UpdateExtra(token, extra string) error {
+	query := s.getQueryBuilder().
+		Update("Tokens").
+		Where(sq.Eq{"Token": token}).
+		Set("Extra", extra)
+
+	_, err := s.GetMasterX().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrap(err, "failed to update Token extra")
+	}
+
+	return nil
+}
+
 func (s SqlTokenStore) Delete(token string) error {
 	if _, err := s.GetMasterX().Exec("DELETE FROM Tokens WHERE Token = ?", token); err != nil {
 		return errors.Wrapf(err, "failed to delete Token with value %s", token)

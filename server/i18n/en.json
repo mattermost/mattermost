@@ -2313,6 +2313,18 @@
     "translation": "The signup link does not appear to be valid."
   },
   {
+    "id": "api.oauth.store_code_challenge",
+    "translation": "Could not store the SSO challenge token in the DB."
+  },
+  {
+    "id": "api.oauth.store_code_challenge_session",
+    "translation": "Could not update the SSO challenge token with the session information."
+  },
+  {
+    "id": "api.oauth.verify_code_challenge",
+    "translation": "SSO code challenge verification failed."
+  },
+  {
     "id": "api.outgoing_webhook.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },

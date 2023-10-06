@@ -10768,6 +10768,24 @@ func (s *OpenTracingLayerTokenStore) Save(recovery *model.Token) error {
 	return err
 }
 
+func (s *OpenTracingLayerTokenStore) UpdateExtra(token string, extra string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.UpdateExtra")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.TokenStore.UpdateExtra(token, extra)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TrueUpReviewStore.CreateTrueUpReviewStatusRecord")

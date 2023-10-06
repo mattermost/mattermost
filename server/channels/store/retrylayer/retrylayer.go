@@ -12304,6 +12304,27 @@ func (s *RetryLayerTokenStore) Save(recovery *model.Token) error {
 
 }
 
+func (s *RetryLayerTokenStore) UpdateExtra(token string, extra string) error {
+
+	tries := 0
+	for {
+		err := s.TokenStore.UpdateExtra(token, extra)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error) {
 
 	tries := 0

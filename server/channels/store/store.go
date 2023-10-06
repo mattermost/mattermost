@@ -648,6 +648,7 @@ type LicenseStore interface {
 
 type TokenStore interface {
 	Save(recovery *model.Token) error
+	UpdateExtra(token, extra string) error
 	Delete(token string) error
 	GetByToken(token string) (*model.Token, error)
 	Cleanup(expiryTime int64)

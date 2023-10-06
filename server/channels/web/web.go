@@ -92,6 +92,10 @@ func IsOAuthAPICall(a app.AppIface, r *http.Request) bool {
 		return true
 	}
 
+	if r.Method == "POST" && r.URL.Path == path.Join(subpath, "sso", "token") {
+		return true
+	}
+
 	if r.URL.Path == path.Join(subpath, "oauth", "apps", "authorized") ||
 		r.URL.Path == path.Join(subpath, "oauth", "deauthorize") ||
 		r.URL.Path == path.Join(subpath, "oauth", "access_token") {

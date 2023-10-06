@@ -113,6 +113,20 @@ func (_m *TokenStore) Save(recovery *model.Token) error {
 	return r0
 }
 
+// UpdateExtra provides a mock function with given fields: token, extra
+func (_m *TokenStore) UpdateExtra(token string, extra string) error {
+	ret := _m.Called(token, extra)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(token, extra)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewTokenStore interface {
 	mock.TestingT
 	Cleanup(func())

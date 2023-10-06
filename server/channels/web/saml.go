@@ -65,6 +65,16 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["desktop_token"] = desktopToken
 	}
 
+	codeChallenge := html.EscapeString(r.URL.Query().Get("code_challenge"))
+	if codeChallenge != "" {
+		token, err := c.App.CreateCodeChallengeToken(codeChallenge)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		relayProps["code_challenge_token"] = token.Token
+	}
+
 	relayProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
 
 	if len(relayProps) > 0 {
@@ -218,10 +228,22 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if hasRedirectURL {
 		if isMobile {
 			// Mobile clients with redirect url support
-			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
-				model.SessionCookieToken: c.AppContext.Session().Token,
-				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
-			})
+			codeChallengeToken := relayProps["code_challenge_token"]
+			if codeChallengeToken != "" {
+				if err := c.App.UpdateCodeChallengeToken(codeChallengeToken, c.AppContext.Session()); err != nil {
+					utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
+					return
+				}
+
+				redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+					model.SsoChallengeToken: codeChallengeToken,
+				})
+			} else {
+				redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+					model.SessionCookieToken: c.AppContext.Session().Token,
+					model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
+				})
+			}
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
 			http.Redirect(w, r, redirectURL, http.StatusFound)
