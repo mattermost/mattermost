@@ -45,7 +45,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, tele
 		stopped:          make(chan bool, 1),
 		jobs:             make(chan model.Job),
 		jobServer:        jobServer,
-		logger:           jobServer.Logger().With(mlog.String("workername", workerName)),
+		logger:           jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		app:              app,
 		store:            store,
 		telemetryService: telemetryService,

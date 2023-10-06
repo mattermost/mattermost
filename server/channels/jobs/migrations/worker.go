@@ -39,7 +39,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store) *Worker {
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
-		logger:    jobServer.Logger().With(mlog.String("workername", workerName)),
+		logger:    jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		store:     store,
 	}
 

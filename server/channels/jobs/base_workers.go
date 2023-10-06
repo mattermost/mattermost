@@ -29,7 +29,7 @@ func NewSimpleWorker(name string, jobServer *JobServer, execute func(logger mlog
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
-		logger:    jobServer.Logger().With(mlog.String("workername", name)),
+		logger:    jobServer.Logger().With(mlog.String("worker_name", name)),
 		execute:   execute,
 		isEnabled: isEnabled,
 	}

@@ -48,7 +48,7 @@ func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) *Ble
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
-		logger:    jobServer.Logger().With(mlog.String("workername", workerName)),
+		logger:    jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		engine:    engine,
 	}
 }

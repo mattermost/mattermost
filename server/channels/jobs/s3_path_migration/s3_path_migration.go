@@ -42,7 +42,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, fileBackend filest
 	worker := &S3PathMigrationWorker{
 		name:        workerName,
 		jobServer:   jobServer,
-		logger:      jobServer.Logger().With(mlog.String("workername", workerName)),
+		logger:      jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		store:       store,
 		fileBackend: s3Backend,
 		stop:        make(chan bool, 1),
