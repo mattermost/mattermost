@@ -147,6 +147,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
+    const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId);
 
     const query = new URLSearchParams(search);
     const redirectTo = query.get('redirect_to');
@@ -740,7 +741,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const getResetPasswordLink = () => {
-        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false' || onlyLdapEnabled) {
             return null;
         }
 
