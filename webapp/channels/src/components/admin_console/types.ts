@@ -1,8 +1,11 @@
-import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import type {CloudState, Product} from '@mattermost/types/cloud';
+import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import ValidationResult from './validation';
+import type ValidationResult from './validation';
 
 type Component = any
 

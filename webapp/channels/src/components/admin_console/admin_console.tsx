@@ -24,9 +24,9 @@ import {applyTheme, resetTheme} from 'utils/utils';
 
 import {LhsItemType} from 'types/store/lhs';
 
-import type {AdminDefinitionSubSection, AdminDefinitionSection} from './types';
 import AdminSidebar from './admin_sidebar';
 import Highlight from './highlight';
+import type {AdminDefinitionSubSection, AdminDefinitionSection} from './types';
 
 import type {PropsFromRedux} from './index';
 

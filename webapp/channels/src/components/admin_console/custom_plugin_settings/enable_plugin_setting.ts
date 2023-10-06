@@ -5,8 +5,8 @@ import type {PluginRedux, PluginSetting} from '@mattermost/types/plugins';
 
 import {t} from 'utils/i18n';
 
-import type {AdminDefinitionSetting} from '../types';
 import SchemaAdminSettings from '../schema_admin_settings';
+import type {AdminDefinitionSetting} from '../types';
 
 export default function getEnablePluginSetting(plugin: PluginRedux): Partial<AdminDefinitionSetting & PluginSetting> {
     const escapedPluginId = SchemaAdminSettings.escapePathPart(plugin.id);
