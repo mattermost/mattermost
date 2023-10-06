@@ -115,9 +115,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           <div
             className="alert alert-warning"
           >
-            <WarningIcon
-              additionalClassName={null}
-            >
+            <Memo(WarningIcon)>
               <LocalizedIcon
                 className="fa fa-warning"
                 title={
@@ -132,7 +130,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                   title="Warning Icon"
                 />
               </LocalizedIcon>
-            </WarningIcon>
+            </Memo(WarningIcon)>
             <FormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
@@ -252,9 +250,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           <div
             className="alert alert-warning"
           >
-            <WarningIcon
-              additionalClassName={null}
-            >
+            <Memo(WarningIcon)>
               <LocalizedIcon
                 className="fa fa-warning"
                 title={
@@ -269,7 +265,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                   title="Warning Icon"
                 />
               </LocalizedIcon>
-            </WarningIcon>
+            </Memo(WarningIcon)>
             <FormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
