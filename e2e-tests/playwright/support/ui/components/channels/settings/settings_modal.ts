@@ -5,7 +5,7 @@ import {expect, Locator} from '@playwright/test';
 
 import {NotificationsSettings} from './notification_settings';
 
-export default class AccountSettingsModal {
+export default class SettingsModal {
     readonly container: Locator;
 
     readonly notificationsSettingsTab;
@@ -36,4 +36,4 @@ export default class AccountSettingsModal {
     }
 }
 
-export {AccountSettingsModal};
+export {SettingsModal};

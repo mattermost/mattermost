@@ -12,7 +12,7 @@ import {ChannelsSidebarLeft} from './channels/sidebar_left';
 import {ChannelsSidebarRight} from './channels/sidebar_right';
 import {DeletePostModal} from './channels/delete_post_modal';
 import {FindChannelsModal} from './channels/find_channels_modal';
-import {AccountSettingsModal} from './channels/account_settings/account_settings_modal';
+import {SettingsModal} from './channels/settings/settings_modal';
 import {Footer} from './footer';
 import {GlobalHeader} from './global_header';
 import {MainHeader} from './main_header';
@@ -35,7 +35,7 @@ const components = {
     ChannelsPost,
     FindChannelsModal,
     DeletePostModal,
-    AccountSettingsModal,
+    SettingsModal,
     PostDotMenu,
     PostMenu,
     ThreadFooter,
