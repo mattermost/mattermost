@@ -3,7 +3,7 @@
 
 import type {PluginRedux, PluginSetting} from '@mattermost/types/plugins';
 
-import type {AdminDefinitionSetting} from 'components/admin_console/admin_definition';
+import type {AdminDefinitionSetting} from 'components/admin_console/types';
 import getEnablePluginSetting from 'components/admin_console/custom_plugin_settings/enable_plugin_setting';
 
 import {stripMarkdown} from 'utils/markdown';

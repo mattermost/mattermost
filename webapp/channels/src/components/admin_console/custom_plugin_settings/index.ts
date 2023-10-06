@@ -22,7 +22,7 @@ import type {AdminConsolePluginComponent} from 'types/store/plugins';
 import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
 
-import type {AdminDefinitionSetting} from '../admin_definition';
+import type {AdminDefinitionSetting} from '../types';
 import {it} from '../admin_definition';
 import SchemaAdminSettings from '../schema_admin_settings';
 
