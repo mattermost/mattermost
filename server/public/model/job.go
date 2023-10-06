@@ -120,6 +120,9 @@ func (j *Job) IsValid() *AppError {
 }
 
 func (j *Job) LogClone() any {
+	if j == nil {
+		return nil
+	}
 	return j.Auditable()
 }
 
