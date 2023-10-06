@@ -5,7 +5,7 @@ import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@matterm
 
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
-import * as Actions from 'actions/integration_actions.jsx';
+import * as Actions from 'actions/integration_actions';
 
 import mockStore from 'tests/test_store';
 

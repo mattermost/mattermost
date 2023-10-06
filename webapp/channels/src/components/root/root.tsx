@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import webSocketClient from 'client/web_websocket_client.jsx';
+import webSocketClient from 'client/web_websocket_client';
 import deepEqual from 'fast-deep-equal';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
