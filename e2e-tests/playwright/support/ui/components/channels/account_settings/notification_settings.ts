@@ -43,7 +43,7 @@ export default class NotificationsSettings {
         return this.container.locator('input');
     }
 
-    async saveSection() {
+    async save() {
         await expect(this.container.getByText('Save')).toBeVisible();
         await this.container.getByText('Save').click();
     }

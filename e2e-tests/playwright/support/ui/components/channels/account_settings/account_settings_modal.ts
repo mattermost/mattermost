@@ -14,7 +14,7 @@ export default class AccountSettingsModal {
     constructor(container: Locator) {
         this.container = container;
 
-        this.notificationsSettingsTab = this.container.locator('#notificationsButton');
+        this.notificationsSettingsTab = container.locator('#notificationsButton');
         this.notificationsSettings = new NotificationsSettings(container.locator('#notificationSettings'));
     }
 

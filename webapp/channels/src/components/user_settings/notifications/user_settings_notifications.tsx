@@ -1316,6 +1316,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     <div className='divider-dark'/>
                 </div>
             </div>
+
         );
     }
 }

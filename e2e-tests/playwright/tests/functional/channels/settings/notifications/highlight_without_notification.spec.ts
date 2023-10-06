@@ -53,7 +53,7 @@ test('MM-XX Should add the keyword when enter, comma or tab is pressed on the te
     // # Press Enter on the textbox
     await keywordsInput.press('Enter');
 
-    // * Verify that the keywords are added is collapsed description
+    // * Verify that the keywords have been added to the collapsed description
     await expect(channelPage.accountSettingsModal.notificationsSettings.container.getByText(keywords[0])).toBeVisible();
     await expect(channelPage.accountSettingsModal.notificationsSettings.container.getByText(keywords[1])).toBeVisible();
     await expect(channelPage.accountSettingsModal.notificationsSettings.container.getByText(keywords[2])).toBeVisible();
@@ -84,7 +84,7 @@ test('MM-XX Should highlight the keywords when a message is sent with the keywor
     (await channelPage.accountSettingsModal.notificationsSettings.getKeywordsInput()).type(keywords[3]);
 
     // # Save the keyword
-    await channelPage.accountSettingsModal.notificationsSettings.saveSection();
+    await channelPage.accountSettingsModal.notificationsSettings.save();
 
     // # Close the settings modal
     await channelPage.accountSettingsModal.closeModal();
