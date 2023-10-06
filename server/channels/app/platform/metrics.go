@@ -59,10 +59,15 @@ func (ps *PlatformService) resetMetrics() error {
 	}
 
 	ps.metrics = &platformMetrics{
-		cfgFn:         ps.Config,
-		metricsImpl:   ps.metricsIFace,
-		logger:        ps.logger,
-		getPluginsEnv: ps.pluginEnv.GetPluginsEnvironment,
+		cfgFn:       ps.Config,
+		metricsImpl: ps.metricsIFace,
+		logger:      ps.logger,
+		getPluginsEnv: func() *plugin.Environment {
+			if ps.pluginEnv == nil {
+				return nil
+			}
+			return ps.pluginEnv.GetPluginsEnvironment()
+		},
 	}
 
 	if err := ps.metrics.initMetricsRouter(); err != nil {
