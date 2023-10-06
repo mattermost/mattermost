@@ -449,9 +449,9 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	codeChallengeToken := ""
 	if codeChallenge != "" {
-		token, err := c.App.CreateCodeChallengeToken(codeChallenge)
+		token, tokenErr := c.App.CreateCodeChallengeToken(codeChallenge)
 		if err != nil {
-			c.Err = err
+			c.Err = tokenErr
 			return
 		}
 		codeChallengeToken = token.Token

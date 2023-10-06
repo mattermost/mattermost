@@ -22,7 +22,7 @@ func TestSSOCodeChallenge(t *testing.T) {
 		assert.NotNil(t, token)
 
 		storedToken, storedErr := th.App.Srv().Store().Token().GetByToken(token.Token)
-		assert.Nil(t, storedErr)
+		assert.NoError(t, storedErr)
 		assert.NotNil(t, storedToken)
 	})
 
