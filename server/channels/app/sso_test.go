@@ -18,7 +18,7 @@ func TestSSOCodeChallenge(t *testing.T) {
 
 	t.Run("Should create a SSO challenge token", func(t *testing.T) {
 		token, err := th.App.CreateCodeChallengeToken(codeChallenge)
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.NotNil(t, token)
 
 		storedToken, storedErr := th.App.Srv().Store().Token().GetByToken(token.Token)
@@ -32,7 +32,7 @@ func TestSSOCodeChallenge(t *testing.T) {
 		session.AddProp("csrf", model.NewId())
 		token, _ := th.App.CreateCodeChallengeToken(codeChallenge)
 		updatedErr := th.App.UpdateCodeChallengeToken(token.Token, session)
-		assert.NoError(t, updatedErr)
+		assert.Nil(t, updatedErr)
 	})
 
 	t.Run("Should Verify the SSO token with the code verifier and return the session data", func(t *testing.T) {
@@ -47,10 +47,10 @@ func TestSSOCodeChallenge(t *testing.T) {
 		// Fail when verifier does not match
 		failed, failedErr := th.App.VerifyCodeChallengeTokenAndGetSessionToken(token.Token, "codeVerifier")
 		assert.Nil(t, failed)
-		assert.Error(t, failedErr)
+		assert.NotNil(t, failedErr)
 
 		sessionData, sessionErr := th.App.VerifyCodeChallengeTokenAndGetSessionToken(token.Token, codeVerifier)
-		assert.NoError(t, sessionErr)
+		assert.Nil(t, sessionErr)
 		assert.Contains(t, sessionData, "token")
 		assert.Contains(t, sessionData, "csrf")
 	})
