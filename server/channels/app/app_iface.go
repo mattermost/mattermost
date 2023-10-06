@@ -1012,7 +1012,7 @@ type AppIface interface {
 	SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError
 	SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError)
 	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError
-	SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError)
+	SaveComplianceReport(c *request.Context, job *model.Compliance) (*model.Compliance, *model.AppError)
 	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error)
 	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
