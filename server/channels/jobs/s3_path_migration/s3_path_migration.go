@@ -102,7 +102,7 @@ func (worker *S3PathMigrationWorker) getJobMetadata(job *model.Job, key string) 
 }
 
 func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
-	logger := worker.logger.With(jobs.JobLoggerFields(job)...)
+	logger := worker.logger.With(mlog.Any("job", job))
 	logger.Debug("Worker: Received a new candidate job.")
 	defer worker.jobServer.HandleJobPanic(logger, job)
 
