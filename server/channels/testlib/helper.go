@@ -107,7 +107,7 @@ func (h *MainHelper) Main(m *testing.M) {
 func (h *MainHelper) setupStore(withReadReplica bool) {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DatabaseDriverMysql
+		driverName = model.DatabaseDriverPostgres
 	}
 
 	h.Settings = storetest.MakeSqlSettings(driverName, withReadReplica)
@@ -185,7 +185,7 @@ func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
 	var err error
 
-	basePath := "/Users/enahum/Projects/go/src/github.com/mattermost/mattermost/server" //os.Getenv("MM_SERVER_PATH")
+	basePath := os.Getenv("MM_SERVER_PATH")
 	if basePath == "" {
 		_, errFile := os.Stat("mattermost-server/server")
 		if os.IsNotExist(errFile) {
