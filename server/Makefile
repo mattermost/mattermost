@@ -64,7 +64,7 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 
 # mmctl
 MMCTL_BUILD_TAGS =
-MMCTL_TESTFLAGS = -timeout 30m -race
+MMCTL_TESTFLAGS ?= -timeout 30m
 MMCTL_PKG = github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands
 LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(BUILD_HASH)"
 LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(GIT_TREESTATE)"
