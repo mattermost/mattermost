@@ -55,7 +55,7 @@ func (scheduler *Scheduler) ScheduleJob(c *request.Context, cfg *model.Config, p
 			return nil, nil
 		}
 
-		logger := c.Logger().With(mlog.Any("job", job))
+		logger := c.Logger().With(jobs.JobLoggerFields(job)...)
 
 		if state == MigrationStateCompleted {
 			// This migration is done. Continue to check the next.

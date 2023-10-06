@@ -21,6 +21,19 @@ const (
 	CancelWatcherPollingInterval = 5000
 )
 
+// JobLoggerFields returns the logger annotations reflecting the given job metadata.
+func JobLoggerFields(job *model.Job) []mlog.Field {
+	if job == nil {
+		return nil
+	}
+
+	return []mlog.Field{
+		mlog.String("job_id", job.Id),
+		mlog.String("job_type", job.Type),
+		mlog.Millis("job_create_at", job.CreateAt),
+	}
+}
+
 func (srv *JobServer) CreateJob(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job, appErr := srv._createJob(c, jobType, jobData)
 	if appErr != nil {

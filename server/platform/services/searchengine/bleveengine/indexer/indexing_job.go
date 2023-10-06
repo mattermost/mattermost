@@ -130,7 +130,7 @@ func (worker *BleveIndexerWorker) Stop() {
 }
 
 func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
-	logger := worker.logger.With(mlog.Any("job", job))
+	logger := worker.logger.With(jobs.JobLoggerFields(job)...)
 	logger.Debug("Worker: Received a new candidate job.")
 
 	claimed, err := worker.jobServer.ClaimJob(job)

@@ -88,7 +88,7 @@ func (worker *Worker) IsEnabled(_ *model.Config) bool {
 }
 
 func (worker *Worker) DoJob(job *model.Job) {
-	logger := worker.logger.With(mlog.Any("job", job))
+	logger := worker.logger.With(jobs.JobLoggerFields(job)...)
 	logger.Debug("Worker: Received a new candidate job.")
 
 	defer worker.jobServer.HandleJobPanic(logger, job)

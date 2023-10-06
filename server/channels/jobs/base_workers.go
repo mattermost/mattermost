@@ -70,7 +70,7 @@ func (worker *SimpleWorker) IsEnabled(cfg *model.Config) bool {
 }
 
 func (worker *SimpleWorker) DoJob(job *model.Job) {
-	logger := worker.logger.With(mlog.Any("job", job))
+	logger := worker.logger.With(JobLoggerFields(job)...)
 	logger.Debug("Worker: Received a new candidate job.")
 
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
