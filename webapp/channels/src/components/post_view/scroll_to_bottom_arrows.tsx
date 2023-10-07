@@ -5,31 +5,31 @@ import React from 'react';
 
 import ScrollToBottomIcon from 'components/widgets/icons/scroll_to_bottom_icon';
 
-interface Props {
+type Props = {
     isScrolling: boolean;
     atBottom?: boolean;
     onClick: () => void;
 }
 
-export default class ScrollToBottomArrows extends React.PureComponent<Props> {
-    render() {
-        // only show on mobile
-        if (window.innerWidth > 768) {
-            return null;
-        }
-
-        let className = 'post-list__arrows';
-        if (this.props.isScrolling && this.props.atBottom === false) {
-            className += ' scrolling';
-        }
-
-        return (
-            <div
-                className={className}
-                onClick={this.props.onClick}
-            >
-                <ScrollToBottomIcon/>
-            </div>
-        );
+const ScrollToBottomArrows = ({ isScrolling, atBottom, onClick }:Props) => {
+    // only show on mobile
+    if (window.innerWidth > 768) {
+        return null;
     }
+
+    let className = 'post-list__arrows';
+    if (isScrolling && !atBottom) {
+        className += ' scrolling';
+    }
+
+    return (
+        <div
+            className={className}
+            onClick={onClick}
+        >
+            <ScrollToBottomIcon />
+        </div>
+    );
 }
+
+export default ScrollToBottomArrows;
