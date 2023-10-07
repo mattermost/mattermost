@@ -38,6 +38,7 @@ func makeJobServer(t *testing.T) (*JobServer, *storetest.Store, *mocks.MetricsIn
 		ConfigService: configService,
 		Store:         mockStore,
 		metrics:       mockMetrics,
+		logger:        mlog.CreateConsoleTestLogger(t),
 	}
 
 	return jobServer, mockStore, mockMetrics
@@ -564,7 +565,7 @@ func TestHandleJobPanic(t *testing.T) {
 }
 
 func TestRequestCancellation(t *testing.T) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
+	ctx := request.TestContext(t)
 	t.Run("error cancelling", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 

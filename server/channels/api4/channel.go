@@ -85,7 +85,7 @@ func (api *API) InitChannel() {
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channel *model.Channel
 	err := json.NewDecoder(r.Body).Decode(&channel)
-	if err != nil {
+	if err != nil || channel == nil {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
@@ -312,7 +312,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	var patch *model.ChannelPatch
 	err := json.NewDecoder(r.Body).Decode(&patch)
-	if err != nil {
+	if err != nil || patch == nil {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
@@ -495,7 +495,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
-	if err != nil {
+	if err != nil || props == nil {
 		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
@@ -1099,7 +1099,7 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
-	if err != nil {
+	if err != nil || props == nil {
 		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
@@ -1138,7 +1138,7 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
-	if err != nil {
+	if err != nil || props == nil {
 		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
@@ -1172,7 +1172,7 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
-	if err != nil {
+	if err != nil || props == nil {
 		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
@@ -2236,7 +2236,7 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	var gmConversionRequest *model.GroupMessageConversionRequestBody
-	if err := json.NewDecoder(r.Body).Decode(&gmConversionRequest); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&gmConversionRequest); err != nil || gmConversionRequest == nil {
 		c.SetInvalidParamWithErr("body", err)
 		return
 	}
