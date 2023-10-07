@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FC} from 'react';
 import React from 'react';
 
-const EmojiIcon: FC<React.HTMLAttributes<HTMLSpanElement>> = (props) => {
+type Props = React.HTMLAttributes<HTMLSpanElement>;
+
+const EmojiIcon = (props: Props) => {
     return (
         <span {...props}>
             <svg
