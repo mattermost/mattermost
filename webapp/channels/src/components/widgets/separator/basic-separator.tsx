@@ -9,7 +9,7 @@ type Props = {
     children?: ReactNode;
 };
 
-function BasicSeparator({children}: Props) {
+const BasicSeparator = ({children}: Props) => {
     return (
         <div
             data-testid='basicSeparator'
@@ -23,6 +23,6 @@ function BasicSeparator({children}: Props) {
             )}
         </div>
     );
-}
+};
 
 export default React.memo(BasicSeparator);
