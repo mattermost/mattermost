@@ -12,7 +12,7 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     spinningText: ReactNode;
 }
 
-const SpinnerButton = ( {spinning, spinningText, children, ...props}: Props) => {
+const SpinnerButton = ({spinning, spinningText, children, ...props}: Props) => {
     return (
         <button
             disabled={spinning}
