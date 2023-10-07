@@ -3209,7 +3209,7 @@ func (s *OpenTracingLayerComplianceStore) GetAll(offset int, limit int) (model.C
 	return result, err
 }
 
-func (s *OpenTracingLayerComplianceStore) MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+func (s *OpenTracingLayerComplianceStore) MessageExport(c request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.MessageExport")
 	s.Root.Store.SetContext(newCtx)
@@ -3218,7 +3218,7 @@ func (s *OpenTracingLayerComplianceStore) MessageExport(ctx context.Context, cur
 	}()
 
 	defer span.Finish()
-	result, resultVar1, err := s.ComplianceStore.MessageExport(ctx, cursor, limit)
+	result, resultVar1, err := s.ComplianceStore.MessageExport(c, cursor, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
