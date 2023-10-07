@@ -13,7 +13,7 @@ export type Props = {
     title: React.ReactNode;
 }
 
-const RhsPlugin: React.FC<Props> = ({ showPluggable, pluggableId, title }) => {
+const RhsPlugin = ({showPluggable, pluggableId, title}: Props) => {
     return (
         <div
             id='rhsContainer'
@@ -31,6 +31,6 @@ const RhsPlugin: React.FC<Props> = ({ showPluggable, pluggableId, title }) => {
             }
         </div>
     );
-}
+};
 
 export default RhsPlugin;
