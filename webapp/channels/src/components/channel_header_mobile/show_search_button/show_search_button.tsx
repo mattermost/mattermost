@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import SearchIcon from 'components/widgets/icons/search_icon';
 import { localizeMessage } from 'utils/utils';
 
@@ -13,10 +13,10 @@ type Props = {
     actions: Actions;
 }
 
-const ShowSearchButton: React.FC<Props> = ({ actions }) => {
-    const handleClick = () => {
+const ShowSearchButton = ({ actions }: Props) => {
+    const handleClick = useCallback(() => {
         actions.openRHSSearch();
-    };
+    }, [actions]);
 
     return (
         <button
