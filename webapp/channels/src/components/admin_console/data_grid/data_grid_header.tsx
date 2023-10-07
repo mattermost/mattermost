@@ -26,7 +26,7 @@ const HeaderElement = ({col}: HeaderElementProps) => {
             {col.name}
         </div>
     );
-}
+};
 
 export type Props = {
     columns: Column[];
@@ -35,9 +35,9 @@ export type Props = {
 const DataGridHeader = ({columns}: Props) => {
     return (
         <div className='DataGrid_header'>
-            {columns.map((col) => (
-                <HeaderElement col={col} />
-            ))}
+            {columns.map((col) => 
+                <HeaderElement col={col} key={col.field} />
+            )}
         </div>
     );
 };
