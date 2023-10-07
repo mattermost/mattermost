@@ -9,7 +9,7 @@ type Props = {
     handleEmojiPickerClose: MouseEventHandler;
 }
 
-const EmojiPickerHeader: React.FC<Props> = ({ handleEmojiPickerClose }) => {
+const EmojiPickerHeader = ({handleEmojiPickerClose}: Props) => {
     return (
         <div className='emoji-picker__header modal-header'>
             <button
@@ -33,6 +33,6 @@ const EmojiPickerHeader: React.FC<Props> = ({ handleEmojiPickerClose }) => {
             </h4>
         </div>
     );
-}
+};
 
 export default EmojiPickerHeader;
