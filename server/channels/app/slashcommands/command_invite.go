@@ -71,7 +71,7 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 	targetChannels = i.checkPermissions(a, c, args, resps, targetUsers[0], targetChannels)
 
 	// track errors returned for various users.
-	differentChannels := make([]string, 0, 1)
+	differentChannels := make(map[string][]string)
 	nonTeamUsers := make(map[string][]string)
 	channelConstrained := make([]string, 0, 1)
 	usersInChannel := make([]string, 0, 1)
@@ -83,7 +83,7 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 			userError := i.addUserToChannel(a, c, args, targetUser, targetChannel)
 			if userError == NoError {
 				if args.ChannelId != targetChannel.Id {
-					differentChannels = append(differentChannels, targetUser.Username)
+					differentChannels[targetChannel.Name] = append(differentChannels[targetChannel.Name], targetUser.Username)
 				}
 			} else if userError == UserNotInTeam {
 				if targetTeamDisplay == "" {
@@ -124,22 +124,24 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 	}
 
 	if len(differentChannels) > 0 {
-		if len(differentChannels) > 10 {
-			*resps = append(*resps,
-				args.T("api.command_invite.successOverflow", map[string]any{
-					"FirstUser": "@" + differentChannels[0],
-					"Others":    len(differentChannels) - 1,
-					"Channel":   "",
-				}),
-			)
-		} else {
-			usersString := map[string]any{
-				"Users":   "@" + strings.Join(differentChannels, ", @"),
-				"Channel": "test",
+		for k, v := range differentChannels {
+			if len(v) > 10 {
+				*resps = append(*resps,
+					args.T("api.command_invite.successOverflow", map[string]any{
+						"FirstUser": "@" + v[0],
+						"Others":    len(v) - 1,
+						"Channel":   k,
+					}),
+				)
+			} else {
+				usersString := map[string]any{
+					"User":    "@" + strings.Join(v, ", @"),
+					"Channel": k,
+				}
+				*resps = append(*resps,
+					args.T("api.command_invite.success", usersString),
+				)
 			}
-			*resps = append(*resps,
-				args.T("api.command_invite.success", usersString),
-			)
 		}
 	}
 

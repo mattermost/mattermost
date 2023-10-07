@@ -30,6 +30,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Run setup-go-work
         run: |
           cd server
@@ -47,6 +48,9 @@ jobs:
           docker-compose --ansi never ps
       - name: Run mmctl Tests
         run: |
+          if [[ ${{ github.ref_name }} == 'master' ]]; then
+            export MMCTL_TESTFLAGS="-timeout 30m -race"
+          fi
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
@@ -56,7 +60,7 @@ jobs:
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-mmctl-coverage BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            make test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Stop docker compose
         run: |
           cd server/build
