@@ -18,18 +18,17 @@ type Props = SettingsProps & {
     disabled?: boolean;
 }
 
-const RemoveFileSetting: FC<Props> = (props) => {
-    const {
-        id,
-        label,
-        helpText,
-        removeButtonText,
-        removingText,
-        fileName,
-        onSubmit,
-        disabled,
-    } = props;
-    const [removing, setRemoving] = useState<boolean>(false);
+const RemoveFileSetting: FC<Props> = ({
+    id,
+    label,
+    helpText,
+    removeButtonText,
+    removingText,
+    fileName,
+    onSubmit,
+    disabled,
+}) => {
+    const [removing, setRemoving] = useState(false);
 
     const handleRemove = useCallback((e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
