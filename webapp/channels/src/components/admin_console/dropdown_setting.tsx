@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useMemo} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import type {ReactNode, ChangeEvent, FC} from 'react';
 
 import type {EmailSettings} from '@mattermost/types/config';
@@ -19,21 +19,19 @@ type Props = {
     helpText?: ReactNode;
 }
 
-const DropdownSetting: FC<Props> = (props) => {
-    const {
-        id,
-        values,
-        label,
-        value,
-        onChange,
-        disabled = false,
-        setByEnv,
-        helpText,
-    } = props;
-
-    const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
+const DropdownSetting: FC<Props> = ({
+    id,
+    values,
+    label,
+    value,
+    onChange,
+    disabled = false,
+    setByEnv,
+    helpText,
+}) => {
+    const handleChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
         onChange(id, e.target.value);
-    };
+    }, [onChange, id]);
 
     const options = useMemo(() =>
         values.map(({value: val, text}) => (
