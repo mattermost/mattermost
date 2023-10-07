@@ -17,7 +17,7 @@ import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
 
-import * as Utils from 'utils/utils';
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
 
@@ -29,22 +29,22 @@ type Props = {
     /**
    * The header text to render, has id and defaultMessage
    */
-    header: MessageDescriptor | string;
+    header: MessageDescriptor;
 
     /**
    * The footer text to render, has id and defaultMessage
    */
-    footer: MessageDescriptor | string;
+    footer: MessageDescriptor;
 
     /**
    * The spinner loading text to render, has id and defaultMessage
    */
-    loading: MessageDescriptor | string;
+    loading: MessageDescriptor;
 
     /**
    * Any extra component/node to render
    */
-    renderExtra: JSX.Element;
+    renderExtra?: JSX.Element;
 
     /**
     * The server error text after a failed action
@@ -103,10 +103,12 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
     };
 
     imageLoaded = () => {
-        this.setState({
-            has_icon: true,
-            icon_url: this.icon_url.current?.value || '',
-        });
+        if (this.icon_url.current?.value) {
+            this.setState({
+                has_icon: true,
+                icon_url: this.icon_url.current.value,
+            });
+        }
     };
 
     handleSubmit = (e: FormEvent) => {
@@ -203,32 +205,6 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         this.props.action(app).then(() => this.setState({saving: false}));
     };
 
-    getHeader = () => {
-        if (typeof this.props.header === 'string') {
-            return <span>{this.props.header}</span>;
-        }
-
-        return (
-            <FormattedMessage
-                id={this.props.header.id}
-                defaultMessage={this.props.header.defaultMessage}
-            />
-        );
-    };
-
-    getFooter = () => {
-        if (typeof this.props.footer === 'string') {
-            return <span>{this.props.footer}</span>;
-        }
-
-        return (
-            <FormattedMessage
-                id={this.props.footer.id}
-                defaultMessage={this.props.footer.defaultMessage}
-            />
-        );
-    };
-
     updateName = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             name: e.target.value,
@@ -268,6 +244,8 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
     };
 
     render() {
+        const headerToRender = this.props.header;
+        const footerToRender = this.props.footer;
         const renderExtra = this.props.renderExtra;
 
         let icon;
@@ -341,7 +319,10 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                             defaultMessage='Installed OAuth2 Apps'
                         />
                     </Link>
-                    {this.getHeader()}
+                    <FormattedMessage
+                        id={headerToRender.id}
+                        defaultMessage={headerToRender.defaultMessage}
+                    />
                 </BackstageHeader>
                 <div className='backstage-form'>
                     {icon}
@@ -501,11 +482,14 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={typeof this.props.loading === 'string' ? this.props.loading : Utils.localizeMessage(this.props.loading?.id ?? '', this.props.loading?.defaultMessage as string)}
+                                spinningText={localizeMessage(this.props.loading?.id || '', (this.props.loading?.defaultMessage || '') as string)}
                                 onClick={this.handleSubmit}
                                 id='saveOauthApp'
                             >
-                                {this.getFooter()}
+                                <FormattedMessage
+                                    id={footerToRender.id}
+                                    defaultMessage={footerToRender.defaultMessage}
+                                />
                             </SpinnerButton>
                             {renderExtra}
                         </div>

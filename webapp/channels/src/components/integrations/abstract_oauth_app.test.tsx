@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React from 'react';
+import React, {type ChangeEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import AbstractOAuthApp from 'components/integrations/abstract_oauth_app';
@@ -87,100 +87,100 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     test('should have correct state when updateName is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
-        const evt = {preventDefault: jest.fn(), target: {value: 'new name'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateName(evt);
+        const evt = {preventDefault: jest.fn(), target: {value: 'new name'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateName(evt);
         expect(wrapper.state('name')).toEqual('new name');
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'another name'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateName(evt2);
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'another name'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateName(evt2);
         expect(wrapper.state('name')).toEqual('another name');
     });
 
     test('should have correct state when updateTrusted is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
-        const evt = {preventDefault: jest.fn(), target: {value: 'false'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateTrusted(evt);
+        const evt = {preventDefault: jest.fn(), target: {value: 'false'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateTrusted(evt);
         expect(wrapper.state('is_trusted')).toEqual(false);
 
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'true'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateTrusted(evt2);
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'true'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateTrusted(evt2);
         expect(wrapper.state('is_trusted')).toEqual(true);
     });
 
     test('should have correct state when updateDescription is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
-        const evt = {preventDefault: jest.fn(), target: {value: 'new description'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateDescription(evt);
+        const evt = {preventDefault: jest.fn(), target: {value: 'new description'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateDescription(evt);
         expect(wrapper.state('description')).toEqual('new description');
 
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'another description'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateDescription(evt2);
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'another description'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateDescription(evt2);
         expect(wrapper.state('description')).toEqual('another description');
     });
 
     test('should have correct state when updateHomepage is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
-        const evt = {preventDefault: jest.fn(), target: {value: 'new homepage'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateHomepage(evt);
+        const evt = {preventDefault: jest.fn(), target: {value: 'new homepage'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateHomepage(evt);
         expect(wrapper.state('homepage')).toEqual('new homepage');
 
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'another homepage'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateHomepage(evt2);
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'another homepage'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateHomepage(evt2);
         expect(wrapper.state('homepage')).toEqual('another homepage');
     });
 
     test('should have correct state when updateIconUrl is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
         wrapper.setState({has_icon: true});
-        const evt = {preventDefault: jest.fn(), target: {value: 'https://test.com/new_icon_url'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateIconUrl(evt);
+        const evt = {preventDefault: jest.fn(), target: {value: 'https://test.com/new_icon_url'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateIconUrl(evt);
         expect(wrapper.state('icon_url')).toEqual('https://test.com/new_icon_url');
         expect(wrapper.state('has_icon')).toEqual(false);
 
         wrapper.setState({has_icon: true});
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'https://test.com/another_icon_url'}} as any;
-        (wrapper.instance() as AbstractOAuthApp).updateIconUrl(evt2);
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'https://test.com/another_icon_url'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateIconUrl(evt2);
         expect(wrapper.state('icon_url')).toEqual('https://test.com/another_icon_url');
         expect(wrapper.state('has_icon')).toEqual(false);
     });
 
     test('should have correct state when handleSubmit is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
         const newState = {saving: false, name: 'name', description: 'description', homepage: 'homepage'};
         const evt = {preventDefault: jest.fn()} as any;
         wrapper.setState({saving: true});
-        (wrapper.instance() as AbstractOAuthApp).handleSubmit(evt);
+        wrapper.instance().handleSubmit(evt);
         expect(evt.preventDefault).toHaveBeenCalled();
 
         wrapper.setState(newState);
-        (wrapper.instance() as AbstractOAuthApp).handleSubmit(evt);
+        wrapper.instance().handleSubmit(evt);
         expect(wrapper.state('saving')).toEqual(true);
         expect(wrapper.state('clientError')).toEqual('');
 
         wrapper.setState({...newState, name: ''});
-        (wrapper.instance() as AbstractOAuthApp).handleSubmit(evt);
+        wrapper.instance().handleSubmit(evt);
         expect(wrapper.state('saving')).toEqual(false);
         expect(wrapper.state('clientError')).toEqual(
             <FormattedMessage
@@ -190,7 +190,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
         );
 
         wrapper.setState({...newState, description: ''});
-        (wrapper.instance() as AbstractOAuthApp).handleSubmit(evt);
+        wrapper.instance().handleSubmit(evt);
         expect(wrapper.state('saving')).toEqual(false);
         expect(wrapper.state('clientError')).toEqual(
             <FormattedMessage
@@ -200,7 +200,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
         );
 
         wrapper.setState({...newState, homepage: ''});
-        (wrapper.instance() as AbstractOAuthApp).handleSubmit(evt);
+        wrapper.instance().handleSubmit(evt);
         expect(wrapper.state('saving')).toEqual(false);
         expect(wrapper.state('clientError')).toEqual(
             <FormattedMessage
