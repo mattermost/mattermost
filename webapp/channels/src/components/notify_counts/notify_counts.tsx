@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FC} from 'react';
-import React, {memo} from 'react';
+import React from 'react';
 
 import type {BasicUnreadMeta} from 'mattermost-redux/selectors/entities/channels';
 
-const NotifyCounts: FC<BasicUnreadMeta> = ({unreadMentionCount, isUnread}) => {
+const NotifyCounts = ({unreadMentionCount, isUnread}: BasicUnreadMeta) => {
     if (unreadMentionCount) {
         return <span className='badge badge-notify'>{unreadMentionCount}</span>;
     } else if (isUnread) {
@@ -15,4 +14,4 @@ const NotifyCounts: FC<BasicUnreadMeta> = ({unreadMentionCount, isUnread}) => {
     return null;
 };
 
-export default memo(NotifyCounts);
+export default NotifyCounts;
