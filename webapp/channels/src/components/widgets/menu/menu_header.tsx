@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {FC} from 'react';
 import './menu_header.scss';
 
 type Props = {
