@@ -48,7 +48,7 @@ func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
 	for name, fn := range functions {
 		fileData, err := fn(c)
 		if err != nil {
-			mlog.Error("Failed to generate file for support package", mlog.Err(err), mlog.String("file", name))
+			c.Logger().Error("Failed to generate file for support package", mlog.Err(err), mlog.String("file", name))
 			warnings = append(warnings, err.Error())
 		} else if fileData != nil {
 			fileDatas = append(fileDatas, *fileData)
