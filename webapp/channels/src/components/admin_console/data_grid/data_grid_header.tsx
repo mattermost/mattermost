@@ -8,30 +8,36 @@ import type {Column} from './data_grid';
 
 import './data_grid.scss';
 
+type HeaderElementProps = {
+    col: Column;
+}
+
+const HeaderElement = ({col}: HeaderElementProps) => {
+    const style: CSSProperties = {};
+    if (col.width) {
+        style.flexGrow = col.width;
+    }
+    return (
+        <div
+            key={col.field}
+            className='DataGrid_cell'
+            style={style}
+        >
+            {col.name}
+        </div>
+    );
+}
+
 export type Props = {
     columns: Column[];
 }
 
 const DataGridHeader = ({columns}: Props) => {
-    const renderHeaderElement = (col: Column) => {
-        const style: CSSProperties = {};
-        if (col.width) {
-            style.flexGrow = col.width;
-        }
-        return (
-            <div
-                key={col.field}
-                className='DataGrid_cell'
-                style={style}
-            >
-                {col.name}
-            </div>
-        );
-    };
-
     return (
         <div className='DataGrid_header'>
-            {columns.map(renderHeaderElement)}
+            {columns.map((col) => (
+                <HeaderElement col={col} />
+            ))}
         </div>
     );
 };
