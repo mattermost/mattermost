@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback, useMemo} from 'react';
-import type {ReactNode, ChangeEvent, FC} from 'react';
+import type {ReactNode, ChangeEvent} from 'react';
 
 import type {EmailSettings} from '@mattermost/types/config';
 
@@ -19,7 +19,7 @@ type Props = {
     helpText?: ReactNode;
 }
 
-const DropdownSetting: FC<Props> = ({
+const DropdownSetting = ({
     id,
     values,
     label,
@@ -28,7 +28,7 @@ const DropdownSetting: FC<Props> = ({
     disabled = false,
     setByEnv,
     helpText,
-}) => {
+}: Props) => {
     const handleChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
         onChange(id, e.target.value);
     }, [onChange, id]);
