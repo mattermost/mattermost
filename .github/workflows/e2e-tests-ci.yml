@@ -8,10 +8,6 @@ on:
         type: string
         required: false
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   update-initial-status:
     runs-on: ubuntu-22.04
@@ -84,25 +80,46 @@ jobs:
           npm run check
 
   smoketests:
-    runs-on: ubuntu-latest-8-cores
+    strategy:
+      matrix:
+        #
+        # Note that smoketests should be run only on ubuntu, for QA purposes.
+        # But it's useful to be able to run and debug the smoketests for different OSes.
+        # Notes:
+        # - For MacOS: works on developer machines, but uses too many resources to be able to run on Github Actions
+        # - for Windows: cannot currently run on Github Actions, since the runners do not support running linux containers, at the moment
+        #
+        #os: [ubuntu-latest-8-cores, windows-2022, macos-12-xl]
+        os: [ubuntu-latest-8-cores]
+    runs-on: "${{ matrix.os }}"
     needs:
       - cypress-check
       - playwright-check
     defaults:
       run:
+        shell: bash
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
         with:
           ref: ${{ inputs.commit_sha || github.sha }}
+      - name: ci/setup-macos-docker
+        if: runner.os == 'macos'
+        # https://github.com/actions/runner-images/issues/17#issuecomment-1537238473
+        run: |
+          brew install docker docker-compose
+          colima start
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/e2e-smoketests
         run: |
           make
       - name: ci/e2e-smoketests-store-results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: e2e-smoketests-results
+          name: e2e-smoketests-results-${{ matrix.os }}
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/

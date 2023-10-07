@@ -1,0 +1,74 @@
+[
+  {
+    "id": "September",
+    "translation": "ספטמבר"
+  },
+  {
+    "id": "October",
+    "translation": "אוקטובר"
+  },
+  {
+    "id": "November",
+    "translation": "נובמבר"
+  },
+  {
+    "id": "May",
+    "translation": "מאי"
+  },
+  {
+    "id": "March",
+    "translation": "מרץ"
+  },
+  {
+    "id": "June",
+    "translation": "יוני"
+  },
+  {
+    "id": "July",
+    "translation": "יולי"
+  },
+  {
+    "id": "January",
+    "translation": "ינואר"
+  },
+  {
+    "id": "February",
+    "translation": "פברואר"
+  },
+  {
+    "id": "December",
+    "translation": "דצמבר"
+  },
+  {
+    "id": "August",
+    "translation": "אוגוסט"
+  },
+  {
+    "id": "April",
+    "translation": "אפריל"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "טקסט אישור לא חוקי."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 אינו מוגדר או נתמך בשרת זה."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "אירעה שגיאה בעת בניית הנתונים של ספק השירות."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "לא ניתן היה לפתוח את קובץ התעודה."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "אין קובץ תחת 'תעודה' בבקשה."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "אין קובץ תחת 'תעודה' בבקשה."
+  }
+]

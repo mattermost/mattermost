@@ -166,10 +166,6 @@
         padding: 12px 30px 12px 15px;
     }
 
-    .btn {
-        font-size: 13px;
-    }
-
     .info__label {
         margin-bottom: 3px;
         font-size: 0.9em;
@@ -310,17 +306,6 @@
             span {
                 font-family: 'Open Sans', sans-serif;
                 line-height: 10px;
-            }
-        }
-
-        .btn {
-            &.btn-primary {
-                position: relative;
-                margin-top: -4px;
-
-                i {
-                    margin-right: 5px;
-                }
             }
         }
     }
@@ -1187,22 +1172,29 @@
             button.modal-header-back-button {
                 position: absolute;
                 left: 18px;
+                display: flex;
                 width: 4rem;
                 height: 4rem;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                background: transparent;
+                border-radius: 4px;
                 color: rgba(var(--center-channel-color-rgb), 0.56);
                 float: left;
 
                 &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
                     color: rgba(var(--center-channel-color-rgb), 0.72);
                 }
 
                 &:active {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
                     background-color: rgba(var(--button-bg-rgb), 0.08);
                     color: var(--button-bg);
                 }
 
                 i {
-                    display: inline;
                     font-size: 24px;
                     line-height: 24px;
                 }
