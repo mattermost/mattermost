@@ -13,26 +13,24 @@ export type Props = {
     title: React.ReactNode;
 }
 
-export default class RhsPlugin extends React.PureComponent<Props> {
-    render() {
-        return (
-            <div
-                id='rhsContainer'
-                className='sidebar-right__body'
-            >
-                <SearchResultsHeader>
-                    {this.props.title}
-                </SearchResultsHeader>
-                {
-                    this.props.showPluggable &&
-                    <>
-                        <Pluggable
-                            pluggableName='RightHandSidebarComponent'
-                            pluggableId={this.props.pluggableId}
-                        />
-                    </>
-                }
-            </div>
-        );
-    }
+const RhsPlugin: React.FC<Props> = ({ showPluggable, pluggableId, title }) => {
+    return (
+        <div
+            id='rhsContainer'
+            className='sidebar-right__body'
+        >
+            <SearchResultsHeader>
+                {title}
+            </SearchResultsHeader>
+            {
+                showPluggable &&
+                <Pluggable
+                    pluggableName='RightHandSidebarComponent'
+                    pluggableId={pluggableId}
+                />
+            }
+        </div>
+    );
 }
+
+export default RhsPlugin;
