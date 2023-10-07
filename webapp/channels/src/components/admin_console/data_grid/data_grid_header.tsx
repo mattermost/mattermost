@@ -12,14 +12,12 @@ export type Props = {
     columns: Column[];
 }
 
-
-const DataGridHeader: React.FC<Props> = ({ columns }: Props) => {
+const DataGridHeader = ({columns}: Props) => {
     const renderHeaderElement = (col: Column) => {
         const style: CSSProperties = {};
         if (col.width) {
             style.flexGrow = col.width;
         }
-
         return (
             <div
                 key={col.field}
@@ -33,7 +31,7 @@ const DataGridHeader: React.FC<Props> = ({ columns }: Props) => {
 
     return (
         <div className='DataGrid_header'>
-            {columns.map((col) => renderHeaderElement(col))}
+            {columns.map(renderHeaderElement)}
         </div>
     );
 };
