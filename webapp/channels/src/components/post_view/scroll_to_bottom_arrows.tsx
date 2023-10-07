@@ -18,7 +18,7 @@ const ScrollToBottomArrows = ({ isScrolling, atBottom, onClick }:Props) => {
     }
 
     let className = 'post-list__arrows';
-    if (isScrolling && !atBottom) {
+    if (isScrolling && atBottom === false) {
         className += ' scrolling';
     }
 
