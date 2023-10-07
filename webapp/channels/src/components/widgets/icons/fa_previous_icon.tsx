@@ -1,25 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import LocalizedIcon from 'components/localized_icon';
-
-import {t} from 'utils/i18n';
 
 type Props = {
     additionalClassName?: string;
 }
 
-function PreviousIcon(props: Props) {
-    const className = 'icon icon-chevron-left' + (props.additionalClassName ? ' ' + props.additionalClassName : '');
+const iconTitle = defineMessage({
+    id: 'generic_icons.previous',
+    defaultMessage: 'Previous Icon',
+});
+
+const PreviousIcon = ({additionalClassName}: Props) => {
     return (
         <LocalizedIcon
-            className={className}
-            title={{id: t('generic_icons.previous'), defaultMessage: 'Previous Icon'}}
+            className={classNames('icon icon-chevron-left', additionalClassName)}
+            title={iconTitle}
         />
     );
-}
+};
 
 export default React.memo(PreviousIcon);
 
