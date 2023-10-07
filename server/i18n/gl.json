@@ -1,0 +1,274 @@
+[
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "ou"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Non foi posíbel abrir o ficheiro do certificado."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Non hai ningún ficheiro baixo «certificado» na solicitude."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Non hai ningún ficheiro baixo «certificado» na solicitude."
+  },
+  {
+    "id": "September",
+    "translation": "Setembro"
+  },
+  {
+    "id": "October",
+    "translation": "Outubro"
+  },
+  {
+    "id": "November",
+    "translation": "Novembro"
+  },
+  {
+    "id": "May",
+    "translation": "Maio"
+  },
+  {
+    "id": "March",
+    "translation": "marzo"
+  },
+  {
+    "id": "June",
+    "translation": "Xuño"
+  },
+  {
+    "id": "July",
+    "translation": "Xullo"
+  },
+  {
+    "id": "January",
+    "translation": "Xaneiro"
+  },
+  {
+    "id": "February",
+    "translation": "Febreiro"
+  },
+  {
+    "id": "December",
+    "translation": "Decembro"
+  },
+  {
+    "id": "August",
+    "translation": "Agosto"
+  },
+  {
+    "id": "April",
+    "translation": "Abril"
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Non foi posíbel crear o «emoji». A imaxe debe ter un tamaño inferior a 1 MB."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: «grant_type» incorrecto."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request: Falta o «client_secret»."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: «client_id» incorrecto."
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "A sesión non é OAuth, mais forneceuse un testemuño na cadea de consulta."
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "O testemuño de sesión {{.Token}} non é válido, err={{.Error}}"
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "% v deixou o equipo."
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "abandonar"
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Non é posíbel abandonar a canle predeterminada {{.Channel}}."
+  },
+  {
+    "id": "app.channel_member_history.log_leave_event.internal_error",
+    "translation": "Produciuse un fallo ao gravar o historial de membros da canle. Non foi posíbel actualizar o rexistro de entrada existente"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Produciuse un erro ao abandonar a canle."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Abandona a canle actual"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Non foi posíbel publicar a mensaxe de unirse/abandonar"
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Non é posíbel abandonar unha canle de mensaxe directa."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v saíu da canle."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Vostede é o único membro que queda, tente eliminar a canle privada no canto de abandonar."
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Praza pública"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "O nome debe ter de 1 a 64 caracteres alfanuméricos en minúscula."
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "O nome debe ter de 1 a 64 caracteres alfanuméricos en minúscula."
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "Testemuño AMF non válido."
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "Produciuse un erro ao xerar o código QR."
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "Testemuño AMF non válido."
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Testemuño AMF non válido."
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "A AMF non está dispoñíbel para este tipo de conta."
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "[{{.SiteName}}] Actualizouse a súa AMF"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "A súa proba de Enterprise xa está activa. Vaia a **Consola do sistema > Autenticación > AMF** para aplicar a autenticación de múltiples factores."
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Desactivouse a autenticación de múltiples factores neste servidor."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Retirouse a autenticación de múltiples factores"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Retirouse a autenticación de múltiples factores da súa conta en {{.SiteURL}}."
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Engadiuse a autenticación de múltiples factores"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Engadiuse a autenticación de múltiples factores á súa conta en {{.SiteURL}}."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Aplicar a autenticación de múltiples factores"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Solicitude de contacto con Mattermost. Estou interesado en saber máis sobre como aplicar a autenticación de múltiples factores.\n"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Neste servidor é necesaria a autenticación de múltiples factores."
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "A consola do sistema está configurada só para lectura cando a Alta dispoñibilidade está habilitada a menos que ReadOnlyConfig estea desactivado no ficheiro de configuración."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
+    "translation": "A súa proba de Enterprise xa está activa. Vaia á consola do sistema para activar as funcións avanzadas."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "A súa proba de Enterprise xa está activa. Vaia a **Consola do sistema > Autenticación > Acceso de convidado** para activar as contas de convidado."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Non foi posíbel gardar o ficheiro do certificado."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Atopouse un falloao analizar a información de metadatos recibida do provedor de identidade nun certificado."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Produciuse un fallo ao obter os metadatos do URL do provedor de identidade."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Produciuse un erro ao eliminar o certificado."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP non está dispoñíbel."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "O almacenamento de imaxes non está configurado."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Produciuse un erro ao ler o ficheiro de rexistro."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Non é posíbel eliminar a imaxe de marca, non se atopou."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Non foi posíbel gardar o ficheiro do certificado."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Produciuse un erro ao analizar a solicitude multiforme"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "A súa factura de Mattermost Cloud está pendente de pago"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "Pagar agora"
+  },
+  {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "Envíenos un correo-e en calquera momento a "
+  },
+  {
+    "id": "api.templates.copyright",
+    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Un ou máis dos seguintes permisos que tenta engadir ou eliminar non está autorizado"
+  }
+]
