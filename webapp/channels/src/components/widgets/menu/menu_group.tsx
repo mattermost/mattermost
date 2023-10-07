@@ -13,27 +13,23 @@ type Props = {
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
-export default class MenuGroup extends React.PureComponent<Props> {
-    handleDividerClick = (e: React.MouseEvent): void => {
+const MenuGroup = ({ divider, children } : Props) => {
+    const handleDividerClick = (e: React.MouseEvent): void => {
         e.preventDefault();
         e.stopPropagation();
     };
 
-    public render() {
-        const {children} = this.props;
+    return (
+        <>
+            {divider || (
+                <li
+                    className='MenuGroup menu-divider'
+                    onClick={handleDividerClick}
+                />
+            )}
+            {children}
+        </>
+    );
+};
 
-        const divider = this.props.divider || (
-            <li
-                className='MenuGroup menu-divider'
-                onClick={this.handleDividerClick}
-            />
-        );
-
-        return (
-            <React.Fragment>
-                {divider}
-                {children}
-            </React.Fragment>
-        );
-    }
-}
+export default MenuGroup;
