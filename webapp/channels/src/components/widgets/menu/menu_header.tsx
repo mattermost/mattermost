@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {FC} from 'react';
+
 import './menu_header.scss';
 
 type Props = {
@@ -14,12 +14,15 @@ type Props = {
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
-const MenuHeader: React.FC<Props> = ({ children, onClick }) => {
-    return (
-        <li className='MenuHeader' onClick={onClick}>
+const MenuHeader = ({children, onClick}: Props) => {
+        return (
+        <li
+            className='MenuHeader'
+            onClick={onClick}
+        >
             {children}
         </li>
     );
 };
 
-export default MenuHeader;
+export default React.memo(MenuHeader);
