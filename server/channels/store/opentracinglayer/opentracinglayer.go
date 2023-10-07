@@ -10840,7 +10840,7 @@ func (s *OpenTracingLayerUploadSessionStore) Delete(id string) error {
 	return err
 }
 
-func (s *OpenTracingLayerUploadSessionStore) Get(ctx context.Context, id string) (*model.UploadSession, error) {
+func (s *OpenTracingLayerUploadSessionStore) Get(c request.CTX, id string) (*model.UploadSession, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UploadSessionStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -10849,7 +10849,7 @@ func (s *OpenTracingLayerUploadSessionStore) Get(ctx context.Context, id string)
 	}()
 
 	defer span.Finish()
-	result, err := s.UploadSessionStore.Get(ctx, id)
+	result, err := s.UploadSessionStore.Get(c, id)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

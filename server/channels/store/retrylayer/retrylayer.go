@@ -12388,11 +12388,11 @@ func (s *RetryLayerUploadSessionStore) Delete(id string) error {
 
 }
 
-func (s *RetryLayerUploadSessionStore) Get(ctx context.Context, id string) (*model.UploadSession, error) {
+func (s *RetryLayerUploadSessionStore) Get(c request.CTX, id string) (*model.UploadSession, error) {
 
 	tries := 0
 	for {
-		result, err := s.UploadSessionStore.Get(ctx, id)
+		result, err := s.UploadSessionStore.Get(c, id)
 		if err == nil {
 			return result, nil
 		}
