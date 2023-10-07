@@ -205,10 +205,8 @@
 
         .suggestion-list__main {
             display: flex;
-            overflow: hidden;
             width: 100%;
             color: rgba(var(--center-channel-color-rgb), 1);
-            text-overflow: ellipsis;
             white-space: nowrap;
 
             .suggestion-list__desc {
