@@ -37,6 +37,6 @@ describe('components/notify_counts', () => {
         const {mountOptions} = mockStore();
         const wrapper = mount(<NotifyCounts/>, mountOptions);
 
-        expect(wrapper.children().html()).toBe('');
+        expect(wrapper.html()).toBe('');
     });
 });
