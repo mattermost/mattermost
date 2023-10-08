@@ -7,6 +7,7 @@ import { localizeMessage } from 'utils/utils';
 
 type Actions = {
     openRHSSearch: () => void;
+    // Add more action functions here if needed
 }
 
 type Props = {
@@ -14,9 +15,12 @@ type Props = {
 }
 
 const ShowSearchButton = ({ actions }: Props) => {
+    const { openRHSSearch } = actions;
+
     const handleClick = useCallback(() => {
-        actions.openRHSSearch();
-    }, [actions]);
+        openRHSSearch();
+        // Call other action functions here if needed
+    }, [openRHSSearch]);
 
     return (
         <button
