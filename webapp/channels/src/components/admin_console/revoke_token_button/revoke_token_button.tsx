@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useState, useEffect} from 'react';
+import React,{useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
