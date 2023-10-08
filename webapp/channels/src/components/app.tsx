@@ -19,9 +19,12 @@ const Root = makeAsyncComponent('Root', LazyRoot);
 function App() {
     return (
         <Provider store={store}>
-            <CRTPostsChannelResetWatcher />
+            <CRTPostsChannelResetWatcher/>
             <Router history={getHistory()}>
-                <Route path='/' component={Root} />
+                <Route 
+                    path="/" 
+                    component={Root} 
+                />
             </Router>
         </Provider>
     );
