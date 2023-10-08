@@ -14,4 +14,4 @@ const NotifyCounts = ({unreadMentionCount, isUnread}: BasicUnreadMeta) => {
     return null;
 };
 
-export default NotifyCounts;
+export default React.memo(NotifyCounts);
