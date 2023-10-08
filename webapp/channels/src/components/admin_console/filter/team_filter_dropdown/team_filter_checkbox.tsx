@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 
 type Props = {
     id: string;
@@ -15,14 +15,10 @@ const TeamFilterCheckbox: React.FC<Props> = ({
     label,
     updateOption,
 }) => {
-    const [isChecked, setIsChecked] = useState(checked);
-
     // Use useCallback to memoize the callback
     const toggleOption = useCallback(() => {
-        const newChecked = !isChecked;
-        setIsChecked(newChecked);
-        updateOption(newChecked, id);
-    }, [isChecked, id, updateOption]);
+        updateOption(!checked, id);
+    }, [checked, id, updateOption]);
 
     return (
         <div className='TeamFilterDropdown_checkbox'>
@@ -31,7 +27,7 @@ const TeamFilterCheckbox: React.FC<Props> = ({
                     type='checkbox'
                     id={id}
                     name={name}
-                    checked={isChecked}
+                    checked={checked}
                     onChange={toggleOption}
                 />
 
