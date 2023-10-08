@@ -74,7 +74,6 @@ export function applyMarkdown(options: ApplyMarkdownOptions): ApplyMarkdownRetur
         return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter});
     case 'code':
         return applyCodeMarkdown({selectionEnd, selectionStart, message});
-        //return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter});
     }
 
     throw Error('Unsupported markdown mode: ' + markdownMode);
@@ -493,13 +492,10 @@ export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = 
 }
 
 function applyCodeMarkdown({selectionEnd, selectionStart, message}: ApplySpecificMarkdownOptions) {
-    if (message.slice(selectionStart, selectionEnd).indexOf('\n') === -1) {
-        // the selection is on a single line, we apply inline code markdown
-        return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter: '`'});
-    } else {
-        // the selection is on multiple lines, we apply code block markdown
+    if (isSelectionMultiline(message, selectionStart, selectionEnd)) {
         return applyCodeBlockToSelection({selectionEnd, selectionStart, message});
     }
+    return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter: '`'});
 }
 
 const applyCodeBlockToSelection = ({
@@ -507,8 +503,6 @@ const applyCodeBlockToSelection = ({
     selectionStart,
     message,
 }: ApplySpecificMarkdownOptions) => {
-
-
     // the part of the message that comes before the selection
     let prefix = message.slice(0, selectionStart);
 
@@ -559,7 +553,6 @@ const applyCodeBlockToSelection = ({
     };
 };
 
-
 function findWordEnd(text: string, start: number) {
     const wordEnd = text.indexOf(' ', start);
     return wordEnd === -1 ? text.length : wordEnd;
@@ -568,4 +561,8 @@ function findWordEnd(text: string, start: number) {
 function findWordStart(text: string, start: number) {
     const wordStart = text.lastIndexOf(' ', start - 1) + 1;
     return wordStart === -1 ? 0 : wordStart;
+}
+
+function isSelectionMultiline(message: string, selectionStart: number, selectionEnd: number) {
+    return message.slice(selectionStart, selectionEnd).includes('\n');
 }
