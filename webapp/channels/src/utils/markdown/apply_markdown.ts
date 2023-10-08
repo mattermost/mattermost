@@ -73,8 +73,8 @@ export function applyMarkdown(options: ApplyMarkdownOptions): ApplyMarkdownRetur
         delimiter = '~~';
         return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter});
     case 'code':
-        delimiter = '```';
-        return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter});
+        return applyCodeMarkdown({selectionEnd, selectionStart, message});
+        //return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter});
     }
 
     throw Error('Unsupported markdown mode: ' + markdownMode);
@@ -491,6 +491,74 @@ export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = 
         selectionEnd: newEnd,
     };
 }
+
+function applyCodeMarkdown({selectionEnd, selectionStart, message}: ApplySpecificMarkdownOptions) {
+    if (message.slice(selectionStart, selectionEnd).indexOf('\n') === -1) {
+        // the selection is on a single line, we apply inline code markdown
+        return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter: '`'});
+    } else {
+        // the selection is on multiple lines, we apply code block markdown
+        return applyCodeBlockToSelection({selectionEnd, selectionStart, message});
+    }
+}
+
+const applyCodeBlockToSelection = ({
+    selectionEnd,
+    selectionStart,
+    message,
+}: ApplySpecificMarkdownOptions) => {
+
+
+    // the part of the message that comes before the selection
+    let prefix = message.slice(0, selectionStart);
+
+    // the selected part of the message where the markdown needs to be added/removed
+    let selection = message.slice(selectionStart, selectionEnd);
+
+    // the part of the message that comes after the selection
+    let suffix = message.slice(selectionEnd);
+
+    const delimiterStart = '```\n';
+    const delimiterEnd = '\n```';
+
+    // Does the selection have current hotkey's markdown?
+    const hasCurrentMarkdown = prefix.endsWith(delimiterStart) && suffix.startsWith(delimiterEnd);
+
+    let newValue: string;
+    let newStart = selectionStart;
+    let newEnd = selectionEnd;
+
+    if (selection.endsWith(' ')) {
+        selection = selection.slice(0, -1);
+        suffix = ` ${suffix}`;
+        newEnd -= 1;
+    }
+
+    if (selection.startsWith(' ')) {
+        selection = selection.slice(1);
+        prefix = `${prefix} `;
+        newStart += 1;
+    }
+
+    if (hasCurrentMarkdown) {
+        // selection already has the markdown, so we remove it here
+        newValue = prefix.slice(0, prefix.length - delimiterStart.length) + selection + suffix.slice(delimiterEnd.length);
+        newStart -= delimiterStart.length;
+        newEnd -= delimiterEnd.length;
+    } else {
+        // add markdown to the selection
+        newValue = prefix + delimiterStart + selection + delimiterEnd + suffix;
+        newStart += delimiterStart.length;
+        newEnd += delimiterEnd.length;
+    }
+
+    return {
+        message: newValue,
+        selectionStart: newStart,
+        selectionEnd: newEnd,
+    };
+};
+
 
 function findWordEnd(text: string, start: number) {
     const wordEnd = text.indexOf(' ', start);
