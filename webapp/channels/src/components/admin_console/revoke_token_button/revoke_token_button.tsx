@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
@@ -16,30 +17,42 @@ interface RevokeTokenButtonProps {
     onError: (errorMessage: string) => void;
 }
 
-export default class RevokeTokenButton extends React.PureComponent<RevokeTokenButtonProps> {
-    private handleClick = async (e: React.MouseEvent) => {
+const RevokeTokenButton: React.FC<RevokeTokenButtonProps> = (props) => {
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (error) {
+            props.onError(error);
+        }
+    }, [error, props]);
+
+    const handleClick = async (e: React.MouseEvent) => {
         e.preventDefault();
 
-        const response = await this.props.actions.revokeUserAccessToken(this.props.tokenId);
-        trackEvent('system_console', 'revoke_user_access_token');
+        try {
+            const response = await props.actions.revokeUserAccessToken(props.tokenId);
+            trackEvent('system_console', 'revoke_user_access_token');
 
-        if ('error' in response) {
-            this.props.onError(response.error.message);
+            if ('error' in response) {
+                setError(response.error.message);
+            }
+        } catch (err) {
+            setError(err.message);
         }
     };
 
-    render() {
-        return (
-            <button
-                type='button'
-                className='btn btn-danger'
-                onClick={this.handleClick}
-            >
-                <FormattedMessage
-                    id='admin.revoke_token_button.delete'
-                    defaultMessage='Delete'
-                />
-            </button>
-        );
-    }
-}
+    return (
+        <button
+            type='button'
+            className='btn btn-danger'
+            onClick={handleClick}
+        >
+            <FormattedMessage
+                id='admin.revoke_token_button.delete'
+                defaultMessage='Delete'
+            />
+        </button>
+    );
+};
+
+export default RevokeTokenButton;
