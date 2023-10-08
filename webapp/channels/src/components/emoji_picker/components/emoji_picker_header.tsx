@@ -35,4 +35,4 @@ const EmojiPickerHeader = ({handleEmojiPickerClose}: Props) => {
     );
 };
 
-export default EmojiPickerHeader;
+export default React.memo(EmojiPickerHeader);
