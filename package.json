@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "eslint": "^8.51.0",
+    "jsx-ast-utils": "^3.3.5"
+  }
+}
