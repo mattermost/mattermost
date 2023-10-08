@@ -9,12 +9,17 @@ import type {Row, Column} from './data_grid';
 
 import './data_grid.scss';
 
-type Props = {
+type DataGridRowProps = {
     columns: Column[];
     row: Row;
 }
 
-const renderCell = (row: Row, column: Column) => {
+type DataGridCellProps = {
+    column: Column;
+    row: Row;
+}
+
+const dataGridCell = ({row, column}: DataGridCellProps) => {
     const style: CSSProperties = {};
     if (column.width) {
         style.flexGrow = column.width;
@@ -37,10 +42,10 @@ const renderCell = (row: Row, column: Column) => {
             {row.cells[column.field]}
         </div>
     );
-}
+};
 
-const DataGridRow = ({ row, columns}: Props) => {
-    const cells = columns.map((col) => renderCell(row, col));
+const DataGridRow = ({row, columns}: DataGridRowProps) => {
+    const cells = columns.map((column) => dataGridCell({row, column}));
     return (
         <div
             className='DataGrid_row'
@@ -48,7 +53,7 @@ const DataGridRow = ({ row, columns}: Props) => {
         >
             {cells}
         </div>
-    ); 
-}
+    );
+};
 
-export default DataGridRow;
+export default React.memo(DataGridRow);
