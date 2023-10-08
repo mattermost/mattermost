@@ -1,0 +1,1185 @@
+[
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML 2.0 ഈ സെർവറിൽ രേഖപ്പെടുത്തിയിട്ടില്ല, അല്ലെങ്കിൽ സാധ്യമല്ല."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "സർവീസ് പ്രൊവൈഡർ മെറ്റാഡാറ്റ നിർമ്മിക്കുവ്വാൻ ശ്രമിച്ചപ്പോൾ തടസ്സം നേരിട്ടു."
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "multipart form പരിവർത്തനം ചെയ്യുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "ഇമേജ് ഫയൽ തുറക്കുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "അപേക്ഷയിൽ 'ഇമേജ്'ന്റ്റെ അടിയിൽ ഫയൽ കാണ്മാനില്ല."
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "അപേക്ഷയിൽ 'ഇമേജ്'ന്റ്റെ അടിയിൽ അറേ ശൂന്യമാണ്."
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "താങ്കൾക്ക് ആവശ്യമായ അനുമതി ഇല്ല."
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 ഈ സെർവറിൽ രേഖപ്പെടുത്തിയിട്ടില്ല, അല്ലെങ്കിൽ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "multipart form പരിവർത്തനം ചെയ്യുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "ഇമേജ് ഫയൽ തുറക്കുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "അപേക്ഷയിൽ 'ഇമേജ്'ന്റ്റെ അടിയിൽ ഫയൽ കാണ്മാനില്ല."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "അപേക്ഷയിൽ 'ഇമേജ്'ന്റ്റെ അടിയിൽ അറേ ശൂന്യമാണ്."
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "multipart form പരിവർത്തനം ചെയ്യുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "താങ്കൾക്ക് ആവശ്യമായ അനുമതി ഇല്ല."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "ചാനൽ ആർക്കൈവ് അല്ലെങ്കിൽ നീക്കം ചെയ്തിരിക്കുന്നു."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "ഗ്രൂപ്പ് മെസ്സേജ് ചാനലിന്റ്റെ പേര് മാറ്റൽ അനവദനീയമല്ല."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "ഡയറക്റ്റ് മെസ്സേജ് ചാനലിന്റ്റെ പേര് മാറ്റൽ അനുവദനീയമല്ല."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "ഈ ചാനൽ ഇനത്തിൽ നിന്ന് യൂസറെ നീക്കം ചെയ്യുവാൻ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "ഗ്രൂപ്പ് നിബന്ധനകൾ ഉള്ളതിനാൽ {{ .UserIDs }} കളുടെ ചാനൽ അംഗത്വം നീക്കം ചെയ്യുവാൻ സാധ്യമല്ല"
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "ചാനലിൽ നിന്ന് %v നീക്കം ചെയ്യപ്പെട്ടിരിക്കുന്നു."
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "ഗ്രൂപ്പ് നിബന്ധനകൾ ഉള്ള ചാനലിൽ നിന്ന് യൂസറെ നീക്കം ചെയ്യുവാൻ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "ചാനലിൽ നിന്ന് യൂസറെ നീക്കം ചെയ്യുവാൻ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "{{.Channel}} ഡീഫോൾട് ചാനലിൽ നിന്ന് യൂസറെ നീക്കം ചെയ്യുവാൻ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "ചേർന്നു/പിന്മാറി വിവരങ്ങൾ പോസ്റ്റ് ചെയ്യുവാൻ സാധിച്ചില്ല"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s ചാനലിന്റെ തലക്കെട്ടു വിവരങ്ങൾ %s ലേക്ക് പുതുക്കിയിരിക്കുന്നു"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s ചാനലിന്റെ തലക്കെട്ടു വിവരങ്ങൾ %s ൽ നിന്ന് %s ലേക്ക് മാറ്റിയിരിക്കുന്നു"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "ചാനലിന്റെ തലക്കെട്ടു വിവരങ്ങൾ പുതുക്കുന്നതിനിടക്ക് യുസർ വിവരങ്ങൾ കണ്ടെടുക്കുവാൻ സാധിച്ചില്ല"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s ചാനലിന്റെ തലക്കെട്ടു വിവരങ്ങൾ നീക്കം ചെയ്തിരിക്കുന്നു (മുൻപ് %s എന്ന് ആയിരുന്നു)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "ചാനലിന്റെ പുതുക്കിയ തലക്കെട്ടു വിവരങ്ങൾ പോസ്റ്റ് ചെയ്യുവാൻ സാധിച്ചില്ല"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s ചാനലിന്റെ ഡിസ്പ്ലേ നെയിം %s ൽ നിന്ന് %s ലേക്ക് മാറ്റിയിരിക്കുന്നു"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "ചാനൽ DisplayName പുതുക്കുമ്പോൾ യുസർ വിവരങ്ങൾ കണ്ടെടുക്കുവാൻ സാധിച്ചില്ല"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "ഡിസ്പ്ലേ നെയിം പുതുക്കിയ അറിയിപ്പ് പോസ്റ്റ് ചെയ്യുവാൻ സാധിച്ചില്ല"
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "ചാനൽ സ്വകാര്യത സൂക്തങ്ങൾ പുതുക്കുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "ചാനൽ പുതുക്കുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "താങ്കളുടെ ലൈസൻസ് ചാനൽ മധ്യസ്ഥ അനുവദിക്കുന്നതല്ല"
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v ചാനലിൽ നിന്ന് പിന്മാറിയിരിക്കുന്നു."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "താങ്കൾ മാത്രാമാണ് ബാക്കിയുള്ളത്, ദയവായി പിന്മാറുന്നതിനു പകരം സ്വകാര്യ ചാനൽ നീക്കം ചെയ്യാൻ ശ്രമിക്കുക."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "ഡയറക്റ്റ് മെസ്സേജ് ചാനലിൽ നിന്ന് പിന്മാറുവാൻ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "{{.Channel}} എന്ന ഡീഫോൾട് ചാനലിൽ നിന്ന് പിന്മാറുവാൻ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v ചാനലിൽ ചേർന്നിരിക്കുന്നു."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "താങ്കൾക്ക് ആവശ്യമായ അനുമതി ഇല്ല."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v ചാനലിൽ വിരുന്നുകാരനായി ചേർന്നിരിക്കുന്നു."
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "താങ്കളുടെ ലൈസൻസ് ചാനൽ മധ്യസ്ഥ അനുവദിക്കുന്നതല്ല"
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "ഡയറക്റ്റ് അല്ലെങ്കിൽ ഗ്രൂപ്പ് മെസ്സേജ് ചാനലുകൾ നശിപ്പിക്കുവാൻ സാധ്യമല്ല"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "ചാനൽ ആർക്കൈവ് അല്ലെങ്കിൽ നീക്കം ചെയ്തിരിക്കുന്നു."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "{{.Channel}} എന്ന ഡീഫോൾട് ചാനൽ നശിപ്പിക്കുവാൻ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v ചാനൽ ആർക്കൈവ് ചെയ്തു."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "നൽകിയ യൂസറുകളിൽ ഒന്ന് കണ്ടെത്തുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "ഗ്രൂപ്പ് മെസ്സേജ് ചാനലുകളിൽ മൂന്നിൽ അധികം പക്ഷെ എട്ടിൽ കുറവ് അംഗങ്ങൾ മാത്രം."
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "ഡയറക്റ്റ് ചാനൽ സൃഷ്ടിക്കുവാൻ ഉപയോഗിച്ചത് തെറ്റായ യുസർ ഐഡി ആണ്."
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "നടുമുറ്റം"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "വിഷയേതരം"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "ഇപ്പോഴത്തെ ടീമിൽ {{.MaxChannelsPerTeam}} ൽ അധികം ചാനൽ സൃഷ്ടിക്കുവാൻ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "ഡയറക്റ്റ് മെസ്സേജ് ചാനൽ സൃഷ്ടിക്കുവാൻ createDirectChannel API സർവ്വീസ് നിർബന്ധമായി ഉപയോഗിക്കുക."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "നിങ്ങളുടെ ലൈസൻസിന് ഗ്രൂപ്പുകൾ അനുവദിച്ചിട്ടില്ല"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "ഈ ചാനൽ ഒരു സ്വകാര്യ ചാനൽ ആക്കി മാറ്റിയിരിക്കുന്നു."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "ഈ ചാനൽ ഒരു പൊതു ചാനലിലേക്ക് മാറ്റിയിരിക്കുന്നു. ഏതു ടീം അംഗത്തിനും ഇതിൽ ഇനി ചേരുവാൻ സാധിക്കും."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "യൂസറെ ഈ തരത്തിൽ ഉള്ള ചാനലിലേക്കു ചേർക്കുവ്വാൻ സാധ്യം അല്ല."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "യൂസറെ ടീമിൽ നിന്ന് നീക്കം ചെയ്തതിനാൽ ചാനലിലേക്കു ചേർക്കുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "യൂസറെ ചാനലിലേക്കു ചേർക്കുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "ഗ്രൂപ്പ് നിബന്ധനകൾ കാരണം ഈ പറയുന്ന അംഗങ്ങൾക്ക് ചാനൽ അംഗത്വം നിഷേധിച്ചിരിക്കുന്നു: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "ചാനൽ അംഗങ്ങളെ ചേർക്കുമ്പോൾ തടസ്സം നേരിട്ടിരുന്നു."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v യെ ചാനലിലേക്കു %v ചേർത്തിരിക്കുന്നു."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v ചാനലിലേക്ക് അതിഥിയായി %v ചേർത്തു."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "ദയാവായി എന്നെ നിങ്ങൾ സംവദിക്കുന്ന ടീമുകളിലും ചാനലുകളിലും ചേർക്കുക. ഇത് ചെയ്യുവാൻ ബ്രൗസർ അല്ലെങ്കിൽ മാറ്റെർമോസ്റ്റ് ഡെസ്ക്ടോപ്പ് ആപ്പ്ളിക്കേഷൻ ഉപയോഗിക്കുക."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "ബോട്ട് നിർമ്മിതി അനുവദിച്ചിട്ടില്ല."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "ഫയൽ വളരെ വലുതായതിനാൽ അപ്‌ലോഡ് ചെയ്യുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "ഇമേജ് അപ്‌ലോഡ് ചെയ്യുവാൻ സാധിച്ചില്ല. പടങ്ങളുടെ സൂക്ഷിപ്പ് സ്‌ഥലം സജ്ജീകരിച്ചിട്ടില്ല."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "multipart form പരിവർത്തനം ചെയ്യുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "അപേക്ഷയിൽ 'ഇമേജ്'ന്റ്റെ അടിയിൽ ഫയൽ കാണ്മാനില്ല."
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "അപേക്ഷയിൽ 'ഇമേജ്'ന്റ്റെ അടിയിൽ അറേ ശൂന്യമാണ്."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 ബക്കറ്റ് ആവശ്യമാണ്"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "മാറ്റെർമോസ്റ് - ഈമെയിൽ സജ്ജീകരണങ്ങൾ ടെസ്റ്റ് ചെയ്യുന്നു"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP സർവറുടെ നാമം, പോർട്ട്, അല്ലെങ്കിൽ യൂസർനെയിം മാറ്റിയിരിക്കുന്നു. കണക്ഷൻ ടെസ്റ്റ് ചെയ്യുവാനായി ദയവായി SMTP പാസ്സ്‌വേർഡ് രേഖപ്പെടുത്തുക."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP സർവർ ആവശ്യമാണ്"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "താങ്കളുടെ മാറ്റെർമോസ്റ്റ് ഈമെയിൽ ശെരിയായി സജ്ജീകരിച്ചിരിക്കുന്നു!"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "കണ്ടെന്റ് ടൈപ്പ് കാണ്മാനില്ല."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "അസാധുവായ കണ്ടെന്റ് ടൈപ്പ്."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "അസാധുവായ സർട്ടിഫിക്കറ്റ് ടെക്സ്റ്റ്."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 ഈ സെർവറിൽ രേഖപ്പെടുത്തിയിട്ടില്ല, അല്ലെങ്കിൽ സാധ്യമല്ല."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "സർവീസ് പ്രൊവൈഡർ മെറ്റാഡാറ്റ നിർമ്മിക്കുവ്വാൻ ശ്രമിച്ചപ്പോൾ തടസ്സം നേരിട്ടു."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "XML ൽ ഐഡന്റിറ്റി പ്രൊവൈഡർ SSO സർവീസെസ് നോട് കണ്ടെത്തിയില്ല."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "XML ൽ ഐഡന്റിറ്റി പ്രൊവൈഡർ കീ ഡിസ്ക്രിപ്റ്റേഴ്സ് നോട് കണ്ടെത്തിയില്ല."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "XML ൽ ഐഡന്റിറ്റി പ്രൊവൈഡർ SSO ഡിസ്ക്രിപ്റ്റേഴ്സ് നോട് കണ്ടെത്തിയില്ല."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "സർട്ടിഫിക്കറ്റ് ഫയൽ സേവ് ചെയ്യുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "ഐഡന്റിറ്റി പ്രൊവൈഡറിൽ നിന്നും ലഭിച്ച മെറ്റാഡാറ്റ പരിവർത്തനം ചെയ്ത് സർട്ടിഫിക്കറ്റിലേക്കു രൂപാന്തരപ്പെടുത്തുവാൻ ശ്രമിച്ചപ്പോൾ തടസ്സം നേരിട്ടു."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "ഐഡന്റിറ്റി പ്രൊവൈഡർ URL ൽ നിന്നും മെറ്റാഡാറ്റ കൈപറ്റുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "സർട്ടിഫിക്കറ്റ് നശിപ്പിക്കുവാൻ ശ്രമിച്ചപ്പോൾ തടസ്സം നേരിട്ടു."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "പടങ്ങൾ സൂക്ഷിക്കുവാനുള്ള ഇടം രേഖപ്പെടുത്തിയിട്ടില്ല."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "ലോഗ് ഫയൽ വായിക്കുവാൻ കഴിഞ്ഞില്ല."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "വാണിജ്യമുദ്ര നശിപ്പിക്കുവാൻ സാധിച്ചില്ല, കണ്ടെത്തുവാൻ കഴിഞ്ഞില്ല."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "സർട്ടിഫിക്കറ്റ് ഫയൽ സേവ് ചെയ്യുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "സർട്ടിഫിക്കറ്റ് ഫയൽ തുറക്കുവാൻ സാധിച്ചില്ല."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "അപേക്ഷയിൽ 'സർട്ടിഫിക്കറ്റിന്റ്റെ' അടിയിൽ ഫയൽ ഇല്ല."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "അപേക്ഷയിൽ 'സർട്ടിഫിക്കറ്റിന്റ്റെ' അടിയിൽ ഫയൽ ഇല്ല."
+  },
+  {
+    "id": "September",
+    "translation": "സെപ്റ്റംബർ"
+  },
+  {
+    "id": "October",
+    "translation": "ഒക്ടോബർ"
+  },
+  {
+    "id": "November",
+    "translation": "നവംബർ"
+  },
+  {
+    "id": "May",
+    "translation": "മെയ്"
+  },
+  {
+    "id": "March",
+    "translation": "മാർച്ച്"
+  },
+  {
+    "id": "June",
+    "translation": "ജൂൺ"
+  },
+  {
+    "id": "July",
+    "translation": "ജൂലൈ"
+  },
+  {
+    "id": "January",
+    "translation": "ജനുവരി"
+  },
+  {
+    "id": "February",
+    "translation": "ഫെബ്രുവരി"
+  },
+  {
+    "id": "December",
+    "translation": "ഡിസംബർ"
+  },
+  {
+    "id": "August",
+    "translation": "ആഗസ്റ്റ്"
+  },
+  {
+    "id": "April",
+    "translation": "ഏപ്രിൽ"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "നിങ്ങളുടെ ലൈസൻസ് ഒരു ചാനലിന്റെ സ്കീം അപ്ഡേറ്റ് ചെയ്യുന്നതിനെ പിന്തുണയ്ക്കുന്നില്ല"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "സ്ഥിര ചാനൽ സ്വകാര്യമാക്കാനാകില്ല."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "ചാനൽ തരം പരിഷ്‌കരിക്കാൻ കഴിയില്ല."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "ചാനൽ ആർക്കൈവുചെയ്യാനാകുന്നില്ല. ചാനൽ ആർക്കൈവുചെയ്‌തിട്ടില്ല."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "കാഷെ അസാധുവാക്കുന്നതിൽ പിശക്"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "നേരിട്ടുള്ള അല്ലെങ്കിൽ ഗ്രൂപ്പ് സന്ദേശ ചാനലുകൾ നീക്കാൻ കഴിയില്ല"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "തിരികെ {{.SiteName}}"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "ഈ ഉപയോക്താക്കൾക്കിടയിൽ ഒരു നേരിട്ടുള്ള ചാനൽ സൃഷ്ടിക്കാൻ കഴിയില്ല, കാരണം അവർ പൊതുവായി ഒരു ടീം പങ്കിടുന്നില്ല."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "വ്യത്യസ്‌തരൂപത്തിലുള്ള അപേക്ഷകൾ വിശകലനം ചെയ്യുവാൻ സാധിച്ചില്ല"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "AuthData ഫീൽഡ് ഇമെയിലിലേക്ക് പുനഃക്രമീകരിക്കുന്നതിൽ പരാജയപ്പെട്ടു."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP ലഭ്യമല്ല."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "നിങ്ങളുടെ അനുമതിപത്രം ക്ലൗഡ് അഭ്യർത്ഥനകളെ പിന്തുണയ്ക്കുന്നില്ല."
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "ദൂരെ"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "നിങ്ങളുടെ സ്റ്റാറ്റസ് ക്രമീകരിക്കുക"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "ചാനൽ തലക്കെട്ട് എഡിറ്റ് ചെയ്യുക"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "നിലവിലെ ചാനൽ വീണ്ടെടുക്കുന്നതിൽ പിശക്."
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "നിങ്ങൾ ഇപ്പോൾ അകലെയാണ്"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "നൽകിയിരിക്കുന്ന റോൾ നിയന്ത്രിക്കുന്നത് ഒരു സ്കീമാണ്, അതിനാൽ ഒരു ടീം അംഗത്തിന് നേരിട്ട് പ്രയോഗിക്കാൻ കഴിയില്ല."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "ടീം അംഗത്തിന്റെ അപ്‌ഡേറ്റ് അസാധുവാണ്: നിങ്ങൾക്ക് അതിഥി വേഷം സ്വമേധയാ ചേർക്കാനോ നീക്കം ചെയ്യാനോ കഴിയില്ല."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "വിതരണം ചെയ്ത സ്കീം ഒരു ചാനൽ സ്കീം അല്ലാത്തതിനാൽ ചാനലിലേക്ക് സ്കീം സജ്ജീകരിക്കാനായില്ല."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "നൽകിയിരിക്കുന്ന റോൾ നിയന്ത്രിക്കുന്നത് ഒരു സ്കീമാണ്, അതിനാൽ ഒരു ചാനൽ അംഗത്തിന് നേരിട്ട് പ്രയോഗിക്കാൻ കഴിയില്ല."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "ചാനൽ അംഗത്തിന്റെ അപ്‌ഡേറ്റ് അസാധുവാണ്: ഒരു ഉപയോക്താവ് അതിഥിയോ ഉപയോക്താവോ ആയിരിക്കണം എന്നാൽ രണ്ടും അല്ല."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "അസാധുവായ ചാനൽ അംഗം അപ്‌ഡേറ്റ്: നിങ്ങൾക്ക് അതിഥി റോൾ സ്വമേധയാ ചേർക്കാനോ നീക്കംചെയ്യാനോ കഴിയില്ല."
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "ചാനലിന്റെ പേരുമാറ്റാൻ നിങ്ങൾക്ക് ഉചിതമായ അനുമതികൾ ഇല്ല."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "പേരുമാറ്റുക"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "/rename കമാൻഡ് ഉപയോഗിച്ച് ഒരു സന്ദേശം നൽകണം."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[വാചകം]"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "നേരിട്ടുള്ള സന്ദേശ ചാനലുകളുടെ പേരുമാറ്റാൻ കഴിയുന്നില്ല."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "ചാനലിന്റെ പേര് മാറ്റുക"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "നിലവിലെ ചാനൽ വീണ്ടെടുക്കുന്നതിൽ പിശക്."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "നിലവിലെ ചാനൽ വീണ്ടെടുക്കുന്നതിൽ പിശക്."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "നൽകിയ വാചകം പ്രതീക പരിധി കവിയുന്നു. ചാനൽ ഉദ്ദേശ്യം {{.MaxLength}} പ്രതീകങ്ങളായി പരിമിതപ്പെടുത്തിയിരിക്കുന്നു."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "ചാനൽ ഉദ്ദേശ്യം അപ്ഡേറ്റ് ചെയ്യുന്നതിൽ പിശക്."
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "ചാനൽ ഉദ്ദേശ്യം എഡിറ്റുചെയ്യുന്നതിന് നിങ്ങൾക്ക് ഉചിതമായ അനുമതികൾ ഇല്ല."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "ഉദ്ദേശ്യം"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "/ഉദ്ദേശ്യ കമാൻഡ് ഉപയോഗിച്ച് ഒരു സന്ദേശം നൽകണം."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[വാചകം]"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "നേരിട്ടുള്ള സന്ദേശ ചാനലുകൾക്കായി ഉദ്ദേശ്യം സജ്ജീകരിക്കാനായില്ല. പകരം തലക്കെട്ട് സജ്ജീകരിക്കാൻ /ഹെഡർ ഉപയോഗിക്കുക."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "ചാനൽ ഉദ്ദേശ്യം എഡിറ്റ് ചെയ്യുക"
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "നിലവിലെ ചാനൽ വീണ്ടെടുക്കുന്നതിൽ പിശക്."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "നൽകിയ വാചകം പ്രതീക പരിധി കവിയുന്നു. ചാനൽ തലക്കെട്ട് {{.MaxLength}} പ്രതീകങ്ങളായി പരിമിതപ്പെടുത്തിയിരിക്കുന്നു."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "ചാനൽ തലക്കെട്ട് അപ്ഡേറ്റ് ചെയ്യുന്നതിൽ പിശക്."
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "ചാനൽ തലക്കെട്ട് എഡിറ്റ് ചെയ്യാൻ നിങ്ങൾക്ക് ഉചിതമായ അനുമതികൾ ഇല്ല."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "തലക്കെട്ട്"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "/ഹെഡർ കമാൻഡ് ഉപയോഗിച്ച് ടെക്സ്റ്റ് നൽകണം."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[വാചകം]"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "ടീമുകളിലുടനീളം കമാൻഡുകൾ അപ്‌ഡേറ്റ് ചെയ്യാനാവുന്നില്ല."
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "ഇമെയിൽ ക്ഷണം(കൾ) അയച്ചു"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "ഒന്നോ അതിലധികമോ സാധുവായ ഇമെയിൽ വിലാസങ്ങൾ വ്യക്തമാക്കുക"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "ആളുകളെ_ക്ഷണിക്കുക"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "ഈ സെർവറിൽ ഉപയോക്തൃ സൃഷ്‌ടി പ്രവർത്തനരഹിതമാക്കിയിരിക്കുന്നു, ക്ഷണങ്ങളൊന്നും അയച്ചിട്ടില്ല"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[ പേര്@ഡൊമൈൻ.കോം …]"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "ഇമെയിൽ ക്ഷണം(കൾ) അയക്കുന്നതിൽ ഒരു പിശക് നേരിട്ടു"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "ഇമെയിൽ കോൺഫിഗർ ചെയ്തിട്ടില്ല, ക്ഷണങ്ങളൊന്നും അയച്ചിട്ടില്ല"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "ഇമെയിൽ ക്ഷണങ്ങൾ പ്രവർത്തനരഹിതമാക്കി, ക്ഷണങ്ങളൊന്നും അയച്ചിട്ടില്ല"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "നിങ്ങളുടെ മറ്റെർമോസ്റ് ടീമിന് ഒരു ഇമെയിൽ ക്ഷണം അയയ്ക്കുക"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "കമാൻഡ് ട്രിഗറൊന്നും കണ്ടെത്തിയില്ല."
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "'{{.Trigger}}' എന്ന ട്രിഗർ ഉള്ള കമാൻഡ് കണ്ടെത്തിയില്ല. \"/\" എന്ന് തുടങ്ങുന്ന ഒരു സന്ദേശം അയക്കാൻ, സന്ദേശത്തിന്റെ തുടക്കത്തിൽ ഒരു ശൂന്യമായ ഇടം ചേർക്കാൻ ശ്രമിക്കുക."
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "കമാൻഡ് ട്രിഗർ പദത്തിൽ മുൻനിര സ്ലാഷ് പ്രതീകം നഷ്‌ടമായി"
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "'{{.Trigger}}' എന്ന ട്രിഗർ ഉള്ള കമാൻഡ് {{.Status}} എന്ന പ്രതികരണം നൽകി."
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "'{{.Trigger}}' എന്ന ട്രിഗർ ഉള്ള കമാൻഡ് ഒരു ശൂന്യമായ പ്രതികരണം നൽകി."
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "'{{.Trigger}}' എന്ന ട്രിഗർ ഉള്ള കമാൻഡ് പരാജയപ്പെട്ടു."
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "പ്രതികരണം പോസ്റ്റ് ചെയ്യുന്നതിൽ '{{.Trigger}}' കമാൻഡ് പരാജയപ്പെട്ടു. നിങ്ങളുടെ സിസ്റ്റം അഡ്മിനിസ്ട്രേറ്ററെ ബന്ധപ്പെടുക."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "ഈ ട്രിഗർ വാക്ക് ഇതിനകം ഉപയോഗത്തിലുണ്ട്. ദയവായി മറ്റൊരു വാക്ക് തിരഞ്ഞെടുക്കുക."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "സിസ്റ്റം അഡ്മിൻ കമാൻഡുകൾ പ്രവർത്തനരഹിതമാക്കി."
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "നിർദ്ദിഷ്ട ഉപയോക്താവ് നിർദ്ദിഷ്ട ചാനലിൽ അംഗമല്ല."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "സംയോജനങ്ങൾ അഡ്മിൻമാർക്ക് മാത്രമായി പരിമിതപ്പെടുത്തിയിരിക്കുന്നു."
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "{{.Channel}} എന്ന ഡിഫോൾട്ട് ചാനലിന്റെ ഒരു അസാധുവായ അപ്‌ഡേറ്റ് നടത്താൻ ശ്രമിച്ചു."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "വെബ്ഹുക്ക് ഇവന്റ് കൈകാര്യം ചെയ്തില്ല. ഒന്നുകിൽ അത് കാണുന്നില്ല അല്ലെങ്കിൽ അത് സാധുവല്ല."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "തുറന്ന ചാനലിൽ ചേരുക"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "ഈ സെർവറിലേക്ക് പുതിയ ഉപയോക്താക്കളെ ക്ഷണിക്കാൻ നിങ്ങൾക്ക് അനുമതിയില്ല."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} ടീമിലെ അംഗമല്ല."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} ഇതിനകം ചാനലിലുണ്ട്."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.ചാനൽ}} ചാനലിൽ {{.User}} ചേർത്തു."
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "ചാനൽ {{.Channel}} കണ്ടെത്താൻ കഴിഞ്ഞില്ല. ചാനലുകൾ തിരിച്ചറിയാൻ ചാനൽ ഹാൻഡിൽ ഉപയോഗിക്കുക."
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "{{.Channel}}-ൽ {{.User}}-നെ ചേർക്കാൻ നിങ്ങൾക്ക് മതിയായ അനുമതികളില്ല."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "ക്ഷണിക്കുക"
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "ഞങ്ങൾക്ക് ഉപയോക്താവിനെ കണ്ടെത്താൻ കഴിഞ്ഞില്ല. സിസ്റ്റം അഡ്മിനിസ്ട്രേറ്റർ അവ നിർജ്ജീവമാക്കിയിരിക്കാം."
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "ഉപയോക്തൃനാമവും ചാനലും വിട്ടുപോയിരിക്കുന്നു."
+  },
+  {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "ഈ ചാനൽ നിയന്ത്രിക്കുന്നത് ഗ്രൂപ്പുകളാണ്. ഈ ചാനലുമായി സമന്വയിപ്പിച്ച ഒരു ഗ്രൂപ്പിന്റെ ഭാഗമല്ല ഈ ഉപയോക്താവ്."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "ചാനലിൽ ചേരുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "നേരിട്ടുള്ള സന്ദേശ ചാനലിലേക്ക് നിങ്ങൾക്ക് ഒരാളെ ചേർക്കാനാകില്ല."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "ഒരു ചാനലിലേക്ക് ഒരു ഉപയോക്താവിനെ ക്ഷണിക്കുക"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "ചാനൽ {{.Channel}} കണ്ടെത്താൻ കഴിഞ്ഞില്ല. ചാനലുകൾ തിരിച്ചറിയാൻ ദയവായി [ചാനൽ ഹാൻഡിൽ](https://about.mattermost.com/default-channel-handle-documentation) ഉപയോഗിക്കുക."
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "നിലവിലെ ചാനൽ വീണ്ടെടുക്കുന്നതിൽ തെറ്റ്."
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "സഹായം"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "മറ്റെർമോസ്റ് സഹായ പേജ് തുറക്കുക"
+  },
+  {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "ഒരു പുതിയ ഗ്രൂപ്പ് സന്ദേശം സൃഷ്ടിക്കാൻ നിങ്ങൾക്ക് ഉചിതമായ അനുമതികൾ ഇല്ല."
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "സന്ദേശം"
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "ഗ്രൂപ്പ് സന്ദേശങ്ങൾ കുറഞ്ഞത് {{.MinUsers}} ഉപയോക്താക്കൾക്ക് മാത്രമായി പരിമിതപ്പെടുത്തിയിരിക്കുന്നു."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "ഗ്രൂപ്പ് സന്ദേശങ്ങൾ പരമാവധി {{.MaxUsers}} ഉപയോക്താക്കൾക്ക് മാത്രമായി പരിമിതപ്പെടുത്തിയിരിക്കുന്നു."
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "ഉപയോക്താവിനെ കണ്ടെത്താനായില്ല: {{.Users}}",
+      "other": "ഉപയോക്താക്കളെ കണ്ടെത്താനായില്ല: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "ഗ്രൂപ്പ് സന്ദേശം സൃഷ്ടിക്കുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "ഉപയോക്താക്കൾക്ക് സന്ദേശമയയ്‌ക്കുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "നിർദ്ദിഷ്ട ഉപയോക്താക്കൾക്ക് ഒരു ഗ്രൂപ്പ് സന്ദേശം അയയ്ക്കുന്നു"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "പ്രിവ്യൂ വിപുലീകരിക്കുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "ഇമേജ് ലിങ്കുകൾ ഇപ്പോൾ ഡിഫോൾട്ടായി വികസിക്കുന്നു"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "വികസിപ്പിക്കുക"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "ഇമേജ് പ്രിവ്യൂകളുടെ സ്വയമേവ തകരുന്നത് ഓഫാക്കുക"
+  },
+  {
+    "id": "api.command_echo.name",
+    "translation": "എക്കോ"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "/echo കമാൻഡ് ഉപയോഗിച്ച് ഒരു സന്ദേശം നൽകണം."
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "'സന്ദേശം' [സെക്കൻഡിനുള്ളിൽ കാലതാമസം]"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "ഉയർന്ന അളവിലുള്ള എക്കോ അഭ്യർത്ഥന, അഭ്യർത്ഥന പ്രോസസ്സ് ചെയ്യാൻ കഴിയില്ല."
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "നിങ്ങളുടെ അക്കൗണ്ടിൽ നിന്ന് എക്കോ ബാക്ക് ടെക്സ്റ്റ്"
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "കാലതാമസം 10000 സെക്കൻഡിൽ താഴെയായിരിക്കണം."
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "ശല്യപ്പെടുത്തരുത് പ്രവർത്തനക്ഷമമാക്കി. ശല്യപ്പെടുത്തരുത് ഓഫാക്കുന്നതുവരെ നിങ്ങൾക്ക് ഡെസ്ക്ടോപ്പ് അല്ലെങ്കിൽ മൊബൈൽ പുഷ് അറിയിപ്പുകൾ ലഭിക്കില്ല."
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "ശല്യപ്പെടുത്തരുത് ഡെസ്ക്ടോപ്പ്, മൊബൈൽ പുഷ് അറിയിപ്പുകൾ പ്രവർത്തനരഹിതമാക്കുന്നു."
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "ഇമേജ് ലിങ്കുകൾ ഇപ്പോൾ ഡിഫോൾട്ടായി തകരുന്നു"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "തകർച്ച"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "ഇമേജ് പ്രിവ്യൂകളുടെ സ്വയമേവ തകരുന്നത് ഓണാക്കുക"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "കോഡ്"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "/കോഡ് കമാൻഡ് ഉപയോഗിച്ച് ഒരു സന്ദേശം നൽകണം."
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[ടെക്സ്റ്റ്]"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "ഒരു കോഡ് ബ്ലോക്കായി ടെക്സ്റ്റ് പ്രദർശിപ്പിക്കുക"
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "നിലവിലെ ചാനൽ അപ്ഡേറ്റ് ചെയ്യുന്നതിൽ തെറ്റ്."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "ചാനലിന്റെ പേര് {{.Length}} അല്ലെങ്കിൽ കൂടുതൽ പ്രതീകങ്ങൾ ആയിരിക്കണം."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "ചാനലിന്റെ പേര് {{.Length}} അല്ലെങ്കിൽ കുറച്ച് പ്രതീകങ്ങൾ ആയിരിക്കണം."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "CWS-ലേക്കുള്ള അഭ്യർത്ഥന പ്രോസസ്സ് ചെയ്യുന്നതിൽ തെറ്റ്."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[ഉപയോക്തൃനാമം]"
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "ഈ ചാനലുമായി ലിങ്ക് ചെയ്‌തിരിക്കുന്ന ഗ്രൂപ്പുകളിൽ അംഗമായതിനാൽ ഉപയോക്താവിനെ നിങ്ങൾക്ക് ചാനലിൽ നിന്ന് നീക്കം ചെയ്യാൻ കഴിയില്ല. ഈ ചാനലിൽ നിന്ന് അവരെ നീക്കം ചെയ്യാൻ, ലിങ്ക് ചെയ്ത ഗ്രൂപ്പുകളിൽ നിന്ന് അവരെ നീക്കം ചെയ്യണം."
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "നേരിട്ടുള്ള സന്ദേശ ചാനലിൽ നിന്ന് നിങ്ങൾക്ക് ഒരാളെ നീക്കം ചെയ്യാൻ കഴിയില്ല."
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "ചാനലിൽ നിന്ന് ഒരു അംഗത്തെ നീക്കം ചെയ്യുക"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "സുരക്ഷിത കണക്ഷനുകൾ ചേർക്കുക/നീക്കം ചെയ്യുക. ലഭ്യമായ പ്രവർത്തനങ്ങൾ: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "ഒരു സുരക്ഷിത കണക്ഷൻ ക്ഷണിക്കുക"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "ക്ഷണം സൃഷ്ടിച്ചു."
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "സുരക്ഷിത കണക്ഷനുകൾ ലഭ്യമാക്കാൻ കഴിഞ്ഞില്ല: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "ക്ഷണം എൻക്രിപ്റ്റ് ചെയ്യാൻ കഴിഞ്ഞില്ല: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "ക്ഷണം ഡീകോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "സുരക്ഷിത കണക്ഷൻ {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "സുരക്ഷിത കണക്ഷൻ ചേർക്കാൻ കഴിഞ്ഞില്ല: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "ക്ഷണം സ്വീകരിക്കാൻ കഴിഞ്ഞില്ല: {{.Error}}"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "നിശബ്ദമാക്കുക"
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "നിങ്ങളുടെ സ്റ്റാറ്റസ് ഓഫ്‌ലൈനായി സജ്ജമാക്കുക"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "തുറക്കുക"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "നിങ്ങൾ ഇപ്പോൾ ഓൺലൈനിലാണ്"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "ഓൺലൈൻ"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "നിങ്ങളുടെ സ്റ്റാറ്റസ് ഓൺലൈനിൽ സജ്ജമാക്കുക"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "നിങ്ങൾ ഇപ്പോൾ ഓഫ്‌ലൈനാണ്"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "ഓഫ്‌ലൈൻ"
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "ഈ ചാനൽ ഇനി നിശബ്ദമാക്കിയിട്ടില്ല."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} ഇപ്പോൾ നിശബ്ദമാക്കിയിട്ടില്ല."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "ചാനൽ നിശബ്‌ദമാക്കുന്നത് ഓഫാക്കുന്നതുവരെ ഈ ചാനലിനായി നിങ്ങൾക്ക് അറിയിപ്പുകൾ ലഭിക്കില്ല."
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "ചാനൽ നിശബ്ദമാക്കുന്നത് വരെ നിങ്ങൾക്ക് {{.Channel}}-നായി അറിയിപ്പുകൾ ലഭിക്കില്ല."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "നിങ്ങൾ അംഗമല്ലാത്തതിനാൽ {{.Channel}} ചാനൽ നിശബ്ദമാക്കാൻ കഴിഞ്ഞില്ല."
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "നിർദ്ദിഷ്ട ചാനൽ കണ്ടെത്താൻ കഴിഞ്ഞില്ല. ചാനലുകൾ തിരിച്ചറിയാൻ ദയവായി [ചാനൽ ഹാൻഡിൽ](https://about.mattermost.com/default-channel-handle-documentation) ഉപയോഗിക്കുക."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[ഉപയോക്തൃനാമം] 'സന്ദേശം'"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "ഉപയോക്താവിനെ കണ്ടെത്താനായില്ല."
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "ഒരു പ്രവർത്തനം നടത്തുക"
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "~[ചാനൽ]"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[സന്ദേശം]"
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "~[ചാനൽ]"
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "ചാനൽ {{.Channel}} കണ്ടെത്താൻ കഴിഞ്ഞില്ല. ചാനലുകൾ തിരിച്ചറിയാൻ ദയവായി [ചാനൽ ഹാൻഡിൽ](https://about.mattermost.com/default-channel-handle-documentation) ഉപയോഗിക്കുക."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "ഡെസ്‌ക്‌ടോപ്പ്, ഇമെയിൽ, പുഷ് അറിയിപ്പുകൾ എന്നിവ നിലവിലെ ചാനലിന് അല്ലെങ്കിൽ വ്യക്തമാക്കിയ [ചാനൽ] ഓഫാക്കുന്നു."
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "ഈ ഉപയോക്താവിന് നേരിട്ട് സന്ദേശം അയയ്‌ക്കാൻ നിങ്ങൾക്ക് ഉചിതമായ അനുമതികൾ ഇല്ല."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "സന്ദേശം"
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "ഉപയോക്താവിന് സന്ദേശമയയ്‌ക്കുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "നേരിട്ടുള്ള സന്ദേശം സൃഷ്ടിക്കുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "ഒരു ഉപയോക്താവിന് നേരിട്ടുള്ള സന്ദേശം അയയ്‌ക്കുക"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "എന്നെ"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "ലോഗൗട്ട്"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "മാറ്റർമോസ്റ്റിന്റെ ലോഗ്ഔട്ട്"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "ചാനൽ വിടുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "നിലവിലെ ചാനൽ വിടുക"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "ചേരുക"
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "ചാനൽ കണ്ടെത്താനായില്ല."
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "ചാനലുകൾ ലിസ്റ്റുചെയ്യുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "ചാനലിൽ ചേരുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "സ്റ്റാറ്റസ്"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "നിങ്ങളുടെ സ്റ്റാറ്റസ് “{{.EmojiName}} {{.StatusMessage}}” ആയി സജ്ജീകരിച്ചിരിക്കുന്നു. ചാനൽ സൈഡ്‌ബാർ ഹെഡറിലെ സ്റ്റാറ്റസ് പോപ്പോവറിൽ നിന്ന് നിങ്ങൾക്ക് നിങ്ങളുടെ സ്റ്റാറ്റസ് മാറ്റാനാകും."
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "നിങ്ങളുടെ സ്റ്റാറ്റസ് സജ്ജമാക്കുക അല്ലെങ്കിൽ മായ്‌ക്കുക"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "നിങ്ങളുടെ നില മായ്ച്ചു."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "സ്റ്റാറ്റസ് മായ്‌ക്കുന്നതിൽ തെറ്റ്."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "സ്റ്റാറ്റസ് സജ്ജീകരിക്കുന്നതിൽ തെറ്റ്."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "പങ്കിട്ട ചാനലുകൾ നിയന്ത്രിക്കാൻ നിങ്ങൾക്ക് `{{.Permission}}` അനുമതി ആവശ്യമാണ്."
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "ഈ പങ്കിട്ട ചാനലിന്റെ സ്റ്റാറ്റസ് പ്രദർശിപ്പിക്കുന്നു"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "ഈ ചാനൽ ഇപ്പോൾ പങ്കിട്ടു."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "പങ്കിട്ട ചാനൽ സുരക്ഷിത കണക്ഷൻ `{{.RemoteId}}` ഈ ചാനലിനായി നിലവിലില്ല."
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "മറ്റെവിടെയെങ്കിലും ഉത്ഭവിക്കുന്ന പങ്കിട്ട ചാനലിലേക്ക് സുരക്ഷിത കണക്ഷൻ ക്ഷണിക്കാനാവില്ല."
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "തിരയുക"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "settings കമാൻഡ് നിങ്ങളുടെ ഉപകരണത്തിൽ പിന്തുണയ്ക്കുന്നില്ല."
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "ക്രമീകരണങ്ങൾ"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "നിങ്ങളുടെ ഉപകരണത്തിൽ search കമാൻഡ് പിന്തുണയ്ക്കുന്നില്ല."
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "സന്ദേശങ്ങളിൽ ടെക്സ്റ്റ് തിരയുക"
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} ഈ ചാനലിൽ അംഗമല്ല."
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "അംഗത്തെ നീക്കം ചെയ്യുന്നതിനുള്ള ഉചിതമായ അനുമതികൾ നിങ്ങൾക്കില്ല."
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "നീക്കം ചെയ്യുക"
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "ഞങ്ങൾക്ക് ഉപയോക്താവിനെ കണ്ടെത്താൻ കഴിഞ്ഞില്ല. സിസ്റ്റം അഡ്മിനിസ്ട്രേറ്റർ അവ നിർജ്ജീവമാക്കിയിരിക്കാം."
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "/remove അല്ലെങ്കിൽ /kick കമാൻഡ് ഉപയോഗിച്ച് ഒരു സന്ദേശം നൽകണം."
+  }
+]

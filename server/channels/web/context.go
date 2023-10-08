@@ -222,6 +222,10 @@ func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
 }
 
+func (c *Context) SetInvalidParamWithDetails(parameter string, details string) {
+	c.Err = NewInvalidParamDetailedError(parameter, details)
+}
+
 func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
 	c.Err = NewInvalidParamError(parameter).Wrap(err)
 }
@@ -270,6 +274,10 @@ func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWrite
 	return false
 }
 
+func NewInvalidParamDetailedError(parameter string, details string) *model.AppError {
+	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, details, http.StatusBadRequest)
+	return err
+}
 func NewInvalidParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err

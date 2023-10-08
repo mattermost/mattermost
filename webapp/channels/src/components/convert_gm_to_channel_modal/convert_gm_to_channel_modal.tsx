@@ -170,6 +170,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                         onDisplayNameChange={setChannelName}
                         onURLChange={handleChannelURLChange}
                         onErrorStateChange={setNameError}
+                        team={selectedTeamId ? commonTeamsById[selectedTeamId] : undefined}
                     />
 
                     {

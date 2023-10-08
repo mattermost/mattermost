@@ -9,9 +9,11 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PostList} from '@mattermost/types/posts';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
@@ -82,6 +84,7 @@ function mapStateToProps(state: GlobalState) {
     const unreadChannels = getUnreadChannels(state, lastUnreadChannel);
     const prefetchQueueObj = prefetchQueue(unreadChannels, memberships, isCollapsedThreadsEnabled(state));
     const prefetchRequestStatus = state.views.channel.channelPrefetchStatus;
+    const disableWebappPrefetchAllowed = isPerformanceDebuggingEnabled(state);
 
     return {
         currentChannelId: getCurrentChannelId(state),
@@ -89,6 +92,8 @@ function mapStateToProps(state: GlobalState) {
         prefetchRequestStatus,
         sidebarLoaded: isSidebarLoaded(state),
         unreadChannels,
+        disableWebappPrefetchAllowed,
+        dataPrefetchEnabled: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_DATA_PREFETCH, true),
     };
 }
 
