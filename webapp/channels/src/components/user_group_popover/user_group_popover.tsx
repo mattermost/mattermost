@@ -29,6 +29,8 @@ import {Load} from './constants';
 import useShouldClose from './useShouldClose';
 
 import './user_group_popover.scss';
+import LocalizedIcon from 'components/localized_icon';
+import {t} from 'utils/i18n';
 
 export type Props = {
 
@@ -202,12 +204,15 @@ const UserGroupPopover = (props: Props) => {
                             {group.display_name}
                         </Title>
                         <CloseButton
-                            className='btn btn-xs btn-icon'
+                            className='btn btn-sm btn-compact btn-icon'
                             aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close'})}
                             onClick={handleClose}
                             ref={closeRef}
                         >
-                            <CloseIcon/>
+                            <LocalizedIcon
+                                className='icon icon-close'
+                                ariaLabel={{id: t('user_group_popover.close'), defaultMessage: 'Close'}}
+                            />
                         </CloseButton>
                     </Heading>
                     <Subtitle>

@@ -24,6 +24,8 @@ import Avatar from 'components/widgets/users/avatar';
 import * as Utils from 'utils/utils';
 
 import {Load} from '../constants';
+import LocalizedIcon from 'components/localized_icon';
+import {t} from 'utils/i18n';
 
 const USERS_PER_PAGE = 100;
 
@@ -190,13 +192,16 @@ const GroupMemberList = (props: Props) => {
                             content={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
                         >
                             <DMButton
-                                className='btn-icon'
+                                className='btn btn-icon btn-xs'
                                 aria-label={formatMessage(
                                     {id: 'group_member_list.sendMessageButton', defaultMessage: 'Send message to {user}'},
                                     {user: name})}
                                 onClick={() => showDirectChannel(user)}
                             >
-                                <SendIcon/>
+                                <LocalizedIcon
+                                    className='icon icon-send'
+                                    ariaLabel={{id: t('user_group_popover.close'), defaultMessage: 'Close'}}
+                                />
                             </DMButton>
                         </SimpleTooltip>
                     </DMContainer>
