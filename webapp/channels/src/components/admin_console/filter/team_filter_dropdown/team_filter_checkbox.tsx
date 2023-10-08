@@ -1,7 +1,4 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 
 type Props = {
     id: string;
@@ -18,9 +15,14 @@ const TeamFilterCheckbox: React.FC<Props> = ({
     label,
     updateOption,
 }) => {
-    const toggleOption = () => {
-        updateOption(!checked, id);
-    };
+    const [isChecked, setIsChecked] = useState(checked);
+
+    // Use useCallback to memoize the callback
+    const toggleOption = useCallback(() => {
+        const newChecked = !isChecked;
+        setIsChecked(newChecked);
+        updateOption(newChecked, id);
+    }, [isChecked, id, updateOption]);
 
     return (
         <div className='TeamFilterDropdown_checkbox'>
@@ -29,7 +31,7 @@ const TeamFilterCheckbox: React.FC<Props> = ({
                     type='checkbox'
                     id={id}
                     name={name}
-                    checked={checked}
+                    checked={isChecked}
                     onChange={toggleOption}
                 />
 
