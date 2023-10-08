@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo} from 'react';
 
 type Props = React.HTMLAttributes<HTMLSpanElement>;
 
@@ -21,4 +21,4 @@ const EmojiIcon = (props: Props) => {
     );
 };
 
-export default EmojiIcon;
+export default memo(EmojiIcon);
