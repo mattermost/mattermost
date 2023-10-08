@@ -12,7 +12,7 @@ type Props = {
     style?: React.CSSProperties;
 }
 
-const LoadingSpinner: React.FC<Props> = React.memo(({text, style}) => {
+const LoadingSpinner: React.FC<Props> = ({ text = null, style }) => {
     return (
         <span
             id='loadingSpinner'
@@ -23,15 +23,11 @@ const LoadingSpinner: React.FC<Props> = React.memo(({text, style}) => {
             <LocalizedIcon
                 className='fa fa-spinner fa-fw fa-pulse spinner'
                 component='span'
-                title={{id: t('generic_icons.loading'), defaultMessage: 'Loading Icon'}}
+                title={{ id: t('generic_icons.loading'), defaultMessage: 'Loading Icon' }}
             />
             {text}
         </span>
     );
-});
-
-LoadingSpinner.defaultProps = {
-    text: null,
 };
 
-export default LoadingSpinner;
+export default React.memo(LoadingSpinner);
