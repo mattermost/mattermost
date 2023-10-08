@@ -8,8 +8,7 @@ type Props = {
     customDescriptionText?: string;
     siteName: string;
 };
-
-export default function SiteNameAndDescription({customDescriptionText, siteName = 'Mattermost'}: Props) {
+const SiteNameAndDescription = ({customDescriptionText, siteName = 'Mattermost'}: Props) => {
     let description = null;
     if (customDescriptionText) {
         description = customDescriptionText;
@@ -33,4 +32,6 @@ export default function SiteNameAndDescription({customDescriptionText, siteName 
             </h3>
         </React.Fragment>
     );
-}
+};
+
+export default React.memo(SiteNameAndDescription);
