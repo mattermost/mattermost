@@ -13,7 +13,7 @@ type Props = {
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
-const MenuGroup = ({ divider, children } : Props) => {
+const MenuGroup = React.memo(({ divider, children }: Props) => {
     const handleDividerClick = (e: React.MouseEvent): void => {
         e.preventDefault();
         e.stopPropagation();
@@ -30,6 +30,6 @@ const MenuGroup = ({ divider, children } : Props) => {
             {children}
         </>
     );
-};
+});
 
 export default MenuGroup;
