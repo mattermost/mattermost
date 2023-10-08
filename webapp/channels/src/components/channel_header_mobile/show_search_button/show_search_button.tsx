@@ -37,4 +37,4 @@ const ShowSearchButton = ({actions}: Props) => {
     );
 };
 
-export default ShowSearchButton;
+export default React.memo(ShowSearchButton);
