@@ -8,7 +8,7 @@ type Props = {
     updateOption: (checked: boolean, name: string) => void;
 };
 
-const TeamFilterCheckbox: React.FC<Props> = React.memo(({
+const TeamFilterCheckbox: React.FC<Props> = ({
     id,
     name,
     checked,
@@ -35,6 +35,6 @@ const TeamFilterCheckbox: React.FC<Props> = React.memo(({
             </label>
         </div>
     );
-});
+};
 
-export default TeamFilterCheckbox;
+export default React.memo(TeamFilterCheckbox);
