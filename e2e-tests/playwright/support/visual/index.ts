@@ -16,8 +16,8 @@ export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs) {
         // eslint-disable-next-line no-console
         console.log(
             chalk.yellow(
-                `^ Warning: No visual test performed. Run in Linux or Playwright docker image to match snapshot.`
-            )
+                `^ Warning: No visual test performed. Run in Linux or Playwright docker image to match snapshot.`,
+            ),
         );
         return;
     }
