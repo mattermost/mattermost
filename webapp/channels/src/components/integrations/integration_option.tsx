@@ -11,7 +11,7 @@ type Props = {
     link: string;
 }
 
-const IntegrationOption = ({image, title, description, link} : Props) => {
+const IntegrationOption = React.memo(({image, title, description, link}: Props) => {
     return (
         <Link
             to={link}
@@ -30,6 +30,6 @@ const IntegrationOption = ({image, title, description, link} : Props) => {
             </div>
         </Link>
     );
-}
+});
 
 export default IntegrationOption;
