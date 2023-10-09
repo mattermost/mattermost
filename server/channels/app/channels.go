@@ -181,12 +181,12 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	}
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
-		if err := ch.Saml.ConfigureSP(); err != nil {
+		if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
 			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
-			if err := ch.Saml.ConfigureSP(); err != nil {
+			if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
 				s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
