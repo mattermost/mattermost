@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useState, useRef, memo} from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -11,15 +11,19 @@ import type {ServerError} from '@mattermost/types/errors';
 import Constants from 'utils/constants';
 
 interface Props {
-    location: {search: string};
-    intl: IntlShape;
+    location: { search: string };
     actions: {
-        resetUserPassword: (token: string, newPassword: string) => Promise<{data: any; error: ServerError}>;
+        resetUserPassword: (
+            token: string,
+            newPassword: string
+        ) => Promise<{ data: any; error: ServerError }>;
     };
     siteName?: string;
 }
 
-const PasswordResetForm = ({location, intl, siteName, actions}: Props) => {
+const PasswordResetForm = ({location, siteName, actions}: Props) => {
+    const intl = useIntl();
+
     const history = useHistory();
 
     const [error, setError] = useState<React.ReactNode>(null);
@@ -30,12 +34,15 @@ const PasswordResetForm = ({location, intl, siteName, actions}: Props) => {
         e.preventDefault();
 
         const password = passwordInput.current!.value;
-        const token = (new URLSearchParams(location.search)).get('token');
+        const token = new URLSearchParams(location.search).get('token');
 
         if (typeof token !== 'string') {
             throw new Error('token must be a string');
         }
-        const {data, error} = await actions.resetUserPassword(token, password);
+        const {data, error} = await actions.resetUserPassword(
+            token,
+            password,
+        );
         if (data) {
             history.push('/login?extra=' + Constants.PASSWORD_CHANGE);
             setError(null);
@@ -46,9 +53,7 @@ const PasswordResetForm = ({location, intl, siteName, actions}: Props) => {
 
     const errorElement = error ? (
         <div className='form-group has-error'>
-            <label className='control-label'>
-                {error}
-            </label>
+            <label className='control-label'>{error}</label>
         </div>
     ) : null;
 
@@ -70,14 +75,21 @@ const PasswordResetForm = ({location, intl, siteName, actions}: Props) => {
                             }}
                         />
                     </p>
-                    <div className={classNames('form-group', {'has-error': error})}>
+                    <div
+                        className={classNames('form-group', {
+                            'has-error': error,
+                        })}
+                    >
                         <input
                             id='resetPasswordInput'
                             type='password'
                             className='form-control'
                             name='password'
                             ref={passwordInput}
-                            placeholder={intl.formatMessage({id: 'password_form.pwd', defaultMessage: 'Password'})}
+                            placeholder={intl.formatMessage({
+                                id: 'password_form.pwd',
+                                defaultMessage: 'Password',
+                            })}
                             spellCheck='false'
                             autoFocus={true}
                         />
@@ -99,4 +111,4 @@ const PasswordResetForm = ({location, intl, siteName, actions}: Props) => {
     );
 };
 
-export default memo(injectIntl(PasswordResetForm));
+export default memo(PasswordResetForm);
