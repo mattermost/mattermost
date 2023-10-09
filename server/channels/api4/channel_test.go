@@ -125,6 +125,14 @@ func TestCreateChannel(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("null value", func(t *testing.T) {
+		var channel *model.Channel
+		_, resp, err = client.CreateChannel(context.Background(), channel)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	// Test posting Garbage
 	r, err := client.DoAPIPost(context.Background(), "/channels", "garbage")
 	require.Error(t, err, "expected error")
@@ -318,6 +326,12 @@ func TestPatchChannel(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 	team := th.BasicTeam
+
+	var nullPatch *model.ChannelPatch
+
+	_, nullResp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, nullPatch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, nullResp)
 
 	patch := &model.ChannelPatch{
 		Name:        new(string),
@@ -1408,6 +1422,15 @@ func TestSearchChannels(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
+	t.Run("Search using null value", func(t *testing.T) {
+		var nullSearch *model.ChannelSearch
+
+		_, resp, err := client.SearchChannels(context.Background(), th.BasicTeam.Id, nullSearch)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
 
 	channels, _, err := client.SearchChannels(context.Background(), th.BasicTeam.Id, search)
@@ -1921,6 +1944,15 @@ func TestSearchGroupChannels(t *testing.T) {
 	_, resp, err := client.SearchAllChannels(context.Background(), search)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	t.Run("search with null value", func(t *testing.T) {
+		var search *model.ChannelSearch
+		client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+		_, resp, err := client.SearchGroupChannels(context.Background(), search)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestDeleteChannel(t *testing.T) {

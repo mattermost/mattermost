@@ -1,0 +1,9 @@
+{
+  "about.buildnumber": "เบอร์รุ่น",
+  "about.copyright": "ลิขสิทธิ์ 2015 - {currentYear} Mattermost, Inc. สงวนลิขสิทธิ์",
+  "about.database": "ฐานข้อมูล:",
+  "about.date": "วันที่สร้าง:",
+  "about.dbversion": "เวอร์ชันแผนภาพเค้าร่างของฐานข้อมูล",
+  "about.enterpriseEditionLearn": "เรียนรู้เกี่ยวกับ Enterprise Edition ที่ : ",
+  "about.teamEditionLearn": "เข้าร่วมกับ Mattermost Community ที่ "
+}

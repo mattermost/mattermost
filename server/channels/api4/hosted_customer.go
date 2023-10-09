@@ -119,7 +119,7 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var form *model.SelfHostedCustomerForm
-	if err = json.Unmarshal(bodyBytes, &form); err != nil {
+	if err = json.Unmarshal(bodyBytes, &form); err != nil || form == nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
