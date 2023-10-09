@@ -3160,8 +3160,8 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes     []string `access:"site_posts"`
-	MaxMarkdownNodes     *int     `access:"site_posts"`
+	CustomURLSchemes []string `access:"site_posts"`
+	MaxMarkdownNodes *int     `access:"site_posts"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
