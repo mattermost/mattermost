@@ -277,7 +277,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
-	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(w, r, service, code, state, uri)
+	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(c.AppContext, w, r, service, code, state, uri)
 
 	action := ""
 	hasRedirectURL := false
@@ -400,7 +400,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken)
+	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -429,7 +429,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true, "")
+	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true, "")
 	if err != nil {
 		c.Err = err
 		return
@@ -459,7 +459,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	desktopToken := r.URL.Query().Get("desktop_token")
 
-	authURL, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId, desktopToken)
+	authURL, err := c.App.GetOAuthSignupEndpoint(c.AppContext, w, r, c.Params.Service, teamId, desktopToken)
 	if err != nil {
 		c.Err = err
 		return
