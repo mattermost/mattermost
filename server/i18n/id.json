@@ -2875,7 +2875,7 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Berkas yang diminta tidak ada didalam 'certificate'."
+    "translation": "Tidak ada berkas 'sertifikat' di dalam permintaan."
   },
   {
     "id": "September",
@@ -2940,5 +2940,17 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Terjadi kesalahan saat mengurai permintaan beraneka ragam"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Anda tidak dapat menghapus tanda terima di saluran yang diarsipkan."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Anda tidak dapat melakukan tanda terima di saluran yang diarsipkan."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Anda tidak dapat menghapus tanda terima setelah 5 menit berlalu."
   }
 ]
