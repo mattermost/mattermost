@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import './menu_header.scss';
 
 type Props = {
@@ -11,14 +10,9 @@ type Props = {
     onClick?: () => void;
 }
 
-/**
- * @deprecated Use the "webapp/channels/src/components/menu" instead.
- */
-export default class MenuHeader extends React.PureComponent<Props> {
-    public render() {
-        const {children, onClick} = this.props;
 
-        return (
+const MenuHeader = ({children, onClick}: Props) => {
+    return (
             <li
                 className='MenuHeader'
                 onClick={onClick}
@@ -27,4 +21,4 @@ export default class MenuHeader extends React.PureComponent<Props> {
             </li>
         );
     }
-}
+export default React.memo(MenuHeader);
