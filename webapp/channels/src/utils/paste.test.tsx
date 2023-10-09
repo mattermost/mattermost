@@ -1,7 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseHtmlTable, getHtmlTable, formatMarkdownMessage, formatGithubCodePaste, formatMarkdownLinkMessage, isTextUrl, hasPlainText} from './paste';
+import {
+    parseHtmlTable,
+    getHtmlTable,
+    formatMarkdownMessage,
+    formatGithubCodePaste,
+    formatMarkdownLinkMessage,
+    isTextUrl,
+    hasPlainText,
+    createFileFromClipboardDataItem,
+} from './paste';
 
 const validClipboardData: any = {
     items: [1],
@@ -269,5 +278,74 @@ describe('hasPlainText', () => {
         };
 
         expect(hasPlainText(clipboardData)).toBe(false);
+    });
+});
+
+describe('createFileFromClipboardDataItem', () => {
+    test('should return a file from a clipboard item', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                name: 'test1.png',
+                type: 'image/png',
+            })),
+            type: 'image/png',
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromClipboardDataItem(item, '') as File;
+        expect(file).toBeInstanceOf(File);
+        expect(file.name).toEqual('test1.png');
+        expect(file.type).toEqual('image/png');
+    });
+
+    test('should return null if getAsFile is not a file', () => {
+        const item = {
+            getAsFile: jest.fn(() => null),
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromClipboardDataItem(item, '');
+        expect(file).toBeNull();
+    });
+
+    test('Should return correct file name when file name is not available', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                type: 'image/jpeg',
+            })),
+            type: 'image/jpeg',
+        } as unknown as DataTransferItem;
+
+        const now = new Date();
+
+        const file = createFileFromClipboardDataItem(item, 'pasted') as File;
+
+        expect(file).toBeInstanceOf(File);
+        expect(file.name).toBe(`pasted${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}.jpeg`);
+        expect(file.type).toBe('image/jpeg');
+    });
+
+    test('Should return correct file extension when file name contains extension', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                name: 'test.jpeg',
+            })),
+            type: 'image/jpeg',
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromClipboardDataItem(item, 'pasted') as File;
+
+        expect(file.name).toContain('.jpeg');
+    });
+
+    test('Should return correct file extension when file name doesnt contains extension', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                type: 'image/JPEG',
+            })),
+            type: 'image/jpeg',
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromClipboardDataItem(item, 'pasted') as File;
+
+        expect(file.name).toContain('.jpeg');
     });
 });

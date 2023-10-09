@@ -24,7 +24,7 @@ import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import dragster from 'utils/dragster';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-import {hasPlainText} from 'utils/paste';
+import {hasPlainText, createFileFromClipboardDataItem} from 'utils/paste';
 import {
     isIosChrome,
     isMobileApp,
@@ -60,10 +60,6 @@ const holders = defineMessages({
     zeroBytesFile: {
         id: 'file_upload.zeroBytesFile',
         defaultMessage: 'You are uploading an empty file: {filename}',
-    },
-    pasted: {
-        id: 'file_upload.pasted',
-        defaultMessage: 'Image Pasted at ',
     },
     uploadFile: {
         id: 'file_upload.upload_files',
@@ -474,13 +470,17 @@ export class FileUpload extends PureComponent<Props, State> {
                 return;
             }
 
-            e.preventDefault();
+            const fileNamePrefixIfNoName = this.props.intl.formatMessage({id: 'file_upload.pasted', defaultMessage: 'Image Pasted at '});
 
             const fileList = fileClipboardItems.
-                map((fileClipboardItem) => createFileFromItem(fileClipboardItem, this.props.intl.formatMessage)).
+                map((fileClipboardItem) => createFileFromClipboardDataItem(fileClipboardItem, fileNamePrefixIfNoName)).
                 filter((file): file is NonNullable<typeof file> => file !== null);
 
             if (fileList.length > 0) {
+                // Prevent default will stop event propagation to other handlers such as those in advanced text editor
+                // so we do that here because we want to only paste the files from the clipboard and not other content.
+                e.preventDefault();
+
                 this.checkPluginHooksAndUploadFiles(fileList);
                 this.props.onFileUploadChange();
             }
@@ -714,37 +714,6 @@ export class FileUpload extends PureComponent<Props, State> {
             </div>
         );
     }
-}
-
-export function createFileFromItem(item: DataTransferItem, formatMessage: IntlShape['formatMessage']): File | null {
-    const file = item.getAsFile();
-
-    if (!file) {
-        return null;
-    }
-
-    let ext = '';
-    if (file.name && file.name.includes('.')) {
-        ext = file.name.slice(file.name.lastIndexOf('.'));
-    } else if (item.type.includes('/')) {
-        ext = '.' + item.type.slice(item.type.lastIndexOf('/') + 1).toLowerCase();
-    }
-
-    let name = '';
-    if (file.name) {
-        name = file.name;
-    } else {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
-        const date = now.getDate();
-        const hour = now.getHours().toString().padStart(2, '0');
-        const minute = now.getMinutes().toString().padStart(2, '0');
-
-        name = `${formatMessage(holders.pasted)}${year}-${month}-${date} ${hour}-${minute}${ext}`;
-    }
-
-    return new File([file as Blob], name, {type: file.type});
 }
 
 const wrappedComponent = injectIntl(FileUpload, {forwardRef: true});
