@@ -2600,7 +2600,6 @@
   "interactive_dialog.submit": "送出",
   "interactive_dialog.submitting": "發送中...",
   "intro_messages.DM": "這是跟{teammate}之間直接訊息的起頭。\n直接訊息跟在這邊分享的檔案除了在此處以外的人都看不到。",
-  "intro_messages.GM": "這是跟{names}之間群組訊息的起頭。\n直接訊息跟在這邊分享的檔案除了在此處以外的人都看不到。",
   "intro_messages.addGroupsToTeam": "增加其他群組至此團隊",
   "intro_messages.anyMember": " 任何成員可以加入並閱讀此頻道。",
   "intro_messages.beginning": "{name}的開頭",

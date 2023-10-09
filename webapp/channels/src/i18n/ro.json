@@ -2978,7 +2978,6 @@
   "interactive_dialog.submit": "Trimite",
   "interactive_dialog.submitting": "Trimiterea ...",
   "intro_messages.DM": "Acesta este începutul tău mesaj direct istorie cu {teammate}.\nMesaje directe și fișierele partajate aici nu sunt prezentate pentru oamenii din afara acestui domeniu.",
-  "intro_messages.GM": "Acesta este începutul istoricului mesajelor dvs. de grup cu {names}.\nMesajele și fișierele partajate aici nu sunt afișate persoanelor din afara acestei zone.",
   "intro_messages.addGroupsToTeam": "Adăugați alte grupuri în această echipă",
   "intro_messages.anyMember": " Orice membru poate să se alăture și să citească în acest canal.",
   "intro_messages.beginning": "Începutul {name}",

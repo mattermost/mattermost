@@ -3389,7 +3389,6 @@
   "interactive_dialog.submit": "Enviar",
   "interactive_dialog.submitting": "Enviando...",
   "intro_messages.DM": "Este é o início do seu histórico de mensagens diretas com {teammate}.\nMensagens diretas e arquivos compartilhados aqui não são mostrados para pessoas de fora desta área.",
-  "intro_messages.GM": "Este é o início do seu histórico de mensagens em grupo com {names}.\nMensagens e arquivos compartilhados aqui não são mostrados para pessoas de fora desta área.",
   "intro_messages.addGroupsToTeam": "Adicionar outros grupos para esta equipe",
   "intro_messages.anyMember": " Qualquer membro pode participar e ler este canal.",
   "intro_messages.beginning": "Início do {name}",

@@ -3631,7 +3631,6 @@
   "interactive_dialog.submit": "Xác Nhận",
   "interactive_dialog.submitting": "Đang xác nhận...",
   "intro_messages.DM": "Đây là phần bắt đầu lịch sử tin nhắn trực tiếp của bạn với {đồng đội}.\nTệp và tin nhắn trực tiếp được chia sẻ ở đây sẽ không hiển thị với những người bên ngoài khu vực này.",
-  "intro_messages.GM": "Đây là thời điểm bắt đầu lịch sử tin nhắn nhóm của bạn với {names}.\n Các tin nhắn và tệp được chia sẻ ở đây sẽ không hiển thị với những người bên ngoài khu vực này.",
   "intro_messages.addGroupsToTeam": "Thêm các nhóm khác vào nhóm này",
   "intro_messages.anyMember": " Mọi thành viên đều có thể tham gia và đọc kênh này.",
   "intro_messages.beginning": "Bắt đầu từ {name}",

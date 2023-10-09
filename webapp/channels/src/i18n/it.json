@@ -2678,7 +2678,6 @@
   "interactive_dialog.submit": "Invia",
   "interactive_dialog.submitting": "Invio in corso...",
   "intro_messages.DM": "Questo è l'inizio della tua conversazione privata con {teammate}.\nMessaggi diretti e file condivisi qui non saranno accessibili ad altre persone.",
-  "intro_messages.GM": "Questo è l'inizio della tua conversazione privata con {names}.\nMessaggi privati e file condivisi qui non verranno mostrati a persone al di fuori di questa area.",
   "intro_messages.addGroupsToTeam": "Aggiungere altri gruppi a questa squadra",
   "intro_messages.anyMember": " Tutti i membri possono entrare e leggere questo canale.",
   "intro_messages.beginning": "Inizio di {name}",
