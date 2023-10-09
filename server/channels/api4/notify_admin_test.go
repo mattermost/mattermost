@@ -13,6 +13,17 @@ import (
 )
 
 func TestNotifyAdmin(t *testing.T) {
+	t.Run("error when notifying with empty data", func(t *testing.T) {
+		th := Setup(t).InitBasic().InitLogin()
+		defer th.TearDown()
+
+		statusCode, err := th.Client.NotifyAdmin(context.Background(), nil)
+
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, statusCode)
+
+	})
+
 	t.Run("error when plan is unknown when notifying on upgrade", func(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
