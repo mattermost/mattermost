@@ -19,7 +19,7 @@ type DataGridCellProps = {
     row: Row;
 }
 
-const dataGridCell = ({row, column}: DataGridCellProps) => {
+const DataGridCell = ({row, column}: DataGridCellProps) => {
     const style: CSSProperties = {};
     if (column.width) {
         style.flexGrow = column.width;
@@ -45,7 +45,13 @@ const dataGridCell = ({row, column}: DataGridCellProps) => {
 };
 
 const DataGridRow = ({row, columns}: DataGridRowProps) => {
-    const cells = columns.map((column) => dataGridCell({row, column}));
+    const cells = columns.map((column, index) => (
+        <DataGridCell
+            key={index}
+            row={row}
+            column={column}
+        />
+    ));
     return (
         <div
             className='DataGrid_row'
