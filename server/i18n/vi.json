@@ -5580,5 +5580,405 @@
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
     "translation": "Mở rộng quy mô với Mattermost"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} đã tạo kênh này từ một tin nhắn nhóm với {{.GMMembers}}."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Giấy phép của bạn không hỗ trợ các yêu cầu trên đám mây."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Đã thông báo cho Admin"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Thiết lập hoặc xóa trạng thái của bạn"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] hoặc xóa"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "trạng thái"
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Không tìm thấy file xuất bản nào."
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Không thể tìm thấy file bạn yêu cầu."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Không thể lấy lại danh sách xuất file."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "liên kết xuất file"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Bạn không có quyền để chạy lệnh này."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Kênh này được quản lý bởi các nhóm. Người dùng này không phải là thành viên của nhóm được đồng bộ hóa với kênh này."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Bạn có thể thêm {{.FirstUser}} và {{.Others}} người khác vào kênh này sau khi họ là thành viên của nhóm **{{.Team}}**."
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Mở kho tiện ích"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "kho tiện ích"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Lời mời đã được chấp nhận và xác nhận. \nURL trang web: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Không thể thêm kết nối bảo mật: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Không thể giải mã lời mời: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Mời các kết nối an toàn để liên lạc trên các phiên bản Matter Extreme."
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Tên hiển thị kết nối an toàn"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Không thể mã hóa lời mời: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Không thể tìm nạp kết nối an toàn: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[hành động]"
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Lời mời được mã hóa từ kết nối an toàn"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Lời mời đã được tạo."
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Mật khẩu lời mời"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Mật khẩu được dùng để mã hóa lời mời"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Thiếu lệnh. Hành động có sẵn: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Thiếu hoặc trống `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "kết nối an toàn"
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Một tên duy nhất cho kết nối an toàn"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Thêm/xóa kết nối an toàn. Hành động có sắn: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Không có kết nối an toàn nào."
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Xóa kết nối an toàn"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Không thể xóa kết nối an toàn: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "ID của kết nối an toàn muốn xóa."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Dịch vụ kết nối an toàn đã bị vô hiệu hóa."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Dịch vụ kết nối an toàn không được bật."
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Hiển thị trạng thái cho tất cả các kết nối an toàn"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Hành động không xác định `{{.Action}}`"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Không thể mời kết nối an toàn tới kênh được chia sẻ bắt nguồn từ nơi khác."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Kết nối bảo mật kênh chia sẻ `{{.RemoteId}}` không tồn tại cho kênh này."
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Kênh này hiện đã được chia sẻ."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Không thể hủy mời `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Chia sẻ kênh hiện tại với phiên bản Matter Extreme bên ngoài."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Lỗi tìm nạp kết nối an toàn: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[hành động]"
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Giá trị không hợp lệ cho '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Mời một phiên bản Matter Extreme bên ngoài vào kênh chia sẻ hiện tại"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Phải chỉ định ID kết nối an toàn hợp lệ để mời."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "kênh chia sẻ"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Không kết nối an toàn nào được mời tới kênh này."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Không thể hủy chia sẻ kênh đang không được chia sẻ."
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID kết nối an toàn không hợp lệ: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Phải chỉ định ID kết nối an toàn hợp lệ để hủy mời"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Kết nối an toàn | URL trang web | Chỉ đọc | Lời mời được chấp nhận | Trực tuyến | Đồng bộ hóa lần cuối |"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Dịch vụ kênh chia sẻ bị vô hiệu hóa."
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Không thể chia sẻ kênh này: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[chỉ đọc] - 'Y' hoặc 'N'. Mặc định là 'N'"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Người dùng không được phép chuyển tin nhắn nhóm sang kênh riêng tư"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Bạn không được phép cập nhật tên, display_name và mục đích của tin nhắn trực tiếp hoặc tin nhắn nhóm."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Your status was cleared."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Không thể hủy lưu trữ kênh. Kênh này không được lưu trữ."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Trạng thái của bạn được đặt thành “{{.EmojiName}} {{.StatusMessage}}”. Bạn có thể thay đổi trạng thái của mình từ cửa sổ bật lên trạng thái trong tiêu đề thanh bên của kênh."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Bạn không được phép cập nhật tên, display_name và mục đích của tin nhắn trực tiếp hoặc tin nhắn nhóm."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Tạo liên kết để tải xuống bản xuất."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Matter Extreme là một nền tảng nguồn mở để liên lạc, cộng tác và điều phối công việc một cách an toàn giữa các công cụ và nhóm.\nMattermost chứa ba công cụ chính:\n\n**Kênh** - Luôn kết nối với nhóm của bạn thông qua nhắn tin 1:1 và nhóm.\n**[Playbooks](/playbooks)** - Xây dựng và định cấu hình các quy trình có thể lặp lại để đạt được kết quả cụ thể và có thể dự đoán được.\n**[Boards](/boards)** - Quản lý các dự án và nhiệm vụ theo cấu trúc bảng Kanban để giúp nhóm của bạn đạt được các cột mốc quan trọng.\n\n[Xem tài liệu và hướng dẫn]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Thiếu các trường bắt buộc để gửi email quá hạn."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Trình điều khiển lưu trữ tệp không hỗ trợ tạo liên kết."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "Đã thêm {{.FirstUser}} và {{.Others}} vào kênh {{.Channel}}."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} và {{.Others}} người khác đã có mặt trong kênh."
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Kết nối an toàn {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Tên hiển thị cho kết nối an toàn"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Gửi lời mời được mã hóa AES 256-bit sau tới Quản trị viên hệ thống Matter Extreme bên ngoài cùng với mật khẩu. Họ sẽ sử dụng lệnh gạch chéo `{{.Command}}` để chấp nhận lời mời.\n\n```\n{{.Invitation}}\n```\n\n**Đảm bảo kết nối an toàn có thể truy cập phiên bản Matter Extreme của bạn thông qua** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Bạn phải có quyền `{{.Permission}}` để quản lý kết nối an toàn."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Kết nối an toàn | Tên hiển thị | ID | URL | Lời mời đã chấp nhận | Đang trực tuyến | ping lần cuối  |"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Hành động có sẵn: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Không thể nạp trạng thái cho kết nối an toàn: {{.Error}}."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Bạn có thể tải tệp của mình xuống tại đây: {{.Link}}.\nLiên kết này sẽ hết hạn sau {{.Expiration}}."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Lệnh kho tiện ích không hỗ trợ trên thiết bị của bạn."
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Không thể giải mã lời mời. Mật khẩu không chính xác hoặc lời mời bị hỏng: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Tên kết nối an toàn"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "URL trang web chưa được đặt. Vui lòng đặt cài đặt này trong Bảng điều khiển hệ thống > Môi trường > Máy chủ web."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Lỗi khi mời `{{.Name}}` vào kênh này: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Lời mời tham gia kênh chia sẻ đã được gửi tới `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Không thể khởi tạo đường dẫn an toàn."
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Đông ý lời mời từ máy của Mattermost bên ngoài"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Lời mời từ kết nối an toàn"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Hiển thị trạng thái của kênh đã được chia sẻ này"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Thiếu hành động. Hành động có sẵn: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Không thể đồng ý lời mời: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Mời vơí một két nối an toàn"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Trạng thái cho kênh ID `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Bạn cần có quyền `{{.Permission}}` để quản lý các kênh được chia sẻ."
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Lỗi khi kiểm tra xem kênh chia sẻ có tồn tại không: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Kết nối an toàn đã được mời."
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "ID của kết nối an toàn hiện có. Xem lệnh `kết nối an toàn` để thêm kết nối an toàn."
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Kết nối an toàn `{{.RemoteId}}` không được mời."
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Kênh sẽ được chia sẻ ở chế độ chỉ đọc"
   }
 ]
