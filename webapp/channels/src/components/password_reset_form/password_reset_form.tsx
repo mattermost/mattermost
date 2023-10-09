@@ -11,12 +11,9 @@ import type {ServerError} from '@mattermost/types/errors';
 import Constants from 'utils/constants';
 
 interface Props {
-    location: { search: string };
+    location: {search: string};
     actions: {
-        resetUserPassword: (
-            token: string,
-            newPassword: string
-        ) => Promise<{ data: any; error: ServerError }>;
+        resetUserPassword: (token: string, newPassword: string) => Promise<{data: any; error: ServerError}>;
     };
     siteName?: string;
 }
@@ -34,15 +31,12 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
         e.preventDefault();
 
         const password = passwordInput.current!.value;
-        const token = new URLSearchParams(location.search).get('token');
+        const token = (new URLSearchParams(location.search)).get('token');
 
         if (typeof token !== 'string') {
             throw new Error('token must be a string');
         }
-        const {data, error} = await actions.resetUserPassword(
-            token,
-            password,
-        );
+        const {data, error} = await actions.resetUserPassword(token, password);
         if (data) {
             history.push('/login?extra=' + Constants.PASSWORD_CHANGE);
             setError(null);
@@ -53,7 +47,9 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
 
     const errorElement = error ? (
         <div className='form-group has-error'>
-            <label className='control-label'>{error}</label>
+            <label className='control-label'>
+                {error}
+            </label>
         </div>
     ) : null;
 
@@ -70,16 +66,10 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
                         <FormattedMessage
                             id='password_form.enter'
                             defaultMessage='Enter a new password for your {siteName} account.'
-                            values={{
-                                siteName,
-                            }}
+                            values={{siteName}}
                         />
                     </p>
-                    <div
-                        className={classNames('form-group', {
-                            'has-error': error,
-                        })}
-                    >
+                    <div className={classNames('form-group', {'has-error': error})}>
                         <input
                             id='resetPasswordInput'
                             type='password'
