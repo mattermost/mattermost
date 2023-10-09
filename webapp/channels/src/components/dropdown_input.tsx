@@ -81,7 +81,7 @@ const Option = (props: any) => {
 };
 
 const DropdownInput = <T extends ValueType>(props: Props<T>) => {
-    const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, ...otherProps} = props;
+    const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, required, ...otherProps} = props;
 
     const [focused, setFocused] = useState(false);
 
@@ -105,23 +105,23 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
     }, [onChange]);
 
     const validateInput = useCallback(() => {
-        if (!props.required || (ownValue.current !== null && ownValue.current)) {
+        if (!required || (ownValue.current !== null && ownValue.current)) {
             setCustomInputLabel(null);
             return;
         }
 
         const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
         setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
-    }, [props.required, formatMessage]);
+    }, [required, formatMessage]);
 
     const onInputBlur = useCallback((event: React.FocusEvent<HTMLElement>) => {
         setFocused(false);
         validateInput();
 
-        if (props.onBlur) {
-            props.onBlur(event);
+        if (otherProps.onBlur) {
+            otherProps.onBlur(event);
         }
-    }, [props.onBlur, validateInput]);
+    }, [otherProps.onBlur, validateInput]);
 
     const showLegend = Boolean(focused || value);
     const isError = error || customInputLabel?.type === 'error';
