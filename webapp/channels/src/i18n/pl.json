@@ -3762,7 +3762,6 @@
   "interactive_dialog.submit": "Wyślij",
   "interactive_dialog.submitting": "Dodawanie...",
   "intro_messages.DM": "To początek historii wiadomości bezpośrednich z {teammate}.\nBezpośrednie wiadomości i wysłane w nich pliki nie są widoczne dla osób spoza tego obszaru.",
-  "intro_messages.GM": "To początek historii wiadomości grupowych z {names}.{br}Powiadomimy cię <b>o wszelkiej aktywności</b> w tej wiadomości grupowej.",
   "intro_messages.addGroupsToTeam": "Dodaj inne grupy do tego zespołu",
   "intro_messages.anyMember": " Każdy użytkownik może dołączyć i przeczytać ten kanał.",
   "intro_messages.beginning": "Początek {name}",

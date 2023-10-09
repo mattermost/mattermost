@@ -3284,7 +3284,6 @@
   "interactive_dialog.submit": "ارسال",
   "interactive_dialog.submitting": "در حال ارسال...",
   "intro_messages.DM": "این شروع تاریخچه پیام مستقیم شما با {teammate} است.\nپیام‌های مستقیم و فایل‌های اشتراک‌گذاری شده در اینجا به افراد خارج از این منطقه نشان داده نمی‌شوند.",
-  "intro_messages.GM": "این شروع تاریخچه پیام گروهی شما با {names} است.\nپیام ها و فایل های به اشتراک گذاشته شده در اینجا به افراد خارج از این منطقه نشان داده نمی شود.",
   "intro_messages.addGroupsToTeam": "گروه های دیگر را به این تیم اضافه کنید",
   "intro_messages.anyMember": " هر عضوی می تواند به این کانال بپیوندد و بخواند.",
   "intro_messages.beginning": "ابتدای {name}",

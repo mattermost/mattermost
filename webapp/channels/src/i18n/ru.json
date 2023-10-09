@@ -3731,7 +3731,6 @@
   "interactive_dialog.submit": "Подтвердить",
   "interactive_dialog.submitting": "Отправляется...",
   "intro_messages.DM": "Начало истории личных сообщений с {teammate}.\nЛичные сообщения и файлы доступны здесь и не видны за пределами этой области.",
-  "intro_messages.GM": "Начало истории групповых сообщений с {names}.\nРазмещённые здесь сообщения и файлы не видны за пределами этой области.",
   "intro_messages.addGroupsToTeam": "Добавить другие группы в эту команду",
   "intro_messages.anyMember": " Любой участник может зайти и читать этот канал.",
   "intro_messages.beginning": "Начало {name}",
