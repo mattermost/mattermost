@@ -34,7 +34,7 @@ function makeGetChannelNamesMap() {
         (state: GlobalState, props: Props) => props && props.channelNamesMap,
         (channelNamesMap, channelMentions) => {
             if (channelMentions) {
-                return Object.assign({}, channelMentions, channelNamesMap);
+                return Object.assign({}, channelNamesMap, channelMentions);
             }
 
             return channelNamesMap;

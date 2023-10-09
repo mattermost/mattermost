@@ -1355,7 +1355,7 @@ function isChannelOrPermalink(link: string) {
 export async function handleFormattedTextClick(e: React.MouseEvent, currentRelativeTeamUrl = '') {
     const hashtagAttribute = (e.target as any).getAttributeNode('data-hashtag');
     const linkAttribute = (e.target as any).getAttributeNode('data-link');
-    const channelMentionAttribute = (e.target as any).getAttributeNode('data-channel-mention');
+    const channelMentionAttribute = (e.currentTarget as any).getAttributeNode('data-channel-mention');
 
     if (hashtagAttribute) {
         e.preventDefault();
