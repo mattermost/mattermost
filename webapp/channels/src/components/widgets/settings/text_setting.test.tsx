@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import TextSetting from './text_setting';
 
@@ -17,24 +17,8 @@ describe('components/widgets/settings/TextSetting', () => {
                 onChange={onChange}
             />,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-          <Setting
-            inputClassName=""
-            inputId="string.id"
-            label="some label"
-            labelClassName=""
-          >
-            <input
-              className="form-control"
-              data-testid="string.idinput"
-              id="string.id"
-              maxLength={-1}
-              onChange={[Function]}
-              type="input"
-              value="some value"
-            />
-          </Setting>
-        `);
+
+        expect(wrapper).toMatchSnapshot();
     });
 
     test('render with textarea type', () => {
@@ -48,26 +32,8 @@ describe('components/widgets/settings/TextSetting', () => {
                 onChange={onChange}
             />,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-          <Setting
-            inputClassName=""
-            inputId="string.id"
-            label="some label"
-            labelClassName=""
-          >
-            <textarea
-              className="form-control"
-              data-testid="string.idinput"
-              dir="auto"
-              id="string.id"
-              maxLength={-1}
-              onChange={[Function]}
-              rows={5}
-              style={Object {}}
-              value="some value"
-            />
-          </Setting>
-        `);
+
+        expect(wrapper).toMatchSnapshot();
     });
 
     test('onChange', () => {

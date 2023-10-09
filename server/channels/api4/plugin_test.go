@@ -462,6 +462,7 @@ func TestDisableOnRemove(t *testing.T) {
 }
 
 func TestGetMarketplacePlugins(t *testing.T) {
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -682,6 +683,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetInstalledMarketplacePlugins(t *testing.T) {
+
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -825,6 +827,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 }
 
 func TestSearchGetMarketplacePlugins(t *testing.T) {
+
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -950,6 +953,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetLocalPluginInMarketplace(t *testing.T) {
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1111,6 +1115,7 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 }
 
 func TestGetRemotePluginInMarketplace(t *testing.T) {
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1167,6 +1172,7 @@ func TestGetRemotePluginInMarketplace(t *testing.T) {
 }
 
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1210,7 +1216,31 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	}
 
 	env := th.App.GetPluginsEnvironment()
-	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin})
+	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin}, nil)
+
+	t.Run("prepackaged plugins are shown in Cloud", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		lic := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer th.App.Srv().SetLicense(lic)
+
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+
+		expectedPlugins := marketplacePlugins
+		expectedPlugins = append(expectedPlugins, &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: prepackagePlugin.Manifest,
+			},
+		})
+
+		require.ElementsMatch(t, expectedPlugins, plugins)
+		require.Len(t, plugins, 2)
+	})
 
 	t.Run("get remote and prepackaged plugins", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1263,7 +1293,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		}
 
 		env := th.App.GetPluginsEnvironment()
-		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin})
+		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin}, nil)
 
 		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
 		require.NoError(t, err)
@@ -1271,24 +1301,10 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		require.Len(t, plugins, 1)
 		require.Equal(t, newerPrepackagePlugin.Manifest, plugins[0].Manifest)
 	})
-
-	t.Run("prepackaged plugins are not shown in Cloud", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.EnableRemoteMarketplace = true
-			*cfg.PluginSettings.EnableUploads = true
-		})
-
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
-		require.NoError(t, err)
-
-		require.ElementsMatch(t, marketplacePlugins, plugins)
-		require.Len(t, plugins, 1)
-	})
 }
 
 func TestInstallMarketplacePlugin(t *testing.T) {
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1639,6 +1655,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 }
 
 func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
+
 	path, _ := fileutils.FindDir("tests")
 
 	signatureFilename := "testplugin2.tar.gz.sig"

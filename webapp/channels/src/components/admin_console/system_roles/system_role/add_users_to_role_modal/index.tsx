@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {UserProfile} from '@mattermost/types/users';
-import {GlobalState} from '@mattermost/types/store';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfiles, searchProfiles} from 'mattermost-redux/actions/users';
-
 import {getProfiles as selectProfiles} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
-import AddUsersToRoleModal, {Props} from './add_users_to_role_modal';
+import AddUsersToRoleModal from './add_users_to_role_modal';
+import type {Props} from './add_users_to_role_modal';
 
 function mapStateToProps(state: GlobalState, props: Props) {
     const filterOptions: {[key: string]: any} = {active: true, exclude_roles: [props.role.name]};

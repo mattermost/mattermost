@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import {Link} from 'react-router-dom';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -91,9 +91,7 @@ const GroupRow = (props: Props) => {
             return (
                 <a href='#'>
                     <LoadingSpinner
-                        text={props.mattermost_group_id ?
-                            formatMessage({id: 'admin.group_settings.group_row.unlinking', defaultMessage: 'Unlinking'}) :
-                            formatMessage({id: 'admin.group_settings.group_row.linking', defaultMessage: 'Linking'})}
+                        text={props.mattermost_group_id ? formatMessage({id: 'admin.group_settings.group_row.unlinking', defaultMessage: 'Unlinking'}) : formatMessage({id: 'admin.group_settings.group_row.linking', defaultMessage: 'Linking'})}
                     />
                 </a>
             );

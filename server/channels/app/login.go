@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -60,7 +60,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 	}
 
 	// Get the MM user we are trying to login
-	if user, err = a.GetUserForLogin(id, loginId); err != nil {
+	if user, err = a.GetUserForLogin(c, id, loginId); err != nil {
 		return nil, err
 	}
 
@@ -120,7 +120,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 	return user, nil
 }
 
-func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError) {
+func (a *App) GetUserForLogin(c *request.Context, id, loginId string) (*model.User, *model.AppError) {
 	enableUsername := *a.Config().EmailSettings.EnableSignInWithUsername
 	enableEmail := *a.Config().EmailSettings.EnableSignInWithEmail
 
@@ -145,7 +145,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 	// Try to get the user with LDAP if enabled
 	if *a.Config().LdapSettings.Enable && a.Ldap() != nil {
-		if ldapUser, err := a.Ldap().GetUser(loginId); err == nil {
+		if ldapUser, err := a.Ldap().GetUser(c, loginId); err == nil {
 			if user, err := a.GetUserByAuth(ldapUser.AuthData, model.UserAuthServiceLdap); err == nil {
 				return user, nil
 			}
@@ -321,6 +321,12 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
+	}
+
+	if secure && utils.CheckEmbeddedCookie(r) {
+		sessionCookie.SameSite = http.SameSiteNoneMode
+		userCookie.SameSite = http.SameSiteNoneMode
+		csrfCookie.SameSite = http.SameSiteNoneMode
 	}
 
 	http.SetCookie(w, sessionCookie)

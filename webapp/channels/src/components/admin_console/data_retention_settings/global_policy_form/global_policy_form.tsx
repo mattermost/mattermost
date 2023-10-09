@@ -4,19 +4,19 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AdminConfig} from '@mattermost/types/config';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {ServerError} from '@mattermost/types/errors';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import * as Utils from 'utils/utils';
-import {getHistory} from 'utils/browser_history';
-
-import Card from 'components/card/card';
 import BlockableLink from 'components/admin_console/blockable_link';
-import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS, DAYS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
+import Card from 'components/card/card';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
+
+import {getHistory} from 'utils/browser_history';
+import * as Utils from 'utils/utils';
 
 import './global_policy_form.scss';
 
@@ -36,8 +36,6 @@ type State = {
     messageRetentionInputValue: string;
     fileRetentionDropdownValue: ValueType;
     fileRetentionInputValue: string;
-    boardsRetentionDropdownValue: ValueType;
-    boardsRetentionInputValue: string;
     saveNeeded: boolean;
     saving: boolean;
     serverError: JSX.Element | string | null;
@@ -57,12 +55,8 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
             messageRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableMessageDeletion, DataRetentionSettings?.MessageRetentionDays),
             fileRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionDays),
             fileRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionDays),
-            boardsRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableBoardsDeletion, DataRetentionSettings?.BoardsRetentionDays),
-            boardsRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableBoardsDeletion, DataRetentionSettings?.BoardsRetentionDays),
         };
     }
-
-    includeBoards = this.props.config.PluginSettings?.PluginStates?.focalboard?.Enable && this.props.config.FeatureFlags?.BoardsDataRetention;
 
     getDefaultInputValue = (isEnabled: boolean | undefined, days: number | undefined): string => {
         if (!isEnabled || days === undefined) {
@@ -84,7 +78,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
     };
 
     handleSubmit = async () => {
-        const {messageRetentionDropdownValue, messageRetentionInputValue, fileRetentionDropdownValue, fileRetentionInputValue, boardsRetentionDropdownValue, boardsRetentionInputValue} = this.state;
+        const {messageRetentionDropdownValue, messageRetentionInputValue, fileRetentionDropdownValue, fileRetentionInputValue} = this.state;
         const newConfig: AdminConfig = JSON.parse(JSON.stringify(this.props.config));
 
         this.setState({saving: true});
@@ -106,13 +100,6 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         const fileDays = this.setRetentionDays(fileRetentionDropdownValue.value, fileRetentionInputValue);
         if (fileDays >= 1) {
             newConfig.DataRetentionSettings.FileRetentionDays = fileDays;
-        }
-
-        newConfig.DataRetentionSettings.EnableBoardsDeletion = this.setDeletionEnabled(boardsRetentionDropdownValue.value);
-
-        const boardsDays = this.setRetentionDays(boardsRetentionDropdownValue.value, boardsRetentionInputValue);
-        if (boardsDays >= 1) {
-            newConfig.DataRetentionSettings.BoardsRetentionDays = boardsDays;
         }
 
         const {error} = await this.props.actions.updateConfig(newConfig);
@@ -222,33 +209,6 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             inputId={'file_retention_input'}
                                         />
                                     </div>
-                                    { this.includeBoards &&
-                                    <div id='global_boards_dropdown'>
-                                        <DropdownInputHybrid
-                                            onDropdownChange={(value) => {
-                                                if (this.state.boardsRetentionDropdownValue.value !== value.value) {
-                                                    this.setState({boardsRetentionDropdownValue: value, saveNeeded: true});
-                                                    this.props.actions.setNavigationBlocked(true);
-                                                }
-                                            }}
-                                            onInputChange={(e) => {
-                                                this.setState({boardsRetentionInputValue: e.target.value, saveNeeded: true});
-                                                this.props.actions.setNavigationBlocked(true);
-                                            }}
-                                            value={this.state.boardsRetentionDropdownValue}
-                                            inputValue={this.state.boardsRetentionInputValue}
-                                            width={90}
-                                            exceptionToInput={[FOREVER]}
-                                            defaultValue={keepForeverOption()}
-                                            options={[daysOption(), yearsOption(), keepForeverOption()]}
-                                            legend={Utils.localizeMessage('admin.data_retention.form.boardsRetention', 'Boards retention')}
-                                            placeholder={Utils.localizeMessage('admin.data_retention.form.boardsRetention', 'Boards retention')}
-                                            name={'boards_retention'}
-                                            inputType={'number'}
-                                            dropdownClassNamePrefix={'boards_retention_dropdown'}
-                                            inputId={'boards_retention_input'}
-                                        />
-                                    </div>}
                                 </div>
 
                             </Card.Body>

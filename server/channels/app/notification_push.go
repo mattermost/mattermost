@@ -14,10 +14,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/mattermost/mattermost/server/public/plugin"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -79,6 +81,25 @@ func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *mo
 }
 
 func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
+	rejectionReason := ""
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		var replacementNotification *model.PushNotification
+		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
+		if rejectionReason != "" {
+			mlog.Info("Notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
+			return false
+		}
+		if replacementNotification != nil {
+			msg = replacementNotification
+		}
+		return true
+	}, plugin.NotificationWillBePushedID)
+
+	if rejectionReason != "" {
+		// Notifications rejected by a plugin should not be considered errors
+		return nil
+	}
+
 	sessions, err := a.getMobileAppSessions(userID)
 	if err != nil {
 		return err
@@ -491,17 +512,25 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 	return sessions, nil
 }
 
-func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
-	return DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned) &&
+func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
+	return DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM) &&
 		DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId)
 }
 
-func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned bool) bool {
+func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) bool {
 	userNotifyProps := user.NotifyProps
 	userNotify := userNotifyProps[model.PushNotifyProp]
 	channelNotify, ok := channelNotifyProps[model.PushNotifyProp]
 	if !ok || channelNotify == "" {
 		channelNotify = model.ChannelNotifyDefault
+	}
+
+	notify := channelNotify
+	if channelNotify == model.ChannelNotifyDefault {
+		notify = userNotify
+		if isGM && userNotify == model.UserNotifyMention {
+			notify = model.ChannelNotifyAll
+		}
 	}
 
 	// If the channel is muted do not send push notifications
@@ -513,26 +542,17 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 		return false
 	}
 
-	if channelNotify == model.UserNotifyNone {
+	if notify == model.ChannelNotifyNone {
 		return false
 	}
 
-	if channelNotify == model.ChannelNotifyMention && !wasMentioned {
+	if notify == model.ChannelNotifyMention && !wasMentioned {
 		return false
 	}
 
-	if userNotify == model.UserNotifyMention && channelNotify == model.ChannelNotifyDefault && !wasMentioned {
-		return false
-	}
-
-	if (userNotify == model.UserNotifyAll || channelNotify == model.ChannelNotifyAll) &&
+	if (notify == model.ChannelNotifyAll) &&
 		(post.UserId != user.Id || post.GetProp("from_webhook") == "true") {
 		return true
-	}
-
-	if userNotify == model.UserNotifyNone &&
-		channelNotify == model.ChannelNotifyDefault {
-		return false
 	}
 
 	return true
@@ -582,6 +602,10 @@ func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string,
 	}
 
 	msg.Badge = badgeCount
+
+	// Add post and channel types for plugins to use in the NotificationWillBePushed hook
+	msg.PostType = post.Type
+	msg.ChannelType = channel.Type
 
 	return msg, nil
 }

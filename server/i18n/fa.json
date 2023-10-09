@@ -584,10 +584,6 @@
     "translation": "مقدارcreate_at نامعتبر است."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "رمزگشایی gif امکان پذیر نیست."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "شناسه سازنده نامعتبر است."
   },

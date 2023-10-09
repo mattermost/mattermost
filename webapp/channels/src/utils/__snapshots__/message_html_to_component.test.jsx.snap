@@ -12,7 +12,6 @@ exports[`messageHtmlToComponent At mention 1`] = `
         disableGroupHighlight={false}
         disableHighlight={false}
         hasMention={true}
-        isRHS={false}
         mentionName="joram"
       >
         @joram
@@ -31,7 +30,6 @@ exports[`messageHtmlToComponent At mention 2`] = `
       disableGroupHighlight={false}
       disableHighlight={true}
       hasMention={true}
-      isRHS={false}
       mentionName="joram"
     >
       @joram
@@ -49,7 +47,6 @@ exports[`messageHtmlToComponent At mention with group highlight disabled 1`] = `
       disableGroupHighlight={false}
       disableHighlight={false}
       hasMention={true}
-      isRHS={false}
       mentionName="developers"
     >
       @developers
@@ -67,7 +64,6 @@ exports[`messageHtmlToComponent At mention with group highlight disabled 2`] = `
       disableGroupHighlight={true}
       disableHighlight={false}
       hasMention={true}
-      isRHS={false}
       mentionName="developers"
     >
       @developers

@@ -1,29 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import Permissions from 'mattermost-redux/constants/permissions';
+import type {Channel, ChannelType} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
-import {Channel, ChannelType} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
 import {TeamTypes} from 'mattermost-redux/action_types';
+import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
+import Permissions from 'mattermost-redux/constants/permissions';
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
-
-import JoinPrivateChannelModal from 'components/join_private_channel_modal';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import {GlobalState} from 'types/store';
+import JoinPrivateChannelModal from 'components/join_private_channel_modal';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import {getHistory} from './browser_history';
+import type {GlobalState} from 'types/store';
 
+import {getHistory} from './browser_history';
 import {cleanUpUrlable} from './url';
 
 export function canManageMembers(state: GlobalState, channel: Channel) {

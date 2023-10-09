@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {ChannelType} from '@mattermost/types/channels';
+import type {ChannelType} from '@mattermost/types/channels';
 
 import {loadProfilesForSidebar} from 'actions/user_actions';
 
@@ -68,6 +68,8 @@ describe('/components/data_prefetch', () => {
             last_post_at: 1235,
             last_root_post_at: 1235,
         })],
+        disableWebappPrefetchAllowed: false,
+        dataPrefetchEnabled: true,
     };
 
     beforeEach(() => {

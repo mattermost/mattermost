@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, ComponentProps} from 'react';
 import {shallow} from 'enzyme';
-
-import {TestHelper} from 'utils/test_helper';
+import React from 'react';
+import type {ChangeEvent, ComponentProps} from 'react';
 
 import GeneralTab from 'components/team_general_tab/team_general_tab';
+
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});
@@ -30,6 +31,7 @@ describe('components/TeamSettings', () => {
         collapseModal: jest.fn(),
         actions: baseActions,
         canInviteTeamMembers: true,
+        isMobileView: false,
     };
 
     test('should handle bad updateTeamIcon function call', () => {

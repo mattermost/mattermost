@@ -325,3 +325,38 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/users/{user_id}/group_sync_memberships:
+    post:
+      tags:
+        - LDAP
+      summary: Create memberships for LDAP configured channels and teams for this user
+      description: >
+        Add the user to each channel and team configured for each LDAP group of whicht the user is
+        a member.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_user_management_groups` permission.
+      operationId: AddUserToGroupSyncables
+      parameters:
+        - name: user_id
+          in: path
+          description: User Id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel and team memberships created as needed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

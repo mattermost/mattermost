@@ -6,22 +6,24 @@ package model
 import (
 	"net/http"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
-	ChannelNotifyDefault            = "default"
-	ChannelNotifyAll                = "all"
-	ChannelNotifyMention            = "mention"
-	ChannelNotifyNone               = "none"
-	ChannelMarkUnreadAll            = "all"
-	ChannelMarkUnreadMention        = "mention"
-	IgnoreChannelMentionsDefault    = "default"
-	IgnoreChannelMentionsOff        = "off"
-	IgnoreChannelMentionsOn         = "on"
-	IgnoreChannelMentionsNotifyProp = "ignore_channel_mentions"
-	ChannelAutoFollowThreadsOff     = "off"
-	ChannelAutoFollowThreadsOn      = "on"
-	ChannelAutoFollowThreads        = "channel_auto_follow_threads"
+	ChannelNotifyDefault             = "default"
+	ChannelNotifyAll                 = "all"
+	ChannelNotifyMention             = "mention"
+	ChannelNotifyNone                = "none"
+	ChannelMarkUnreadAll             = "all"
+	ChannelMarkUnreadMention         = "mention"
+	IgnoreChannelMentionsDefault     = "default"
+	IgnoreChannelMentionsOff         = "off"
+	IgnoreChannelMentionsOn          = "on"
+	IgnoreChannelMentionsNotifyProp  = "ignore_channel_mentions"
+	ChannelAutoFollowThreadsOff      = "off"
+	ChannelAutoFollowThreadsOn       = "on"
+	ChannelAutoFollowThreads         = "channel_auto_follow_threads"
+	ChannelMemberNotifyPropsMaxRunes = 800000
 )
 
 type ChannelUnread struct {
@@ -184,6 +186,11 @@ func (o *ChannelMember) IsValid() *AppError {
 	if len(o.Roles) > UserRolesMaxLength {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
 			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
+	}
+
+	jsonStringNotifyProps := string(ToJSON(o.NotifyProps))
+	if utf8.RuneCountInString(jsonStringNotifyProps) > ChannelMemberNotifyPropsMaxRunes {
+		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_props.app_error", nil, "channel_id="+o.ChannelId+" user_id="+o.UserId, http.StatusBadRequest)
 	}
 
 	return nil

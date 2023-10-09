@@ -1,43 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AnyAction} from 'redux';
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus} from '@mattermost/types/users';
-import {ServerError} from '@mattermost/types/errors';
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import {Role} from '@mattermost/types/roles';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Team, TeamMembership} from '@mattermost/types/teams';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Role} from '@mattermost/types/roles';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus} from '@mattermost/types/users';
 
-import {Client4} from 'mattermost-redux/client';
-
-import {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {UserTypes, AdminTypes, GeneralTypes, PreferenceTypes, TeamTypes, RoleTypes} from 'mattermost-redux/action_types';
-
-import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
-import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
-import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
-import {bindClientFunc, forceLogoutIfNecessary, debounce} from 'mattermost-redux/actions/helpers';
 import {logError} from 'mattermost-redux/actions/errors';
+import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
+import {bindClientFunc, forceLogoutIfNecessary, debounce} from 'mattermost-redux/actions/helpers';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
+import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
+import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
 import {
     currentUserInfoQuery,
-    CurrentUserInfoQueryResponseType,
     transformToRecievedMeReducerPayload,
     transformToRecievedTeamsListReducerPayload,
     transformToReceivedUserAndTeamRolesReducerPayload,
     transformToRecievedMyTeamMembersReducerPayload,
 } from 'mattermost-redux/actions/users_queries';
-
-import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {removeUserFromList} from 'mattermost-redux/utils/user_utils';
-import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
+import type {
+    CurrentUserInfoQueryResponseType} from 'mattermost-redux/actions/users_queries';
+import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
+import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
 export function generateMfaSecret(userId: string): ActionFunc {
     return bindClientFunc({
@@ -215,12 +211,10 @@ export function getFilteredUsersStats(options: GetFilteredUsersStatsOpts = {}, u
 
 export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles: UserProfile[];
 
         try {
             profiles = await Client4.getProfiles(page, perPage, options);
-            removeUserFromList(currentUserId, profiles);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -280,12 +274,10 @@ export function getMissingProfilesByUsernames(usernames: string[]): ActionFunc {
 
 export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles: UserProfile[];
 
         try {
             profiles = await Client4.getProfilesByIds(userIds, options);
-            removeUserFromList(currentUserId, profiles);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -301,14 +293,12 @@ export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
     };
 }
 
-export function getProfilesByUsernames(usernames: string[]): ActionFunc {
+export function getProfilesByUsernames(usernames: string[]): ActionFunc<UserProfile[]> {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
             profiles = await Client4.getProfilesByUsernames(usernames);
-            removeUserFromList(currentUserId, profiles);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -326,7 +316,6 @@ export function getProfilesByUsernames(usernames: string[]): ActionFunc {
 
 export function getProfilesInTeam(teamId: string, page: number, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options: any = {}): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -345,7 +334,7 @@ export function getProfilesInTeam(teamId: string, page: number, perPage: number 
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -415,7 +404,6 @@ export enum ProfilesInChannelSortBy {
 
 export function getProfilesInChannel(channelId: string, page: number, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options: {active?: boolean} = {}): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -434,7 +422,7 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -444,7 +432,6 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
 
 export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let channelProfiles;
 
         try {
@@ -468,7 +455,7 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
                     },
                     {
                         type: UserTypes.RECEIVED_PROFILES_LIST,
-                        data: removeUserFromList(currentUserId, [...profiles]),
+                        data: profiles,
                     },
                 );
             }
@@ -482,7 +469,6 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
 
 export function getProfilesNotInChannel(teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -503,7 +489,7 @@ export function getProfilesNotInChannel(teamId: string, channelId: string, group
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -564,7 +550,6 @@ export function updateMyTermsOfServiceStatus(termsOfServiceId: string, accepted:
 
 export function getProfilesInGroup(groupId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, sort = ''): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -583,7 +568,7 @@ export function getProfilesInGroup(groupId: string, page = 0, perPage: number = 
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -593,7 +578,6 @@ export function getProfilesInGroup(groupId: string, page = 0, perPage: number = 
 
 export function getProfilesNotInGroup(groupId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -612,7 +596,7 @@ export function getProfilesNotInGroup(groupId: string, page = 0, perPage: number
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -844,9 +828,6 @@ export function autocompleteUsers(term: string, teamId = '', channelId = '', opt
 }): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         dispatch({type: UserTypes.AUTOCOMPLETE_USERS_REQUEST, data: null});
-
-        const {currentUserId} = getState().entities.users;
-
         let data;
         try {
             data = await Client4.autocompleteUsers(term, teamId, channelId, options);
@@ -861,7 +842,6 @@ export function autocompleteUsers(term: string, teamId = '', channelId = '', opt
         if (data.out_of_channel) {
             users = [...users, ...data.out_of_channel];
         }
-        removeUserFromList(currentUserId, users);
         const actions: AnyAction[] = [{
             type: UserTypes.RECEIVED_PROFILES_LIST,
             data: users,
@@ -904,8 +884,6 @@ export function autocompleteUsers(term: string, teamId = '', channelId = '', opt
 
 export function searchProfiles(term: string, options: any = {}): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
-
         let profiles;
         try {
             profiles = await Client4.searchUsers(term, options);
@@ -915,7 +893,7 @@ export function searchProfiles(term: string, options: any = {}): ActionFunc {
             return {error};
         }
 
-        const actions: AnyAction[] = [{type: UserTypes.RECEIVED_PROFILES_LIST, data: removeUserFromList(currentUserId, [...profiles])}];
+        const actions: AnyAction[] = [{type: UserTypes.RECEIVED_PROFILES_LIST, data: profiles}];
 
         if (options.in_channel_id) {
             actions.push({
@@ -1010,7 +988,7 @@ export function stopPeriodicStatusUpdates(): ActionFunc {
     };
 }
 
-export function updateMe(user: UserProfile): ActionFunc {
+export function updateMe(user: Partial<UserProfile>): ActionFunc<Partial<UserProfile>, ServerError> {
     return async (dispatch: DispatchFunc) => {
         dispatch({type: UserTypes.UPDATE_ME_REQUEST, data: null});
 

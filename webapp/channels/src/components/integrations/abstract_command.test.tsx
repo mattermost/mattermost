@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {FormEvent} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {FormEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import AbstractCommand from 'components/integrations/abstract_command';
+
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/AbstractCommand', () => {
@@ -56,6 +58,18 @@ describe('components/integrations/AbstractCommand', () => {
     test('should match snapshot', () => {
         const wrapper = shallow<AbstractCommand>(
             <AbstractCommand {...baseProps}/>,
+        );
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot when header/footer/loading is a string', () => {
+        const wrapper = shallow<AbstractCommand>(
+            <AbstractCommand
+                {...baseProps}
+                header='Header as string'
+                loading={'Loading as string'}
+                footer={'Footer as string'}
+            />,
         );
         expect(wrapper).toMatchSnapshot();
     });

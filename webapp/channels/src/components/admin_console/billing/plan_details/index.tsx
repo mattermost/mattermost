@@ -9,14 +9,14 @@ import {getSubscriptionProduct, getCloudSubscription} from 'mattermost-redux/sel
 
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 
-import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 import {TrialPeriodDays} from 'utils/constants';
+import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 
+import FeatureList from './feature_list';
 import {
     PlanDetailsTopElements,
     currentPlanText,
 } from './plan_details';
-import FeatureList from './feature_list';
 import PlanPricing from './plan_pricing';
 
 import './plan_details.scss';

@@ -66,7 +66,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SyncLdap(opts.IncludeRemovedMembers)
+	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -306,7 +306,7 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.MigrateIdLDAP(toAttribute); err != nil {
+	if err := c.App.MigrateIdLDAP(c.AppContext, toAttribute); err != nil {
 		c.Err = err
 		return
 	}

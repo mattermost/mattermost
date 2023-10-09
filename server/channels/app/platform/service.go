@@ -43,7 +43,8 @@ type PlatformService struct {
 
 	configStore *config.Store
 
-	filestore filestore.FileBackend
+	filestore       filestore.FileBackend
+	exportFilestore filestore.FileBackend
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -203,7 +204,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			var err error
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			if err != nil {
+				return nil, err
+			}
 
 			searchStore := searchlayer.NewSearchLayer(
 				retrylayer.New(ps.sqlStore),
@@ -245,6 +250,19 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 
 		ps.filestore = backend
+	}
+
+	if ps.exportFilestore == nil {
+		ps.exportFilestore = ps.filestore
+		if *ps.Config().FileSettings.DedicatedExportStore {
+			mlog.Info("Setting up dedicated export filestore", mlog.String("driver_name", *ps.Config().FileSettings.ExportDriverName))
+			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false))
+			if errFileBack != nil {
+				return nil, fmt.Errorf("failed to initialize export filebackend: %w", errFileBack)
+			}
+
+			ps.exportFilestore = backend
+		}
 	}
 
 	var err error
@@ -489,4 +507,8 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 
 func (ps *PlatformService) FileBackend() filestore.FileBackend {
 	return ps.filestore
+}
+
+func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
+	return ps.exportFilestore
 }

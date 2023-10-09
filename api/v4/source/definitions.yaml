@@ -797,16 +797,6 @@ components:
           description: The time in milliseconds this reaction was made
           type: integer
           format: int64
-    TopReaction:
-      type: object
-      properties:
-        emoji_name:
-          description: The name of the emoji used for this reaction.
-          type: string
-        count:
-          description: The number of the times this emoji has been used.
-          type: integer
-          format: int64
     NewTeamMember:
       type: object
       properties:
@@ -827,17 +817,6 @@ components:
         create_at:
           description: The creation timestamp of the team member record.
           type: integer
-    TopReactionList:
-      type: object
-      properties:
-        has_next: 
-          description: Indicates if there is another page of reactions that can be fetched.
-          type: boolean
-        items:
-          description: List of reactions.
-          type: array 
-          items:
-            $ref: "#/components/schemas/TopReaction"
     NewTeamMembersList:
       type: object
       properties:
@@ -852,109 +831,6 @@ components:
         total_count:
           description: The total count of new team members for the given time range.
           type: integer
-    TopChannel:
-      type: object
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-        display_name:
-          type: string
-        name:
-          type: string
-        team_id:
-          type: string
-        message_count:
-          description: The number of messages posted in the channel by users over the given time period (not including messages posted by bots).
-          type: string
-    TopChannelList:
-      type: object
-      properties:
-        has_next: 
-          description: Indicates if there is another page of channels that can be fetched.
-          type: boolean
-        items:
-          description: List of channels.
-          type: array 
-          items:
-            $ref: "#/components/schemas/TopChannel"
-    InsightUserInformation:
-      type: object
-      properties:
-        id:
-          type: string
-        first_name:
-          type: string
-        last_name:
-          type: string
-        nickname:
-          type: string
-        username:
-          type: string
-        last_picture_update:
-          type: string
-        create_at:
-          type: integer
-          format: int64
-    TopThread:
-      type: object
-      properties:
-        post:
-          $ref: "#/components/schemas/Post"
-        channel_id:
-          type: string
-        channel_display_name:
-          type: string
-        channel_name:
-          type: string
-        Participants:
-          type: array
-          items:
-            type: string
-        user_information:
-          description: User who created the post
-          $ref: "#/components/schemas/InsightUserInformation"
-    TopThreadList:
-      type: object
-      properties:
-        has_next:
-          description: Indicates if there is another page of top threads that can be fetched.
-          type: boolean
-        items:
-          description: List of top threads.
-          type: array
-          items:
-            $ref: "#/components/schemas/TopThread"
-    TopDMInsightUserInformation:
-      allOf:
-      - $ref: "#/components/schemas/InsightUserInformation"
-      - type: object
-        properties:
-          position:
-            type: string
-    TopDM:
-      type: object
-      properties:
-        post_count:
-          type: integer
-          format: int64
-        outgoing_message_count:
-          type: integer
-          format: int64
-        second_participant:
-          $ref: "#/components/schemas/TopDMInsightUserInformation"
-    TopDMList:
-      type: object
-      properties:
-        has_next:
-          description: Indicates if there is another page of top DMs that can be fetched.
-          type: boolean
-        items:
-          description: List of top DMs.
-          type: array
-          items:
-            $ref: "#/components/schemas/TopDM"
     Emoji:
       type: object
       properties:

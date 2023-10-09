@@ -1,17 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useRef, useState} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import {VariableSizeList, ListChildComponentProps} from 'react-window';
+import {VariableSizeList} from 'react-window';
+import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import Member from './member';
-import {ChannelMember, ListItem, ListItemType} from './channel_members_rhs';
 
+interface ChannelMember {
+    user: UserProfile;
+    membership?: ChannelMembership;
+    status?: string;
+    displayName: string;
+}
+
+enum ListItemType {
+    Member = 'member',
+    FirstSeparator = 'first-separator',
+    Separator = 'separator',
+}
+
+interface ListItem {
+    type: ListItemType;
+    data: ChannelMember | JSX.Element;
+}
 export interface Props {
     channel: Channel;
     members: ListItem[];
@@ -19,11 +36,8 @@ export interface Props {
     hasNextPage: boolean;
     isNextPageLoading: boolean;
     searchTerms: string;
-
-    actions: {
-        openDirectMessage: (user: UserProfile) => void;
-        loadMore: () => void;
-    };
+    openDirectMessage: (user: UserProfile) => void;
+    loadMore: () => void;
 }
 
 const MemberList = ({
@@ -33,7 +47,8 @@ const MemberList = ({
     members,
     searchTerms,
     editing,
-    actions,
+    openDirectMessage,
+    loadMore,
 }: Props) => {
     const infiniteLoaderRef = useRef<InfiniteLoader | null>(null);
     const variableSizeListRef = useRef<VariableSizeList | null>(null);
@@ -53,7 +68,7 @@ const MemberList = ({
 
     const itemCount = hasNextPage ? members.length + 1 : members.length;
 
-    const loadMoreItems = isNextPageLoading ? () => {} : actions.loadMore;
+    const loadMoreItems = isNextPageLoading ? () => {} : loadMore;
 
     const isItemLoaded = (index: number) => {
         return !hasNextPage || index < members.length;
@@ -91,7 +106,7 @@ const MemberList = ({
                             totalUsers={members.length}
                             member={member}
                             editing={editing}
-                            actions={{openDirectMessage: actions.openDirectMessage}}
+                            actions={{openDirectMessage}}
                         />
                     </div>
                 );
@@ -149,4 +164,4 @@ const MemberList = ({
     );
 };
 
-export default MemberList;
+export default memo(MemberList);

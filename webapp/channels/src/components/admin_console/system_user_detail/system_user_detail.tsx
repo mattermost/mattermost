@@ -2,37 +2,38 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Redirect, RouteComponentProps} from 'react-router-dom';
-import {FormattedMessage} from 'react-intl';
 import {Overlay} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
+import {Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {ServerError} from '@mattermost/types/errors';
-
 import {adminResetMfa, adminResetEmail} from 'actions/admin_actions.jsx';
 
-import {Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-
-import BlockableLink from 'components/admin_console/blockable_link';
-import ResetPasswordModal from 'components/admin_console/reset_password_modal';
 import AdminButtonOutline from 'components/admin_console/admin_button_outline/admin_button_outline';
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import BlockableLink from 'components/admin_console/blockable_link';
+import ResetPasswordModal from 'components/admin_console/reset_password_modal';
+import TeamList from 'components/admin_console/system_user_detail/team_list';
 import ConfirmModal from 'components/confirm_modal';
-import SaveButton from 'components/save_button';
 import FormError from 'components/form_error';
+import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import Tooltip from 'components/tooltip';
-import TeamList from 'components/admin_console/system_user_detail/team_list';
-import EmailIcon from 'components/widgets/icons/email_icon';
-import AtIcon from 'components/widgets/icons/at_icon';
-import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import AtIcon from 'components/widgets/icons/at_icon';
+import EmailIcon from 'components/widgets/icons/email_icon';
+import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
+
+import {Constants} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
 import './system_user_detail.scss';
 

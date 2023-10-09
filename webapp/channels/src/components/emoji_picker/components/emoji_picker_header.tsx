@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEventHandler} from 'react';
+import React from 'react';
+import type {MouseEventHandler} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 type Props = {
