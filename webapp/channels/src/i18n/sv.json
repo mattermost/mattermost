@@ -3731,7 +3731,6 @@
   "interactive_dialog.submit": "Skicka",
   "interactive_dialog.submitting": "Skickar...",
   "intro_messages.DM": "Detta är starten på dina direktmeddelanden med {teammate}.\nMeddelanden och filer som delas här visas inte för andra utanför denna yta.",
-  "intro_messages.GM": "Detta är starten på meddelanden med {names}.\nMeddelanden och filer som delas här visas inte för andra utanför denna yta.",
   "intro_messages.addGroupsToTeam": "Lägg till andra grupper till detta team",
   "intro_messages.anyMember": " Vilken medlem som helt kan ansluta till och läsa i kanalen.",
   "intro_messages.beginning": "Början av {name}",

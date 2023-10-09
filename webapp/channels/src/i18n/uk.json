@@ -2014,7 +2014,6 @@
   "interactive_dialog.submit": "Відправити",
   "interactive_dialog.submitting": "Надсилання...",
   "intro_messages.DM": "Це початок вашої прямої історії повідомлень з {teammate}.\nПрямі повідомлення та файли, доступні тут, не відображаються людям за межами цієї області.",
-  "intro_messages.GM": "Це початок історії групових повідомлень із {names}.\nПовідомлення та файли, доступні тут, не відображаються людям за межами цієї області.",
   "intro_messages.anyMember": "Будь-який учасник може зайти і читати цей канал.",
   "intro_messages.beginning": "Початок {name}",
   "intro_messages.creator": "{name} {type}, створений {creator} {date}.",

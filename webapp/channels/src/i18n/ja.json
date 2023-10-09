@@ -3730,7 +3730,6 @@
   "interactive_dialog.submit": "送信",
   "interactive_dialog.submitting": "送信しています...",
   "intro_messages.DM": "{teammate}とのダイレクトメッセージの履歴の最初です。\nダイレクトメッセージとそこで共有されているファイルは、この領域の外のユーザーからは見ることができません。",
-  "intro_messages.GM": "{names}とのグループメッセージの履歴の最初です。\nメッセージとそこで共有されているファイルは、この領域の外のユーザーからは見ることができません。",
   "intro_messages.addGroupsToTeam": "別のグループをこのチームに追加する",
   "intro_messages.anyMember": " このチャンネルには誰でも参加して投稿を閲覧することができます。",
   "intro_messages.beginning": "{name}のトップ",
