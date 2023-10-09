@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {classNames} from 'react-select/src/utils';
 
 import ScrollToBottomIcon from 'components/widgets/icons/scroll_to_bottom_icon';
 
@@ -9,27 +10,24 @@ type Props = {
     isScrolling: boolean;
     atBottom?: boolean;
     onClick: () => void;
-}
+};
 
-const ScrollToBottomArrows = ({ isScrolling, atBottom, onClick }:Props) => {
+const ScrollToBottomArrows = ({isScrolling, atBottom, onClick}: Props) => {
     // only show on mobile
     if (window.innerWidth > 768) {
         return null;
     }
 
-    let className = 'post-list__arrows';
-    if (isScrolling && atBottom === false) {
-        className += ' scrolling';
-    }
-
     return (
         <div
-            className={className}
+            className={classNames('post-list__arrows', {
+                scrolling: isScrolling && atBottom === false,
+            })}
             onClick={onClick}
         >
-            <ScrollToBottomIcon />
+            <ScrollToBottomIcon/>
         </div>
     );
-}
+};
 
 export default ScrollToBottomArrows;
