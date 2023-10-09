@@ -8,17 +8,17 @@ import './menu_group.scss';
 type Props = {
     divider?: React.ReactNode;
     children?: React.ReactNode;
-}
+};
+
+const handleDividerClick = (e: React.MouseEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
-const MenuGroup = ({ divider, children }: Props) => {
-    const handleDividerClick = (e: React.MouseEvent): void => {
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
+const MenuGroup = ({divider, children}: Props) => {
     return (
         <>
             {divider || (
