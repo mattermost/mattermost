@@ -7328,9 +7328,10 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		ldapMock := &mocks.LdapInterface{}
 		ldapMock.Mock.On(
 			"CheckProviderAttributes",
-			mock.Anything, // app.AppIface
-			mock.Anything, // *model.User
-			mock.Anything, // *model.Patch
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("*model.LdapSettings"),
+			mock.AnythingOfType("*model.User"),
+			mock.AnythingOfType("*model.UserPatch"),
 		).Return("")
 		th.App.Channels().Ldap = ldapMock
 		// CheckProviderAttributes should be called for both Patch and Update
@@ -7351,7 +7352,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
 			ldapMock := &mocks.LdapInterface{}
 			ldapMock.Mock.On(
-				"CheckProviderAttributes", mock.Anything, mock.Anything, mock.Anything,
+				"CheckProviderAttributes", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.LdapSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
 			).Return("")
 			th.App.Channels().Ldap = ldapMock
 			th.SystemAdminClient.PatchUser(context.Background(), user.Id, &model.UserPatch{})
@@ -7365,7 +7366,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
 			samlMock := &mocks.SamlInterface{}
 			samlMock.Mock.On(
-				"CheckProviderAttributes", mock.Anything, mock.Anything, mock.Anything,
+				"CheckProviderAttributes", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.SamlSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
 			).Return("")
 			th.App.Channels().Saml = samlMock
 			th.SystemAdminClient.PatchUser(context.Background(), user.Id, &model.UserPatch{})
@@ -7385,7 +7386,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		} {
 			patch := user.ToPatch()
 			patch.SetField(fieldName, "something new")
-			conflictField := th.App.CheckProviderAttributes(user, patch)
+			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
 		}
 	})
@@ -7400,7 +7401,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		} {
 			user := th.CreateUserWithAuth(authService)
 			patch := &model.UserPatch{Username: model.NewString("something new")}
-			conflictField := th.App.CheckProviderAttributes(user, patch)
+			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
 		}
 	})
