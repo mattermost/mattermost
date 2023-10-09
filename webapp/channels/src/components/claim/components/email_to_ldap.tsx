@@ -3,13 +3,13 @@
 
 import classNames from 'classnames';
 import React, {useRef} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import {emailToLdap} from 'actions/admin_actions.jsx';
 
-import LocalizedInput from 'components/localized_input/localized_input';
 import LoginMfa from 'components/login/login_mfa';
 
 import {ClaimErrors} from 'utils/constants';
@@ -22,6 +22,7 @@ type Props = {
     email: string | null;
     siteName?: string;
     ldapLoginFieldName?: string;
+    intl: IntlShape;
 }
 
 export type SubmitOptions = {
@@ -32,7 +33,7 @@ export type SubmitOptions = {
     ldapPasswordParam?: string;
 }
 
-const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
+const EmailToLDAP = ({email, siteName, ldapLoginFieldName, intl}: Props) => {
     const emailPasswordInput = useRef<HTMLInputElement>(null);
     const ldapIdInput = useRef<HTMLInputElement>(null);
     const ldapPasswordInput = useRef<HTMLInputElement>(null);
@@ -127,8 +128,8 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
 
     const loginPlaceholder = ldapLoginFieldName || localizeMessage('claim.email_to_ldap.ldapId', 'AD/LDAP ID');
     const titleMessage = {id: t('claim.email_to_ldap.title'), defaultMessage: 'Switch Email/Password Account to AD/LDAP'};
-    const placeholderPasswordMessage = {id: t('claim.email_to_ldap.pwd'), defaultMessage: 'Password'};
-    const placeholderLdapMessage = {id: t('claim.email_to_ldap.ldapPwd'), defaultMessage: 'AD/LDAP Password'};
+    const placeholderPasswordMessage = intl.formatMessage({id: 'claim.email_to_ldap.pwd', defaultMessage: 'Password'});
+    const placeholderLdapMessage = intl.formatMessage({id: t('claim.email_to_ldap.ldapPwd'), defaultMessage: 'AD/LDAP Password'});
 
     if (showMfa) {
         return (
@@ -177,7 +178,7 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
                     name='fakeusernameremembered'
                 />
                 <div className={classNames('form-group', {'has-error': passwordError})}>
-                    <LocalizedInput
+                    <input
                         type='password'
                         className='form-control'
                         name='emailPassword'
@@ -207,7 +208,7 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
                 </div>
                 <ErrorLabel errorText={ldapError}/>
                 <div className={classNames('form-group', {'has-error': ldapPasswordError})}>
-                    <LocalizedInput
+                    <input
                         type='password'
                         className='form-control'
                         name='ldapPassword'
@@ -233,4 +234,4 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
     );
 };
 
-export default EmailToLDAP;
+export default injectIntl(EmailToLDAP);
