@@ -304,10 +304,6 @@
     "translation": "ID Kanal tidak valid"
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Tidak dapat membaca kode gif."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "ID pembuat tidak valid"
   },
@@ -1582,10 +1578,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
     "translation": " memanggil Anda di "
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Tautan publik dinonaktfikan oleh administrator sistem."
   },
   {
     "id": "api.post.do_action.action_id.app_error",

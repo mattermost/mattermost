@@ -1356,10 +1356,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "链接预览已被系统管理员禁用。"
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "无法在已删除的频道更新消息。"
   },
@@ -5186,10 +5182,6 @@
   {
     "id": "api.command.execute_command.format.app_error",
     "translation": "命令触发词缺少斜杠符号"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "此频道由组管理。此用户并不属于同步到此频道的组。"
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
@@ -9642,12 +9634,6 @@
   {
     "id": "api.server.cws.delete_workspace.app_error",
     "translation": "CWS 服务器删除工作区时失败。"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "other": "您有 {{.Count}} 个任务现在已经逾期："
-    }
   },
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",

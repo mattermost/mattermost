@@ -1356,10 +1356,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "リンクプレビュー機能はシステム管理者によって無効にされています。"
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "削除されたチャンネルの投稿は更新できません。"
   },
@@ -5692,10 +5688,6 @@
     "translation": "@{{.Username}} はチームのメンバーではありません。"
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "このチャンネルはグループによって管理されています。  このユーザーはこのチャンネルと同期しているグループのメンバーではありません。"
-  },
-  {
     "id": "api.command.execute_command.format.app_error",
     "translation": "コマンドトリガーワードの先頭のスラッシュが欠落しています"
   },
@@ -9660,26 +9652,12 @@
     "translation": "Mattermost Enterprise Editionでのみ利用可能なサービスです"
   },
   {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "実行のタイムラインに追加する"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "other": "対応期限を迎えている{{.Count}}タスクが割り当てられています:"
-    }
-  },
-  {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "oauth データを削除することができませんでした。"
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "営業に問い合わせる"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
