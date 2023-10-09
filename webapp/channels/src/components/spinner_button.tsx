@@ -12,24 +12,22 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     spinningText: ReactNode;
 }
 
-const SpinnerButton = ({spinning, spinningText, children, ...props}: Props) => {
+const SpinnerButton = ({
+    spinning = false,
+    spinningText,
+    children,
+    ...props
+}: Props) => {
     return (
         <button
             disabled={spinning}
-            {...props}
-        >
+            {...props}>
             <LoadingWrapper
                 loading={spinning}
-                text={spinningText}
-            >
+                text={spinningText}>
                 {children}
             </LoadingWrapper>
         </button>
     );
 };
-
-SpinnerButton.defaultProps = {
-    spinning: false,
-};
-
-export default SpinnerButton;
+export default React.memo(SpinnerButton);
