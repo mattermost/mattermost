@@ -8,13 +8,13 @@ type Props = {
     updateOption: (checked: boolean, name: string) => void;
 };
 
-const TeamFilterCheckbox: React.FC<Props> = ({
+const TeamFilterCheckbox = ({
     id,
     name,
     checked,
     label,
     updateOption,
-}) => {
+}: React.FC<Props>) => {
     // Use useCallback to memoize the callback
     const toggleOption = useCallback(() => {
         updateOption(!checked, id);
