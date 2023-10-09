@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
-import {classNames} from 'react-select/src/utils';
 
 import ScrollToBottomIcon from 'components/widgets/icons/scroll_to_bottom_icon';
 
