@@ -1031,7 +1031,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 
 	mockTeamStore := mocks.TeamStore{}
-	mockTeamStore.On("GetMember", sqlstore.WithMaster(context.Background()), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil)
+	mockTeamStore.On("GetMember", sqlstore.RequestContextWithMaster(th.Context), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil)
 	mockTeamStore.On("UpdateMember", mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
 
 	mockStore.On("Channel").Return(&mockChannelStore)
