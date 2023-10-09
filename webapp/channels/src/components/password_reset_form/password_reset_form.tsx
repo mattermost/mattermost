@@ -3,25 +3,23 @@
 
 import classNames from 'classnames';
 import React, {useState, useRef, memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 
-import LocalizedInput from 'components/localized_input/localized_input';
-
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 
 interface Props {
     location: {search: string};
+    intl: IntlShape;
     actions: {
         resetUserPassword: (token: string, newPassword: string) => Promise<{data: any; error: ServerError}>;
     };
     siteName?: string;
 }
 
-const PasswordResetForm = ({location, siteName, actions}: Props) => {
+const PasswordResetForm = ({location, intl, siteName, actions}: Props) => {
     const history = useHistory();
 
     const [error, setError] = useState<React.ReactNode>(null);
@@ -73,13 +71,13 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
                         />
                     </p>
                     <div className={classNames('form-group', {'has-error': error})}>
-                        <LocalizedInput
+                        <input
                             id='resetPasswordInput'
                             type='password'
                             className='form-control'
                             name='password'
                             ref={passwordInput}
-                            placeholder={{id: t('password_form.pwd'), defaultMessage: 'Password'}}
+                            placeholder={intl.formatMessage({id: 'password_form.pwd', defaultMessage: 'Password'})}
                             spellCheck='false'
                             autoFocus={true}
                         />
@@ -101,4 +99,4 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
     );
 };
 
-export default memo(PasswordResetForm);
+export default memo(injectIntl(PasswordResetForm));
