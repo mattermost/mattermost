@@ -1,19 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, { PureComponent, createRef } from 'react';
+import { FormattedMessage, injectIntl, WrappedComponentProps } from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import BackButton from 'components/common/back_button';
-import LocalizedInput from 'components/localized_input/localized_input';
+
+// import LocalizedInput from 'components/localized_input/localized_input';
+// Import your new RegularInput component
+import RegularInput from 'components/Regular_Input/Regular_Input; // Adjust the path as needed
 
 import {t} from 'utils/i18n';
 
-interface Props {
+interface Props extends WrappedComponentProps {
     actions: {
         sendPasswordResetEmail: (email: string) => Promise<{data: any; error: ServerError}>;
     };
@@ -24,7 +27,7 @@ interface State {
     updateText: React.ReactNode;
 }
 
-export default class PasswordResetSendLink extends React.PureComponent<Props, State> {
+class PasswordResetSendLink extends PureComponent<Props, State> {
     state = {
         error: null,
         updateText: null,
@@ -87,17 +90,20 @@ export default class PasswordResetSendLink extends React.PureComponent<Props, St
     };
 
     render() {
+        const { formatMessage } = this.props.intl;
+        const { error, updateText } = this.state;
+        
         let error = null;
-        if (this.state.error) {
-            error = (
-                <div className='form-group has-error'>
-                    <label className='control-label'>{this.state.error}</label>
-                </div>
-            );
+        if (error) {
+          errorComponent = (
+            <div className='form-group has-error'>
+              <label className='control-label'>{error}</label>
+            </div>
+          );
         }
 
         let formClass = 'form-group';
-        if (error) {
+        if (errorComponent) {
             formClass += ' has-error';
         }
 
@@ -111,7 +117,7 @@ export default class PasswordResetSendLink extends React.PureComponent<Props, St
                             tagName='h1'
                             defaultMessage='Password Reset'
                         />
-                        {this.state.updateText}
+                        {updateText}
                         <form
                             onSubmit={this.handleSendLink}
                             ref={this.resetForm}
@@ -123,13 +129,13 @@ export default class PasswordResetSendLink extends React.PureComponent<Props, St
                                 />
                             </p>
                             <div className={formClass}>
-                                <LocalizedInput
+                                <RegualarInput
                                     id='passwordResetEmailInput'
                                     type='email'
                                     className='form-control'
                                     name='email'
                                     placeholder={{
-                                        id: t('password_send.email'),
+                                        id: 'password_send.email',
                                         defaultMessage: 'Email',
                                     }}
                                     ref={this.emailInput}
@@ -137,7 +143,7 @@ export default class PasswordResetSendLink extends React.PureComponent<Props, St
                                     autoFocus={true}
                                 />
                             </div>
-                            {error}
+                            {errorComponent}
                             <button
                                 id='passwordResetButton'
                                 type='submit'
@@ -155,3 +161,5 @@ export default class PasswordResetSendLink extends React.PureComponent<Props, St
         );
     }
 }
+
+export default injectIntl(PasswordResetSendLink);
