@@ -1364,10 +1364,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Podgląd linków został wyłączony przez administratora systemu."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nie można zaktualizować wiadomości w usuniętym kanale."
   },
@@ -5696,10 +5692,6 @@
     "translation": "{{.Username}} nie jest członkiem tego zespołu."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Ten kanał jest zarządzany przez grupy.  Ten użytkownik nie jest częścią grupy, która jest zsynchronizowana z tym kanałem."
-  },
-  {
     "id": "api.command.execute_command.format.app_error",
     "translation": "Command trigger word is missing the leading slash character"
   },
@@ -9674,10 +9666,6 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Nie można usunąć danych oauth."
-  },
-  {
-    "id": "app.user.new_run.intro",
-    "translation": "**Właściciel** {{.Username}}"
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",

@@ -1360,10 +1360,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Voorvertoning van links zijn uitgeschakeld door de systeembeheerder."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Kan geen bericht bijwerken in een verwijderd kanaal."
   },
@@ -5720,10 +5716,6 @@
     "translation": "@{{.Username}} is geen teamlid."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Dit kanaal wordt beheerd door groepen.  De gebruiker is geen lid van een groep die verbonden is met dit kanaal."
-  },
-  {
     "id": "api.command.execute_command.format.app_error",
     "translation": "In het triggerwoord van de opdracht ontbreekt de schuine streep naar rechts"
   },
@@ -9697,14 +9689,6 @@
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
     "translation": "Gebruiker mag geen prioriteitspost of blijvende melding aanmaken."
-  },
-  {
-    "id": "app.user.run.status_enable",
-    "translation": "@{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Korte samenvatting weergeven in de tijdlijn"
   },
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
