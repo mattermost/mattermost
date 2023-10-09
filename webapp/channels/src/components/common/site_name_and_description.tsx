@@ -6,23 +6,18 @@ import {FormattedMessage} from 'react-intl';
 
 type Props = {
     customDescriptionText?: string;
-    siteName: string;
+    siteName: string | undefined;
 };
 const SiteNameAndDescription = ({customDescriptionText, siteName = 'Mattermost'}: Props) => {
-    let description = null;
-    if (customDescriptionText) {
-        description = customDescriptionText;
-    } else {
-        description = (
-            <FormattedMessage
-                id='web.root.signup_info'
-                defaultMessage='All team communication in one place, searchable and accessible anywhere'
-            />
-        );
-    }
+    const description = customDescriptionText || (
+        <FormattedMessage
+            id='web.root.signup_info'
+            defaultMessage='All team communication in one place, searchable and accessible anywhere'
+        />
+    );
 
     return (
-        <React.Fragment>
+        <>
             <h1 id='site_name'>{siteName}</h1>
             <h3
                 id='site_description'
@@ -30,7 +25,7 @@ const SiteNameAndDescription = ({customDescriptionText, siteName = 'Mattermost'}
             >
                 {description}
             </h3>
-        </React.Fragment>
+        </>
     );
 };
 
