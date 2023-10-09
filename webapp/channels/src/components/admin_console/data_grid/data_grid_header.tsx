@@ -36,10 +36,10 @@ const DataGridHeader = ({columns}: Props) => {
     return (
         <div className='DataGrid_header'>
             {columns.map((col) =>
-                <HeaderElement
+                (<HeaderElement
                     col={col}
                     key={col.field}
-                />
+                />)
             )}
         </div>
     );
