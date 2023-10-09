@@ -3,13 +3,11 @@
 
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import {oauthToEmail} from 'actions/admin_actions.jsx';
-
-import LocalizedInput from 'components/localized_input/localized_input';
 
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
@@ -23,6 +21,7 @@ type Props = {
     email: string | null;
     siteName?: string;
     passwordConfig?: ReturnType<typeof getPasswordConfig>;
+    intl: IntlShape;
 }
 
 const OAuthToEmail = (props: Props) => {
@@ -72,8 +71,8 @@ const OAuthToEmail = (props: Props) => {
     };
 
     const uiType = `${(props.currentType === Constants.SAML_SERVICE ? Constants.SAML_SERVICE.toUpperCase() : toTitleCase(props.currentType || ''))} SSO`;
-    const placeholderPasswordMessage = {id: t('claim.oauth_to_email.newPwd'), defaultMessage: 'New Password'};
-    const placeholderConfirmMessage = {id: t('claim.oauth_to_email.confirm'), defaultMessage: 'Confirm Password'};
+    const placeholderPasswordMessage = props.intl.formatMessage({id: t('claim.oauth_to_email.newPwd'), defaultMessage: 'New Password'});
+    const placeholderConfirmMessage = props.intl.formatMessage({id: t('claim.oauth_to_email.confirm'), defaultMessage: 'Confirm Password'});
 
     return (
         <>
@@ -99,7 +98,7 @@ const OAuthToEmail = (props: Props) => {
                     />
                 </p>
                 <div className={classNames('form-group', {'has-error': error})}>
-                    <LocalizedInput
+                    <input
                         type='password'
                         className='form-control'
                         name='password'
@@ -109,7 +108,7 @@ const OAuthToEmail = (props: Props) => {
                     />
                 </div>
                 <div className={classNames('form-group', {'has-error': error})}>
-                    <LocalizedInput
+                    <input
                         type='password'
                         className='form-control'
                         name='passwordconfirm'
@@ -134,4 +133,4 @@ const OAuthToEmail = (props: Props) => {
     );
 };
 
-export default OAuthToEmail;
+export default injectIntl(OAuthToEmail);
