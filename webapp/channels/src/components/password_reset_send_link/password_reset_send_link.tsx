@@ -11,8 +11,6 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 import BackButton from 'components/common/back_button';
 
 // import LocalizedInput from 'components/localized_input/localized_input';
-// Import your new RegularInput component
-import RegularInput from 'components/Regular_Input/Regular_Input; // Adjust the path as needed
 
 import {t} from 'utils/i18n';
 
@@ -129,7 +127,7 @@ class PasswordResetSendLink extends PureComponent<Props, State> {
                                 />
                             </p>
                             <div className={formClass}>
-                                <RegualarInput
+                                <input
                                     id='passwordResetEmailInput'
                                     type='email'
                                     className='form-control'
