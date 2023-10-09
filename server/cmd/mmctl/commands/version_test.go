@@ -9,23 +9,21 @@ import (
 )
 
 func (s *MmctlUnitTestSuite) TestVersionCmd() {
-	s.Run("TODO", func() {
-		printer.Clean()
-		printer.SetFormat(printer.FormatPlain)
+	printer.Clean()
+	printer.SetFormat(printer.FormatPlain)
 
-		err := versionCmdF(&cobra.Command{}, []string{})
-		s.Require().NoError(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 1)
-		line := printer.GetLines()[0]
-		s.Require().Contains("mmctl:", line)
-		s.Require().Contains("Version:", line)
-		s.Require().Contains("BuiltDate:", line)
-		s.Require().Contains("CommitDate:", line)
-		s.Require().Contains("GitTreeState:", line)
-		s.Require().Contains("GoVersion:", line)
-		s.Require().Contains("	go1.", line)
-		s.Require().Contains("Compiler:", line)
-		s.Require().Contains("Platform:", line)
-	})
+	err := versionCmdF(&cobra.Command{}, []string{})
+	s.Require().NoError(err)
+	s.Require().Len(printer.GetErrorLines(), 0)
+	s.Require().Len(printer.GetLines(), 1)
+	line := printer.GetLines()[0]
+	s.Require().Contains("mmctl:", line)
+	s.Require().Contains("Version:", line)
+	s.Require().Contains("BuiltDate:", line)
+	s.Require().Contains("CommitDate:", line)
+	s.Require().Contains("GitTreeState:", line)
+	s.Require().Contains("GoVersion:", line)
+	s.Require().Contains("	go1.", line)
+	s.Require().Contains("Compiler:", line)
+	s.Require().Contains("Platform:", line)
 }
