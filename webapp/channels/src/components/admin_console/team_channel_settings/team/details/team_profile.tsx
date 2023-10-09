@@ -20,8 +20,6 @@ import OverlayTrigger from 'components/overlay_trigger';
 import PricingModal from 'components/pricing_modal';
 import Tooltip from 'components/tooltip';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import UnarchiveIcon from 'components/widgets/icons/unarchive_icon';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -106,7 +104,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                             className={
                                 classNames(
                                     'btn',
-                                    'btn-secondary',
+                                    'btn-danger',
                                     'ArchiveButton',
                                     {ArchiveButton___archived: isArchived},
                                     {ArchiveButton___unarchived: !isArchived},
@@ -117,11 +115,9 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                             onClick={noop}
                         >
                             {isArchived ? (
-                                <UnarchiveIcon
-                                    className='channel-icon channel-icon__unarchive'
-                                />
+                                <i className='icon icon-archive-arrow-up-outline'/>
                             ) : (
-                                <ArchiveIcon className='channel-icon channel-icon__archive'/>
+                                <i className='icon icon-archive-outline'/>
                             )}
                             <FormattedMessage
                                 id={archiveBtnID}
@@ -140,7 +136,6 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                 className={
                     classNames(
                         'btn',
-                        'btn-secondary',
                         'ArchiveButton',
                         {ArchiveButton___archived: isArchived},
                         {ArchiveButton___unarchived: !isArchived},
@@ -151,11 +146,9 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                 onClick={toggleArchive}
             >
                 {isArchived ? (
-                    <UnarchiveIcon
-                        className='channel-icon channel-icon__unarchive'
-                    />
+                    <i className='icon icon-archive-arrow-up-outline'/>
                 ) : (
-                    <ArchiveIcon className='channel-icon channel-icon__archive'/>
+                    <i className='icon icon-archive-outline'/>
                 )}
                 <FormattedMessage
                     id={archiveBtnID}

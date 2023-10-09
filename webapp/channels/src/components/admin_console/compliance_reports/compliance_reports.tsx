@@ -439,7 +439,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                 <div className='text-right'>
                     <button
                         type='submit'
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         disabled={this.state.runningReport}
                         onClick={this.reload}
                     >
