@@ -3762,7 +3762,6 @@
   "interactive_dialog.submit": "Gönder",
   "interactive_dialog.submitting": "Gönderiliyor...",
   "intro_messages.DM": "{teammate} takım arkadaşınız ile doğrudan ileti geçmişinizin başlangıcı.\nBu bölüm dışındaki kişiler burada paylaşılan doğrudan ileti ve dosyaları göremez.",
-  "intro_messages.GM": "{names} ile grup ileti geçmişinizin başlangıcı.{br}Bu grup iletisindeki <b>tüm işlemler için</b> bildirim alacaksınız.",
   "intro_messages.addGroupsToTeam": "Bu takıma başka gruplar ekleyin",
   "intro_messages.anyMember": " Tüm üyeler bu kanala üye olup iletileri okuyabilir.",
   "intro_messages.beginning": "{name} başlangıcı",

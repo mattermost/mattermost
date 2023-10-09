@@ -3745,7 +3745,6 @@
   "interactive_dialog.submit": "Verzenden",
   "interactive_dialog.submitting": "Bezig met verzenden...",
   "intro_messages.DM": "Dit is de start van uw privé berichtengeschiedenis met teamlid {teammate}.\nPrivé berichten en bestanden die hier gedeeld worden zijn niet zichtbaar voor anderen.",
-  "intro_messages.GM": "Dit is de start van je groepsberichtengeschiedenis met {names}.\nBerichten en bestanden die hier gedeeld worden zijn privé en niet zichtbaar voor anderen.",
   "intro_messages.addGroupsToTeam": "Voeg andere groepen toe aan dit team",
   "intro_messages.anyMember": " Ieder lid kan dit kanaal lezen en volgen.",
   "intro_messages.beginning": "Begin van {name}",

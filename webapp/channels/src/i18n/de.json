@@ -3731,7 +3731,6 @@
   "interactive_dialog.submit": "Absenden",
   "interactive_dialog.submitting": "Sende...",
   "intro_messages.DM": "Dies ist der Start des Direktnachrichtenverlaufs mit {teammate}.\nDirektnachrichten und hier geteilte Dateien sind für Personen außerhalb dieses Bereichs nicht sichtbar.",
-  "intro_messages.GM": "Dies ist der Start des Gruppennachrichtenverlaufs mit {names}.\nGruppennachrichten und hier geteilte Dateien sind für Personen außerhalb dieses Bereichs nicht sichtbar.",
   "intro_messages.addGroupsToTeam": "Andere Gruppen zu diesem Team hinzufügen",
   "intro_messages.anyMember": " Jedes Mitglied kann diesem Kanal beitreten und folgen.",
   "intro_messages.beginning": "Start von {name}",

@@ -3731,7 +3731,6 @@
   "interactive_dialog.submit": "Submit",
   "interactive_dialog.submitting": "Submitting...",
   "intro_messages.DM": "This is the start of your direct message history with {teammate}.\nDirect messages and files shared here are not shown to people outside this area.",
-  "intro_messages.GM": "This is the start of your group message history with {names}.\nMessages and files shared here are not shown to people outside this area.",
   "intro_messages.addGroupsToTeam": "Add other groups to this team",
   "intro_messages.anyMember": " Any member can join and read this channel.",
   "intro_messages.beginning": "Beginning of {name}",
