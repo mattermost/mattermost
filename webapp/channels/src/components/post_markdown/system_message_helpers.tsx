@@ -189,22 +189,13 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
     }
 
     const headerOptions = {
-        singleline: true,
         channelNamesMap: post.props && post.props.channel_mentions,
         mentionHighlight: true,
     };
 
     const username = renderUsername(post.props.username);
-    const oldHeader = post.props.old_header ? renderFormattedText(
-        post.props.old_header.replace(/\n/g, '\n\n'),
-        headerOptions,
-        post,
-    ) : null;
-    const newHeader = post.props.new_header ? renderFormattedText(
-        post.props.new_header.replace(/\n/g, '\n\n'),
-        headerOptions,
-        post,
-    ) : null;
+    const oldHeader = post.props.old_header ? renderFormattedText(post.props.old_header, headerOptions, post) : null;
+    const newHeader = post.props.new_header ? renderFormattedText(post.props.new_header, headerOptions, post) : null;
 
     if (post.props.new_header) {
         if (post.props.old_header) {
