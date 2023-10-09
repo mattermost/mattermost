@@ -60,7 +60,7 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 
 # mmctl
 MMCTL_BUILD_TAGS =
-MMCTL_TESTFLAGS = -timeout 30m -race
+MMCTL_TESTFLAGS ?= -timeout 30m
 MMCTL_PKG = github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands
 LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(BUILD_HASH)"
 LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(GIT_TREESTATE)"
@@ -157,7 +157,7 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.19.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.20.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
