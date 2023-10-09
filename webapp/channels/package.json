@@ -102,6 +102,7 @@
   "devDependencies": {
     "@deanwhillier/jest-matchmedia-mock": "1.2.0",
     "@hot-loader/react-dom": "17.0.2",
+    "@mattermost/eslint-plugin": "*",
     "@redux-devtools/extension": "3.2.3",
     "@testing-library/jest-dom": "5.16.4",
     "@testing-library/react": "12.1.4",
@@ -148,7 +149,6 @@
     "enzyme-to-json": "3.6.2",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.27.5",
-    "eslint-plugin-mattermost": "github:mattermost/eslint-plugin-mattermost#5b0c972eacf19286e4c66221b39113bf8728a99e",
     "eslint-plugin-no-only-tests": "3.1.0",
     "eslint-plugin-react": "7.32.2",
     "eslint-plugin-react-hooks": "4.6.0",
