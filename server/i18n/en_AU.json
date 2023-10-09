@@ -7070,10 +7070,6 @@
     "translation": "@[username]... ~[channel]..."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
-  },
-  {
     "id": "api.command_invite.fail.app_error",
     "translation": "An error occurred while joining the channel."
   },
@@ -7811,10 +7807,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -9669,13 +9661,6 @@
   {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Invalid value for bytes when uploading a licence."
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "You have {{.Count}} assigned task:",
-      "other": "You have {{.Count}} total assigned tasks:"
-    }
   },
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",

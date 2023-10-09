@@ -27,7 +27,6 @@
   "accessibility.button.Search": "Søk",
   "accessibility.button.attachment": "Vedlegg",
   "accessibility.button.dialog": "{dialogName} dialog",
-  "accessibility.sections.lhsNavigator": "",
   "accessibility.sidebar.types.private": "privat kanal",
   "activity_log.activeSessions": "Aktive sesjoner",
   "activity_log.browser": "Nettleser: {browser}",

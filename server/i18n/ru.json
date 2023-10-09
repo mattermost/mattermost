@@ -1364,10 +1364,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Предпросмотр ссылок был запрещён системным администратором."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Нельзя обновить сообщение в удаленном канале."
   },
@@ -5158,10 +5154,6 @@
   {
     "id": "api.command.execute_command.format.app_error",
     "translation": "В слове триггера команды отсутствует начальный символ косой черты"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Этот канал управляется группами.  Этот пользователь не является частью группы, которая синхронизируется с этим каналом."
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
@@ -9686,10 +9678,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Пропуск установки плагина {{.Id}}, поскольку существующая версия плагина идентична текущей или более новая."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "Используйте контрольные списки и автоматизацию, чтобы привлечь ключевых членов команды, и расскажите, как продвигается процесс разрешения инцидента."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",

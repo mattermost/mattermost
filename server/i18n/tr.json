@@ -1360,10 +1360,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Bağlantı ön izleme özelliği sistem yöneticisi tarafından devre dışı bırakılmış."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Silinmiş bir kanaldaki ileti güncellenemez."
   },
@@ -5174,10 +5170,6 @@
   {
     "id": "api.command.execute_command.format.app_error",
     "translation": "Komut tetikleme sözcüğünün başında bölü karakteri eksik"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Bu kanal gruplar tarafından yönetiliyor.  Bu kullanıcı kanal ile eşitlenen bir grubun üyesi değil."
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
@@ -9677,10 +9669,6 @@
   {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Bir lisans yüklenirken bayt değeri geçersiz."
-  },
-  {
-    "id": "app.user.new_run.intro",
-    "translation": "**Sahibi** {{.Username}}"
   },
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
