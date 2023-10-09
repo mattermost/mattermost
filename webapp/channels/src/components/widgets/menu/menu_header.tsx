@@ -10,15 +10,14 @@ type Props = {
     onClick?: () => void;
 }
 
-
 const MenuHeader = ({children, onClick}: Props) => {
     return (
-            <li
-                className='MenuHeader'
-                onClick={onClick}
-            >
-                {children}
-            </li>
-        );
-    }
+        <li
+            className='MenuHeader'
+            onClick={onClick}
+        >
+            {children}
+        </li>
+    );
+};
 export default React.memo(MenuHeader);
