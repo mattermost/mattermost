@@ -8,8 +8,7 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {General} from 'mattermost-redux/constants';
 
-import FileUpload, {createFileFromItem} from 'components/file_upload/file_upload';
-import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import FileUpload, {type FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {clearFileInput} from 'utils/utils';
@@ -417,5 +416,3 @@ describe('components/FileUpload', () => {
         expect(baseProps.onUploadError).toHaveBeenCalledWith(null);
     });
 });
-
-
