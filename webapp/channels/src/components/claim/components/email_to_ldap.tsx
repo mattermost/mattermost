@@ -3,8 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useRef} from 'react';
-import type {IntlShape} from 'react-intl';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
@@ -22,7 +21,6 @@ type Props = {
     email: string | null;
     siteName?: string;
     ldapLoginFieldName?: string;
-    intl: IntlShape;
 }
 
 export type SubmitOptions = {
@@ -33,7 +31,9 @@ export type SubmitOptions = {
     ldapPasswordParam?: string;
 }
 
-const EmailToLDAP = ({email, siteName, ldapLoginFieldName, intl}: Props) => {
+const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
+    const {formatMessage} = useIntl();
+
     const emailPasswordInput = useRef<HTMLInputElement>(null);
     const ldapIdInput = useRef<HTMLInputElement>(null);
     const ldapPasswordInput = useRef<HTMLInputElement>(null);
@@ -128,8 +128,6 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName, intl}: Props) => {
 
     const loginPlaceholder = ldapLoginFieldName || localizeMessage('claim.email_to_ldap.ldapId', 'AD/LDAP ID');
     const titleMessage = {id: t('claim.email_to_ldap.title'), defaultMessage: 'Switch Email/Password Account to AD/LDAP'};
-    const placeholderPasswordMessage = intl.formatMessage({id: 'claim.email_to_ldap.pwd', defaultMessage: 'Password'});
-    const placeholderLdapMessage = intl.formatMessage({id: t('claim.email_to_ldap.ldapPwd'), defaultMessage: 'AD/LDAP Password'});
 
     if (showMfa) {
         return (
@@ -184,7 +182,7 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName, intl}: Props) => {
                         name='emailPassword'
                         ref={emailPasswordInput}
                         autoComplete='off'
-                        placeholder={placeholderPasswordMessage}
+                        placeholder={formatMessage({id: 'claim.email_to_ldap.pwd', defaultMessage: 'Password'})}
                         spellCheck='false'
                     />
                 </div>
@@ -214,7 +212,7 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName, intl}: Props) => {
                         name='ldapPassword'
                         ref={ldapPasswordInput}
                         autoComplete='off'
-                        placeholder={placeholderLdapMessage}
+                        placeholder={formatMessage({id: t('claim.email_to_ldap.ldapPwd'), defaultMessage: 'AD/LDAP Password'})}
                         spellCheck='false'
                     />
                 </div>
@@ -234,4 +232,4 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName, intl}: Props) => {
     );
 };
 
-export default injectIntl(EmailToLDAP);
+export default EmailToLDAP;
