@@ -7,7 +7,6 @@ import type {Post, PostOrderBlock} from '@mattermost/types/posts';
 
 import {
     ChannelTypes,
-    GeneralTypes,
     PostTypes,
     ThreadTypes,
     CloudTypes,

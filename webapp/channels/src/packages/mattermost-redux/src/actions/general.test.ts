@@ -3,7 +3,6 @@
 
 import nock from 'nock';
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 

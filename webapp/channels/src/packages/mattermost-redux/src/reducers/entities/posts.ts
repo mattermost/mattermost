@@ -19,7 +19,7 @@ import type {
     RelationOneToMany,
 } from '@mattermost/types/utilities';
 
-import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
 import type {GenericAction} from 'mattermost-redux/types/actions';

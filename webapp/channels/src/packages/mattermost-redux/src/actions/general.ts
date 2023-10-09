@@ -7,9 +7,7 @@ import {LogLevel} from '@mattermost/types/client4';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
