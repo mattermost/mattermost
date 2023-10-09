@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
+
 import SearchIcon from 'components/widgets/icons/search_icon';
-import { localizeMessage } from 'utils/utils';
+
+import {localizeMessage} from 'utils/utils';
 
 type Actions = {
     openRHSSearch: () => void;
-    // Add more action functions here if needed
 }
 
 type Props = {
     actions: Actions;
 }
 
-const ShowSearchButton = ({ actions }: Props) => {
-    const { openRHSSearch } = actions;
+const ShowSearchButton = ({actions}: Props) => {
+    const {openRHSSearch} = actions;
 
     const handleClick = useCallback(() => {
         openRHSSearch();
-        // Call other action functions here if needed
     }, [openRHSSearch]);
 
     return (
@@ -35,6 +35,6 @@ const ShowSearchButton = ({ actions }: Props) => {
             />
         </button>
     );
-}
+};
 
-export default ShowSearchButton;
+export default React.memo(ShowSearchButton);
