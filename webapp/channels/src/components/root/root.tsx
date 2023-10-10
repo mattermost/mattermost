@@ -7,7 +7,6 @@ import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {PageLoadContext} from '@mattermost/client/lib/client4';
 import {ServiceEnvironment} from '@mattermost/types/config';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -54,7 +53,7 @@ import webSocketClient from 'client/web_websocket_client.jsx';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
-import {StoragePrefixes} from 'utils/constants';
+import {PageLoadContext, StoragePrefixes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';

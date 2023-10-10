@@ -5,8 +5,6 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {PageLoadContext} from '@mattermost/client/lib/client4';
-
 import {
     ChannelTypes,
     EmojiTypes,
@@ -120,7 +118,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes, PageLoadContext} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
