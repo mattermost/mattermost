@@ -10,8 +10,6 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import BackButton from 'components/common/back_button';
 
-// import LocalizedInput from 'components/localized_input/localized_input';
-
 import {t} from 'utils/i18n';
 
 interface Props extends WrappedComponentProps {
@@ -88,20 +86,17 @@ class PasswordResetSendLink extends PureComponent<Props, State> {
     };
 
     render() {
-        const { formatMessage } = this.props.intl;
-        const { error, updateText } = this.state;
-        
         let error = null;
-        if (error) {
-          errorComponent = (
-            <div className='form-group has-error'>
-              <label className='control-label'>{error}</label>
-            </div>
-          );
+        if (this.state.error) {
+            error = (
+                <div className='form-group has-error'>
+                    <label className='control-label'>{this.state.error}</label>
+                </div>
+            );
         }
 
         let formClass = 'form-group';
-        if (errorComponent) {
+        if (error) {
             formClass += ' has-error';
         }
 
@@ -115,7 +110,7 @@ class PasswordResetSendLink extends PureComponent<Props, State> {
                             tagName='h1'
                             defaultMessage='Password Reset'
                         />
-                        {updateText}
+                        {{this.state.updateText}}
                         <form
                             onSubmit={this.handleSendLink}
                             ref={this.resetForm}
@@ -132,16 +127,13 @@ class PasswordResetSendLink extends PureComponent<Props, State> {
                                     type='email'
                                     className='form-control'
                                     name='email'
-                                    placeholder={{
-                                        id: 'password_send.email',
-                                        defaultMessage: 'Email',
-                                    }}
+                                    placeholder={this.props.intl.formatMessage({id: 'password_send.email', defaultMessage: 'Email'})}
                                     ref={this.emailInput}
                                     spellCheck='false'
                                     autoFocus={true}
                                 />
                             </div>
-                            {errorComponent}
+                            {error}
                             <button
                                 id='passwordResetButton'
                                 type='submit'
