@@ -25,9 +25,9 @@ import {t} from 'utils/i18n';
 import {getBrowserTimezone} from 'utils/timezone';
 import {a11yFocus} from 'utils/utils';
 
-import UserSettingsSection from './user_settings_section';
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
+import UserSettingsSection from './user_settings_section';
 
 const Preferences = Constants.Preferences;
 
@@ -269,7 +269,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     handleOnChange = (e: React.ChangeEvent, display: {[key: string]: any}) => {
         this.setState({...display});
         a11yFocus(e.currentTarget as HTMLElement);
-    }
+    };
 
     updateSection = (section: string) => {
         this.updateState();
@@ -777,30 +777,30 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             updateSection={this.updateSection}
                             handleOnChange={this.handleOnChange}
                         />}
-                        {Object.keys(I18n.getLanguages()).length !== 1 &&
-                            <div>
-                                <SettingItem
-                                    active={this.props.activeSection === 'languages'}
-                                    areAllSectionsInactive={this.props.activeSection === ''}
-                                    title={
-                                        <FormattedMessage
-                                            id='user.settings.display.language'
-                                            defaultMessage='Language'
-                                        />
-                                    }
-                                    describe={localeName}
-                                    section={'languages'}
-                                    updateSection={this.updateSection}
-                                    max={(
-                                        <ManageLanguages
-                                            user={this.props.user}
-                                            locale={userLocale}
-                                            updateSection={this.updateSection}
-                                        />
-                                    )}
+                    {Object.keys(I18n.getLanguages()).length !== 1 &&
+                    <div>
+                        <SettingItem
+                            active={this.props.activeSection === 'languages'}
+                            areAllSectionsInactive={this.props.activeSection === ''}
+                            title={
+                                <FormattedMessage
+                                    id='user.settings.display.language'
+                                    defaultMessage='Language'
                                 />
-                                <div className='divider-dark'/>
-                            </div>}
+                            }
+                            describe={localeName}
+                            section={'languages'}
+                            updateSection={this.updateSection}
+                            max={(
+                                <ManageLanguages
+                                    user={this.props.user}
+                                    locale={userLocale}
+                                    updateSection={this.updateSection}
+                                />
+                            )}
+                        />
+                        <div className='divider-dark'/>
+                    </div>}
                 </div>
             </div>
         );

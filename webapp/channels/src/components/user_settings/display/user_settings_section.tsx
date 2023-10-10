@@ -3,10 +3,9 @@
 
 /* eslint-disable max-lines */
 
+import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
-import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -51,7 +50,7 @@ type Props ={
     disabled?: boolean;
     onSubmit?: () => void;
     activeSection?: string;
-    handleSubmit: () => void
+    handleSubmit: () => void;
     isSaving: boolean;
     serverError?: string;
     updateSection: (section: string) => void;
@@ -315,6 +314,6 @@ const UserSettingSection = (props: Props) => {
             <div className='divider-dark'/>
         </div>
     );
-}
+};
 
 export default React.memo(UserSettingSection);
