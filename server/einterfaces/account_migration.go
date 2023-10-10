@@ -10,5 +10,5 @@ import (
 
 type AccountMigrationInterface interface {
 	MigrateToLdap(c *request.Context, fromAuthService string, foreignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError
-	MigrateToSaml(fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) *model.AppError
+	MigrateToSaml(c *request.Context, fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) *model.AppError
 }

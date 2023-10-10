@@ -10,7 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getOnNavigationConfirmed} from 'selectors/views/admin';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import {ActionTypes} from 'utils/constants';
 

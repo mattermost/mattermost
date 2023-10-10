@@ -4,8 +4,8 @@
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 
-import type {CloudState, Product} from '@mattermost/types/cloud';
-import type {AdminConfig, EnvironmentConfig, ClientLicense} from '@mattermost/types/config';
+import type {CloudState} from '@mattermost/types/cloud';
+import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -26,6 +26,7 @@ import {LhsItemType} from 'types/store/lhs';
 
 import AdminSidebar from './admin_sidebar';
 import Highlight from './highlight';
+import type {AdminDefinitionSubSection, AdminDefinitionSection} from './types';
 
 import type {PropsFromRedux} from './index';
 
@@ -50,22 +51,6 @@ type ExtraProps = {
     updateConfig?: (config: AdminConfig) => ActionFunc;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
-}
-
-type ConsoleAccess = {
-    read: Record<string, boolean>;
-    write: Record<string, boolean>;
-}
-
-type Item = {
-    isHidden?: (config?: Record<string, any>, state?: Record<string, any>, license?: Record<string, any>, buildEnterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isCurrentUserSystemAdmin?: boolean) => boolean;
-    isDisabled?: (config?: Record<string, any>, state?: Record<string, any>, license?: Record<string, any>, buildEnterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isCurrentUserSystemAdmin?: boolean) => boolean;
-    schema: Record<string, any>;
-    url: string;
-    restrictedIndicator?: {
-        value: (cloud: CloudState) => React.ReactNode;
-        shouldDisplay: (license: ClientLicense, subscriptionProduct?: Product) => boolean;
-    };
 }
 
 export default class AdminConsole extends React.PureComponent<Props, State> {
@@ -116,30 +101,22 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
     private renderRoutes = (extraProps: ExtraProps) => {
         const {adminDefinition, config, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin} = this.props;
 
-        const schemas: Item[] = Object.values(adminDefinition).reduce((acc, section) => {
-            let items: Item[] = [];
-
+        const schemas: AdminDefinitionSubSection[] = Object.values(adminDefinition).flatMap((section: AdminDefinitionSection) => {
             let isSectionHidden = false;
-            Object.entries(section).find(([key, value]) => {
-                if (key === 'isHidden') {
-                    if (typeof value === 'function') {
-                        isSectionHidden = value(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
-                    } else {
-                        isSectionHidden = Boolean(value);
-                    }
-                }
-                return null;
-            });
-
-            if (!isSectionHidden) {
-                items = Object.values(section).filter((item: Item) => Boolean(item.schema));
+            if (typeof section.isHidden === 'function') {
+                isSectionHidden = section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
+            } else {
+                isSectionHidden = Boolean(section.isHidden);
             }
-            return acc.concat(items);
-        }, [] as Item[]);
+            if (isSectionHidden) {
+                return [];
+            }
+            return Object.values(section.subsections);
+        });
 
         let defaultUrl = '';
 
-        const schemaRoutes = schemas.map((item: Item, index: number) => {
+        const schemaRoutes = schemas.map((item: AdminDefinitionSubSection, index: number) => {
             if (typeof item.isHidden !== 'undefined') {
                 const isHidden = (typeof item.isHidden === 'function') ? item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(item.isHidden);
                 if (isHidden) {
