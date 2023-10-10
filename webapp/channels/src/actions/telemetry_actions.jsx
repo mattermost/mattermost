@@ -8,7 +8,7 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isDevModeEnabled} from 'selectors/general';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 const SUPPORTS_CLEAR_MARKS = isSupported([performance.clearMarks]);
 const SUPPORTS_MARK = isSupported([performance.mark]);
