@@ -1626,6 +1626,22 @@
     "translation": "Invitation is expired."
   },
   {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "An error has occurred while applying IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "An error has occurred while fetching IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "An error has occurred while fetching the client's IP address"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP Filtering is not available on this server"
+  },
+  {
     "id": "api.context.json_encoding.app_error",
     "translation": "Error encoding JSON."
   },
