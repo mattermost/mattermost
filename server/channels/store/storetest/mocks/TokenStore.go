@@ -59,8 +59,8 @@ func (_m *TokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, erro
 	return r0, r1
 }
 
-// GetByPkceToken provides a mock function with given fields: token
-func (_m *TokenStore) GetByPkceToken(token string) (*model.Token, error) {
+// GetByCodeChallengeToken provides a mock function with given fields: token
+func (_m *TokenStore) GetByCodeChallengeToken(token string) (*model.Token, error) {
 	ret := _m.Called(token)
 
 	var r0 *model.Token

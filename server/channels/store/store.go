@@ -651,7 +651,7 @@ type TokenStore interface {
 	UpdateExtra(token, extra string) error
 	Delete(token string) error
 	GetByToken(token string) (*model.Token, error)
-	GetByPkceToken(token string) (*model.Token, error)
+	GetByCodeChallengeToken(token string) (*model.Token, error)
 	Cleanup(expiryTime int64)
 	GetAllTokensByType(tokenType string) ([]*model.Token, error)
 	RemoveAllTokensByType(tokenType string) error

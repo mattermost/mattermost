@@ -20,7 +20,7 @@ func (a *App) CreateCodeChallengeToken(codeChallenge string) (*model.Token, *mod
 	if extraErr != nil {
 		return nil, model.NewAppError("App.CreateCodeChallengeToken", "api.oauth.store_code_challenge", nil, "", http.StatusInternalServerError).Wrap(extraErr)
 	}
-	token := model.NewToken("pkce", string(extraProps))
+	token := model.NewToken("code_challenge", string(extraProps))
 	if err := a.Srv().Store().Token().Save(token); err != nil {
 		var appErr *model.AppError
 		switch {

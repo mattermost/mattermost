@@ -12241,11 +12241,11 @@ func (s *RetryLayerTokenStore) GetAllTokensByType(tokenType string) ([]*model.To
 
 }
 
-func (s *RetryLayerTokenStore) GetByPkceToken(token string) (*model.Token, error) {
+func (s *RetryLayerTokenStore) GetByCodeChallengeToken(token string) (*model.Token, error) {
 
 	tries := 0
 	for {
-		result, err := s.TokenStore.GetByPkceToken(token)
+		result, err := s.TokenStore.GetByCodeChallengeToken(token)
 		if err == nil {
 			return result, nil
 		}

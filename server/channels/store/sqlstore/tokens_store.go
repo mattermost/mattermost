@@ -76,10 +76,10 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	return &token, nil
 }
 
-func (s SqlTokenStore) GetByPkceToken(tokenString string) (*model.Token, error) {
+func (s SqlTokenStore) GetByCodeChallengeToken(tokenString string) (*model.Token, error) {
 	var token model.Token
 
-	if err := s.GetReplicaX().Get(&token, "SELECT * FROM Tokens WHERE Token = ? AND Type='pkce'", tokenString); err != nil {
+	if err := s.GetReplicaX().Get(&token, "SELECT * FROM Tokens WHERE Token = ? AND Type='code_challenge'", tokenString); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
 		}

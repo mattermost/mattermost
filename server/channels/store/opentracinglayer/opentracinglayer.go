@@ -10714,16 +10714,16 @@ func (s *OpenTracingLayerTokenStore) GetAllTokensByType(tokenType string) ([]*mo
 	return result, err
 }
 
-func (s *OpenTracingLayerTokenStore) GetByPkceToken(token string) (*model.Token, error) {
+func (s *OpenTracingLayerTokenStore) GetByCodeChallengeToken(token string) (*model.Token, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.GetByPkceToken")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.GetByCodeChallengeToken")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.TokenStore.GetByPkceToken(token)
+	result, err := s.TokenStore.GetByCodeChallengeToken(token)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
