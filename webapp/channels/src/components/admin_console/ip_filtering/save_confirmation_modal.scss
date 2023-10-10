@@ -1,11 +1,9 @@
 .SaveConfirmationModal {
-    
     .modal-dialog {
         position: absolute;
         top: 50%;
         left: 50%;
         width: 600px;
-
         border: 1 px solid rgba(var(--center-channel-color-rgb), 0.08);
         margin: auto;
         border-radius: 12px;
@@ -18,7 +16,6 @@
 
     .modal-header {
         .close {
-
             &:hover,
             &:active,
             &:focus,
@@ -30,8 +27,9 @@
 
             border-radius: 4px;
             color: rgba(var(--center-channel-color-rgb), 0.56) !important;
-            font-family: 'Open Sans',
-            sans-serif;
+            font-family:
+                'Open Sans',
+                sans-serif;
         }
 
         .title {
@@ -62,74 +60,74 @@
         padding-right: 32px;
         padding-bottom: 26px;
         padding-left: 32px;
-        color: var(--center-channel-color, #3F4350);
+        color: var(--center-channel-color, #3f4350);
         font-family: Open Sans;
         font-size: 14px;
         font-style: normal;
         font-weight: 400;
         line-height: 20px;
-        
-            .disclaimer {
-                margin-top: 32px;
-                width: 536px;
-                height: 120px;
-                padding: 16px;
-                justify-content: flex-start;
-                align-items: flex-start;
-                gap: 12px;
-                display: inline-flex;
-                border-radius: 4px;
-                border: 1px solid rgba(87, 158, 255, 0.16);
-                background: rgba(87, 158, 255, 0.08);
 
-        
-                .Icon {
-                    justify-content: flex-start;
-                    align-items: center;
-                    gap: 10px;
-                    display: flex;
-                    svg {
-                        width: 20px;
-                        height: 20px;
-                        fill: var(--sidebar-text-active-border, rgba(93, 137, 234, 1));
-                    }
+        .disclaimer {
+            display: inline-flex;
+            width: 536px;
+            height: 120px;
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding: 16px;
+            border: 1px solid rgba(87, 158, 255, 0.16);
+            margin-top: 32px;
+            background: rgba(87, 158, 255, 0.08);
+            border-radius: 4px;
+            gap: 12px;
+
+
+            .Icon {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 10px;
+
+                svg {
+                    width: 20px;
+                    height: 20px;
+                    fill: var(--sidebar-text-active-border, rgba(93, 137, 234, 1));
+                }
+            }
+
+            .Body {
+                display: inline-flex;
+                flex: 1 1 0;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: flex-start;
+                padding-right: 24px;
+                gap: 8px;
+
+                .Title {
+                    align-self: stretch;
+                    color: #3f4350;
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-weight: 600;
+                    line-height: 20px;
+                    word-wrap: break-word;
                 }
 
-                .Body {
-                    flex: 1 1 0;
-                    padding-right: 24px;
-                    flex-direction: column;
-                    justify-content: flex-start;
-                    align-items: flex-start;
-                    gap: 8px;
-                    display: inline-flex;
-
-                    .Title {
-                        align-self: stretch;
-                        color: #3F4350;
-                        font-size: 14px;
-                        font-family: 'Open Sans';
-                        font-weight: 600;
-                        line-height: 20px;
-                        word-wrap: break-word;
-                    }
-
-                    .Subtitle {
-                        color: #3F4350;
-                        font-size: 14px;
-                        font-family: 'Open Sans';
-                        font-weight: 400;
-                        line-height: 20px;
-                        word-wrap: break-word;
-                    }
+                .Subtitle {
+                    color: #3f4350;
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-weight: 400;
+                    line-height: 20px;
+                    word-wrap: break-word;
                 }
             }
         }
-
+    }
 
     .modal-footer {
-        border-radius: 12px;
         border-top: none;
+        border-radius: 12px;
         font-family: Open Sans;
         font-size: 14px;
         font-style: normal;
@@ -138,15 +136,15 @@
 
         .btn-cancel {
             padding: var(--spacing-s, 10px) var(--spacing-xl, 20px);
-            border-radius: 4px;
             background: var(--button-bg-8, rgba(28, 88, 217, 0.08));
-            color: var(--button-bg, #1C58D9);
+            border-radius: 4px;
+            color: var(--button-bg, #1c58d9);
         }
 
         .btn-delete {
+            background: var(--denim-status-do-not-disturb, #d24b4e);
             border-radius: 4px;
-            background: var(--denim-status-do-not-disturb, #D24B4E);
-            color: var(--button-color, #FFF);
+            color: var(--button-color, #fff);
         }
     }
 }

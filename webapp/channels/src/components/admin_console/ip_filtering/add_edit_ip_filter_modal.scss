@@ -1,11 +1,9 @@
 .IPFilteringAddOrEditModal {
-    
     .modal-dialog {
         position: absolute;
         top: 50%;
         left: 50%;
         width: 600px;
-
         border: 1 px solid rgba(var(--center-channel-color-rgb), 0.08);
         margin: auto;
         border-radius: 12px;
@@ -18,7 +16,6 @@
 
     .modal-header {
         .close {
-
             &:hover,
             &:active,
             &:focus,
@@ -30,8 +27,9 @@
 
             border-radius: 4px;
             color: rgba(var(--center-channel-color-rgb), 0.56) !important;
-            font-family: 'Open Sans',
-            sans-serif;
+            font-family:
+                'Open Sans',
+                sans-serif;
         }
 
         .title {
@@ -65,72 +63,73 @@
         padding-left: 32px;
 
         .current_ip_notice {
+            display: flex;
             max-width: 536px;
             height: 52px;
+            border: 1px rgba(87, 158, 255, 0.16) solid;
             background: rgba(87, 158, 255, 0.08);
             border-radius: 4px;
-            border: 1px rgba(87, 158, 255, 0.16) solid;
-            display: flex;
 
             .Content {
+                display: flex;
                 width: 536px;
                 height: 52px;
                 padding: 16px;
-                gap: 12px;
-                color: var(--center-channel-color, #3F4350);
+                color: var(--center-channel-color, #3f4350);
                 font-family: Open Sans;
                 font-size: 14px;
                 font-style: normal;
                 font-weight: 600;
+                gap: 12px;
                 line-height: 20px;
-                display: flex;
 
                 span {
-                    line-height: 20px;
-                    height: 20px;
                     display: flex;
+                    height: 20px;
                     align-items: center;
+                    line-height: 20px;
 
                     svg {
-                        fill: #5D89EA;
-                        margin-right: 12px;
                         width: 20px;
                         height: 20px;
+                        margin-right: 12px;
+                        fill: #5d89ea;
                     }
                 }
             }
-
         }
 
         .inputs {
-            color: var(--center-channel-color, #3F4350);
+            color: var(--center-channel-color, #3f4350);
             font-family: Open Sans;
             font-size: 14px;
             font-style: normal;
             font-weight: 600;
             line-height: 20px;
+
             > div {
                 margin-top: var(--spacing-xl, 24px);
+
                 .Input_container {
                     margin-top: var(--spacing-xs, 8px);
                 }
+
                 input {
                     font-weight: normal;
                 }
             }
+
             > p {
                 margin-top: var(--spacing-xs, 8px);
                 font-weight: 400;
             }
         }
 
-
         .buttons {
             margin-top: 32px;
             text-align: right;
 
             .confirm-btn {
-
                 &:hover,
                 &:active,
                 &:focus,
@@ -155,10 +154,9 @@
         }
     }
 
-
     .modal-footer {
-        border-radius: 12px;
         border-top: none;
+        border-radius: 12px;
         font-family: Open Sans;
         font-size: 14px;
         font-style: normal;
@@ -167,15 +165,15 @@
 
         .btn-cancel {
             padding: var(--spacing-s, 10px) var(--spacing-xl, 20px);
-            border-radius: 4px;
             background: var(--button-bg-8, rgba(28, 88, 217, 0.08));
-            color: var(--button-bg, #1C58D9);
+            border-radius: 4px;
+            color: var(--button-bg, #1c58d9);
         }
 
         .btn-save {
+            background: var(--button-bg, #1c58d9);
             border-radius: 4px;
-            background: var(--button-bg, #1C58D9);
-            color: var(--button-color, #FFF);
+            color: var(--button-color, #fff);
         }
     }
 }
