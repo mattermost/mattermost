@@ -76,5 +76,4 @@ func testClearOld(t *testing.T, ss store.Store) {
 	res, err := ss.ProductNotices().GetViews("testuser")
 	require.NoError(t, err)
 	require.Len(t, res, 1)
-
 }
