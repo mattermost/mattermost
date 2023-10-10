@@ -5,8 +5,6 @@ import React, {PureComponent} from 'react';
 import type {ChangeEvent} from 'react';
 import {injectIntl, type IntlShape} from 'react-intl';
 
-import * as Utils from 'utils/utils';
-
 import Setting from './setting';
 
 type Props = {
@@ -51,16 +49,16 @@ class CustomURLSchemesSetting extends
     };
 
     render() {
-        const label = this.props.intl.formatMessage({id: 'admin.customization.customUrlSchemes', defaultMessage: 'Custom URL Schemes:'});
-        const helpText = this.props.intl.formatMessage({
-            id: 'admin.customization.customUrlSchemesDesc',
-            defaultMessage: 'Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".'
-        });
-
         return (
             <Setting
-                label={label}
-                helpText={helpText}
+                label={this.props.intl.formatMessage({
+                    id: 'admin.customization.customUrlSchemes',
+                    defaultMessage: 'Custom URL Schemes:',
+                })}
+                helpText={this.props.intl.formatMessage({
+                    id: 'admin.customization.customUrlSchemesDesc',
+                    defaultMessage: 'Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".',
+                })}
                 inputId={this.props.id}
                 setByEnv={this.props.setByEnv}
             >
