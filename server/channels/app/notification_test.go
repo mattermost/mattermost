@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -250,11 +251,11 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 
 		received1 := <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
-		assert.Equal(t, `["`+th.BasicUser.Id+`"]`, received1.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
 
 		received2 := <-messages2
 		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
-		assert.Equal(t, `["`+th.BasicUser2.Id+`"]`, received2.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser2.Id}, received2.GetData()["mentions"])
 
 		// Second post mentioning both users individually
 		post = &model.Post{
@@ -267,11 +268,11 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 
 		received1 = <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
-		assert.Equal(t, `["`+th.BasicUser.Id+`"]`, received1.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
 
 		received2 = <-messages2
 		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
-		assert.Equal(t, `["`+th.BasicUser2.Id+`"]`, received2.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser2.Id}, received2.GetData()["mentions"])
 
 		// Third post mentioning a single user
 		post = &model.Post{
@@ -284,7 +285,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 
 		received1 = <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
-		assert.Equal(t, `["`+th.BasicUser.Id+`"]`, received1.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
 
 		received2 = <-messages2
 		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
@@ -326,11 +327,11 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 
 		received1 := <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
-		assert.Equal(t, `["`+th.BasicUser.Id+`"]`, received1.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
 
 		received2 := <-messages2
 		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
-		assert.Equal(t, `["`+th.BasicUser2.Id+`"]`, received2.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser2.Id}, received2.GetData()["mentions"])
 	})
 
 	t.Run("should inform each user if they are following a thread that was posted in", func(t *testing.T) {
@@ -351,12 +352,21 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 
 		received1 := <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
-		assert.Equal(t, `["`+th.BasicUser.Id+`"]`, received1.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
 
 		received2 := <-messages2
 		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
-		assert.Equal(t, `["`+th.BasicUser2.Id+`"]`, received2.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser2.Id}, received2.GetData()["mentions"])
 	})
+}
+
+func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
+	t.Helper()
+
+	val, err := json.Marshal(expected)
+	require.NoError(t, err)
+
+	assert.JSONEq(t, string(val), actual.(string))
 }
 
 func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectionID string) (chan *model.WebSocketEvent, func()) {
