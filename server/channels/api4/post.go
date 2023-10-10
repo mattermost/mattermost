@@ -239,7 +239,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if sinceString != "" {
 		since, parseError = strconv.ParseInt(sinceString, 10, 64)
 		if parseError != nil {
-			c.SetInvalidParam("since")
+			c.SetInvalidParamWithErr("since", parseError)
 			return
 		}
 	}
@@ -640,7 +640,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		var err error
 		perPage, err = strconv.Atoi(perPageStr)
 		if err != nil || perPage > web.PerPageMaximum {
-			c.SetInvalidParam("perPage")
+			c.SetInvalidParamWithErr("perPage", err)
 			return
 		}
 	}
@@ -650,7 +650,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		var err error
 		fromCreateAt, err = strconv.ParseInt(fromCreateAtStr, 10, 64)
 		if err != nil {
-			c.SetInvalidParam("fromCreateAt")
+			c.SetInvalidParamWithErr("fromCreateAt", err)
 			return
 		}
 	}
