@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, { PureComponent, createRef } from 'react';
+import { FormattedMessage, injectIntl, WrappedComponentProps } from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import BackButton from 'components/common/back_button';
-import LocalizedInput from 'components/localized_input/localized_input';
 
 import {t} from 'utils/i18n';
 
-interface Props {
+interface Props extends WrappedComponentProps {
     actions: {
         sendPasswordResetEmail: (email: string) => Promise<{data: any; error: ServerError}>;
     };
@@ -24,7 +23,7 @@ interface State {
     updateText: React.ReactNode;
 }
 
-export default class PasswordResetSendLink extends React.PureComponent<Props, State> {
+class PasswordResetSendLink extends PureComponent<Props, State> {
     state = {
         error: null,
         updateText: null,
@@ -48,7 +47,7 @@ export default class PasswordResetSendLink extends React.PureComponent<Props, St
             return;
         }
 
-        // End of error checking clear error
+        // End of error checking, clear error
         this.setState({error: null});
 
         const {data, error} = await this.props.actions.sendPasswordResetEmail(email);
@@ -123,15 +122,12 @@ export default class PasswordResetSendLink extends React.PureComponent<Props, St
                                 />
                             </p>
                             <div className={formClass}>
-                                <LocalizedInput
+                                <input
                                     id='passwordResetEmailInput'
                                     type='email'
                                     className='form-control'
                                     name='email'
-                                    placeholder={{
-                                        id: t('password_send.email'),
-                                        defaultMessage: 'Email',
-                                    }}
+                                    placeholder={this.props.intl.formatMessage({id: 'password_send.email', defaultMessage: 'Email'})}
                                     ref={this.emailInput}
                                     spellCheck='false'
                                     autoFocus={true}
@@ -155,3 +151,5 @@ export default class PasswordResetSendLink extends React.PureComponent<Props, St
         );
     }
 }
+
+export default injectIntl(PasswordResetSendLink);
