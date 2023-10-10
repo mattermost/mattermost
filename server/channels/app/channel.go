@@ -697,6 +697,9 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
+			if invErr.Entity == "Channel" && invErr.Field == "Name" {
+				return nil, model.NewAppError("UpdateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
@@ -3535,20 +3538,6 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 
 	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
 	if appErr != nil {
-		var invErr *store.ErrInvalidInput
-		if errors.As(appErr.Unwrap(), &invErr) {
-			if invErr.Entity == "Channel" && invErr.Field == "Name" {
-				duplicateChannel, errByName := a.GetChannelByName(c, toUpdate.Name, toUpdate.TeamId, true)
-				if errByName != nil {
-					return nil, errByName
-				}
-
-				if duplicateChannel != nil {
-					return nil, model.NewAppError("ConvertGroupMessageToChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(appErr)
-				}
-			}
-		}
-
 		return nil, appErr
 	}
 
