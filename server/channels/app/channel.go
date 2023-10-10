@@ -3537,14 +3537,14 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 	if appErr != nil {
 		var invErr *store.ErrInvalidInput
 		if errors.As(appErr.Unwrap(), &invErr) {
-			if invErr.Field == "Name" {
+			if invErr.Entity == "Channel" && invErr.Field == "Name" {
 				duplicateChannel, errByName := a.GetChannelByName(c, toUpdate.Name, toUpdate.TeamId, true)
 				if errByName != nil {
 					return nil, errByName
 				}
 
 				if duplicateChannel != nil {
-
+					return nil, model.NewAppError("ConvertGroupMessageToChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(appErr)
 				}
 			}
 		}
