@@ -417,6 +417,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			pageLoadContext := r.Header.Get("X-Page-Load-Context")
+			if pageLoadContext != "page_load" && pageLoadContext != "reconnect" {
+				pageLoadContext = ""
+			}
+
 			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed, pageLoadContext)
 		}
 	}
