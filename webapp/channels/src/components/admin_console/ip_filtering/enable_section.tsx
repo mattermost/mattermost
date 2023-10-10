@@ -25,13 +25,24 @@ const EnableSectionContent: React.FC<Props> = ({filterToggle, setFilterToggle}) 
                         </div>
                         <div className='Subtitle'>
                             {
-                            formatMessage(
-                                { id: 'admin.ip_filtering.enable_ip_filtering_description', defaultMessage: 'Limit access to your workspace by IP address. {learnmore}' }, {
-                                learnmore: (<ExternalLink
-                                    href='https://docs.mattermost.com/deployment/ip-address-filtering.html'
-                                    target='_blank'
-                                    rel='noreferrer'
->{formatMessage({id: 'admin.ip_filtering.learn_more', defaultMessage: 'Learn more in the docs'})}</ExternalLink>)})}
+                                formatMessage(
+                                    {
+                                        id: 'admin.ip_filtering.enable_ip_filtering_description',
+                                        defaultMessage: 'Limit access to your workspace by IP address. {learnmore}',
+                                    },
+                                    {
+                                        learnmore: (
+                                            <ExternalLink
+                                                href='https://docs.mattermost.com/deployment/ip-address-filtering.html'
+                                                target='_blank'
+                                                rel='noreferrer'
+                                            >
+                                                {formatMessage({id: 'admin.ip_filtering.learn_more', defaultMessage: 'Learn more in the docs'})}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                )
+                            }
                         </div>
                     </div>
                 </div>

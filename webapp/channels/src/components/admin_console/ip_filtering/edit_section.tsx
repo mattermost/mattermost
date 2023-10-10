@@ -123,24 +123,32 @@ const EditSection: React.FC<EditSectionProps> = ({
                                             <OverlayTrigger
                                                 placement='top'
                                                 overlay={editTooltip}
-                                            ><div
+                                            >
+                                                <div
                                                     className='edit'
-                                                aria-label='Edit'
-                                                role='button'
-                                                onClick={() => setEditFilter(allowedIPRange)}
-                                            ><PencilOutlineIcon size={20}/></div></OverlayTrigger>
+                                                    aria-label='Edit'
+                                                    role='button'
+                                                    onClick={() => setEditFilter(allowedIPRange)}
+                                                >
+                                                    <PencilOutlineIcon size={20}/>
+                                                </div>
+                                            </OverlayTrigger>
                                             <OverlayTrigger
                                                 placement='top'
                                                 overlay={deleteTooltip}
-                                            ><div
+                                            >
+                                                <div
                                                     className='delete'
-                                                aria-label='Delete'
-                                                role='button'
-                                                onClick={() => handleConfirmDeleteFilter(allowedIPRange)}
-                                            ><TrashCanOutlineIcon
+                                                    aria-label='Delete'
+                                                    role='button'
+                                                    onClick={() => handleConfirmDeleteFilter(allowedIPRange)}
+                                                >
+                                                    <TrashCanOutlineIcon
                                                         size={20}
-                                                color='red'
-                                            /></div></OverlayTrigger>
+                                                        color='red'
+                                                    />
+                                                </div>
+                                            </OverlayTrigger>
                                         </>
                                     )}
                                 </div>

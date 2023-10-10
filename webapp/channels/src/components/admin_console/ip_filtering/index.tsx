@@ -2,13 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-
-import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
-
-import './ip_filtering.scss';
-import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
-
 import {useIntl} from 'react-intl';
+
+import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -22,6 +19,8 @@ import {isIPAddressInRanges} from './ip_filtering_utils';
 import SaveConfirmationModal from './save_confirmation_modal';
 
 import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
+
+import './ip_filtering.scss';
 
 const IPFiltering = () => {
     const {formatMessage} = useIntl();
@@ -125,12 +124,10 @@ const IPFiltering = () => {
     }
 
     function handleSave() {
-        console.log(ipFilters);
         setSaving(true);
         setSaveConfirmationModal(null);
 
         Client4.applyIPFilters(ipFilters ?? []).then((res) => {
-            console.log(res);
             setIpFilters(res as AllowedIPRange[]);
             setSaveNeeded(false);
             setSaving(false);
@@ -149,7 +146,7 @@ const IPFiltering = () => {
             saveConfirmModalProps.subtitle = <>{formatMessage({id: 'admin.ip_filtering.no_filters_added', defaultMessage: 'Are you sure you want to apply these IP filter changes? There are currently no filters added, so {strong}'}, {strong: (<strong>{formatMessage({id: 'admin.ip_filtering.all_ip_addresses_will_have_access', defaultMessage: 'All IP addresses will have access to the workspace.'})}</strong>)})}</>;
             saveConfirmModalProps.buttonText = formatMessage({id: 'admin.ip_filtering.apply_changes', defaultMessage: 'Yes, apply Changes'});
             saveConfirmModalProps.includeDisclaimer = false;
-        } else if (!filterToggle) {
+        } else if (ipFilters?.length && !filterToggle) {
             saveConfirmModalProps.title = formatMessage({id: 'admin.ip_filtering.disable_ip_filtering', defaultMessage: 'Disable IP Filtering'});
             saveConfirmModalProps.subtitle = <>{formatMessage({id: 'admin.ip_filtering.turn_off_ip_filtering', defaultMessage: 'Are you sure you want to turn off IP Filtering? {strong}'}, {strong: (<strong>{formatMessage({id: 'admin.ip_filtering.all_ip_addresses_will_have_access', defaultMessage: 'All IP addresses will have access to the workspace.'})}</strong>)})}</>;
             saveConfirmModalProps.buttonText = formatMessage({id: 'admin.ip_filtering.disable_ip_filtering', defaultMessage: 'Yes, disable IP Filtering'});
@@ -199,24 +196,33 @@ const IPFiltering = () => {
                     }
                 </>
             </div>
-            {editFilter !== null && <IPFilteringAddOrEditModal
-                currentIP={currentUsersIP!}
-                onClose={() => setEditFilter(null)}
-                onSave={handleEditFilter}
-                existingRange={editFilter!}
-            />}
-            {showAddModal && <IPFilteringAddOrEditModal
-                currentIP={currentUsersIP!}
-                onClose={() => setShowAddModal(false)}
-                onSave={(filter: AllowedIPRange) => {
-                    handleAddFilter(filter);
-                }}
-            />}
-            {filterToDelete !== null && <DeleteConfirmationModal
-                onClose={() => setFilterToDelete(null)}
-                onConfirm={handleDeleteFilter}
-                filterToDelete={filterToDelete}
-            />}
+            {
+                editFilter !== null &&
+                <IPFilteringAddOrEditModal
+                    currentIP={currentUsersIP!}
+                    onClose={() => setEditFilter(null)}
+                    onSave={handleEditFilter}
+                    existingRange={editFilter!}
+                />
+            }
+            {
+                showAddModal &&
+                <IPFilteringAddOrEditModal
+                    currentIP={currentUsersIP!}
+                    onClose={() => setShowAddModal(false)}
+                    onSave={(filter: AllowedIPRange) => {
+                        handleAddFilter(filter);
+                    }}
+                />
+            }
+            {
+                filterToDelete !== null &&
+                <DeleteConfirmationModal
+                    onClose={() => setFilterToDelete(null)}
+                    onConfirm={handleDeleteFilter}
+                    filterToDelete={filterToDelete}
+                />
+            }
             {saveConfirmationModal}
             <SaveChangesPanel
                 saving={saving}

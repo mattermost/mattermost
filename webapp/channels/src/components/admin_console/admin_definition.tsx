@@ -3248,19 +3248,19 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             ip_filtering: {
-            url: 'site_config/ip_filtering',
-            title: t('admin.sidebar.ip_filtering'),
-            title_default: 'IP Filtering',
-            isHidden: it.configIsFalse('FeatureFlags', 'CloudIPFiltering'),
-            searchableStrings: [
-                'admin.sidebar.ip_filtering',
-            ],
-            schema: {
-                id: 'IPFiltering',
-                component: IPFiltering,
+                url: 'site_config/ip_filtering',
+                title: t('admin.sidebar.ip_filtering'),
+                title_default: 'IP Filtering',
+                isHidden: it.configIsFalse('FeatureFlags', 'CloudIPFiltering'),
+                searchableStrings: [
+                    'admin.sidebar.ip_filtering',
+                ],
+                schema: {
+                    id: 'IPFiltering',
+                    component: IPFiltering,
+                },
+                isDisabled: false,
             },
-            isDisabled: false,
-        },
         },
     },
     authentication: {

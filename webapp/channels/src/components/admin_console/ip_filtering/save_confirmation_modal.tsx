@@ -3,12 +3,12 @@
 
 import React from 'react';
 import {Button, Modal} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
 
+import ExternalLink from 'components/external_link';
 import InfoIcon from 'components/widgets/icons/info_icon';
 
 import './save_confirmation_modal.scss';
-import {useIntl} from 'react-intl';
-import ExternalLink from 'components/external_link';
 
 type Props = {
     onClose?: () => void;
@@ -49,17 +49,17 @@ export default function SaveConfirmationModal({onClose, onConfirm, title, subtit
                                         {
                                             id: 'admin.ip_filtering.save_disclaimer_subtitle',
                                             defaultMessage: 'If you happen to block yourself with these settings, your workspace owner can log in to the {customerportal} to disable IP filtering to restore access.',
-                                        }, 
+                                        },
                                         {
                                             customerportal: (
-                                            <ExternalLink
-                                                href='https://customers.mattermost.com/console/ip_filtering'
-                                                target='_blank'
-                                                rel='noreferrer'    
-                                            >
-                                                Customer Portal
-                                            </ExternalLink>)
-                                        }
+                                                <ExternalLink
+                                                    href='https://customers.mattermost.com/console/ip_filtering'
+                                                    target='_blank'
+                                                    rel='noreferrer'
+                                                >
+                                                    {'Customer Portal'}
+                                                </ExternalLink>),
+                                        },
                                     )
                                 }
                             </div>
