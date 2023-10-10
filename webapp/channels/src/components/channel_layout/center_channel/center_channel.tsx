@@ -11,7 +11,7 @@ import PlaybookRunner from 'components/channel_layout/playbook_runner';
 import LoadingScreen from 'components/loading_screen';
 import PermalinkView from 'components/permalink_view';
 
-import {IDENTIFIER_PATH, ID_PATH_PATTERN} from 'utils/path';
+import {IDENTIFIER_PATTERN, ID_PATH_PATTERN} from 'utils/path';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
@@ -104,7 +104,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             )}
                         />
                         <Route
-                            path={IDENTIFIER_PATH.map((v) => `/:team/:path(channels|messages)${v}/:postid(${ID_PATH_PATTERN})?`)}
+                            path={`/:team/:path(channels|messages)/:identifier(${IDENTIFIER_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
                             component={ChannelIdentifierRouter}
                         />
                         <Route

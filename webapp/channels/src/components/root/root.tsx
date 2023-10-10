@@ -55,7 +55,7 @@ import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
 import {StoragePrefixes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
-import {TEAM_NAME_PATH} from 'utils/path';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -643,7 +643,7 @@ export default class Root extends React.PureComponent<Props, State> {
                             ))}
                             <LoggedInRoute
                                 theme={this.props.theme}
-                                path={TEAM_NAME_PATH}
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
                                 component={TeamController}
                             />
                             <RootRedirect/>
