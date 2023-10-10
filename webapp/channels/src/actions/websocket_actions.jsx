@@ -628,9 +628,22 @@ export function handleChannelUpdatedEvent(msg) {
     return (doDispatch, doGetState) => {
         const channel = JSON.parse(msg.data.channel);
 
-        doDispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
+        const actions = [{type: ChannelTypes.RECEIVED_CHANNEL, data: channel}];
 
+        // handling the case of GM converted to private channel.
         const state = doGetState();
+        const existingChannel = getChannel(state, channel.id);
+
+        // if the updated channel exists in store
+        if (existingChannel) {
+            // and it was a GM, converted to a private channel
+            if (existingChannel.type === General.GM_CHANNEL && channel.type === General.PRIVATE_CHANNEL) {
+                actions.push({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
+            }
+        }
+
+        doDispatch(batchActions(actions));
+
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
             getHistory().replace(`${getRelativeTeamUrl(state, channel.team_id)}/channels/${channel.name}`);
