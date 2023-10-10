@@ -394,7 +394,13 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		Name:        "cluster_health_score",
 		Help:        "A score that gives an idea of how well it is meeting the soft-real time requirements of the gossip protocol.",
 		ConstLabels: additionalLabels,
-	}, func() float64 { return float64(m.Platform.Cluster().HealthScore()) })
+	}, func() float64 {
+		if m.Platform.Cluster() == nil {
+			return 0
+		}
+
+		return float64(m.Platform.Cluster().HealthScore())
+	})
 	m.Registry.MustRegister(m.ClusterHealthGauge)
 
 	m.ClusterRequestsCounter = prometheus.NewCounter(prometheus.CounterOpts{
