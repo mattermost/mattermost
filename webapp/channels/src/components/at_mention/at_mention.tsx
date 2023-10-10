@@ -44,7 +44,12 @@ export const AtMention = (props: Props) => {
     const [target, setTarget] = useState<HTMLAnchorElement | undefined>();
     const [placement, setPlacement] = useState('right');
 
-    const showOverlay = (target?: HTMLAnchorElement, group?: Group) => {
+    const [user, group] = useMemo(
+        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
+        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight],
+    );
+
+    const showOverlay = (target?: HTMLAnchorElement) => {
         const targetBounds = ref.current?.getBoundingClientRect();
 
         if (targetBounds) {
@@ -71,18 +76,18 @@ export const AtMention = (props: Props) => {
         }
     };
 
-    const handleClick = (group?: Group) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        showOverlay(e.target as HTMLAnchorElement, group);
+        showOverlay(e.target as HTMLAnchorElement);
     };
 
-    const handleKeyDown = (group?: Group) => (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
             e.preventDefault();
 
             // Prevent propagation so that the message textbox isn't focused
             e.stopPropagation();
-            showOverlay(e.target as HTMLAnchorElement, group);
+            showOverlay(e.target as HTMLAnchorElement);
         }
     };
 
@@ -138,11 +143,6 @@ export const AtMention = (props: Props) => {
         return null;
     };
 
-    const [user, group] = useMemo(
-        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
-        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight],
-    );
-
     if (!user && !group) {
         return <>{props.children}</>;
     }
@@ -195,8 +195,8 @@ export const AtMention = (props: Props) => {
                     }
                 </Overlay>
                 <a
-                    onClick={handleClick(group)}
-                    onKeyDown={handleKeyDown(group)}
+                    onClick={handleClick}
+                    onKeyDown={handleKeyDown}
                     className={group ? 'group-mention-link' : 'mention-link'}
                     ref={ref}
                     aria-haspopup='dialog'
