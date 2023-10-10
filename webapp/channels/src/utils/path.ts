@@ -16,4 +16,4 @@ export const TEAM_NAME_PATH_PATTERN = '[a-z0-9\\-_]+';
 // - Username prefixed by a @
 // - User ID
 // - Email
-export const IDENTIFIER_PATTERN = '[@a-zA-Z\\-_0-9\\.]+'
+export const IDENTIFIER_PATTERN = '[@a-zA-Z\\-_0-9\\.]+';
