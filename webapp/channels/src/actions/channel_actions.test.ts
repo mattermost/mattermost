@@ -104,7 +104,7 @@ const initialState = {
 const realDateNow = Date.now;
 
 jest.mock('mattermost-redux/actions/channels', () => ({
-    fetchMyChannelsAndMembersREST: (...args: any) => ({type: 'MOCK_FETCH_CHANNELS_AND_MEMBERS', args}),
+    fetchChannelsAndMembers: (...args: any) => ({type: 'MOCK_FETCH_CHANNELS_AND_MEMBERS', args}),
     searchChannels: () => {
         return {
             type: 'MOCK_SEARCH_CHANNELS',

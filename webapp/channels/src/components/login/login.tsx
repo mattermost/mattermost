@@ -12,7 +12,7 @@ import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {loadMeREST} from 'mattermost-redux/actions/users';
+import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
@@ -628,7 +628,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const postSubmit = async (userProfile: UserProfile) => {
-        await dispatch(loadMeREST());
+        await dispatch(loadMe());
 
         // check for query params brought over from signup_user_complete
         const params = new URLSearchParams(search);

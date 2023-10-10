@@ -91,7 +91,7 @@ function TeamController(props: Props) {
             if (!props.disableRefetchingOnBrowserFocus) {
                 const currentTime = Date.now();
                 if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
-                    props.fetchMyChannelsAndMembersREST(props.currentTeamId);
+                    props.fetchChannelsAndMembers(props.currentTeamId);
                 }
             }
         }

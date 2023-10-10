@@ -13,7 +13,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getTeamInviteInfo} from 'mattermost-redux/actions/teams';
-import {createUser, loadMeREST} from 'mattermost-redux/actions/users';
+import {createUser, loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -481,7 +481,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const postSignupSuccess = async () => {
         const redirectTo = (new URLSearchParams(search)).get('redirect_to');
 
-        await dispatch(loadMeREST());
+        await dispatch(loadMe());
 
         if (token) {
             setGlobalItem(token, JSON.stringify({usedBefore: true}));

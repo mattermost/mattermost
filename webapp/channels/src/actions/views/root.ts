@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
-import {loadMeREST} from 'mattermost-redux/actions/users';
+import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
@@ -27,7 +27,7 @@ export function loadConfigAndMe() {
 
         let isMeLoaded = false;
         if (document.cookie.includes('MMUSERID=')) {
-            const dataFromLoadMe = await dispatch(loadMeREST());
+            const dataFromLoadMe = await dispatch(loadMe());
             isMeLoaded = dataFromLoadMe?.data ?? false;
         }
 
