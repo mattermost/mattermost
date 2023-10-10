@@ -267,6 +267,7 @@ const NewChannelModal = () => {
                     onDisplayNameChange={setDisplayName}
                     onURLChange={setURL}
                     onErrorStateChange={setChannelInputError}
+                    urlError={urlError}
                 />
                 <PublicPrivateSelector
                     className='new-channel-modal-type-selector'

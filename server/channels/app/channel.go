@@ -3535,6 +3535,20 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 
 	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
 	if appErr != nil {
+		var invErr *store.ErrInvalidInput
+		if errors.As(appErr.Unwrap(), &invErr) {
+			if invErr.Field == "Name" {
+				duplicateChannel, errByName := a.GetChannelByName(c, toUpdate.Name, toUpdate.TeamId, true)
+				if errByName != nil {
+					return nil, errByName
+				}
+
+				if duplicateChannel != nil {
+
+				}
+			}
+		}
+
 		return nil, appErr
 	}
 
