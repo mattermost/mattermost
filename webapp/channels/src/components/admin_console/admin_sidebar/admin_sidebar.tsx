@@ -161,7 +161,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         };
         const result = new Set();
         for (const section of Object.values(adminDefinition)) {
-            for (const item of Object.values(section.subsections)) {
+            for (const item of Object.values(section)) {
                 if (isVisible(item)) {
                     result.add(item.url);
                 }
@@ -180,7 +180,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
             }
             if (!isSectionHidden) {
                 const sidebarItems: JSX.Element[] = [];
-                Object.entries(section.subsections).forEach(([subKey, item]) => {
+                Object.entries(section).forEach(([subKey, item]) => {
                     if (!item.title) {
                         return;
                     }

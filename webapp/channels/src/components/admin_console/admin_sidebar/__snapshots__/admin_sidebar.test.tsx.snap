@@ -53,6 +53,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
             definitionKey="plugins"
             icon={
               <PowerPlugOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -133,6 +134,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             definitionKey="user_management"
             icon={
               <AccountMultipleOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -200,6 +202,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             definitionKey="site"
             icon={
               <CogOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -243,6 +246,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             definitionKey="authentication"
             icon={
               <ShieldOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -358,6 +362,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             definitionKey="plugins"
             icon={
               <PowerPlugOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -393,6 +398,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             definitionKey="compliance"
             icon={
               <FormatListBulletedIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -540,6 +546,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             definitionKey="about"
             icon={
               <InformationOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -570,6 +577,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             definitionKey="reporting"
             icon={
               <ChartBarIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -633,6 +641,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             definitionKey="user_management"
             icon={
               <AccountMultipleOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -696,6 +705,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             definitionKey="environment"
             icon={
               <ServerVariantIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -836,6 +846,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             definitionKey="site"
             icon={
               <CogOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -954,6 +965,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             definitionKey="authentication"
             icon={
               <ShieldOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1028,6 +1040,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             definitionKey="plugins"
             icon={
               <PowerPlugOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1063,6 +1076,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             definitionKey="integrations"
             icon={
               <SitemapIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1126,6 +1140,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             definitionKey="experimental"
             icon={
               <FlaskOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1234,6 +1249,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             definitionKey="about"
             icon={
               <InformationOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1264,6 +1280,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             definitionKey="reporting"
             icon={
               <ChartBarIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1327,6 +1344,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             definitionKey="user_management"
             icon={
               <AccountMultipleOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1390,6 +1408,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             definitionKey="environment"
             icon={
               <ServerVariantIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1530,6 +1549,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             definitionKey="site"
             icon={
               <CogOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1648,6 +1668,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             definitionKey="authentication"
             icon={
               <ShieldOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1722,6 +1743,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             definitionKey="plugins"
             icon={
               <PowerPlugOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1757,6 +1779,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             definitionKey="integrations"
             icon={
               <SitemapIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1820,6 +1843,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             definitionKey="experimental"
             icon={
               <FlaskOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -1983,6 +2007,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             definitionKey="about"
             icon={
               <InformationOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2013,6 +2038,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             definitionKey="reporting"
             icon={
               <ChartBarIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2076,6 +2102,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             definitionKey="user_management"
             icon={
               <AccountMultipleOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2139,6 +2166,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             definitionKey="environment"
             icon={
               <ServerVariantIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2279,6 +2307,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             definitionKey="site"
             icon={
               <CogOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2397,6 +2426,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             definitionKey="authentication"
             icon={
               <ShieldOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2471,6 +2501,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             definitionKey="plugins"
             icon={
               <PowerPlugOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2506,6 +2537,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             definitionKey="integrations"
             icon={
               <SitemapIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2569,6 +2601,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             definitionKey="experimental"
             icon={
               <FlaskOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2677,6 +2710,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             definitionKey="about"
             icon={
               <InformationOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2707,6 +2741,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             definitionKey="reporting"
             icon={
               <ChartBarIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2770,6 +2805,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             definitionKey="user_management"
             icon={
               <AccountMultipleOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2833,6 +2869,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             definitionKey="environment"
             icon={
               <ServerVariantIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -2973,6 +3010,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             definitionKey="site"
             icon={
               <CogOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3091,6 +3129,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             definitionKey="authentication"
             icon={
               <ShieldOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3165,6 +3204,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             definitionKey="plugins"
             icon={
               <PowerPlugOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3200,6 +3240,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             definitionKey="integrations"
             icon={
               <SitemapIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3263,6 +3304,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             definitionKey="experimental"
             icon={
               <FlaskOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3371,6 +3413,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="about"
             icon={
               <InformationOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3401,6 +3444,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="reporting"
             icon={
               <ChartBarIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3464,6 +3508,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="user_management"
             icon={
               <AccountMultipleOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3549,6 +3594,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="environment"
             icon={
               <ServerVariantIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3711,6 +3757,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="site"
             icon={
               <CogOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3840,6 +3887,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="authentication"
             icon={
               <ShieldOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3958,6 +4006,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="plugins"
             icon={
               <PowerPlugOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -3993,6 +4042,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="integrations"
             icon={
               <SitemapIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4056,6 +4106,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="compliance"
             icon={
               <FormatListBulletedIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4119,6 +4170,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             definitionKey="experimental"
             icon={
               <FlaskOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4227,6 +4279,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="about"
             icon={
               <InformationOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4257,6 +4310,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="reporting"
             icon={
               <ChartBarIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4320,6 +4374,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="user_management"
             icon={
               <AccountMultipleOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4431,6 +4486,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="environment"
             icon={
               <ServerVariantIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4571,6 +4627,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="site"
             icon={
               <CogOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4713,6 +4770,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="authentication"
             icon={
               <ShieldOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4883,6 +4941,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="plugins"
             icon={
               <PowerPlugOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4918,6 +4977,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="integrations"
             icon={
               <SitemapIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -4981,6 +5041,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="compliance"
             icon={
               <FormatListBulletedIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
@@ -5072,6 +5133,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             definitionKey="experimental"
             icon={
               <FlaskOutlineIcon
+                className="category-icon fa"
                 color="currentColor"
                 size={16}
               />
