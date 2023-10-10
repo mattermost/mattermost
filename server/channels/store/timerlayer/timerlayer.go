@@ -9644,6 +9644,22 @@ func (s *TimerLayerTokenStore) GetAllTokensByType(tokenType string) ([]*model.To
 	return result, err
 }
 
+func (s *TimerLayerTokenStore) GetByPkceToken(token string) (*model.Token, error) {
+	start := time.Now()
+
+	result, err := s.TokenStore.GetByPkceToken(token)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.GetByPkceToken", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	start := time.Now()
 
