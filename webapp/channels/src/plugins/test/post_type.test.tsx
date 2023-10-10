@@ -4,6 +4,8 @@
 import {shallow, mount} from 'enzyme';
 import React from 'react';
 
+import {Preferences} from 'mattermost-redux/constants';
+
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
 
 class PostTypePlugin extends React.PureComponent {
@@ -13,7 +15,7 @@ class PostTypePlugin extends React.PureComponent {
 }
 
 describe('plugins/PostMessageView', () => {
-    const post = {type: 'testtype', message: 'this is some text', id: 'post_id'};
+    const post = {type: 'testtype', message: 'this is some text', id: 'post_id'} as any;
     const pluginPostTypes = {
         testtype: {component: PostTypePlugin},
     };
@@ -24,7 +26,7 @@ describe('plugins/PostMessageView', () => {
         currentUser: {username: 'username'},
         team: {name: 'team_name'},
         emojis: {name: 'smile'},
-        theme: {id: 'theme_id'},
+        theme: Preferences.THEMES.denim,
         enableFormatting: true,
         currentRelativeTeamUrl: 'team_url',
     };
