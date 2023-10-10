@@ -47,7 +47,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={true}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
         id="askTheCommunityLink"
         onClick={[Function]}
@@ -73,7 +73,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         show={true}
         text="Keyboard shortcuts"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;
@@ -125,7 +125,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={true}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
         id="helpResourcesLink"
         show={true}
@@ -144,7 +144,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         show={true}
         text="Keyboard shortcuts"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;
@@ -196,7 +196,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={true}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
         id="askTheCommunityLink"
         onClick={[Function]}
@@ -229,7 +229,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         show={true}
         text="Test Item"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;

@@ -47,7 +47,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     inHeaderDropdown={true}
     openUp={false}
   />
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(ToggleFavoriteChannel)
       channel={
         Object {
@@ -229,8 +229,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         }
       }
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
@@ -422,8 +422,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         text="View Members"
       />
     </Connect(ChannelPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
@@ -494,8 +494,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       show={false}
       text="Convert to Private Channel"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
@@ -777,9 +777,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     <Connect(CloseChannel)
       isArchived={false}
     />
-  </MenuGroup>
-  <MenuGroup />
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup) />
+  <Memo(MenuGroup)>
     <Connect(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
@@ -825,7 +825,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         text="Unarchive Channel"
       />
     </Connect(ChannelPermissionGate)>
-  </MenuGroup>
+  </Memo(MenuGroup)>
 </Fragment>
 `;
 
@@ -876,7 +876,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     inHeaderDropdown={true}
     openUp={false}
   />
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(ToggleFavoriteChannel)
       channel={
         Object {
@@ -1058,8 +1058,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         }
       }
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
@@ -1251,8 +1251,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         text="View Members"
       />
     </Connect(ChannelPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
@@ -1323,8 +1323,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       show={false}
       text="Convert to Private Channel"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
@@ -1606,8 +1606,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     <Connect(CloseChannel)
       isArchived={false}
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemAction
       id="plugin-1_pluginmenuitem"
       key="plugin-1_pluginmenuitem"
@@ -1622,8 +1622,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       show={true}
       text="plugin-2-text"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
@@ -1669,6 +1669,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         text="Unarchive Channel"
       />
     </Connect(ChannelPermissionGate)>
-  </MenuGroup>
+  </Memo(MenuGroup)>
 </Fragment>
 `;
