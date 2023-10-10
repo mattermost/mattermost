@@ -5,6 +5,7 @@ package app
 
 import (
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -33,7 +34,7 @@ func (a *App) CreateCodeChallengeToken(codeChallenge string) (*model.Token, *mod
 }
 
 func (a *App) UpdateCodeChallengeToken(codeChallengeToken string, session *model.Session) *model.AppError {
-	token, err := a.Srv().Store().Token().GetByToken(codeChallengeToken)
+	token, err := a.Srv().Store().Token().GetByPkceToken(codeChallengeToken)
 	if err != nil {
 		return model.NewAppError("App.UpdateCodeChallengeToken", "api.oauth.store_code_challenge", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -60,7 +61,7 @@ func (a *App) UpdateCodeChallengeToken(codeChallengeToken string, session *model
 func (a *App) VerifyCodeChallengeTokenAndGetSessionToken(codeChallengeToken, codeVerifier string) (map[string]string, *model.AppError) {
 	codeChallenge := codeChallengeFromCodeVerifier(codeVerifier)
 
-	token, err := a.Srv().Store().Token().GetByToken(codeChallengeToken)
+	token, err := a.Srv().Store().Token().GetByPkceToken(codeChallengeToken)
 	if err != nil {
 		return nil, model.NewAppError("App.VerifyCodeChallengeTokenAndGetSessionToken", "api.oauth.verify_code_challenge", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -70,7 +71,7 @@ func (a *App) VerifyCodeChallengeTokenAndGetSessionToken(codeChallengeToken, cod
 		return nil, model.NewAppError("App.VerifyCodeChallengeTokenAndGetSessionToken", "api.oauth.verify_code_challenge", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if codeChallenge != extraMap["code_challenge"] {
+	if subtle.ConstantTimeCompare([]byte(codeChallenge), []byte(extraMap["code_challenge"])) == 0 {
 		return nil, model.NewAppError("App.VerifyCodeChallengeTokenAndGetSessionToken", "api.oauth.verify_code_challenge", nil, "", http.StatusBadRequest)
 	}
 

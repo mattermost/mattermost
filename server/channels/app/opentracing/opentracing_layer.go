@@ -7658,7 +7658,7 @@ func (a *OpenTracingAppLayer) GetOAuthImplicitRedirect(userID string, authReques
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(c *request.Context, w http.ResponseWriter, r *http.Request, service string, teamID string, action string, redirectTo string, loginHint string, isMobile bool, desktopToken string, codeChallenge string) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(c *request.Context, w http.ResponseWriter, r *http.Request, service string, teamID string, action string, redirectTo string, loginHint string, isMobile bool, desktopToken string, codeChallengeToken string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthLoginEndpoint")
 
@@ -7670,7 +7670,7 @@ func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(c *request.Context, w http.R
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOAuthLoginEndpoint(c, w, r, service, teamID, action, redirectTo, loginHint, isMobile, desktopToken, codeChallenge)
+	resultVar0, resultVar1 := a.app.GetOAuthLoginEndpoint(c, w, r, service, teamID, action, redirectTo, loginHint, isMobile, desktopToken, codeChallengeToken)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -65,7 +65,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["desktop_token"] = desktopToken
 	}
 
-	codeChallenge := html.EscapeString(r.URL.Query().Get("code_challenge"))
+	codeChallenge := r.URL.Query().Get("code_challenge")
 	if codeChallenge != "" {
 		token, tokenErr := c.App.CreateCodeChallengeToken(codeChallenge)
 		if tokenErr != nil {

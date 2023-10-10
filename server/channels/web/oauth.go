@@ -433,7 +433,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
-	codeChallenge := html.EscapeString(r.URL.Query().Get("code_challenge"))
+	codeChallenge := r.URL.Query().Get("code_challenge")
 
 	if redirectURL != "" && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectURL) {
 		err := model.NewAppError("mobileLoginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)

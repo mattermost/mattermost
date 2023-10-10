@@ -76,6 +76,20 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	return &token, nil
 }
 
+func (s SqlTokenStore) GetByPkceToken(tokenString string) (*model.Token, error) {
+	var token model.Token
+
+	if err := s.GetReplicaX().Get(&token, "SELECT * FROM Tokens WHERE Token = ? AND Type='pkce'", tokenString); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
+		}
+
+		return nil, errors.Wrapf(err, "failed to get Token with value %s", tokenString)
+	}
+
+	return &token, nil
+}
+
 func (s SqlTokenStore) Cleanup(expiryTime int64) {
 	if _, err := s.GetMasterX().Exec("DELETE FROM Tokens WHERE CreateAt < ?", expiryTime); err != nil {
 		mlog.Error("Unable to cleanup token store.")

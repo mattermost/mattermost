@@ -431,7 +431,7 @@ func (a *App) newSessionUpdateToken(app *model.OAuthApp, accessData *model.Acces
 	return accessRsp, nil
 }
 
-func (a *App) GetOAuthLoginEndpoint(c *request.Context, w http.ResponseWriter, r *http.Request, service, teamID, action, redirectTo, loginHint string, isMobile bool, desktopToken string, codeChallenge string) (string, *model.AppError) {
+func (a *App) GetOAuthLoginEndpoint(c *request.Context, w http.ResponseWriter, r *http.Request, service, teamID, action, redirectTo, loginHint string, isMobile bool, desktopToken string, codeChallengeToken string) (string, *model.AppError) {
 	stateProps := map[string]string{}
 	stateProps["action"] = action
 	if teamID != "" {
@@ -446,8 +446,8 @@ func (a *App) GetOAuthLoginEndpoint(c *request.Context, w http.ResponseWriter, r
 		stateProps["desktop_token"] = desktopToken
 	}
 
-	if codeChallenge != "" {
-		stateProps["code_challenge_token"] = codeChallenge
+	if codeChallengeToken != "" {
+		stateProps["code_challenge_token"] = codeChallengeToken
 	}
 
 	stateProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
