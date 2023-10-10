@@ -17,13 +17,11 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import LocalizedInput from 'components/localized_input/localized_input';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import SystemUsersList from './list';
@@ -315,13 +313,15 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
             </option>
         ));
 
+        const searchUsersPlaceholder = Utils.localizeMessage('filtered_user_list.search', 'AD/LDAP ID') || 'Search users';
+
         return (
             <div className='system-users__filter-row'>
                 <div className='system-users__filter'>
-                    <LocalizedInput
+                    <input
                         id='searchUsers'
                         className='form-control filter-textbox'
-                        placeholder={{id: t('filtered_user_list.search'), defaultMessage: 'Search users'}}
+                        placeholder={searchUsersPlaceholder}
                         onInput={doSearch}
                     />
                 </div>
