@@ -3,26 +3,28 @@
 
 import {connect} from 'react-redux';
 
+import type {PluginRedux, PluginSetting} from '@mattermost/types/plugins';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {GlobalState} from '@mattermost/types/store';
-import {PluginRedux} from '@mattermost/types/plugins';
+import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 
+import {getAdminConsoleCustomComponents} from 'selectors/admin_console';
+
+import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
-import {getAdminConsoleCustomComponents} from 'selectors/admin_console';
-import SchemaAdminSettings from '../schema_admin_settings';
-import {it} from '../admin_definition';
-
-import {appsPluginID} from 'utils/apps';
-
-import {AdminConsolePluginComponent} from 'types/store/plugins';
+import type {AdminConsolePluginComponent} from 'types/store/plugins';
 
 import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
+
+import {it} from '../admin_definition';
+import SchemaAdminSettings from '../schema_admin_settings';
+import type {AdminDefinitionSetting} from '../types';
 
 type OwnProps = { match: { params: { plugin_id: string } } }
 
@@ -41,7 +43,7 @@ function makeGetPluginSchema() {
             const escapedPluginId = SchemaAdminSettings.escapePathPart(plugin.id);
             const pluginEnabledConfigKey = 'PluginSettings.PluginStates.' + escapedPluginId + '.Enable';
 
-            let settings: Array<Partial<SchemaAdminSettings>> = [];
+            let settings: Array<Partial<AdminDefinitionSetting & PluginSetting>> = [];
             if (plugin.settings_schema && plugin.settings_schema.settings) {
                 settings = plugin.settings_schema.settings.map((setting) => {
                     const key = setting.key.toLowerCase();
@@ -80,17 +82,25 @@ function makeGetPluginSchema() {
                         component,
                         showTitle: customComponents[key] ? customComponents[key].options.showTitle : false,
                     };
-                });
+                }) as Array<Partial<AdminDefinitionSetting & PluginSetting>>;
             }
 
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
                 const pluginEnableSetting = getEnablePluginSetting(plugin);
-                pluginEnableSetting.isDisabled = it.any(pluginEnableSetting.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
+                if (pluginEnableSetting.isDisabled) {
+                    pluginEnableSetting.isDisabled = it.any(pluginEnableSetting.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
+                } else {
+                    pluginEnableSetting.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
+                }
                 settings.unshift(pluginEnableSetting);
             }
 
             settings.forEach((s) => {
-                s.isDisabled = it.any(s.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
+                if (s.isDisabled) {
+                    s.isDisabled = it.any(s.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
+                } else {
+                    s.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
+                }
             });
 
             return {

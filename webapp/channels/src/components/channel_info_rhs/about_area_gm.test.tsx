@@ -4,10 +4,11 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 
 import AboutAreaGM from './about_area_gm';
 
@@ -105,6 +106,11 @@ const initialState = {
             license: {IsLicensed: 'false'},
             serverVersion: '5.4.0',
             config: {PostEditTimeLimit: -1},
+        },
+    },
+    views: {
+        browser: {
+            windowSize: '',
         },
     },
 };

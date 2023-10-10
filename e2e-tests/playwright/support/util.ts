@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {v4 as uuidv4} from 'uuid';
-import {ViewportSize} from '@playwright/test';
 
 const second = 1000;
 const minute = 60 * 1000;
@@ -46,7 +45,3 @@ export function getRandomId(length = 7): string {
 export const defaultTeam = {name: 'ad-1', displayName: 'eligendi', type: 'O'};
 
 export const illegalRe = /[/?<>\\:*|":&();]/g;
-
-export function isSmallScreen(viewport?: ViewportSize | {width: number; height: number} | null) {
-    return viewport?.width ? Boolean(viewport?.width <= 390) : true;
-}

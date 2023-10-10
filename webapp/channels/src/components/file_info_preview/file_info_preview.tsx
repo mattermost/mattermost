@@ -3,9 +3,11 @@
 
 import React from 'react';
 
-import * as Utils from 'utils/utils';
-import {FileInfo} from '@mattermost/types/files';
+import type {FileInfo} from '@mattermost/types/files';
+
 import ExternalLink from 'components/external_link';
+
+import * as Utils from 'utils/utils';
 
 type Props = {
     fileInfo: FileInfo;

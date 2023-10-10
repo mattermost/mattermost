@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	_ "embed"
 	"fmt"
 	"io"
@@ -26,7 +25,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -430,6 +429,50 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestHookMessageHasBeenDeleted(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "message").Return(nil).Times(1)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+			p.API.LogDebug(post.Message)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+	_, err = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+}
+
 func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -775,6 +818,55 @@ func TestUserHasLoggedIn(t *testing.T) {
 	assert.Equal(t, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
 }
 
+func TestUserHasBeenDeactivated(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserHasBeenDeactivated(c *plugin.Context, user *model.User) {
+			user.Nickname = "plugin-callback-success"
+			p.API.UpdateUser(user)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	user := &model.User{
+		Email:    "success+test@example.com",
+		Nickname: "testnickname",
+		Username: "testusername",
+		Password: "testpassword",
+	}
+
+	_, err := th.App.CreateUser(th.Context, user)
+	require.Nil(t, err)
+
+	_, err = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, err)
+
+	time.Sleep(1 * time.Second)
+	user, err = th.App.GetUser(user.Id)
+
+	require.Nil(t, err)
+	require.Equal(t, "plugin-callback-success", user.Nickname)
+}
+
 func TestUserHasBeenCreated(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -805,11 +897,10 @@ func TestUserHasBeenCreated(t *testing.T) {
 	defer tearDown()
 
 	user := &model.User{
-		Email:       model.NewId() + "success+test@example.com",
-		Nickname:    "Darth Vader",
-		Username:    "vader" + model.NewId(),
-		Password:    "passwd1",
-		AuthService: "",
+		Email:    "success+test@example.com",
+		Nickname: "testnickname",
+		Username: "testusername",
+		Password: "testpassword",
 	}
 	_, err := th.App.CreateUser(th.Context, user)
 	require.Nil(t, err)
@@ -896,10 +987,9 @@ func TestErrorString(t *testing.T) {
 func TestHookContext(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
-	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-	ctx.SetLogger(th.TestLogger)
 	ctx.Session().Id = model.NewId()
 
 	var mockAPI plugintest.API
@@ -991,11 +1081,10 @@ func TestActiveHooks(t *testing.T) {
 
 		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 		user1 := &model.User{
-			Email:       model.NewId() + "success+test@example.com",
-			Nickname:    "Darth Vader1",
-			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
-			AuthService: "",
+			Email:    "success+test@example.com",
+			Nickname: "testnickname",
+			Username: "testusername",
+			Password: "testpassword",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
@@ -1097,10 +1186,10 @@ func TestHookMetrics(t *testing.T) {
 		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 		user1 := &model.User{
-			Email:       model.NewId() + "success+test@example.com",
-			Nickname:    "Darth Vader1",
-			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Email:       "success+test@example.com",
+			Nickname:    "testnickname",
+			Username:    "testusername",
+			Password:    "testpassword",
 			AuthService: "",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)

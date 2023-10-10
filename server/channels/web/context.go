@@ -12,8 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -59,10 +59,11 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 		EventName: event,
 		Status:    initialStatus,
 		Actor: audit.EventActor{
-			UserId:    c.AppContext.Session().UserId,
-			SessionId: c.AppContext.Session().Id,
-			Client:    c.AppContext.UserAgent(),
-			IpAddress: c.AppContext.IPAddress(),
+			UserId:        c.AppContext.Session().UserId,
+			SessionId:     c.AppContext.Session().Id,
+			Client:        c.AppContext.UserAgent(),
+			IpAddress:     c.AppContext.IPAddress(),
+			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
 		Meta: map[string]interface{}{
 			audit.KeyAPIPath:   c.AppContext.Path(),
@@ -221,6 +222,10 @@ func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
 }
 
+func (c *Context) SetInvalidParamWithDetails(parameter string, details string) {
+	c.Err = NewInvalidParamDetailedError(parameter, details)
+}
+
 func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
 	c.Err = NewInvalidParamError(parameter).Wrap(err)
 }
@@ -269,6 +274,10 @@ func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWrite
 	return false
 }
 
+func NewInvalidParamDetailedError(parameter string, details string) *model.AppError {
+	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, details, http.StatusBadRequest)
+	return err
+}
 func NewInvalidParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err

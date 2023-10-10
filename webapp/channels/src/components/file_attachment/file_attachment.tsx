@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useState, useEffect} from 'react';
 import classNames from 'classnames';
+import React, {useRef, useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
+import useTooltip from 'components/common/hooks/useTooltip';
+import GetPublicModal from 'components/get_public_link_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
-import GetPublicModal from 'components/get_public_link_modal';
-import useTooltip from 'components/common/hooks/useTooltip';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
 import {trimFilename} from 'utils/file_utils';
-
 import {
     fileSizeToString,
     getFileType,
@@ -26,12 +26,9 @@ import {
     localizeMessage,
 } from 'utils/utils';
 
-import {FileInfo} from '@mattermost/types/files';
-
 import ArchivedTooltip from './archived_tooltip';
-
-import FilenameOverlay from './filename_overlay';
 import FileThumbnail from './file_thumbnail';
+import FilenameOverlay from './filename_overlay';
 
 import type {PropsFromRedux} from './index';
 

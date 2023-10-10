@@ -131,6 +131,11 @@ func (_m *Hooks) Implemented() ([]string, error) {
 	return r0, r1
 }
 
+// MessageHasBeenDeleted provides a mock function with given fields: c, post
+func (_m *Hooks) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+	_m.Called(c, post)
+}
+
 // MessageHasBeenPosted provides a mock function with given fields: c, post
 func (_m *Hooks) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	_m.Called(c, post)
@@ -341,6 +346,11 @@ func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 
 // UserHasBeenCreated provides a mock function with given fields: c, user
 func (_m *Hooks) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+	_m.Called(c, user)
+}
+
+// UserHasBeenDeactivated provides a mock function with given fields: c, user
+func (_m *Hooks) UserHasBeenDeactivated(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
 }
 

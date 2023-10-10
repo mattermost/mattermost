@@ -76,7 +76,7 @@ export default class PlainLogList extends React.PureComponent<Props, State> {
             nextButton = (
                 <button
                     type='button'
-                    className='btn btn-default filter-control filter-control__next pull-right'
+                    className='btn btn-tertiary filter-control filter-control__next pull-right'
                     onClick={this.nextPage}
                     disabled={this.state.nextDisabled}
                 >
@@ -93,7 +93,7 @@ export default class PlainLogList extends React.PureComponent<Props, State> {
             previousButton = (
                 <button
                     type='button'
-                    className='btn btn-default filter-control filter-control__prev'
+                    className='btn btn-tertiary filter-control filter-control__prev'
                     onClick={this.previousPage}
                 >
                     <LocalizedIcon

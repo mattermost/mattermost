@@ -419,6 +419,32 @@ func (_m *TeamStore) GetChannelUnreadsForTeam(teamID string, userID string) ([]*
 	return r0, r1
 }
 
+// GetCommonTeamIDsForMultipleUsers provides a mock function with given fields: userIDs
+func (_m *TeamStore) GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error) {
+	ret := _m.Called(userIDs)
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string) ([]string, error)); ok {
+		return rf(userIDs)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []string); ok {
+		r0 = rf(userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(userIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCommonTeamIDsForTwoUsers provides a mock function with given fields: userID, otherUserID
 func (_m *TeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUserID string) ([]string, error) {
 	ret := _m.Called(userID, otherUserID)

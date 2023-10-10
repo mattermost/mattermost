@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
 import AdvancedSettingsDisplay from 'components/user_settings/advanced/user_settings_advanced';
 
@@ -46,6 +47,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         enablePreviewFeatures: false,
         enableUserDeactivation: false,
         syncedDraftsAreAllowed: true,
+        disableWebappPrefetchAllowed: false,
+        dataPrefetchEnabled: 'true',
     };
 
     test('should have called handleSubmit', async () => {
