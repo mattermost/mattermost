@@ -48,9 +48,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
   bodyPadding={true}
   cancelButtonText={
     <React.Fragment>
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Previous"
         id="generic.previous"
