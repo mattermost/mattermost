@@ -191,7 +191,7 @@ export const AtMention = (props: Props) => {
                             hide={hideGroupUserOverlay}
                             returnFocus={returnFocus}
                         />
-                    ) : null
+                    ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
                     }
                 </Overlay>
                 <a
