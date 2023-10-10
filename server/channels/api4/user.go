@@ -1287,7 +1287,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check that the fields being updated are not set by the login provider
-	conflictField := c.App.CheckProviderAttributes(ouser, user.ToPatch())
+	conflictField := c.App.CheckProviderAttributes(c.AppContext, ouser, user.ToPatch())
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
@@ -1363,7 +1363,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	conflictField := c.App.CheckProviderAttributes(ouser, &patch)
+	conflictField := c.App.CheckProviderAttributes(c.AppContext, ouser, &patch)
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
@@ -2347,7 +2347,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "email", email)
 	audit.AddEventParameter(auditRec, "redirect", redirect)
 
-	user, err := c.App.GetUserForLogin("", email)
+	user, err := c.App.GetUserForLogin(c.AppContext, "", email)
 	if err != nil {
 		// Don't want to leak whether the email is valid or not
 		ReturnStatusOK(w)
@@ -2381,7 +2381,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 
 	if switchRequest.EmailToOAuth() {
-		link, err = c.App.SwitchEmailToOAuth(w, r, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.NewService)
+		link, err = c.App.SwitchEmailToOAuth(c.AppContext, w, r, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.NewService)
 	} else if switchRequest.OAuthToEmail() {
 		c.SessionRequired()
 		if c.Err != nil {
@@ -2390,9 +2390,9 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		link, err = c.App.SwitchOAuthToEmail(switchRequest.Email, switchRequest.NewPassword, c.AppContext.Session().UserId)
 	} else if switchRequest.EmailToLdap() {
-		link, err = c.App.SwitchEmailToLdap(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapLoginId, switchRequest.NewPassword)
+		link, err = c.App.SwitchEmailToLdap(c.AppContext, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapLoginId, switchRequest.NewPassword)
 	} else if switchRequest.LdapToEmail() {
-		link, err = c.App.SwitchLdapToEmail(switchRequest.Password, switchRequest.MfaCode, switchRequest.Email, switchRequest.NewPassword)
+		link, err = c.App.SwitchLdapToEmail(c.AppContext, switchRequest.Password, switchRequest.MfaCode, switchRequest.Email, switchRequest.NewPassword)
 	} else {
 		c.SetInvalidParam("switch_request")
 		return
@@ -3072,7 +3072,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if migrate := c.App.AccountMigration(); migrate != nil {
-		if err := migrate.MigrateToLdap(from, matchField, force, false); err != nil {
+		if err := migrate.MigrateToLdap(c.AppContext, from, matchField, force, false); err != nil {
 			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -3131,7 +3131,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if migrate := c.App.AccountMigration(); migrate != nil {
-		if err := migrate.MigrateToSaml(from, usersMap, auto, false); err != nil {
+		if err := migrate.MigrateToSaml(c.AppContext, from, usersMap, auto, false); err != nil {
 			c.Err = model.NewAppError("api.migrateAuthToSaml", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}

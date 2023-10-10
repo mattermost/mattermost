@@ -22,7 +22,7 @@ func TestGenerateAndSaveDesktopToken(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("generate token", func(t *testing.T) {
-		token, err := th.App.GenerateAndSaveDesktopToken(time.Now().Add(-TTL).Unix(), th.BasicUser)
+		token, err := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), th.BasicUser)
 		assert.Nil(t, err)
 		assert.NotNil(t, token)
 	})
@@ -32,7 +32,7 @@ func TestValidateDesktopToken(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	authenticatedServerToken, err := th.App.GenerateAndSaveDesktopToken(time.Now().Add(-TTL).Unix(), th.BasicUser)
+	authenticatedServerToken, err := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), th.BasicUser)
 	require.Nil(t, err)
 	require.NotNil(t, authenticatedServerToken)
 
@@ -41,7 +41,7 @@ func TestValidateDesktopToken(t *testing.T) {
 	require.NotNil(t, expiredServerToken)
 
 	badUser := model.User{Id: "some_garbage_user_id"}
-	badUserServerToken, err := th.App.GenerateAndSaveDesktopToken(time.Now().Add(-TTL).Unix(), &badUser)
+	badUserServerToken, err := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), &badUser)
 	require.Nil(t, err)
 	require.NotNil(t, badUserServerToken)
 

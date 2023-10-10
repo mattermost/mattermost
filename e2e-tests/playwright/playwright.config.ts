@@ -53,13 +53,6 @@ export default defineConfig({
     },
     projects: [
         {
-            name: 'iphone',
-            use: {
-                browserName: 'chromium',
-                ...devices['iPhone 13 Pro'],
-            },
-        },
-        {
             name: 'ipad',
             use: {
                 browserName: 'chromium',

@@ -13,7 +13,7 @@ import {
     getChannelByName,
     getChannelMember,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getCallsConfig, getCalls} from 'mattermost-redux/selectors/entities/common';
+import {getCallsConfig, getProfilesInCalls} from 'mattermost-redux/selectors/entities/common';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getCurrentTeam,
@@ -53,11 +53,11 @@ function getDefaultChannelId(state: GlobalState) {
 export function checkUserInCall(state: GlobalState, userId: string) {
     let isUserInCall = false;
 
-    const calls = getCalls(state);
-    Object.keys(calls).forEach((channelId) => {
-        const usersInCall = calls[channelId] || [];
+    const profilesInCalls = getProfilesInCalls(state);
+    Object.keys(profilesInCalls).forEach((channelId) => {
+        const profiles = profilesInCalls[channelId] || [];
 
-        for (const user of usersInCall) {
+        for (const user of profiles) {
             if (user.id === userId) {
                 isUserInCall = true;
                 break;

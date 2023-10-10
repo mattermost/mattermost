@@ -5,7 +5,6 @@ package model
 
 import (
 	"net/http"
-	"time"
 )
 
 const (
@@ -120,15 +119,13 @@ func (j *Job) IsValid() *AppError {
 	return nil
 }
 
+func (j *Job) LogClone() any {
+	return j.Auditable()
+}
+
 type Worker interface {
 	Run()
 	Stop()
 	JobChannel() chan<- Job
 	IsEnabled(cfg *Config) bool
-}
-
-type Scheduler interface {
-	Enabled(cfg *Config) bool
-	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
-	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)
 }

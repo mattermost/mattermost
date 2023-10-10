@@ -446,10 +446,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const getEmojiTargetRef = useCallback(() => emojiButtonRef.current, [emojiButtonRef]);
 
     let emojiPicker = null;
-    const emojiButtonAriaLabel = formatMessage({
-        id: 'emoji_picker.emojiPicker',
-        defaultMessage: 'Emoji Picker',
-    }).toLowerCase();
 
     if (config.EnableEmojiPicker === 'true') {
         emojiPicker = (
@@ -466,7 +462,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                     rightOffset={RIGHT_OFFSET}
                 />
                 <button
-                    aria-label={emojiButtonAriaLabel}
+                    aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                     id='editPostEmoji'
                     ref={emojiButtonRef}
                     className='style--none post-action'

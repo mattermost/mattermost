@@ -96,7 +96,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                         <button
                             id='invitePeople'
                             type='button'
-                            className='btn btn-primary invite-people-btn'
+                            className='btn btn-primary btn-sm invite-people-btn'
                             onClick={this.handleInvitePeople}
                         >
                             <FormattedMessage

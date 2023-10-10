@@ -79,7 +79,14 @@ import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamUrl, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {
+    getMyTeams,
+    getCurrentRelativeTeamUrl,
+    getCurrentTeamId,
+    getCurrentTeamUrl,
+    getTeam,
+    getRelativeTeamUrl,
+} from 'mattermost-redux/selectors/entities/teams';
 import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
@@ -103,12 +110,12 @@ import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import InteractiveDialog from 'components/interactive_dialog';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
-import WebSocketClient from 'client/web_websocket_client.jsx';
+import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
@@ -615,11 +622,25 @@ export function handleChannelUpdatedEvent(msg) {
     return (doDispatch, doGetState) => {
         const channel = JSON.parse(msg.data.channel);
 
-        doDispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
+        const actions = [{type: ChannelTypes.RECEIVED_CHANNEL, data: channel}];
 
+        // handling the case of GM converted to private channel.
         const state = doGetState();
+        const existingChannel = getChannel(state, channel.id);
+
+        // if the updated channel exists in store
+        if (existingChannel) {
+            // and it was a GM, converted to a private channel
+            if (existingChannel.type === General.GM_CHANNEL && channel.type === General.PRIVATE_CHANNEL) {
+                actions.push({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
+            }
+        }
+
+        doDispatch(batchActions(actions));
+
         if (channel.id === getCurrentChannelId(state)) {
-            getHistory().replace(`${getCurrentRelativeTeamUrl(state)}/channels/${channel.name}`);
+            // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
+            getHistory().replace(`${getRelativeTeamUrl(state, channel.team_id)}/channels/${channel.name}`);
         }
     };
 }
