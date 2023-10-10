@@ -953,7 +953,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 
 func (mi *MetricsInterfaceImpl) isLicensed() bool {
 	license := mi.Platform.License()
-	return license != nil && *license.Features.Metrics
+	return (license != nil && *license.Features.Metrics) || (model.BuildNumber == "dev")
 }
 
 func (mi *MetricsInterfaceImpl) Register() {
