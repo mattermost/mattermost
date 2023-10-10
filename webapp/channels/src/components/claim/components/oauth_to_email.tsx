@@ -71,8 +71,6 @@ const OAuthToEmail = (props: Props) => {
     };
 
     const uiType = `${(props.currentType === Constants.SAML_SERVICE ? Constants.SAML_SERVICE.toUpperCase() : toTitleCase(props.currentType || ''))} SSO`;
-    const placeholderPasswordMessage = intl.formatMessage({id: t('claim.oauth_to_email.newPwd'), defaultMessage: 'New Password'});
-    const placeholderConfirmMessage = intl.formatMessage({id: t('claim.oauth_to_email.confirm'), defaultMessage: 'Confirm Password'});
 
     return (
         <>
@@ -103,7 +101,10 @@ const OAuthToEmail = (props: Props) => {
                         className='form-control'
                         name='password'
                         ref={passwordInput}
-                        placeholder={placeholderPasswordMessage}
+                        placeholder={intl.formatMessage({
+                            id: t('claim.oauth_to_email.newPwd'),
+                            defaultMessage: 'New Password',
+                        })}
                         spellCheck='false'
                     />
                 </div>
@@ -113,7 +114,10 @@ const OAuthToEmail = (props: Props) => {
                         className='form-control'
                         name='passwordconfirm'
                         ref={passwordConfirmInput}
-                        placeholder={placeholderConfirmMessage}
+                        placeholder={intl.formatMessage({
+                            id: t('claim.oauth_to_email.confirm'),
+                            defaultMessage: 'Confirm Password',
+                        })}
                         spellCheck='false'
                     />
                 </div>
