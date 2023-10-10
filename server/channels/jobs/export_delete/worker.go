@@ -28,8 +28,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		exportPath := *app.Config().ExportSettings.Directory
 		retentionTime := time.Duration(*app.Config().ExportSettings.RetentionDays) * 24 * time.Hour
@@ -43,7 +43,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			filename := filepath.Base(exports[i])
 			modTime, appErr := app.ExportFileModTime(filepath.Join(exportPath, filename))
 			if appErr != nil {
-				job.Logger.Debug("Worker: Failed to get file modification time",
+				logger.Debug("Worker: Failed to get file modification time",
 					mlog.Err(appErr), mlog.String("export", exports[i]))
 				errors.Append(appErr)
 				continue
@@ -52,7 +52,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			if time.Now().After(modTime.Add(retentionTime)) {
 				// remove file data from storage.
 				if appErr := app.RemoveExportFile(exports[i]); appErr != nil {
-					job.Logger.Debug("Worker: Failed to remove file",
+					logger.Debug("Worker: Failed to remove file",
 						mlog.Err(appErr), mlog.String("export", exports[i]))
 					errors.Append(appErr)
 					continue
@@ -61,7 +61,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		}
 
 		if err := errors.ErrorOrNil(); err != nil {
-			job.Logger.Warn("Worker: errors occurred", mlog.Err(err))
+			logger.Warn("Worker: errors occurred", mlog.Err(err))
 		}
 		return nil
 	}
