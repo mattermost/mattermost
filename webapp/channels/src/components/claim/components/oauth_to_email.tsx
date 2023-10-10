@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
-import {FormattedMessage, type IntlShape} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
@@ -21,10 +21,10 @@ type Props = {
     email: string | null;
     siteName?: string;
     passwordConfig?: ReturnType<typeof getPasswordConfig>;
-    intl: IntlShape;
 }
 
 const OAuthToEmail = (props: Props) => {
+    const intl = useIntl();
     const passwordInput = useRef<HTMLInputElement>(null);
     const passwordConfirmInput = useRef<HTMLInputElement>(null);
 
@@ -71,8 +71,8 @@ const OAuthToEmail = (props: Props) => {
     };
 
     const uiType = `${(props.currentType === Constants.SAML_SERVICE ? Constants.SAML_SERVICE.toUpperCase() : toTitleCase(props.currentType || ''))} SSO`;
-    const placeholderPasswordMessage = props.intl.formatMessage({id: t('claim.oauth_to_email.newPwd'), defaultMessage: 'New Password'});
-    const placeholderConfirmMessage = props.intl.formatMessage({id: t('claim.oauth_to_email.confirm'), defaultMessage: 'Confirm Password'});
+    const placeholderPasswordMessage = intl.formatMessage({id: t('claim.oauth_to_email.newPwd'), defaultMessage: 'New Password'});
+    const placeholderConfirmMessage = intl.formatMessage({id: t('claim.oauth_to_email.confirm'), defaultMessage: 'Confirm Password'});
 
     return (
         <>
