@@ -51,7 +51,7 @@ export default function StateSelector(props: Props) {
                 }))}
                 legend={formatMessage({id: 'admin.billing.subscription.stateprovince', defaultMessage: 'State/Province'})}
                 placeholder={formatMessage({id: 'admin.billing.subscription.stateprovince', defaultMessage: 'State/Province'})}
-                name={'billing_dropdown'}
+                name={'country_dropdown'}
             />
         );
     }
