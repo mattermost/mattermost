@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	dbsql "database/sql"
 	"fmt"
-	"log"
 	"path"
 	"strconv"
 	"strings"
@@ -16,25 +15,20 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/morph"
 	sq "github.com/mattermost/squirrel"
-
-	"github.com/mattermost/morph/drivers"
-	ms "github.com/mattermost/morph/drivers/mysql"
-	ps "github.com/mattermost/morph/drivers/postgres"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	mbindata "github.com/mattermost/morph/sources/embedded"
+	"github.com/mattermost/morph/models"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/db"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/db"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type migrationDirection string
@@ -114,11 +108,12 @@ type SqlStoreStores struct {
 	postAcknowledgement        store.PostAcknowledgementStore
 	postPersistentNotification store.PostPersistentNotificationStore
 	trueUpReview               store.TrueUpReviewStore
+	desktopTokens              store.DesktopTokensStore
 }
 
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
-	// See https://github.com/mattermost/mattermost-server/server/v8/channels/pull/7281
+	// See https://github.com/mattermost/mattermost/server/v8/channels/pull/7281
 	rrCounter int64
 	srCounter int64
 
@@ -144,7 +139,7 @@ type SqlStore struct {
 	wgMonitor   *sync.WaitGroup
 }
 
-func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
+func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
 	store := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
@@ -156,7 +151,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	err := store.initConnection()
 	if err != nil {
-		mlog.Fatal("Error setting up connections", mlog.Err(err))
+		return nil, errors.Wrap(err, "error setting up connections")
 	}
 
 	store.wgMonitor.Add(1)
@@ -164,32 +159,32 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	ver, err := store.GetDbVersion(true)
 	if err != nil {
-		mlog.Fatal("Error while getting DB version.", mlog.Err(err))
+		return nil, errors.Wrap(err, "error while getting DB version")
 	}
 
 	ok, err := store.ensureMinimumDBVersion(ver)
 	if !ok {
-		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
+		return nil, errors.Wrap(err, "error while checking DB version")
 	}
 
 	err = store.ensureDatabaseCollation()
 	if err != nil {
-		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
+		return nil, errors.Wrap(err, "error while checking DB collation")
 	}
 
-	err = store.migrate(migrationsDirectionUp)
+	err = store.migrate(migrationsDirectionUp, false)
 	if err != nil {
-		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
+		return nil, errors.Wrap(err, "failed to apply database migrations")
 	}
 
 	store.isBinaryParam, err = store.computeBinaryParam()
 	if err != nil {
-		mlog.Fatal("Failed to compute binary param", mlog.Err(err))
+		return nil, errors.Wrap(err, "failed to compute binary param")
 	}
 
 	store.pgDefaultTextSearchConfig, err = store.computeDefaultTextSearchConfig()
 	if err != nil {
-		mlog.Fatal("Failed to compute default text search config", mlog.Err(err))
+		return nil, errors.Wrap(err, "failed to compute default text search config")
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -235,10 +230,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
+	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
-	return store
+	return store, nil
 }
 
 // SetupConnection sets up the connection to the database and pings it to make sure it's alive.
@@ -1086,8 +1082,11 @@ func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
 	return ss.stores.trueUpReview
 }
 
+func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
+	return ss.stores.desktopTokens
+}
+
 func (ss *SqlStore) DropAllTables() {
-	var tableSchemaFn string
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		ss.masterX.Exec(`DO
 			$func$
@@ -1097,56 +1096,18 @@ func (ss *SqlStore) DropAllTables() {
 			    FROM   pg_class
 			    WHERE  relkind = 'r'  -- only tables
 			    AND    relnamespace = 'public'::regnamespace
-				AND NOT (
-                  relname = 'db_migrations' OR
-                  relname = 'focalboard_schema_migrations' OR
-                  relname = 'focalboard_boards' OR
-                  relname = 'focalboard_blocks'
-                )
+				AND NOT relname = 'db_migrations'
 			   );
 			END
 			$func$;`)
-		tableSchemaFn = "current_schema()"
 	} else {
 		tables := []string{}
 		ss.masterX.Select(&tables, `show tables`)
 		for _, t := range tables {
-			if t != "db_migrations" &&
-				t != "focalboard_schema_migrations" &&
-				t != "focalboard_boards" &&
-				t != "focalboard_blocks" {
+			if t != "db_migrations" {
 				ss.masterX.Exec(`TRUNCATE TABLE ` + t)
 
 			}
-		}
-		tableSchemaFn = "DATABASE()"
-	}
-
-	var boardsTableCount int
-	err := ss.masterX.Get(&boardsTableCount, `
-      SELECT COUNT(*)
-        FROM INFORMATION_SCHEMA.TABLES
-       WHERE TABLE_SCHEMA = `+tableSchemaFn+`
-         AND TABLE_NAME = 'focalboard_schema_migrations'`)
-	if err != nil {
-		panic(errors.Wrap(err, "Error dropping all tables. Cannot query INFORMATION_SCHEMA table to check for focalboard_schema_migrations table"))
-	}
-
-	if boardsTableCount != 0 {
-		_, blErr := ss.masterX.Exec(`
-          DELETE FROM focalboard_blocks
-          WHERE board_id IN (
-            SELECT id
-            FROM focalboard_boards
-            WHERE NOT is_template
-          )`)
-		if blErr != nil {
-			panic(errors.Wrap(blErr, "Error deleting all non-template blocks"))
-		}
-
-		_, boErr := ss.masterX.Exec(`DELETE FROM focalboard_boards WHERE NOT is_template`)
-		if boErr != nil {
-			panic(errors.Wrap(boErr, "Error delegint all non-template boards"))
 		}
 	}
 }
@@ -1189,76 +1150,6 @@ func (ss *SqlStore) hasLicense() bool {
 	ss.licenseMutex.Unlock()
 
 	return hasLicense
-}
-
-func (ss *SqlStore) migrate(direction migrationDirection) error {
-	assets := db.Assets()
-
-	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
-	if err != nil {
-		return err
-	}
-
-	assetNamesForDriver := make([]string, len(assetsList))
-	for i, entry := range assetsList {
-		assetNamesForDriver[i] = entry.Name()
-	}
-
-	src, err := mbindata.WithInstance(&mbindata.AssetSource{
-		Names: assetNamesForDriver,
-		AssetFunc: func(name string) ([]byte, error) {
-			return assets.ReadFile(path.Join("migrations", ss.DriverName(), name))
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	var driver drivers.Driver
-	switch ss.DriverName() {
-	case model.DatabaseDriverMysql:
-		dataSource, rErr := ResetReadTimeout(*ss.settings.DataSource)
-		if rErr != nil {
-			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
-			return rErr
-		}
-		dataSource, err = AppendMultipleStatementsFlag(dataSource)
-		if err != nil {
-			return err
-		}
-		db, err2 := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
-		if err2 != nil {
-			return err2
-		}
-		driver, err = ms.WithInstance(db)
-		defer db.Close()
-	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB)
-	default:
-		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
-	}
-	if err != nil {
-		return err
-	}
-
-	opts := []morph.EngineOption{
-		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
-		morph.WithLock("mm-lock-key"),
-		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
-	}
-	engine, err := morph.New(context.Background(), driver, src, opts...)
-	if err != nil {
-		return err
-	}
-	defer engine.Close()
-
-	switch direction {
-	case migrationsDirectionDown:
-		_, err = engine.ApplyDown(-1)
-		return err
-	default:
-		return engine.ApplyAll()
-	}
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
@@ -1405,6 +1296,34 @@ func (ss *SqlStore) toReserveCase(str string) string {
 	}
 
 	return fmt.Sprintf("`%s`", strings.Title(str))
+}
+
+func (ss *SqlStore) GetLocalSchemaVersion() (int, error) {
+	assets := db.Assets()
+
+	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
+	if err != nil {
+		return 0, err
+	}
+
+	maxVersion := 0
+	for _, entry := range assetsList {
+		// parse the version name from the file name
+		m := models.Regex.FindStringSubmatch(entry.Name())
+		if len(m) < 2 {
+			return 0, fmt.Errorf("migration file name incorrectly formed: %s", entry.Name())
+		}
+
+		version, err := strconv.Atoi(m[1])
+		if err != nil {
+			return 0, err
+		}
+		// store the highest version
+		if maxVersion < version {
+			maxVersion = version
+		}
+	}
+	return maxVersion, nil
 }
 
 func (ss *SqlStore) GetDBSchemaVersion() (int, error) {

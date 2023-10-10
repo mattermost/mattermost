@@ -6,8 +6,9 @@ package searchtest
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
+
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -35,12 +36,12 @@ type searchTest struct {
 func filterTestsByTag(tests []searchTest, tags ...string) []searchTest {
 	filteredTests := []searchTest{}
 	for _, test := range tests {
-		if utils.StringInSlice(EngineAll, test.Tags) {
+		if pUtils.Contains(test.Tags, EngineAll) {
 			filteredTests = append(filteredTests, test)
 			continue
 		}
 		for _, tag := range tags {
-			if utils.StringInSlice(tag, test.Tags) {
+			if pUtils.Contains(test.Tags, tag) {
 				filteredTests = append(filteredTests, test)
 				break
 			}

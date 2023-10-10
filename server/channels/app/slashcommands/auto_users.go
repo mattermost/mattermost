@@ -4,14 +4,15 @@
 package slashcommands
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type AutoUserCreator struct {
@@ -42,18 +43,18 @@ func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *Au
 
 // Basic test team and user so you always know one
 func CreateBasicUser(a *app.App, client *model.Client4) error {
-	found, _, _ := client.TeamExists(BTestTeamName, "")
+	found, _, _ := client.TeamExists(context.Background(), BTestTeamName, "")
 	if found {
 		return nil
 	}
 
 	newteam := &model.Team{DisplayName: BTestTeamDisplayName, Name: BTestTeamName, Email: BTestTeamEmail, Type: BTestTeamType}
-	basicteam, _, err := client.CreateTeam(newteam)
+	basicteam, _, err := client.CreateTeam(context.Background(), newteam)
 	if err != nil {
 		return err
 	}
 	newuser := &model.User{Email: BTestUserEmail, Nickname: BTestUserName, Password: BTestUserPassword}
-	ruser, _, err := client.CreateUser(newuser)
+	ruser, _, err := client.CreateUser(context.Background(), newuser)
 	if err != nil {
 		return err
 	}

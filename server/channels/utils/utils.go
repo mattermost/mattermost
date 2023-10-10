@@ -13,17 +13,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
-
-func StringInSlice(a string, slice []string) bool {
-	for _, b := range slice {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
 
 // RemoveStringFromSlice removes the first occurrence of a from slice.
 func RemoveStringFromSlice(a string, slice []string) []string {
@@ -40,7 +32,7 @@ func RemoveStringsFromSlice(slice []string, strings ...string) []string {
 	newSlice := []string{}
 
 	for _, item := range slice {
-		if !StringInSlice(item, strings) {
+		if !pUtils.Contains(strings, item) {
 			newSlice = append(newSlice, item)
 		}
 	}
@@ -213,6 +205,25 @@ func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool
 			return true
 		}
 	}
+	return false
+}
+
+// This will only return TRUE if the request comes from a mobile running the Mobile App.
+// If the request comes from a mobile using the browser, it will return FALSE.
+func IsMobileRequest(r *http.Request) bool {
+	userAgent := r.UserAgent()
+	if userAgent == "" {
+		return false
+	}
+
+	// Check if the User-Agent contain keywords found in mobile devices running the mobile App
+	mobileKeywords := []string{"Mobile", "Android", "iOS", "iPhone", "iPad"}
+	for _, keyword := range mobileKeywords {
+		if strings.Contains(userAgent, keyword) {
+			return true
+		}
+	}
+
 	return false
 }
 

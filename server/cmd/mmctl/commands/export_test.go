@@ -4,12 +4,13 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +24,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(mockJob).
+			CreateJob(context.Background(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -43,7 +44,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(mockJob).
+			CreateJob(context.Background(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -65,7 +66,7 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 
 	s.client.
 		EXPECT().
-		DeleteExport(exportName).
+		DeleteExport(context.Background(), exportName).
 		Return(&model.Response{StatusCode: http.StatusOK}, nil).
 		Times(1)
 
@@ -83,7 +84,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports().
+			ListExports(context.Background()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
@@ -104,7 +105,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports().
+			ListExports(context.Background()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 

@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import MenuItemToggleMuteChannel, {Actions} from './toggle_mute_channel';
+import MenuItemToggleMuteChannel from './toggle_mute_channel';
+import type {Actions} from './toggle_mute_channel';
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({

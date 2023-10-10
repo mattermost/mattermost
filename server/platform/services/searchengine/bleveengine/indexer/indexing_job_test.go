@@ -10,11 +10,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 )
 
 func TestBleveIndexer(t *testing.T) {
@@ -61,6 +62,7 @@ func TestBleveIndexer(t *testing.T) {
 		worker := &BleveIndexerWorker{
 			jobServer: jobServer,
 			engine:    bleveEngine,
+			logger:    mlog.CreateConsoleTestLogger(t),
 		}
 
 		worker.DoJob(job)

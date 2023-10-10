@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {FileInfo} from '@mattermost/types/files';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
 
-import {GlobalState} from 'types/store';
 import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/post_actions';
-import {Constants, ActionTypes, RHSStates} from 'utils/constants';
 
 import mockStore from 'tests/test_store';
+import {Constants, ActionTypes, RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     addReaction: (...args: any[]) => ({type: 'MOCK_ADD_REACTION', args}),
@@ -27,6 +28,7 @@ jest.mock('mattermost-redux/actions/posts', () => ({
 
 jest.mock('actions/emoji_actions', () => ({
     addRecentEmoji: (...args: any[]) => ({type: 'MOCK_ADD_RECENT_EMOJI', args}),
+    addRecentEmojis: (...args: any[]) => ({type: 'MOCK_ADD_RECENT_EMOJIS', args}),
 }));
 
 jest.mock('actions/notification_actions', () => ({
@@ -376,8 +378,8 @@ describe('Actions.Posts', () => {
             const files: FileInfo[] = [];
 
             const immediateExpectedState = [{
-                args: ['+1'],
-                type: 'MOCK_ADD_RECENT_EMOJI',
+                args: [['+1']],
+                type: 'MOCK_ADD_RECENT_EMOJIS',
             }, {
                 args: [newPost, files],
                 type: 'MOCK_CREATE_POST',
@@ -396,8 +398,8 @@ describe('Actions.Posts', () => {
             const files: FileInfo[] = [];
 
             const immediateExpectedState = [{
-                args: ['cake'],
-                type: 'MOCK_ADD_RECENT_EMOJI',
+                args: [['cake']],
+                type: 'MOCK_ADD_RECENT_EMOJIS',
             }, {
                 args: [newPost, files],
                 type: 'MOCK_CREATE_POST',
@@ -416,11 +418,8 @@ describe('Actions.Posts', () => {
             const files: FileInfo[] = [];
 
             const immediateExpectedState = [{
-                args: ['cake'],
-                type: 'MOCK_ADD_RECENT_EMOJI',
-            }, {
-                args: ['+1'],
-                type: 'MOCK_ADD_RECENT_EMOJI',
+                args: [['cake', '+1']],
+                type: 'MOCK_ADD_RECENT_EMOJIS',
             }, {
                 args: [newPost, files],
                 type: 'MOCK_CREATE_POST',

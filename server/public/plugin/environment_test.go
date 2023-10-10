@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestAvailablePlugins(t *testing.T) {
@@ -68,28 +68,6 @@ func TestAvailablePlugins(t *testing.T) {
 		err := os.Mkdir(filepath.Join(dir, "plugin3"), 0700)
 		require.NoError(t, err)
 		defer os.RemoveAll(filepath.Join(dir, "plugin3"))
-
-		bundles, err := env.Available()
-		require.NoError(t, err)
-		require.Len(t, bundles, 0)
-	})
-
-	t.Run("Should not load bundles on blocklist", func(t *testing.T) {
-		bundle := model.BundleInfo{
-			Manifest: &model.Manifest{
-				Id:      "playbooks",
-				Version: "1",
-			},
-		}
-		err := os.Mkdir(filepath.Join(dir, "plugin4"), 0700)
-		require.NoError(t, err)
-		defer os.RemoveAll(filepath.Join(dir, "plugin4"))
-
-		path := filepath.Join(dir, "plugin4", "plugin.json")
-		manifestJSON, jsonErr := json.Marshal(bundle.Manifest)
-		require.NoError(t, jsonErr)
-		err = os.WriteFile(path, manifestJSON, 0644)
-		require.NoError(t, err)
 
 		bundles, err := env.Available()
 		require.NoError(t, err)

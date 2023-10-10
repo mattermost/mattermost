@@ -1,24 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, PureComponent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
-import {defineMessages, FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
+import React, {PureComponent} from 'react';
+import type {ChangeEvent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
 
-import {FileInfo, FileUploadResponse} from '@mattermost/types/files';
-import {ServerError} from '@mattermost/types/errors';
+import type {UploadFile} from 'actions/file_actions';
 
-import dragster from 'utils/dragster';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
+import dragster from 'utils/dragster';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {
     isIosChrome,
     isMobileApp,
 } from 'utils/user_agent';
-import {getTable} from 'utils/paste';
 import {
     clearFileInput,
     generateId,
@@ -28,17 +37,7 @@ import {
     isTextDroppableEvent,
 } from 'utils/utils';
 
-import {UploadFile} from 'actions/file_actions';
-
-import {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import {FilePreviewInfo} from '../file_preview/file_preview';
+import type {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
 
 const holders = defineMessages({
     limited: {
@@ -451,7 +450,7 @@ export class FileUpload extends PureComponent<Props, State> {
     pasteUpload = (e: ClipboardEvent) => {
         const {formatMessage} = this.props.intl;
 
-        if (!e.clipboardData || !e.clipboardData.items || getTable(e.clipboardData)) {
+        if (!e.clipboardData || !e.clipboardData.items || e.clipboardData.getData('text/html')) {
             return;
         }
 

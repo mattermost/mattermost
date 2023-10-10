@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/go-i18n/i18n/bundle"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const defaultLocale = "en"
@@ -32,7 +32,33 @@ var T TranslateFunc
 // TDefault is the translate function using english as fallback language
 var TDefault TranslateFunc
 
-var locales map[string]string = make(map[string]string)
+var locales = make(map[string]string)
+
+// supportedLocales is a hard-coded list of locales considered ready for production use. It must
+// be kept in sync with ../../../../webapp/channels/src/i18n/i18n.jsx.
+var supportedLocales = []string{
+	"de",
+	"en",
+	"en-AU",
+	"es",
+	"fr",
+	"it",
+	"hu",
+	"nl",
+	"pl",
+	"pt-BR",
+	"ro",
+	"sv",
+	"tr",
+	"bg",
+	"ru",
+	"uk",
+	"fa",
+	"ko",
+	"zh-CN",
+	"zh-TW",
+	"ja",
+}
 var defaultServerLocale string
 var defaultClientLocale string
 
@@ -67,7 +93,13 @@ func initTranslationsWithDir(dir string) error {
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()
-			locales[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
+
+			locale := strings.Split(filename, ".")[0]
+			if !isSupportedLocale(locale) {
+				continue
+			}
+
+			locales[locale] = filepath.Join(dir, filename)
 
 			if err := i18n.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
 				return err
@@ -81,7 +113,7 @@ func initTranslationsWithDir(dir string) error {
 // GetTranslationFuncForDir loads translations from the filesystem into a new instance of the bundle.
 // It returns a function to access loaded translations.
 func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
-	var availableLocals map[string]string = make(map[string]string)
+	var availableLocals = make(map[string]string)
 	bundle := bundle.New()
 	files, _ := os.ReadDir(dir)
 	for _, f := range files {
@@ -89,8 +121,13 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 			continue
 		}
 
+		locale := strings.Split(f.Name(), ".")[0]
+		if !isSupportedLocale(locale) {
+			continue
+		}
+
 		filename := f.Name()
-		availableLocals[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
+		availableLocals[locale] = filepath.Join(dir, filename)
 		if err := bundle.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
 			return nil, err
 		}
@@ -116,7 +153,12 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 func getTranslationsBySystemLocale() (TranslateFunc, error) {
 	locale := defaultServerLocale
 	if _, ok := locales[locale]; !ok {
-		mlog.Warn("Failed to load system translations for", mlog.String("locale", locale), mlog.String("attempting to fall back to default locale", defaultLocale))
+		mlog.Warn("Failed to load system translations for selected locale, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))
+		locale = defaultLocale
+	}
+
+	if !isSupportedLocale(locale) {
+		mlog.Warn("Selected locale is unsupported, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))
 		locale = defaultLocale
 	}
 
@@ -221,4 +263,14 @@ func IdentityTfunc() TranslateFunc {
 	return func(translationID string, args ...any) string {
 		return translationID
 	}
+}
+
+func isSupportedLocale(locale string) bool {
+	for _, supportedLocale := range supportedLocales {
+		if locale == supportedLocale {
+			return true
+		}
+	}
+
+	return false
 }

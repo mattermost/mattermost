@@ -3,14 +3,14 @@
 
 import React from 'react';
 
-import {Constants} from 'utils/constants';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel, ChannelType} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Channel, ChannelType} from '@mattermost/types/channels';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {Constants} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import ChannelIntroMessage from './channel_intro_message';
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/ChannelIntroMessages', () => {
     const channel = {
@@ -32,6 +32,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
     const users = [
         {id: 'user1', roles: 'system_user'},
         {id: 'guest1', roles: 'system_guest'},
+        {id: 'test-user-id', roles: 'system_user'},
     ] as UserProfile[];
 
     const baseProps = {
@@ -153,6 +154,9 @@ describe('components/post_view/ChannelIntroMessages', () => {
 
             expect(editIcon).toBeInTheDocument();
             expect(editIcon).toHaveClass('icon-pencil-outline');
+
+            const notificationPreferencesButton = screen.getByText('Notification Preferences');
+            expect(notificationPreferencesButton).toBeInTheDocument();
         });
     });
 

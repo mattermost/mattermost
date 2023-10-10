@@ -40,8 +40,15 @@
         overflow: auto;
         width: 100%;
         height: calc(100vh - 72px);
-        padding: 48px 0 72px 0;
+        padding: 48px 5px 72px 0;
         margin: 0 auto;
+        margin-right: 5px;
+        scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
+        scrollbar-width: auto;
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.24);
+        }
 
         @media screen and (max-width: 768px) {
             height: calc(100vh - 148px);

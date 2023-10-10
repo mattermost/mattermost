@@ -4,16 +4,17 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
@@ -108,9 +109,9 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		// Set EnableAPITeamDeletion
 		enableConfig := true
-		config, _, _ := c.GetConfig()
+		config, _, _ := c.GetConfig(context.TODO())
 		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
-		_, _, _ = c.UpdateConfig(config)
+		_, _, _ = c.UpdateConfig(context.TODO(), config)
 
 		// Deletion should succeed for both local and SystemAdmin client now
 		err = deleteTeamsCmdF(c, cmd, args)
@@ -121,9 +122,9 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		// Reset config
 		enableConfig = false
-		config, _, _ = c.GetConfig()
+		config, _, _ = c.GetConfig(context.TODO())
 		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
-		_, _, _ = c.UpdateConfig(config)
+		_, _, _ = c.UpdateConfig(context.TODO(), config)
 	})
 
 	s.Run("Permission denied error for system admin when deleting a valid team", func() {

@@ -6,7 +6,7 @@ package config
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/stretchr/testify/require"
 )
@@ -465,27 +465,6 @@ func TestDiffSanitized(t *testing.T) {
 			"",
 		},
 		{
-			"sensitive ServiceSettings.GfycatAPISecret",
-			func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.ServiceSettings.GfycatAPISecret = model.NewString("base")
-				return cfg
-			}(),
-			func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.ServiceSettings.GfycatAPISecret = model.NewString("actual")
-				return cfg
-			}(),
-			ConfigDiffs{
-				{
-					Path:      "ServiceSettings.GfycatAPISecret",
-					BaseVal:   model.FakeSetting,
-					ActualVal: model.FakeSetting,
-				},
-			},
-			"",
-		},
-		{
 			"sensitive ServiceSettings.SplitKey",
 			func() *model.Config {
 				cfg := defaultConfigGen()
@@ -807,10 +786,10 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.nps": {
 							Enable: !defaultConfigGen().PluginSettings.PluginStates["com.mattermost.nps"].Enable,
 						},
-						"com.mattermost.apps": {
+						"com.mattermost.calls": {
 							Enable: true,
 						},
-						"com.mattermost.calls": {
+						"playbooks": {
 							Enable: true,
 						},
 					},
@@ -839,10 +818,10 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.newplugin": {
 							Enable: true,
 						},
-						"com.mattermost.apps": {
+						"com.mattermost.calls": {
 							Enable: true,
 						},
-						"com.mattermost.calls": {
+						"playbooks": {
 							Enable: true,
 						},
 					},
@@ -863,10 +842,10 @@ func TestDiff(t *testing.T) {
 					Path:    "PluginSettings.PluginStates",
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
 					ActualVal: map[string]*model.PluginState{
-						"com.mattermost.apps": {
+						"com.mattermost.calls": {
 							Enable: true,
 						},
-						"com.mattermost.calls": {
+						"playbooks": {
 							Enable: true,
 						},
 					},

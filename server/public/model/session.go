@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -212,6 +212,34 @@ func (s *Session) IsOAuthUser() bool {
 		return false
 	}
 	return isOAuthUser
+}
+
+func (s *Session) IsBotUser() bool {
+	val, ok := s.Props[SessionPropIsBot]
+	if !ok {
+		return false
+	}
+	if val == SessionPropIsBotValue {
+		return true
+	}
+	return false
+}
+
+func (s *Session) IsUserAccessToken() bool {
+	val, ok := s.Props[SessionPropType]
+	if !ok {
+		return false
+	}
+	if val == SessionTypeUserAccessToken {
+		return true
+	}
+	return false
+}
+
+// Returns true when session is authenticated as a bot, by personal access token, or is an OAuth app.
+// Does not indicate other forms of integrations e.g. webhooks, slash commands, etc.
+func (s *Session) IsIntegration() bool {
+	return s.IsBotUser() || s.IsUserAccessToken() || s.IsOAuth
 }
 
 func (s *Session) IsSSOLogin() bool {

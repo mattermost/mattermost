@@ -1,27 +1,56 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference 1`] = `
-<span>
-  <Memo(AtMentionGroup)
-    group={
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "group_display_name",
-        "has_syncables": false,
-        "id": "qwerty1",
-        "member_count": 0,
-        "name": "developers",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
+exports[`components/AtMention should match snapshot when mentioning a group followed by punctuation 1`] = `
+<Fragment>
+  <span>
+    <Memo(AtMentionGroup)
+      group={
+        Object {
+          "allow_reference": true,
+          "create_at": 1,
+          "delete_at": 0,
+          "description": "",
+          "display_name": "group_display_name",
+          "has_syncables": false,
+          "id": "qwerty1",
+          "member_count": 0,
+          "name": "developers",
+          "remote_id": "",
+          "scheme_admin": false,
+          "source": "",
+          "update_at": 1,
+        }
       }
-    }
-  />
-</span>
+    />
+  </span>
+  .
+</Fragment>
+`;
+
+exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference 1`] = `
+<Fragment>
+  <span>
+    <Memo(AtMentionGroup)
+      group={
+        Object {
+          "allow_reference": true,
+          "create_at": 1,
+          "delete_at": 0,
+          "description": "",
+          "display_name": "group_display_name",
+          "has_syncables": false,
+          "id": "qwerty1",
+          "member_count": 0,
+          "name": "developers",
+          "remote_id": "",
+          "scheme_admin": false,
+          "source": "",
+          "update_at": 1,
+        }
+      }
+    />
+  </span>
+</Fragment>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference with group highlight disabled 1`] = `
@@ -64,7 +93,6 @@ exports[`components/AtMention should match snapshot when mentioning current user
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc1/image"
         userId="abc1"
       />
@@ -97,7 +125,6 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
@@ -130,7 +157,6 @@ exports[`components/AtMention should match snapshot when mentioning user contain
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc3/image"
         userId="abc3"
       />
@@ -164,7 +190,6 @@ exports[`components/AtMention should match snapshot when mentioning user contain
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc3/image"
         userId="abc3"
       />
@@ -197,7 +222,6 @@ exports[`components/AtMention should match snapshot when mentioning user followe
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
@@ -231,7 +255,6 @@ exports[`components/AtMention should match snapshot when mentioning user with di
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
@@ -264,7 +287,6 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />

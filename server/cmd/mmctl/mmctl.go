@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/golang/mock/mockgen/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/commands"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands"
 )
 
 func main() {

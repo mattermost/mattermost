@@ -8,32 +8,9 @@
         text-align: left !important;
     }
 
-    .new-separator {
-        .NotificationSeparator {
-            padding-top: 0;
-        }
-
-        & + .post {
-            padding-top: 1em !important;
-        }
-    }
-
     .post-list__dynamic--RHS {
         scrollbar-color: var(--center-channel-color-32) #fff0;
         scrollbar-width: thin;
-    }
-
-    .post-right-comments-container > .new-separator,
-    .post + .new-separator {
-        .NotificationSeparator {
-            padding-top: 1em;
-        }
-    }
-
-    .Separator + .new-separator {
-        .NotificationSeparator {
-            padding-top: 2em;
-        }
     }
 
     > div {

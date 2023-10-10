@@ -12,9 +12,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 func Run(args []string) error {
@@ -73,6 +73,9 @@ var RootCmd = &cobra.Command{
 	Long:              `Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com`,
 	DisableAutoGenTag: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		for i, arg := range args {
+			args[i] = strings.TrimSpace(arg)
+		}
 		format := viper.GetString("format")
 		if viper.GetBool("disable-pager") {
 			printer.OverrideEnablePager(false)

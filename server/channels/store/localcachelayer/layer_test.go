@@ -8,10 +8,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"golang.org/x/sync/errgroup"
 )
 
 type storeType struct {
@@ -91,23 +92,29 @@ func initStores() {
 			panic(err)
 		}
 	}()
-	var wg sync.WaitGroup
+	var eg errgroup.Group
 	for _, st := range storeTypes {
 		st := st
-		wg.Add(1)
-		go func() {
+		eg.Go(func() error {
 			var err error
-			defer wg.Done()
-			st.SqlStore = sqlstore.New(*st.SqlSettings, nil)
+
+			st.SqlStore, err = sqlstore.New(*st.SqlSettings, nil)
+			if err != nil {
+				return err
+			}
 			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
 			if err != nil {
-				panic(err)
+				return err
 			}
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
-		}()
+
+			return nil
+		})
 	}
-	wg.Wait()
+	if err := eg.Wait(); err != nil {
+		panic(err)
+	}
 }
 
 var tearDownStoresOnce sync.Once

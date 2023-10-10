@@ -7,13 +7,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 func configForLdap(th *api4.TestHelper) {
@@ -64,7 +64,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 	s.RunForSystemAdminAndLocal("MM-T2529 Should sync LDAP groups", func(c client.Client) {
 		printer.Clean()
 
-		jobs, appErr := s.th.App.GetJobsByTypePage(model.JobTypeLdapSync, 0, 100)
+		jobs, appErr := s.th.App.GetJobsByTypePage(s.th.Context, model.JobTypeLdapSync, 0, 100)
 		s.Require().Nil(appErr)
 		initialNumJobs := len(jobs)
 
@@ -78,7 +78,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 		// we need to wait a bit for job creation
 		time.Sleep(time.Second)
 
-		jobs, appErr = s.th.App.GetJobsByTypePage(model.JobTypeLdapSync, 0, 100)
+		jobs, appErr = s.th.App.GetJobsByTypePage(s.th.Context, model.JobTypeLdapSync, 0, 100)
 		s.Require().Nil(appErr)
 		s.Require().NotEmpty(jobs)
 		s.Assert().Equal(initialNumJobs+1, len(jobs))
@@ -115,7 +115,7 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 		err := ldapIDMigrateCmdF(c, &cobra.Command{}, []string{"cn"})
 		s.Require().NoError(err)
 		defer func() {
-			s.Require().Nil(s.th.App.MigrateIdLDAP("uid"))
+			s.Require().Nil(s.th.App.MigrateIdLDAP(s.th.Context, "uid"))
 		}()
 
 		s.Require().NotEmpty(printer.GetLines())

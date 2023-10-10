@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {checkDialogElementForError, checkIfErrorsMatchElements} from 'mattermost-redux/utils/integration_utils';
+
 import TestHelper from '../../test/test_helper';
 
 describe('integration utils', () => {

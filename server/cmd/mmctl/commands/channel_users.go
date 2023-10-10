@@ -4,14 +4,15 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -72,7 +73,7 @@ func addUserToChannel(c client.Client, channel *model.Channel, user *model.User,
 		printer.PrintError("Can't find user '" + userArg + "'")
 		return
 	}
-	if _, _, err := c.AddChannelMember(channel.Id, user.Id); err != nil {
+	if _, _, err := c.AddChannelMember(context.TODO(), channel.Id, user.Id); err != nil {
 		printer.PrintError("Unable to add '" + userArg + "' to " + channel.Name + ". Error: " + err.Error())
 	}
 }
@@ -111,21 +112,21 @@ func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.
 		printer.PrintError("Can't find user '" + userArg + "'")
 		return
 	}
-	if _, err := c.RemoveUserFromChannel(channel.Id, user.Id); err != nil {
+	if _, err := c.RemoveUserFromChannel(context.TODO(), channel.Id, user.Id); err != nil {
 		printer.PrintError("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }
 
 func removeAllUsersFromChannel(c client.Client, channel *model.Channel) error {
 	var result *multierror.Error
-	members, _, err := c.GetChannelMembers(channel.Id, 0, 10000, "")
+	members, _, err := c.GetChannelMembers(context.TODO(), channel.Id, 0, 10000, "")
 	if err != nil {
 		printer.PrintError("Unable to remove all users from " + channel.Name + ". Error: " + err.Error())
 		return fmt.Errorf("unable to remove all users from %q: %w", channel.Name, err)
 	}
 
 	for _, member := range members {
-		if _, err := c.RemoveUserFromChannel(channel.Id, member.UserId); err != nil {
+		if _, err := c.RemoveUserFromChannel(context.TODO(), channel.Id, member.UserId); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to remove %q from %q Error: %w", member.UserId, channel.Name, err))
 			printer.PrintError("Unable to remove '" + member.UserId + "' from " + channel.Name + ". Error: " + err.Error())
 		}

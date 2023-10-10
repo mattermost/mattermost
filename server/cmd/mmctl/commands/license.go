@@ -4,11 +4,12 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"io/ioutil"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -56,7 +57,7 @@ func uploadLicenseStringCmdF(c client.Client, cmd *cobra.Command, args []string)
 
 	licenseBytes := []byte(args[0])
 
-	if _, err := c.UploadLicenseFile(licenseBytes); err != nil {
+	if _, err := c.UploadLicenseFile(context.TODO(), licenseBytes); err != nil {
 		return err
 	}
 
@@ -75,7 +76,7 @@ func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return err
 	}
 
-	if _, err := c.UploadLicenseFile(fileBytes); err != nil {
+	if _, err := c.UploadLicenseFile(context.TODO(), fileBytes); err != nil {
 		return err
 	}
 
@@ -85,7 +86,7 @@ func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error
 }
 
 func removeLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if _, err := c.RemoveLicenseFile(); err != nil {
+	if _, err := c.RemoveLicenseFile(context.TODO()); err != nil {
 		return err
 	}
 

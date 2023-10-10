@@ -4,14 +4,15 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 )
 
@@ -37,6 +38,13 @@ var ExportDownloadCmd = &cobra.Command{
   $ mmctl export download sample_export.zip`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: withClient(exportDownloadCmdF),
+}
+
+var ExportGeneratePresignedURLCmd = &cobra.Command{
+	Use:   "generate-presigned-url [exportname]",
+	Short: "Generate a presigned url for an export file. This is helpful when an export is big and might have trouble downloading from the Mattermost server.",
+	Args:  cobra.ExactArgs(1),
+	RunE:  withClient(exportGeneratePresignedURLCmdF),
 }
 
 var ExportDeleteCmd = &cobra.Command{
@@ -92,6 +100,7 @@ func init() {
 	_ = ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
 
 	ExportCreateCmd.Flags().Bool("no-attachments", false, "Set to true to exclude file attachments in the export file.")
+	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Set to true to include archived channels in the export file.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
 	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
@@ -114,6 +123,7 @@ func init() {
 		ExportListCmd,
 		ExportDeleteCmd,
 		ExportDownloadCmd,
+		ExportGeneratePresignedURLCmd,
 		ExportJobCmd,
 	)
 	RootCmd.AddCommand(ExportCmd)
@@ -127,7 +137,12 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 		data["include_attachments"] = "true"
 	}
 
-	job, _, err := c.CreateJob(&model.Job{
+	includeArchivedChannels, _ := command.Flags().GetBool("include-archived-channels")
+	if includeArchivedChannels {
+		data["include_archived_channels"] = "true"
+	}
+
+	job, _, err := c.CreateJob(context.TODO(), &model.Job{
 		Type: model.JobTypeExportProcess,
 		Data: data,
 	})
@@ -141,7 +156,7 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 }
 
 func exportListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	exports, _, err := c.ListExports()
+	exports, _, err := c.ListExports(context.TODO())
 	if err != nil {
 		return fmt.Errorf("failed to list exports: %w", err)
 	}
@@ -161,11 +176,27 @@ func exportListCmdF(c client.Client, command *cobra.Command, args []string) erro
 func exportDeleteCmdF(c client.Client, command *cobra.Command, args []string) error {
 	name := args[0]
 
-	if _, err := c.DeleteExport(name); err != nil {
+	if _, err := c.DeleteExport(context.TODO(), name); err != nil {
 		return fmt.Errorf("failed to delete export: %w", err)
 	}
 
 	printer.Print(fmt.Sprintf("Export file %q has been deleted", name))
+
+	return nil
+}
+
+func exportGeneratePresignedURLCmdF(c client.Client, command *cobra.Command, args []string) error {
+	name := args[0]
+
+	presignedURL, _, err := c.GeneratePresignedURL(context.TODO(), name)
+	if err != nil {
+		return fmt.Errorf("failed to generate export link: %w", err)
+	}
+
+	printer.PrintT("Export link: {{.Link}}\nExpiration: {{.Expiration}}", map[string]interface{}{
+		"Link":       presignedURL.URL,
+		"Expiration": presignedURL.Expiration.String(),
+	})
 
 	return nil
 }
@@ -211,7 +242,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 			return fmt.Errorf("failed to seek export file: %w", err)
 		}
 
-		if _, _, err := c.DownloadExport(name, outFile, off); err != nil {
+		if _, _, err := c.DownloadExport(context.TODO(), name, outFile, off); err != nil {
 			printer.PrintWarning(fmt.Sprintf("failed to download export file: %v. Retrying...", err))
 			i++
 			continue
@@ -231,7 +262,7 @@ func exportJobListCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 func exportJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
-	job, _, err := c.GetJob(args[0])
+	job, _, err := c.GetJob(context.TODO(), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get export job: %w", err)
 	}
@@ -242,12 +273,12 @@ func exportJobShowCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 func exportJobCancelCmdF(c client.Client, _ *cobra.Command, args []string) error {
-	job, _, err := c.GetJob(args[0])
+	job, _, err := c.GetJob(context.TODO(), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get export job: %w", err)
 	}
 
-	if _, err := c.CancelJob(job.Id); err != nil {
+	if _, err := c.CancelJob(context.TODO(), job.Id); err != nil {
 		return fmt.Errorf("failed to cancel export job: %w", err)
 	}
 

@@ -4,15 +4,16 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -164,7 +165,7 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		AllowOpenInvite: allowOpenInvite,
 	}
 
-	newTeam, _, err := c.CreateTeam(team)
+	newTeam, _, err := c.CreateTeam(context.TODO(), team)
 	if err != nil {
 		return errors.New("Team creation failed: " + err.Error())
 	}
@@ -175,7 +176,7 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func deleteTeam(c client.Client, team *model.Team) (*model.Response, error) {
-	return c.PermanentDeleteTeam(team.Id)
+	return c.PermanentDeleteTeam(context.TODO(), team.Id)
 }
 
 func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -192,7 +193,7 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if _, err := c.SoftDeleteTeam(team.Id); err != nil {
+		if _, err := c.SoftDeleteTeam(context.TODO(), team.Id); err != nil {
 			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Archived team '{{.Name}}'", team)
@@ -205,7 +206,7 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	page := 0
 	for {
-		teams, _, err := c.GetAllTeams("", page, APILimitMaximum)
+		teams, _, err := c.GetAllTeams(context.TODO(), "", page, APILimitMaximum)
 		if err != nil {
 			return err
 		}
@@ -232,7 +233,7 @@ func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 
 	for _, searchTerm := range args {
-		foundTeams, _, err := c.SearchTeams(&model.TeamSearch{Term: searchTerm})
+		foundTeams, _, err := c.SearchTeams(context.TODO(), &model.TeamSearch{Term: searchTerm})
 		if err != nil {
 			return err
 		}
@@ -290,7 +291,7 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	team.DisplayName = newDisplayName
 
 	// Using UpdateTeam API Method to rename team
-	_, _, err := c.UpdateTeam(team)
+	_, _, err := c.UpdateTeam(context.TODO(), team)
 	if err != nil {
 		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + err.Error())
 	}
@@ -348,7 +349,7 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if updatedTeam, _, err := c.UpdateTeamPrivacy(team.Id, privacy); err != nil {
+		if updatedTeam, _, err := c.UpdateTeamPrivacy(context.TODO(), team.Id, privacy); err != nil {
 			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
@@ -367,7 +368,7 @@ func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if rteam, _, err := c.RestoreTeam(team.Id); err != nil {
+		if rteam, _, err := c.RestoreTeam(context.TODO(), team.Id); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to restore team '%s' error: %w", team.Name, err))
 			printer.PrintError("Unable to restore team '" + team.Name + "' error: " + err.Error())
 		} else {

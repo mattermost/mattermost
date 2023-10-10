@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"sort"
@@ -12,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestGraphQLSidebarCategories(t *testing.T) {
@@ -57,7 +58,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 	require.NoError(t, json.Unmarshal(resp.Data, &q))
 	assert.Len(t, q.SidebarCategories, 3)
 
-	categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+	categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
 	require.NoError(t, err)
 
 	sort.Slice(q.SidebarCategories, func(i, j int) bool {

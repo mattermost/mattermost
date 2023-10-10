@@ -17,8 +17,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -182,7 +182,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	*settings.ConnMaxIdleTimeMilliseconds = 300000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
-	*settings.MigrationsStatementTimeoutSeconds = 10
+	*settings.MigrationsStatementTimeoutSeconds = 60
 
 	return settings
 }

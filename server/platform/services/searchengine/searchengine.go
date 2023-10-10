@@ -4,7 +4,7 @@
 package searchengine
 
 import (
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func NewBroker(cfg *model.Config) *Broker {

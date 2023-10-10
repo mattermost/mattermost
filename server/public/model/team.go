@@ -93,7 +93,7 @@ type TeamsWithCount struct {
 }
 
 func (o *Invites) ToEmailList() []string {
-	emailList := make([]string, len(o.Invites))
+	emailList := make([]string, 0, len(o.Invites))
 	for _, invite := range o.Invites {
 		emailList = append(emailList, invite["email"])
 	}

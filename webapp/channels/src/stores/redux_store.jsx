@@ -8,9 +8,8 @@ import configureStore from 'store';
 
 const store = configureStore();
 
-// eslint-disable-next-line no-process-env
-if (process.env.NODE_ENV !== 'production' || window.location.origin === 'https://community.mattermost.com') {
-    window.store = store;
-}
+// Export the store to simplify debugging in production environments. This is not a supported API,
+// and should not be relied upon by plugins.
+window.store = store;
 
 export default store;

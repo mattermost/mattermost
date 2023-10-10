@@ -4,15 +4,16 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -383,7 +384,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 	if !activate && user.IsSSOUser() {
 		printer.Print("You must also deactivate user " + user.Id + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
-	if _, err := c.UpdateUserActive(user.Id, activate); err != nil {
+	if _, err := c.UpdateUserActive(context.TODO(), user.Id, activate); err != nil {
 		return fmt.Errorf("unable to change activation status of user: %v", user.Id)
 	}
 
@@ -436,18 +437,18 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		DisableWelcomeEmail: disableWelcomeEmail,
 	}
 
-	ruser, _, err := c.CreateUser(user)
+	ruser, _, err := c.CreateUser(context.TODO(), user)
 
 	if err != nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
 	}
 
 	if systemAdmin {
-		if _, err := c.UpdateUserRoles(ruser.Id, "system_user system_admin"); err != nil {
+		if _, err := c.UpdateUserRoles(context.TODO(), ruser.Id, "system_user system_admin"); err != nil {
 			return errors.New("Unable to update user roles. Error: " + err.Error())
 		}
 	} else if guest {
-		if _, err := c.DemoteUserToGuest(ruser.Id); err != nil {
+		if _, err := c.DemoteUserToGuest(context.TODO(), ruser.Id); err != nil {
 			return errors.Wrapf(err, "Unable to demote use to guest")
 		}
 	}
@@ -486,7 +487,7 @@ func inviteUser(c client.Client, email string, team *model.Team, teamArg string)
 		return fmt.Errorf("can't find team '%v'", teamArg)
 	}
 
-	if _, err := c.InviteUsersToTeam(team.Id, invites); err != nil {
+	if _, err := c.InviteUsersToTeam(context.TODO(), team.Id, invites); err != nil {
 		return errors.New("Unable to invite user with email " + email + " to team " + team.Name + ". Error: " + err.Error())
 	}
 
@@ -508,7 +509,7 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 			printer.PrintError("Invalid email '" + email + "'")
 			continue
 		}
-		if _, err := c.SendPasswordResetEmail(email); err != nil {
+		if _, err := c.SendPasswordResetEmail(context.TODO(), email); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable send reset password email to email %s: %w", email, err))
 			printer.PrintError("Unable send reset password email to email " + email + ". Error: " + err.Error())
 		}
@@ -537,7 +538,7 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 	user.Email = newEmail
 
-	ruser, _, err := c.UpdateUser(user)
+	ruser, _, err := c.UpdateUser(context.TODO(), user)
 	if err != nil {
 		return errors.New(err.Error())
 	}
@@ -563,7 +564,7 @@ func updateUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 
 	user.Username = newUsername
 
-	ruser, _, err := c.UpdateUser(user)
+	ruser, _, err := c.UpdateUser(context.TODO(), user)
 	if err != nil {
 		return errors.New(err.Error())
 	}
@@ -602,11 +603,11 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	}
 
 	if hashed {
-		if _, err := c.UpdateUserHashedPassword(user.Id, password); err != nil {
+		if _, err := c.UpdateUserHashedPassword(context.TODO(), user.Id, password); err != nil {
 			return errors.Wrap(err, "changing user hashed password failed")
 		}
 	} else {
-		if _, err := c.UpdateUserPassword(user.Id, current, password); err != nil {
+		if _, err := c.UpdateUserPassword(context.TODO(), user.Id, current, password); err != nil {
 			return errors.Wrap(err, "changing user password failed")
 		}
 	}
@@ -627,7 +628,7 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	}
 
 	for _, user := range users {
-		if _, err := c.UpdateUserMfa(user.Id, "", false); err != nil {
+		if _, err := c.UpdateUserMfa(context.TODO(), user.Id, "", false); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to reset user %q MFA. Error: %w", user.Id, err))
 		}
 	}
@@ -652,7 +653,7 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if res, err := c.PermanentDeleteUser(user.Id); err != nil {
+		if res, err := c.PermanentDeleteUser(context.TODO(), user.Id); err != nil {
 			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
 		} else {
 			// res.StatusCode is checked for 202 to identify issues with file deletion.
@@ -673,7 +674,7 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 	}
 
-	if _, err := c.PermanentDeleteAllUsers(); err != nil {
+	if _, err := c.PermanentDeleteAllUsers(context.TODO()); err != nil {
 		return err
 	}
 
@@ -738,7 +739,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	var team *model.Team
 	if teamName != "" {
 		var err error
-		team, _, err = c.GetTeamByName(teamName, "")
+		team, _, err = c.GetTeamByName(context.TODO(), teamName, "")
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Failed to get team %s", teamName))
 		}
@@ -749,12 +750,12 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		var users []*model.User
 		var err error
 		if team != nil {
-			users, _, err = c.GetUsersInTeam(team.Id, page, perPage, "")
+			users, _, err = c.GetUsersInTeam(context.TODO(), team.Id, page, perPage, "")
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Failed to fetch users for team %s", teamName))
 			}
 		} else {
-			users, _, err = c.GetUsers(page, perPage, "")
+			users, _, err = c.GetUsers(context.TODO(), page, perPage, "")
 			if err != nil {
 				return errors.Wrap(err, "Failed to fetch users")
 			}
@@ -784,7 +785,7 @@ func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userAr
 	}
 
 	for _, user := range users {
-		if newUser, _, err := c.VerifyUserEmailWithoutToken(user.Id); err != nil {
+		if newUser, _, err := c.VerifyUserEmailWithoutToken(context.TODO(), user.Id); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to verify user %s email: %w", user.Id, err))
 		} else {
 			printer.PrintT("User {{.Username}} verified", newUser)
@@ -814,7 +815,7 @@ func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) erro
 		printer.PrintError(err.Error())
 	}
 	for _, user := range users {
-		bot, _, err := c.ConvertUserToBot(user.Id)
+		bot, _, err := c.ConvertUserToBot(context.TODO(), user.Id)
 		if err != nil {
 			printer.PrintError(err.Error())
 			continue
@@ -881,7 +882,7 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 		systemAdmin, _ = cmd.Flags().GetBool("system_admin")
 	}
 
-	user, _, err = c.ConvertBotToUser(user.Id, up, systemAdmin)
+	user, _, err = c.ConvertBotToUser(context.TODO(), user.Id, up, systemAdmin)
 	if err != nil {
 		return err
 	}
@@ -925,7 +926,7 @@ func migrateAuthToSamlCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 		return errors.New("invalid from_auth argument")
 	}
 
-	resp, err := c.MigrateAuthToSaml(fromAuth, matches, auto)
+	resp, err := c.MigrateAuthToSaml(context.TODO(), fromAuth, matches, auto)
 	if err != nil {
 		return err
 	} else if resp.StatusCode == http.StatusOK {
@@ -948,7 +949,7 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 
 	force, _ := cmd.Flags().GetBool("force")
 
-	resp, err := c.MigrateAuthToLdap(fromAuth, matchField, force)
+	resp, err := c.MigrateAuthToLdap(context.TODO(), fromAuth, matchField, force)
 	if err != nil {
 		return err
 	} else if resp.StatusCode == http.StatusOK {
@@ -965,7 +966,7 @@ func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string
 			continue
 		}
 
-		if _, err := c.PromoteGuestToUser(user.Id); err != nil {
+		if _, err := c.PromoteGuestToUser(context.TODO(), user.Id); err != nil {
 			printer.PrintError(fmt.Sprintf("unable to promote guest %s: %s", userArgs[i], err))
 			continue
 		}
@@ -986,7 +987,7 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 			continue
 		}
 
-		if _, err := c.DemoteUserToGuest(user.Id); err != nil {
+		if _, err := c.DemoteUserToGuest(context.TODO(), user.Id); err != nil {
 			err = fmt.Errorf("unable to demote user %s: %w", userArgs[i], err)
 			errs = multierror.Append(errs, err)
 			printer.PrintError(err.Error())

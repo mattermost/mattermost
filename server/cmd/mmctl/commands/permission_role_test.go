@@ -4,14 +4,15 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/cobra"
@@ -33,25 +34,25 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(mockRole.Name).
+			GetRoleByName(context.Background(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(mockUser.Username, "").
+			GetUserByEmail(context.Background(), mockUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(mockUser.Username, "").
+			GetUserByUsername(context.Background(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(mockUser.Id, fmt.Sprintf("%s %s", mockUser.Roles, mockRole.Name)).
+			UpdateUserRoles(context.Background(), mockUser.Id, fmt.Sprintf("%s %s", mockUser.Roles, mockRole.Name)).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -85,45 +86,45 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(mockRole.Name).
+			GetRoleByName(context.Background(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
-				GetUserByEmail(user.Username, "").
+				GetUserByEmail(context.Background(), user.Username, "").
 				Return(nil, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
-				GetUserByUsername(user.Username, "").
+				GetUserByUsername(context.Background(), user.Username, "").
 				Return(user, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
-				UpdateUserRoles(user.Id, fmt.Sprintf("%s %s", user.Roles, mockRole.Name)).
+				UpdateUserRoles(context.Background(), user.Id, fmt.Sprintf("%s %s", user.Roles, mockRole.Name)).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(notFoundUser.Username, "").
+			GetUserByEmail(context.Background(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(notFoundUser.Username, "").
+			GetUserByUsername(context.Background(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(notFoundUser.Username, "").
+			GetUser(context.Background(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -141,7 +142,7 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName("non-existent").
+			GetRoleByName(context.Background(), "non-existent").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 
@@ -166,19 +167,19 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(mockRole.Name).
+			GetRoleByName(context.Background(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(mockUser.Username, "").
+			GetUserByEmail(context.Background(), mockUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(mockUser.Username, "").
+			GetUserByUsername(context.Background(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -198,25 +199,25 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(mockRole.Name).
+			GetRoleByName(context.Background(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(requestedUser, "").
+			GetUserByEmail(context.Background(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(requestedUser, "").
+			GetUserByUsername(context.Background(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(requestedUser, "").
+			GetUser(context.Background(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -242,19 +243,19 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(mockUser.Username, "").
+			GetUserByEmail(context.Background(), mockUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(mockUser.Username, "").
+			GetUserByUsername(context.Background(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(mockUser.Id, "system_user team_admin").
+			UpdateUserRoles(context.Background(), mockUser.Id, "system_user team_admin").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -285,38 +286,38 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
-				GetUserByEmail(user.Username, "").
+				GetUserByEmail(context.Background(), user.Username, "").
 				Return(nil, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
-				GetUserByUsername(user.Username, "").
+				GetUserByUsername(context.Background(), user.Username, "").
 				Return(user, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
-				UpdateUserRoles(user.Id, strings.TrimSpace(strings.ReplaceAll(user.Roles, roleName, ""))).
+				UpdateUserRoles(context.Background(), user.Id, strings.TrimSpace(strings.ReplaceAll(user.Roles, roleName, ""))).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(notFoundUser.Username, "").
+			GetUserByEmail(context.Background(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(notFoundUser.Username, "").
+			GetUserByUsername(context.Background(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(notFoundUser.Username, "").
+			GetUser(context.Background(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -336,13 +337,13 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(mockUser.Username, "").
+			GetUserByEmail(context.Background(), mockUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(mockUser.Username, "").
+			GetUserByUsername(context.Background(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -356,19 +357,19 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(requestedUser, "").
+			GetUserByEmail(context.Background(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(requestedUser, "").
+			GetUserByUsername(context.Background(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(requestedUser, "").
+			GetUser(context.Background(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -392,7 +393,7 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(mockRole.Name).
+			GetRoleByName(context.Background(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
@@ -424,7 +425,7 @@ SchemeManaged false
 
 		s.client.
 			EXPECT().
-			GetRoleByName(mockRole.Name).
+			GetRoleByName(context.Background(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
@@ -454,7 +455,7 @@ Permissions   edit_brand
 		// showRoleCmdF will look up role by name
 		s.client.
 			EXPECT().
-			GetRoleByName(commandArgBogus).
+			GetRoleByName(context.Background(), commandArgBogus).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 

@@ -30,6 +30,26 @@ type PostMetadata struct {
 	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 }
 
+func (p *PostMetadata) Auditable() map[string]any {
+	embeds := make([]map[string]any, 0, len(p.Embeds))
+	for _, pe := range p.Embeds {
+		embeds = append(embeds, pe.Auditable())
+	}
+	if len(embeds) == 0 {
+		embeds = nil
+	}
+
+	return map[string]any{
+		"embeds":           embeds,
+		"emojis":           p.Emojis,
+		"files":            p.Files,
+		"images":           p.Images,
+		"reactions":        p.Reactions,
+		"priority":         p.Priority,
+		"acknowledgements": p.Acknowledgements,
+	}
+}
+
 type PostImage struct {
 	Width  int `json:"width"`
 	Height int `json:"height"`

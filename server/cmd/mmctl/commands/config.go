@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,11 +14,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -324,7 +325,7 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FormatJSON)
 
-	config, _, err := c.GetConfig()
+	config, _, err := c.GetConfig(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -344,7 +345,7 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 }
 
 func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
-	config, _, err := c.GetConfig()
+	config, _, err := c.GetConfig(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -357,7 +358,7 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 
 		return cErr
 	}
-	newConfig, _, err := c.PatchConfig(config)
+	newConfig, _, err := c.PatchConfig(context.TODO(), config)
 	if err != nil {
 		return err
 	}
@@ -372,7 +373,7 @@ func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return err
 	}
 
-	config, _, err := c.GetConfig()
+	config, _, err := c.GetConfig(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -381,7 +382,7 @@ func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return jErr
 	}
 
-	newConfig, _, err := c.PatchConfig(config)
+	newConfig, _, err := c.PatchConfig(context.TODO(), config)
 	if err != nil {
 		return err
 	}
@@ -391,7 +392,7 @@ func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
 }
 
 func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
-	config, _, err := c.GetConfig()
+	config, _, err := c.GetConfig(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -436,7 +437,7 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		return jErr
 	}
 
-	newConfig, _, err := c.UpdateConfig(config)
+	newConfig, _, err := c.UpdateConfig(context.TODO(), config)
 	if err != nil {
 		return err
 	}
@@ -458,7 +459,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	defaultConfig := &model.Config{}
 	defaultConfig.SetDefaults()
-	config, _, err := c.GetConfig()
+	config, _, err := c.GetConfig(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -474,7 +475,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			return nErr
 		}
 	}
-	newConfig, _, err := c.UpdateConfig(config)
+	newConfig, _, err := c.UpdateConfig(context.TODO(), config)
 	if err != nil {
 		return err
 	}
@@ -486,7 +487,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func configShowCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FormatJSON)
-	config, _, err := c.GetConfig()
+	config, _, err := c.GetConfig(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -501,7 +502,7 @@ func parseConfigPath(configPath string) []string {
 }
 
 func configReloadCmdF(c client.Client, _ *cobra.Command, _ []string) error {
-	_, err := c.ReloadConfig()
+	_, err := c.ReloadConfig(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -515,7 +516,7 @@ func configMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.New("this command is only available in local mode. Please set the --local flag")
 	}
 
-	_, err := c.MigrateConfig(args[0], args[1])
+	_, err := c.MigrateConfig(context.TODO(), args[0], args[1])
 	if err != nil {
 		return err
 	}

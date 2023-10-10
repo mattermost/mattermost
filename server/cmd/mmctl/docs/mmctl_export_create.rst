@@ -20,8 +20,9 @@ Options
 
 ::
 
-  -h, --help             help for create
-      --no-attachments   Set to true to exclude file attachments in the export file.
+  -h, --help                        help for create
+      --include-archived-channels   Set to true to include archived channels in the export file.
+      --no-attachments              Set to true to exclude file attachments in the export file.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

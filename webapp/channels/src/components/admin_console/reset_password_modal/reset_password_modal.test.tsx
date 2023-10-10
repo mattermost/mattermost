@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {shallow} from 'enzyme';
 
-import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
@@ -20,6 +21,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         comments: 'never',
         desktop: 'default',
         desktop_sound: 'true',
+        calls_desktop_sound: 'true',
         email: 'true',
         first_name: 'true',
         mark_unread: 'all',

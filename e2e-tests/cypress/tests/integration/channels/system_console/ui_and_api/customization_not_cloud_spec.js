@@ -39,7 +39,7 @@ describe('Customization', () => {
         cy.findByTestId('SupportSettings.ReportAProblemLinkhelp-text').find('span').should('be.visible').and('have.text', 'The URL for the Report a Problem link in the Help Menu. If this field is empty, the link is removed from the Help Menu.');
 
         // # Enter a problem link
-        const reportAProblemLink = 'https://mattermost.com/default-report-a-problem/';
+        const reportAProblemLink = 'https://mattermost.com/pl/report-a-bug';
         cy.findByTestId('SupportSettings.ReportAProblemLinkinput').clear().type(reportAProblemLink);
 
         // # Save setting

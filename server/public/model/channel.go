@@ -243,11 +243,11 @@ func (o *Channel) Props_() StringInterface {
 }
 
 func (o *Channel) DeepCopy() *Channel {
-	copy := *o
-	if copy.SchemeId != nil {
-		copy.SchemeId = NewString(*o.SchemeId)
+	cCopy := *o
+	if cCopy.SchemeId != nil {
+		cCopy.SchemeId = NewString(*o.SchemeId)
 	}
-	return &copy
+	return &cCopy
 }
 
 func (o *Channel) Etag() string {
@@ -442,4 +442,11 @@ func GetGroupNameFromUserIds(userIds []string) string {
 	}
 
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+type GroupMessageConversionRequestBody struct {
+	ChannelID   string `json:"channel_id"`
+	TeamID      string `json:"team_id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
 }

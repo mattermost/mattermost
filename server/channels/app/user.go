@@ -19,17 +19,17 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mfa"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
 
 const (
@@ -217,19 +217,6 @@ func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
 
-func (a *App) IsFirstAdmin(user *model.User) bool {
-	if !user.IsSystemAdmin() {
-		return false
-	}
-
-	adminID, err := a.Srv().Store().User().GetFirstSystemAdminID()
-	if err != nil {
-		return false
-	}
-
-	return adminID == user.Id
-}
-
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
@@ -295,16 +282,9 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
+	gmASdmPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategorySystemNotice, Name: "GMasDM", Value: "true"}
 
-	preferences := model.Preferences{recommendedNextStepsPref, tutorialStepPref}
-
-	if a.Config().FeatureFlags.InsightsEnabled {
-		// We don't want to show the insights intro modal for new users
-		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":true}"})
-	} else {
-		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":false}"})
-	}
-
+	preferences := model.Preferences{recommendedNextStepsPref, tutorialStepPref, gmASdmPref}
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
 		c.Logger().Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
@@ -329,7 +309,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	// table in CWS. This is then used to calculate how much the customers have to pay in addition for the extra users. If the
 	// workspace is currently on a monthly plan, then this function will not do anything.
 
-	if a.Channels().License().IsCloud() {
+	if a.Channels().License().IsCloud() && !ruser.IsRemote() {
 		go func(userId string) {
 			_, err := a.SendSubscriptionHistoryEvent(userId)
 			if err != nil {
@@ -350,7 +330,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	if e != nil {
 		return nil, e
 	}
-	user, err1 := provider.GetUserFromJSON(userData, tokenUser)
+	user, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err1)
 	}
@@ -377,7 +357,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 		if userByEmail.AuthService == "" {
 			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
-		if provider.IsSameUser(userByEmail, user) {
+		if provider.IsSameUser(c, userByEmail, user) {
 			if _, err := a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
 				// if the user is not updated, write a warning to the log, but don't prevent user login
 				c.Logger().Warn("Error attempting to update user AuthData", mlog.Err(err))
@@ -456,6 +436,20 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 			return nil, model.NewAppError("GetUserByEmail", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUserByEmail", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return user, nil
+}
+
+func (a *App) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
+	user, err := a.ch.srv.userService.GetUserByRemoteID(remoteID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetUserByRemoteID", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetUserByRemoteID", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return user, nil
@@ -1010,6 +1004,16 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 
 	a.sendUpdatedUserEvent(*ruser)
 
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil && !active && user.DeleteAt != 0 {
+		a.Srv().Go(func() {
+			pluginContext := pluginContext(c)
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasBeenDeactivated(pluginContext, user)
+				return true
+			}, plugin.UserHasBeenDeactivatedID)
+		})
+	}
+
 	return ruser, nil
 }
 
@@ -1062,7 +1066,7 @@ func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*
 // CheckProviderAttributes returns the empty string if the patch can be applied without
 // overriding attributes set by the user's login provider; otherwise, the name of the offending
 // field is returned.
-func (a *App) CheckProviderAttributes(user *model.User, patch *model.UserPatch) string {
+func (a *App) CheckProviderAttributes(c *request.Context, user *model.User, patch *model.UserPatch) string {
 	tryingToChange := func(userValue *string, patchValue *string) bool {
 		return patchValue != nil && *patchValue != *userValue
 	}
@@ -1078,9 +1082,9 @@ func (a *App) CheckProviderAttributes(user *model.User, patch *model.UserPatch) 
 	conflictField := ""
 	if a.Ldap() != nil &&
 		(user.IsLDAPUser() || (user.IsSAMLUser() && *SamlSettings.EnableSyncWithLdap)) {
-		conflictField = a.Ldap().CheckProviderAttributes(LdapSettings, user, patch)
+		conflictField = a.Ldap().CheckProviderAttributes(c, LdapSettings, user, patch)
 	} else if a.Saml() != nil && user.IsSAMLUser() {
-		conflictField = a.Saml().CheckProviderAttributes(SamlSettings, user, patch)
+		conflictField = a.Saml().CheckProviderAttributes(c, SamlSettings, user, patch)
 	} else if user.IsOAuthUser() {
 		if tryingToChange(&user.FirstName, patch.FirstName) || tryingToChange(&user.LastName, patch.LastName) {
 			conflictField = "full name"
@@ -1107,7 +1111,6 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 }
 
 func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
-	userAuth.Password = ""
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1283,6 +1286,17 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 
 	a.InvalidateCacheForUser(user.Id)
 	a.onUserProfileChange(user.Id)
+
+	if a.Channels().License().IsCloud() && prev.IsRemote() && !user.IsRemote() {
+		go func(userId string) {
+			_, err := a.SendSubscriptionHistoryEvent(userId)
+			if err != nil {
+				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
+			}
+		}(user.Id)
+	}
+
+	newUser.Sanitize(map[string]bool{})
 
 	return newUser, nil
 }
@@ -1513,7 +1527,7 @@ func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppE
 		return model.NewAppError("InvalidatePasswordRecoveryTokensForUser", "api.user.invalidate_password_recovery_tokens.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var appErr *model.AppError = nil
+	var appErr *model.AppError
 	for _, token := range tokens {
 		tokenExtra := struct {
 			UserId string
@@ -1685,6 +1699,10 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 
 	if err := a.Srv().Store().Post().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if err := a.Srv().Store().Reaction().PermanentDeleteByUser(user.Id); err != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.reaction.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
@@ -2083,8 +2101,8 @@ func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model
 	return autocomplete, nil
 }
 
-func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
-	oauthUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
+func (a *App) UpdateOAuthUserAttrs(c *request.Context, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
+	oauthUser, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
 	}

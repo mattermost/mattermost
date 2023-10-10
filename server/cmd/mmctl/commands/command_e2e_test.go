@@ -4,14 +4,15 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestListCommandCmd() {
@@ -262,7 +263,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		Trigger:   "trigger",
 	}
 
-	command, _, _ := s.th.SystemAdminClient.CreateCommand(newCmd)
+	command, _, _ := s.th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
 	index := 0
 	s.RunForSystemAdminAndLocal("modifyCommandCmdF", func(c client.Client) {
 		printer.Clean()

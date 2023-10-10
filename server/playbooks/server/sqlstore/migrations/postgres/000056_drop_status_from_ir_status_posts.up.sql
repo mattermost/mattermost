@@ -1,1 +1,0 @@
-ALTER TABLE IR_StatusPosts DROP COLUMN IF EXISTS Status;

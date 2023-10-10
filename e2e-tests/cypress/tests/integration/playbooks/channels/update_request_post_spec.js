@@ -19,6 +19,13 @@ describe('channels > update request post', {testIsolation: true}, () => {
     let testPlaybookRun2;
 
     before(() => {
+        cy.apiUpdateConfig({
+            ServiceSettings: {
+                ThreadAutoFollow: true,
+                CollapsedThreads: 'default_on',
+            },
+        });
+
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             testParticipant = user;

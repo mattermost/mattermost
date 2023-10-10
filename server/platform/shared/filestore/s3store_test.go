@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/require"
 )

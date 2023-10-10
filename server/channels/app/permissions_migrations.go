@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 type permissionTransformation struct {
@@ -1092,6 +1092,31 @@ func (a *App) getProductsBoardsPermissions() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getAddChannelReadContentPermissions() (permissionsMap, error) {
+	t := []permissionTransformation{}
+
+	readChannelContentPermissions := []string{
+		model.PermissionReadChannelContent.Id,
+	}
+
+	// Migrate all roles including custom roles that have the read_channel permission
+	// but exclude system console roles system_read_only_admin system_user_manager & system_manager
+	// as this system roles are for the admin console use only
+	t = append(t, permissionTransformation{
+		On: permissionAnd(
+			permissionAnd(
+				isNotRole(model.SystemUserManagerRoleId),
+				isNotRole(model.SystemReadOnlyAdminRoleId),
+				isNotRole(model.SystemManagerRoleId),
+			),
+			permissionExists(model.PermissionReadChannel.Id),
+		),
+		Add: readChannelContentPermissions,
+	})
+
+	return t, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1135,6 +1160,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddPlayboosksManageRolesPermissions, Migration: a.getPlaybooksPermissionsAddManageRoles},
 		{Key: model.MigrationKeyAddProductsBoardsPermissions, Migration: a.getProductsBoardsPermissions},
 		{Key: model.MigrationKeyAddCustomUserGroupsPermissionRestore, Migration: a.getAddCustomUserGroupsPermissionRestore},
+		{Key: model.MigrationKeyAddReadChannelContentPermissions, Migration: a.getAddChannelReadContentPermissions},
 	}
 
 	roles, err := s.Store().Role().GetAll()

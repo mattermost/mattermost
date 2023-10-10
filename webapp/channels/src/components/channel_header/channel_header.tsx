@@ -1,52 +1,52 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent, ReactNode, RefObject} from 'react';
-import {Overlay} from 'react-bootstrap';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import type {MouseEvent, ReactNode, RefObject} from 'react';
+import {Overlay} from 'react-bootstrap';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
+import type {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserCustomStatus, UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {displayUsername, isGuest} from 'mattermost-redux/utils/user_utils';
 
-import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import Markdown from 'components/markdown';
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import StatusIcon from 'components/status_icon';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import {ChannelHeaderDropdown} from 'components/channel_header_dropdown';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-
-import Popover from 'components/widgets/popover';
-import CallButton from 'plugins/call_button';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+import LocalizedIcon from 'components/localized_icon';
+import Markdown from 'components/markdown';
+import OverlayTrigger from 'components/overlay_trigger';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
+import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
+import StatusIcon from 'components/status_icon';
 import Timestamp from 'components/timestamp';
-import ChannelHeaderPlug from 'plugins/channel_header_plug';
+import Tooltip from 'components/tooltip';
+import ArchiveIcon from 'components/widgets/icons/archive_icon';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import Popover from 'components/widgets/popover';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
 
+import CallButton from 'plugins/call_button';
+import ChannelHeaderPlug from 'plugins/channel_header_plug';
 import {
     Constants,
     ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
-import {handleFormattedTextClick, localizeMessage, isEmptyObject, toTitleCase} from 'utils/utils';
 import {t} from 'utils/i18n';
+import {handleFormattedTextClick, localizeMessage, isEmptyObject, toTitleCase} from 'utils/utils';
 
-import {UserCustomStatus, UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
-import {RhsState} from 'types/store/rhs';
-
-import {ModalData} from 'types/actions';
-
-import LocalizedIcon from 'components/localized_icon';
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 import ChannelInfoButton from './channel_info_button';
 import HeaderIconWrapper from './components/header_icon_wrapper';
@@ -95,6 +95,7 @@ export type Props = {
     isLastActiveEnabled: boolean;
     timestampUnits?: string[];
     lastActivityTimestamp?: number;
+    hideGuestTags: boolean;
 };
 
 type State = {
@@ -102,7 +103,6 @@ type State = {
     showChannelHeaderPopover: boolean;
     leftOffset: number;
     topOffset: number;
-    popoverOverlayWidth: number;
 };
 
 class ChannelHeader extends React.PureComponent<Props, State> {
@@ -121,7 +121,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         this.headerOverlayRef = React.createRef();
 
         this.state = {
-            popoverOverlayWidth: 0,
             showChannelHeaderPopover: false,
             leftOffset: 0,
             topOffset: 0,
@@ -245,12 +244,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         }
     };
 
-    setPopoverOverlayWidth = () => {
-        const headerDescriptionRect = this.headerDescriptionRef.current?.getBoundingClientRect();
-        const ellipsisWidthAdjustment = 10;
-        this.setState({popoverOverlayWidth: (headerDescriptionRect?.width ?? 0) + ellipsisWidthAdjustment});
-    };
-
     handleFormattedTextClick = (e: MouseEvent<HTMLSpanElement>) => handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
 
     renderCustomStatus = () => {
@@ -292,12 +285,13 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             rhsState,
             hasGuests,
             teammateNameDisplaySetting,
+            hideGuestTags,
         } = this.props;
         const {formatMessage} = this.props.intl;
         const ariaLabelChannelHeader = localizeMessage('accessibility.sections.channelHeader', 'channel header region');
 
         let hasGuestsText: ReactNode = '';
-        if (hasGuests) {
+        if (hasGuests && !hideGuestTags) {
             hasGuestsText = (
                 <span className='has-guest-header'>
                     <span tabIndex={0}>
@@ -399,7 +393,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 );
             });
 
-            if (hasGuests) {
+            if (hasGuests && !hideGuestTags) {
                 hasGuestsText = (
                     <span className='has-guest-header'>
                         <FormattedMessage
@@ -534,7 +528,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     id='header-popover'
                     popoverStyle='info'
                     popoverSize='lg'
-                    style={{maxWidth: `${this.state.popoverOverlayWidth}px`, transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`}}
+                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`}}
                     placement='bottom'
                     className={classNames('channel-header__popover', {'chanel-header__popover--lhs_offset': this.props.hasMoreThanOneTeam})}
                 >
@@ -602,7 +596,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             rootClose={true}
                             target={this.headerDescriptionRef.current as React.ReactInstance}
                             ref={this.headerOverlayRef}
-                            onEnter={this.setPopoverOverlayWidth}
                             onHide={() => this.setState({showChannelHeaderPopover: false})}
                         >
                             {popoverContent}
@@ -792,7 +785,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             <span
                                 id='channelHeaderDropdownIcon'
                                 className='icon icon-chevron-down header-dropdown-chevron-icon'
-                                aria-label={formatMessage({id: 'generic_icons.dropdown', defaultMessage: 'Dropdown Icon'}).toLowerCase()}
                             />
                         </button>
                     </div>

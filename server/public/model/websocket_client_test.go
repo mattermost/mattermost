@@ -114,12 +114,12 @@ func TestWebSocketClose(t *testing.T) {
 
 	waitForResponses := func(doneChan chan struct{}, cli *WebSocketClient) {
 		go func() {
-			for range cli.EventChannel {
+			for range cli.EventChannel { //nolint:revive
 			}
 			doneChan <- struct{}{}
 		}()
 		go func() {
-			for range cli.ResponseChannel {
+			for range cli.ResponseChannel { //nolint:revive
 			}
 			doneChan <- struct{}{}
 		}()

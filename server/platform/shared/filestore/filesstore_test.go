@@ -18,7 +18,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/xtgo/uuid"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func randomString() string {
@@ -35,8 +36,7 @@ type FileBackendTestSuite struct {
 func TestLocalFileBackendTestSuite(t *testing.T) {
 	// Setup a global logger to catch tests logging outside of app context
 	// The global logger will be stomped by apps initializing but that's fine for testing. Ideally this won't happen.
-	logger := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer logger.Shutdown()
+	logger := mlog.CreateConsoleTestLogger(t)
 
 	mlog.InitGlobalLogger(logger)
 
@@ -487,10 +487,7 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 	s.Run("should correctly append the data", func() {
 		// First part needs to be at least 5MB for the S3 implementation to work.
 		size := 5 * 1024 * 1024
-		b := make([]byte, size)
-		for i := range b {
-			b[i] = 'A'
-		}
+		b := bytes.Repeat([]byte{'A'}, size)
 		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(b), path)
@@ -620,4 +617,118 @@ func BenchmarkS3WriteFile(b *testing.B) {
 	}
 
 	b.StopTimer()
+}
+
+func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
+	t.Run("local filestore", func(t *testing.T) {
+		skipVerify := false
+		enableComplianceFeature := false
+
+		expected := FileBackendSettings{
+			DriverName:                         driverLocal,
+			Directory:                          "directory",
+			AmazonS3AccessKeyId:                "",
+			AmazonS3SecretAccessKey:            "",
+			AmazonS3Bucket:                     "",
+			AmazonS3PathPrefix:                 "",
+			AmazonS3Region:                     "",
+			AmazonS3Endpoint:                   "",
+			AmazonS3SSL:                        false,
+			AmazonS3SignV2:                     false,
+			AmazonS3SSE:                        false,
+			AmazonS3Trace:                      false,
+			SkipVerify:                         false,
+			AmazonS3RequestTimeoutMilliseconds: 0,
+			AmazonS3PresignExpiresSeconds:      0,
+		}
+
+		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
+			ExportDriverName: model.NewString(driverLocal),
+			ExportDirectory:  model.NewString("directory"),
+		}, enableComplianceFeature, skipVerify)
+
+		require.Equal(t, expected, actual)
+	})
+
+	t.Run("s3 filestore, disable compliance", func(t *testing.T) {
+		skipVerify := true
+		enableComplianceFeature := false
+
+		expected := FileBackendSettings{
+			DriverName:                         driverS3,
+			Directory:                          "",
+			AmazonS3AccessKeyId:                "minioaccesskey",
+			AmazonS3SecretAccessKey:            "miniosecretkey",
+			AmazonS3Bucket:                     "mattermost-test",
+			AmazonS3PathPrefix:                 "prefix",
+			AmazonS3Region:                     "region",
+			AmazonS3Endpoint:                   "s3.example.com",
+			AmazonS3SSL:                        true,
+			AmazonS3SignV2:                     true,
+			AmazonS3SSE:                        false,
+			AmazonS3Trace:                      true,
+			SkipVerify:                         true,
+			AmazonS3RequestTimeoutMilliseconds: 1000,
+			AmazonS3PresignExpiresSeconds:      60000,
+		}
+
+		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
+			ExportDriverName:                         model.NewString(driverS3),
+			ExportAmazonS3AccessKeyId:                model.NewString("minioaccesskey"),
+			ExportAmazonS3SecretAccessKey:            model.NewString("miniosecretkey"),
+			ExportAmazonS3Bucket:                     model.NewString("mattermost-test"),
+			ExportAmazonS3Region:                     model.NewString("region"),
+			ExportAmazonS3Endpoint:                   model.NewString("s3.example.com"),
+			ExportAmazonS3PathPrefix:                 model.NewString("prefix"),
+			ExportAmazonS3SSL:                        model.NewBool(true),
+			ExportAmazonS3SignV2:                     model.NewBool(true),
+			ExportAmazonS3SSE:                        model.NewBool(true),
+			ExportAmazonS3Trace:                      model.NewBool(true),
+			ExportAmazonS3RequestTimeoutMilliseconds: model.NewInt64(1000),
+			ExportAmazonS3PresignExpiresSeconds:      model.NewInt64(60000),
+		}, enableComplianceFeature, skipVerify)
+
+		require.Equal(t, expected, actual)
+	})
+
+	t.Run("s3 filestore, enable compliance", func(t *testing.T) {
+		skipVerify := true
+		enableComplianceFeature := true
+
+		expected := FileBackendSettings{
+			DriverName:                         driverS3,
+			Directory:                          "",
+			AmazonS3AccessKeyId:                "minioaccesskey",
+			AmazonS3SecretAccessKey:            "miniosecretkey",
+			AmazonS3Bucket:                     "mattermost-test",
+			AmazonS3PathPrefix:                 "prefix",
+			AmazonS3Region:                     "region",
+			AmazonS3Endpoint:                   "s3.example.com",
+			AmazonS3SSL:                        true,
+			AmazonS3SignV2:                     true,
+			AmazonS3SSE:                        true,
+			AmazonS3Trace:                      true,
+			SkipVerify:                         true,
+			AmazonS3RequestTimeoutMilliseconds: 1000,
+			AmazonS3PresignExpiresSeconds:      60000,
+		}
+
+		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
+			ExportDriverName:                         model.NewString(driverS3),
+			ExportAmazonS3AccessKeyId:                model.NewString("minioaccesskey"),
+			ExportAmazonS3SecretAccessKey:            model.NewString("miniosecretkey"),
+			ExportAmazonS3Bucket:                     model.NewString("mattermost-test"),
+			ExportAmazonS3Region:                     model.NewString("region"),
+			ExportAmazonS3Endpoint:                   model.NewString("s3.example.com"),
+			ExportAmazonS3PathPrefix:                 model.NewString("prefix"),
+			ExportAmazonS3SSL:                        model.NewBool(true),
+			ExportAmazonS3SignV2:                     model.NewBool(true),
+			ExportAmazonS3SSE:                        model.NewBool(true),
+			ExportAmazonS3Trace:                      model.NewBool(true),
+			ExportAmazonS3RequestTimeoutMilliseconds: model.NewInt64(1000),
+			ExportAmazonS3PresignExpiresSeconds:      model.NewInt64(60000),
+		}, enableComplianceFeature, skipVerify)
+
+		require.Equal(t, expected, actual)
+	})
 }

@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestPreferenceStore(t *testing.T, ss store.Store) {
@@ -383,6 +383,14 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
 
 	_, _, nErr = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
 	assert.NoError(t, nErr)
+
+	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rows))
+
+	// Clean up retention ids table
+	err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+	require.NoError(t, err)
 
 	_, nErr = ss.Preference().DeleteOrphanedRows(limit)
 	assert.NoError(t, nErr)

@@ -6,16 +6,15 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import * as NotificationSounds from 'utils/notification_sounds';
+import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
-import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
-
 import NotificationSection from 'components/channel_notifications_modal/components/notification_section.jsx';
 
-import {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
-import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
+import * as NotificationSounds from 'utils/notification_sounds';
 
 import type {PropsFromRedux} from './index';
 
@@ -57,9 +56,13 @@ type State = {
 export type DesktopNotificationProps = Pick<State, 'desktopNotifyLevel' | 'desktopNotifySound' | 'desktopSound' | 'desktopThreadsNotifyLevel'>
 export type PushNotificationProps = Pick<State, 'pushNotifyLevel' | 'pushThreadsNotifyLevel'>
 
-const getDefaultDesktopNotificationLevel = (currentUserNotifyProps: UserNotifyProps): Exclude<ChannelMemberNotifyProps['desktop'], undefined> => {
+const getDefaultDesktopNotificationLevel = (currentUserNotifyProps: UserNotifyProps, isGM: boolean): Exclude<ChannelMemberNotifyProps['desktop'], undefined> => {
     if (currentUserNotifyProps?.desktop) {
-        if (currentUserNotifyProps.desktop === 'default') {
+        if (currentUserNotifyProps.desktop === NotificationLevels.DEFAULT) {
+            return NotificationLevels.ALL;
+        }
+
+        if (isGM && currentUserNotifyProps.desktop === NotificationLevels.MENTION) {
             return NotificationLevels.ALL;
         }
         return currentUserNotifyProps.desktop;
@@ -87,21 +90,31 @@ const getDefaultDesktopThreadsNotifyLevel = (currentUserNotifyProps: UserNotifyP
     return NotificationLevels.ALL;
 };
 
-const getDefaultPushNotifyLevel = (currentUserNotifyProps: UserNotifyProps): Exclude<ChannelMemberNotifyProps['push'], undefined> => {
+const getDefaultPushNotifyLevel = (currentUserNotifyProps: UserNotifyProps, isGM: boolean): Exclude<ChannelMemberNotifyProps['push'], undefined> => {
     if (currentUserNotifyProps?.push) {
-        if (currentUserNotifyProps.push === 'default') {
+        if (currentUserNotifyProps.push === NotificationLevels.DEFAULT) {
             return NotificationLevels.ALL;
         }
+
+        if (isGM && currentUserNotifyProps.desktop === NotificationLevels.MENTION) {
+            return NotificationLevels.ALL;
+        }
+
         return currentUserNotifyProps.push;
     }
     return NotificationLevels.ALL;
 };
 
-const getDefaultPushThreadsNotifyLevel = (currentUserNotifyProps: UserNotifyProps): Exclude<ChannelMemberNotifyProps['push_threads'], undefined> => {
+const getDefaultPushThreadsNotifyLevel = (currentUserNotifyProps: UserNotifyProps, isGM: boolean): Exclude<ChannelMemberNotifyProps['push_threads'], undefined> => {
     if (currentUserNotifyProps?.push_threads) {
         if (currentUserNotifyProps.push_threads === 'default') {
             return NotificationLevels.ALL;
         }
+
+        if (isGM && currentUserNotifyProps.push_threads === NotificationLevels.MENTION) {
+            return NotificationLevels.ALL;
+        }
+
         return currentUserNotifyProps.push_threads;
     }
     return NotificationLevels.ALL;
@@ -111,7 +124,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
     constructor(props: Props) {
         super(props);
 
-        const channelNotifyProps = props.channelMember && props.channelMember.notify_props;
+        const channelNotifyProps = props.channelMember?.notify_props;
 
         this.state = {
             show: true,
@@ -143,7 +156,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         const currentUserNotifyProps = this.props.currentUser.notify_props;
 
         if (
-            desktopNotifyLevel === getDefaultDesktopNotificationLevel(currentUserNotifyProps) &&
+            desktopNotifyLevel === getDefaultDesktopNotificationLevel(currentUserNotifyProps, this.isGM()) &&
             desktopNotifySound === getDefaultDesktopNotificationSound(currentUserNotifyProps) &&
             desktopSound === getDefaultDesktopSound(currentUserNotifyProps) &&
             desktopThreadsNotifyLevel === getDefaultDesktopThreadsNotifyLevel(currentUserNotifyProps)
@@ -153,6 +166,10 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         return false;
     }
 
+    isGM() {
+        return this.props.channel.type === 'G';
+    }
+
     verifyPushNotificationsSettingSameAsGlobal({
         pushNotifyLevel,
         pushThreadsNotifyLevel,
@@ -160,8 +177,8 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         const currentUserNotifyProps = this.props.currentUser.notify_props;
 
         if (
-            pushNotifyLevel === getDefaultPushNotifyLevel(currentUserNotifyProps) &&
-            pushThreadsNotifyLevel === getDefaultPushThreadsNotifyLevel(currentUserNotifyProps)
+            pushNotifyLevel === getDefaultPushNotifyLevel(currentUserNotifyProps, this.isGM()) &&
+            pushThreadsNotifyLevel === getDefaultPushThreadsNotifyLevel(currentUserNotifyProps, this.isGM())
         ) {
             return true;
         }
@@ -171,24 +188,26 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
     getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channelMemberNotifyProps?: ChannelMemberNotifyProps) {
         let ignoreChannelMentionsDefault: ChannelNotifyProps['ignore_channel_mentions'] = IgnoreChannelMentions.OFF;
 
-        let desktopNotifyLevelDefault: ChannelNotifyProps['desktop'] = getDefaultDesktopNotificationLevel(currentUserNotifyProps);
-        let pushNotifyLevelDefault: ChannelMemberNotifyProps['push'] = getDefaultPushNotifyLevel(currentUserNotifyProps);
-        let pushThreadsNotifyLevelDefault: ChannelMemberNotifyProps['push_threads'] = getDefaultPushThreadsNotifyLevel(currentUserNotifyProps);
+        const desktopNotifyLevelDefault: ChannelNotifyProps['desktop'] = getDefaultDesktopNotificationLevel(currentUserNotifyProps, this.isGM());
+        const pushNotifyLevelDefault: ChannelMemberNotifyProps['push'] = getDefaultPushNotifyLevel(currentUserNotifyProps, this.isGM());
+        const pushThreadsNotifyLevelDefault: ChannelMemberNotifyProps['push_threads'] = getDefaultPushThreadsNotifyLevel(currentUserNotifyProps, this.isGM());
 
-        if (channelMemberNotifyProps?.desktop) {
-            if (channelMemberNotifyProps.desktop !== 'default') {
-                desktopNotifyLevelDefault = channelMemberNotifyProps.desktop;
-            }
+        const channelDesktopNotifyProps = channelMemberNotifyProps?.desktop || NotificationLevels.DEFAULT;
+        let desktopNotifyLevel = desktopNotifyLevelDefault;
+        if (channelDesktopNotifyProps !== NotificationLevels.DEFAULT) {
+            desktopNotifyLevel = channelDesktopNotifyProps;
         }
-        if (channelMemberNotifyProps?.push) {
-            if (channelMemberNotifyProps.push !== 'default') {
-                pushNotifyLevelDefault = channelMemberNotifyProps.push;
-            }
+
+        const channelPushNotifyProps = channelMemberNotifyProps?.push || NotificationLevels.DEFAULT;
+        let pushNotifyLevel = pushNotifyLevelDefault;
+        if (channelPushNotifyProps !== 'default') {
+            pushNotifyLevel = channelPushNotifyProps;
         }
-        if (channelMemberNotifyProps?.push_threads) {
-            if (channelMemberNotifyProps.push_threads !== 'default') {
-                pushThreadsNotifyLevelDefault = channelMemberNotifyProps.push_threads;
-            }
+
+        const channelPushThreadsNotifyProps = channelMemberNotifyProps?.push_threads || NotificationLevels.DEFAULT;
+        let pushThreadsNotifyLevel = pushThreadsNotifyLevelDefault;
+        if (channelPushThreadsNotifyProps !== 'default') {
+            pushThreadsNotifyLevel = channelPushThreadsNotifyProps;
         }
 
         if (channelMemberNotifyProps?.mark_unread === NotificationLevels.MENTION || (currentUserNotifyProps.channel && currentUserNotifyProps.channel === 'false')) {
@@ -201,13 +220,13 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         }
 
         return {
-            desktopNotifyLevel: desktopNotifyLevelDefault,
+            desktopNotifyLevel,
             desktopSound: channelMemberNotifyProps?.desktop_sound || getDefaultDesktopSound(currentUserNotifyProps),
             desktopNotifySound: channelMemberNotifyProps?.desktop_notification_sound || getDefaultDesktopNotificationSound(currentUserNotifyProps),
             desktopThreadsNotifyLevel: channelMemberNotifyProps?.desktop_threads || getDefaultDesktopThreadsNotifyLevel(currentUserNotifyProps),
             markUnreadNotifyLevel: channelMemberNotifyProps?.mark_unread || NotificationLevels.ALL,
-            pushNotifyLevel: pushNotifyLevelDefault,
-            pushThreadsNotifyLevel: pushThreadsNotifyLevelDefault,
+            pushNotifyLevel,
+            pushThreadsNotifyLevel,
             ignoreChannelMentions,
             channelAutoFollowThreads: channelMemberNotifyProps?.channel_auto_follow_threads || ChannelAutoFollowThreads.OFF,
         };
@@ -247,7 +266,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         const currentUserNotifyProps = this.props.currentUser.notify_props;
 
         const userDesktopNotificationDefaults = {
-            desktopNotifyLevel: getDefaultDesktopNotificationLevel(currentUserNotifyProps),
+            desktopNotifyLevel: getDefaultDesktopNotificationLevel(currentUserNotifyProps, this.isGM()),
             desktopSound: getDefaultDesktopSound(currentUserNotifyProps),
             desktopNotifySound: getDefaultDesktopNotificationSound(currentUserNotifyProps),
             desktopThreadsNotifyLevel: getDefaultDesktopThreadsNotifyLevel(currentUserNotifyProps),
@@ -260,8 +279,8 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         const currentUserNotifyProps = this.props.currentUser.notify_props;
 
         const userPushNotificationDefaults = {
-            pushNotifyLevel: getDefaultPushNotifyLevel(currentUserNotifyProps),
-            pushThreadsNotifyLevel: getDefaultPushThreadsNotifyLevel(currentUserNotifyProps),
+            pushNotifyLevel: getDefaultPushNotifyLevel(currentUserNotifyProps, this.isGM()),
+            pushThreadsNotifyLevel: getDefaultPushThreadsNotifyLevel(currentUserNotifyProps, this.isGM()),
         };
 
         this.setState(userPushNotificationDefaults);
@@ -401,6 +420,8 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
             serverErrorTag = <div className='form-group has-error'><label className='control-label'>{serverError}</label></div>;
         }
 
+        const isGM = this.isGM();
+
         return (
             <Modal
                 dialogClassName='a11y__modal settings-modal settings-modal--tabless'
@@ -436,6 +457,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     onSubmit={this.handleSubmitMarkUnreadLevel}
                                     onUpdateSection={this.updateSection}
                                     serverError={serverError}
+                                    isGM={isGM}
                                 />
                                 <div className='divider-light'/>
                                 <NotificationSection
@@ -447,6 +469,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     onSubmit={this.handleSubmitIgnoreChannelMentions}
                                     onUpdateSection={this.updateSection}
                                     serverError={serverError}
+                                    isGM={isGM}
                                 />
                                 {!isChannelMuted(channelMember) &&
                                 <div>
@@ -458,8 +481,8 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         memberThreadsNotificationLevel={desktopThreadsNotifyLevel}
                                         memberDesktopSound={desktopSound}
                                         memberDesktopNotificationSound={desktopNotifySound}
-                                        globalNotificationLevel={currentUser.notify_props ? currentUser.notify_props.desktop : NotificationLevels.ALL}
-                                        globalNotificationSound={(currentUser.notify_props && currentUser.notify_props.desktop_notification_sound) ? currentUser.notify_props.desktop_notification_sound : 'Bing'}
+                                        globalNotificationLevel={getDefaultDesktopNotificationLevel(currentUser.notify_props, isGM)}
+                                        globalNotificationSound={getDefaultDesktopNotificationSound(currentUser.notify_props)}
                                         isNotificationsSettingSameAsGlobal={isNotificationsSettingSameAsGlobal}
                                         onChange={this.handleUpdateDesktopNotifyLevel}
                                         onChangeThreads={this.handleUpdateDesktopThreadsNotifyLevel}
@@ -469,6 +492,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         onSubmit={this.handleSubmitDesktopNotification}
                                         onUpdateSection={this.updateSection}
                                         serverError={serverError}
+                                        isGM={isGM}
                                     />
                                     <div className='divider-light'/>
                                     {sendPushNotifications &&
@@ -477,7 +501,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         expand={activeSection === NotificationSections.PUSH}
                                         memberNotificationLevel={pushNotifyLevel}
                                         memberThreadsNotificationLevel={pushThreadsNotifyLevel}
-                                        globalNotificationLevel={currentUser.notify_props ? currentUser.notify_props.push : NotificationLevels.ALL}
+                                        globalNotificationLevel={getDefaultPushNotifyLevel(currentUser.notify_props, isGM)}
                                         isNotificationsSettingSameAsGlobal={isPushNotificationsSettingSameAsGlobal}
                                         onChange={this.handleUpdatePushNotificationLevel}
                                         onReset={this.handleResetPushNotification}
@@ -485,22 +509,28 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         onSubmit={this.handleSubmitPushNotificationLevel}
                                         onUpdateSection={this.updateSection}
                                         serverError={serverError}
+                                        isGM={isGM}
                                     />
                                     }
                                 </div>
                                 }
-                                <div className='divider-light'/>
-                                <NotificationSection
-                                    section={NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS}
-                                    expand={activeSection === NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS}
-                                    memberNotificationLevel={markUnreadNotifyLevel}
-                                    ignoreChannelMentions={ignoreChannelMentions}
-                                    channelAutoFollowThreads={channelAutoFollowThreads}
-                                    onChange={this.handleUpdateChannelAutoFollowThreads}
-                                    onSubmit={this.handleSubmitChannelAutoFollowThreads}
-                                    onUpdateSection={this.updateSection}
-                                    serverError={serverError}
-                                />
+                                {!isGM &&
+                                <>
+                                    <div className='divider-light'/>
+                                    <NotificationSection
+                                        section={NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS}
+                                        expand={activeSection === NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS}
+                                        memberNotificationLevel={markUnreadNotifyLevel}
+                                        ignoreChannelMentions={ignoreChannelMentions}
+                                        channelAutoFollowThreads={channelAutoFollowThreads}
+                                        onChange={this.handleUpdateChannelAutoFollowThreads}
+                                        onSubmit={this.handleSubmitChannelAutoFollowThreads}
+                                        onUpdateSection={this.updateSection}
+                                        serverError={serverError}
+                                        isGM={isGM}
+                                    />
+                                </>
+                                }
                                 <div className='divider-dark'/>
                             </div>
                         </div>

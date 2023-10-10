@@ -131,21 +131,6 @@ export default class Client extends Client4 {
 
         return this.doFetch<PluginManifest>(this.getPluginsRoute(), options);
     };
-
-    // *****************************************************************************
-    // Boards client
-    // based on "webapp/boards/src/octoClient.ts"
-    // *****************************************************************************
-
-    async patchUserConfig(userID: string, patch: UserConfigPatch): Promise<UserPreference[] | undefined> {
-        const path = `/users/${encodeURIComponent(userID)}/config`;
-        const options = {
-            method: 'put',
-            body: JSON.stringify(patch),
-        };
-
-        return this.doFetch<UserPreference[]>(this.getBoardsRoute() + path, options);
-    }
 }
 
 // Variable to hold cache
@@ -167,9 +152,6 @@ async function makeClient(userRequest?: UserRequest, useCache = true): Promise<C
 
         const userProfile = await client.login(userRequest.username, userRequest.password);
         const user = {...userProfile, password: userRequest.password};
-
-        // Manually do until boards as product is consistent in all the codebase.
-        client.setUseBoardsProduct(true);
 
         if (useCache) {
             clients[cacheKey] = {client, user};
@@ -196,19 +178,5 @@ type ClientCache = {
     client: Client;
     user: UserProfile | null;
 };
-
-// Boards types
-
-interface UserPreference {
-    user_id: string;
-    category: string;
-    name: string;
-    value: any;
-}
-
-interface UserConfigPatch {
-    updatedFields?: Record<string, string>;
-    deletedFields?: string[];
-}
 
 export {Client, makeClient};

@@ -10,10 +10,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 var initBasicOnce sync.Once
@@ -78,7 +79,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			oAuthStore:   s.OAuth(),
 			config:       configStore.Get,
 		},
-		Context:     request.EmptyContext(nil),
+		Context:     request.EmptyContext(mlog.CreateConsoleTestLogger(tb)),
 		configStore: configStore,
 		dbStore:     s,
 		LogBuffer:   buffer,

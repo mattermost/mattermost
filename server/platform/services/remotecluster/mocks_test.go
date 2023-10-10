@@ -5,13 +5,14 @@ package remotecluster
 
 import (
 	"context"
+	"testing"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type mockServer struct {
@@ -20,12 +21,12 @@ type mockServer struct {
 	user    *model.User
 }
 
-func newMockServer(remotes []*model.RemoteCluster) *mockServer {
-	testLogger := mlog.CreateConsoleTestLogger(true, mlog.LvlDebug)
+func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
+	logger := mlog.CreateConsoleTestLogger(t)
 
 	return &mockServer{
 		remotes: remotes,
-		logger:  testLogger,
+		logger:  logger,
 	}
 }
 
@@ -59,4 +60,3 @@ func (ms *mockServer) GetStore() store.Store {
 	storeMock.On("User").Return(userStoreMock)
 	return storeMock
 }
-func (ms *mockServer) Shutdown() { ms.logger.Shutdown() }

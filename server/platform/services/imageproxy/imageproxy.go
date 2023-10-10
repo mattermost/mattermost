@@ -11,10 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/configservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
+	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 )
 
 var ErrNotEnabled = Error{errors.New("imageproxy.ImageProxy: image proxy not enabled")}
@@ -124,7 +124,7 @@ func (proxy *ImageProxy) GetImageDirect(imageURL string) (io.ReadCloser, string,
 // GetProxiedImageURL takes the URL of an image and returns a URL that can be used to view that image through the
 // image proxy.
 func (proxy *ImageProxy) GetProxiedImageURL(imageURL string) string {
-	if imageURL == "" || proxy.siteURL == nil {
+	if imageURL == "" || proxy.siteURL == nil || strings.HasPrefix(strings.ToLower(imageURL), "data:image/") {
 		return imageURL
 	}
 	// Parse url, return siteURL in case of failure.

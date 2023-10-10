@@ -434,7 +434,7 @@ func encryptPostActionCookie(plain string, secret []byte) (string, error) {
 
 	sealed := aesgcm.Seal(nil, nonce, []byte(plain), nil)
 
-	combined := append(nonce, sealed...)
+	combined := append(nonce, sealed...) //nolint:makezero
 	encoded := make([]byte, base64.StdEncoding.EncodedLen(len(combined)))
 	base64.StdEncoding.Encode(encoded, combined)
 

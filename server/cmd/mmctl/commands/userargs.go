@@ -4,14 +4,15 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"net/url"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 )
 
 func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
@@ -26,16 +27,16 @@ func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	var user *model.User
 	if !checkDots(userArg) {
-		user, _, _ = c.GetUserByEmail(userArg, "")
+		user, _, _ = c.GetUserByEmail(context.TODO(), userArg, "")
 	}
 
 	if !checkSlash(userArg) {
 		if user == nil {
-			user, _, _ = c.GetUserByUsername(userArg, "")
+			user, _, _ = c.GetUserByUsername(context.TODO(), userArg, "")
 		}
 
 		if user == nil {
-			user, _, _ = c.GetUser(userArg, "")
+			user, _, _ = c.GetUser(context.TODO(), userArg, "")
 		}
 	}
 
@@ -75,7 +76,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	var response *model.Response
 	var err error
 	if !checkDots(userArg) {
-		user, response, err = c.GetUserByEmail(userArg, "")
+		user, response, err = c.GetUserByEmail(context.TODO(), userArg, "")
 		if err != nil {
 			nErr := ExtractErrorFromResponse(response, err)
 			var nfErr *NotFoundError
@@ -88,7 +89,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 
 	if !checkSlash(userArg) {
 		if user == nil {
-			user, response, err = c.GetUserByUsername(userArg, "")
+			user, response, err = c.GetUserByUsername(context.TODO(), userArg, "")
 			if err != nil {
 				nErr := ExtractErrorFromResponse(response, err)
 				var nfErr *NotFoundError
@@ -100,7 +101,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 		}
 
 		if user == nil {
-			user, response, err = c.GetUser(userArg, "")
+			user, response, err = c.GetUser(context.TODO(), userArg, "")
 			if err != nil {
 				nErr := ExtractErrorFromResponse(response, err)
 				var nfErr *NotFoundError

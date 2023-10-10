@@ -10,9 +10,7 @@ const config = {
                 edge: 42,
                 safari: 12,
             },
-            modules: 'auto',
             corejs: 3,
-            debug: false,
             useBuiltIns: 'usage',
             shippedProposals: true,
         }],
@@ -26,8 +24,6 @@ const config = {
     ],
     plugins: [
         'lodash',
-        '@babel/plugin-proposal-class-properties',
-        '@babel/plugin-proposal-object-rest-spread',
         'react-hot-loader/babel',
         'babel-plugin-typescript-to-proptypes',
         [

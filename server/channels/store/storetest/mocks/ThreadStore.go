@@ -5,8 +5,8 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/server/public/model"
-	store "github.com/mattermost/mattermost-server/server/v8/channels/store"
+	model "github.com/mattermost/mattermost/server/public/model"
+	store "github.com/mattermost/mattermost/server/v8/channels/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -266,58 +266,6 @@ func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts mode
 
 	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
 		r1 = rf(userId, teamID, opts)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetTopThreadsForTeamSince provides a mock function with given fields: teamID, userID, since, offset, limit
-func (_m *ThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
-	ret := _m.Called(teamID, userID, since, offset, limit)
-
-	var r0 *model.TopThreadList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) (*model.TopThreadList, error)); ok {
-		return rf(teamID, userID, since, offset, limit)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopThreadList); ok {
-		r0 = rf(teamID, userID, since, offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.TopThreadList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
-		r1 = rf(teamID, userID, since, offset, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetTopThreadsForUserSince provides a mock function with given fields: teamID, userID, since, offset, limit
-func (_m *ThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
-	ret := _m.Called(teamID, userID, since, offset, limit)
-
-	var r0 *model.TopThreadList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) (*model.TopThreadList, error)); ok {
-		return rf(teamID, userID, since, offset, limit)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopThreadList); ok {
-		r0 = rf(teamID, userID, since, offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.TopThreadList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
-		r1 = rf(teamID, userID, since, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

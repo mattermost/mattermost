@@ -5,6 +5,7 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,14 +15,13 @@ import (
 	"sort"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	pUtils "github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/icrowley/fake"
 	"github.com/spf13/cobra"
@@ -93,7 +93,7 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 	}
 
 	// create session
-	us, _, err := c.CreateUpload(&model.UploadSession{
+	us, _, err := c.CreateUpload(context.TODO(), &model.UploadSession{
 		Filename: info.Name(),
 		FileSize: info.Size(),
 		Type:     model.UploadTypeImport,
@@ -106,7 +106,7 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 	printer.PrintT("Upload session successfully created, ID: {{.Id}} ", us)
 
 	// upload file
-	finfo, _, err := c.UploadData(us.Id, zipFile)
+	finfo, _, err := c.UploadData(context.TODO(), us.Id, zipFile)
 	if err != nil {
 		return fmt.Errorf("failed to upload data: %w", err)
 	}
@@ -114,7 +114,7 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 	printer.PrintT("Import file successfully uploaded, name: {{.Name}}", finfo)
 
 	// process
-	job, _, err := c.CreateJob(&model.Job{
+	job, _, err := c.CreateJob(context.TODO(), &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
 			"import_file": us.Id + "_" + finfo.Name,
@@ -127,7 +127,7 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 	printer.PrintT("Import process job successfully created, ID: {{.Id}}", job)
 
 	for {
-		job, _, err = c.GetJob(job.Id)
+		job, _, err = c.GetJob(context.TODO(), job.Id)
 		if err != nil {
 			return fmt.Errorf("failed to get import job status: %w", err)
 		}
@@ -361,7 +361,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !utils.StringInSlice(user, users) {
+			if !pUtils.Contains(users, user) {
 				users = append(users, user)
 			}
 		}
@@ -376,7 +376,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !utils.StringInSlice(user, users) {
+			if !pUtils.Contains(users, user) {
 				users = append(users, user)
 			}
 		}

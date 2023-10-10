@@ -8,9 +8,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+type Scheduler interface {
+	Enabled(cfg *model.Config) bool
+	NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time
+	ScheduleJob(c *request.Context, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError)
+}
 
 type Schedulers struct {
 	stop                 chan bool
@@ -22,7 +29,7 @@ type Schedulers struct {
 	isLeader             bool
 	running              bool
 
-	schedulers   map[string]model.Scheduler
+	schedulers   map[string]Scheduler
 	nextRunTimes map[string]*time.Time
 }
 
@@ -32,7 +39,7 @@ var (
 	ErrSchedulersUninitialized = errors.New("job schedulers are not initialized")
 )
 
-func (schedulers *Schedulers) AddScheduler(name string, scheduler model.Scheduler) {
+func (schedulers *Schedulers) AddScheduler(name string, scheduler Scheduler) {
 	schedulers.schedulers[name] = scheduler
 }
 
@@ -80,7 +87,8 @@ func (schedulers *Schedulers) Start() {
 						if scheduler == nil || !schedulers.isLeader || !scheduler.Enabled(cfg) {
 							continue
 						}
-						if _, err := schedulers.scheduleJob(cfg, name, scheduler); err != nil {
+						c := request.EmptyContext(schedulers.jobs.Logger())
+						if _, err := schedulers.scheduleJob(c, cfg, name, scheduler); err != nil {
 							mlog.Error("Failed to schedule job", mlog.String("scheduler", name), mlog.Err(err))
 							continue
 						}
@@ -147,7 +155,7 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, name string, now
 	mlog.Debug("Next run time for scheduler", mlog.String("scheduler_name", name), mlog.String("next_runtime", fmt.Sprintf("%v", schedulers.nextRunTimes[name])))
 }
 
-func (schedulers *Schedulers) scheduleJob(cfg *model.Config, name string, scheduler model.Scheduler) (*model.Job, *model.AppError) {
+func (schedulers *Schedulers) scheduleJob(c *request.Context, cfg *model.Config, name string, scheduler Scheduler) (*model.Job, *model.AppError) {
 	pendingJobs, err := schedulers.jobs.CheckForPendingJobsByType(name)
 	if err != nil {
 		return nil, err
@@ -158,7 +166,7 @@ func (schedulers *Schedulers) scheduleJob(cfg *model.Config, name string, schedu
 		return nil, err
 	}
 
-	return scheduler.ScheduleJob(cfg, pendingJobs, lastSuccessfulJob)
+	return scheduler.ScheduleJob(c, cfg, pendingJobs, lastSuccessfulJob)
 }
 
 func (schedulers *Schedulers) handleConfigChange(_, newConfig *model.Config) {

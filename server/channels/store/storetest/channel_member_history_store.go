@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
@@ -389,6 +389,9 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 	result, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime, leaveTime, channel.Id)
 	require.NoError(t, err)
 	require.Empty(t, result, "history should have been deleted by channel policy")
+	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("ChannelMemberHistory", 1000)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(rows))
 }
 
 func testGetChannelsLeftSince(t *testing.T, ss store.Store) {

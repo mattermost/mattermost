@@ -8,8 +8,8 @@ type ChannelList []*Channel
 func (o *ChannelList) Etag() string {
 
 	id := "0"
-	var t int64 = 0
-	var delta int64 = 0
+	var t int64
+	var delta int64
 
 	for _, v := range *o {
 		if v.LastPostAt > t {
@@ -32,8 +32,8 @@ type ChannelListWithTeamData []*ChannelWithTeamData
 func (o *ChannelListWithTeamData) Etag() string {
 
 	id := "0"
-	var t int64 = 0
-	var delta int64 = 0
+	var t int64
+	var delta int64
 
 	for _, v := range *o {
 		if v.LastPostAt > t {

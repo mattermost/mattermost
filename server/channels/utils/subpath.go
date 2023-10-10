@@ -16,9 +16,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 // getSubpathScript renders the inline script that defines window.publicPath to change how webpack loads assets.
@@ -123,8 +123,8 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 			if err != nil {
 				return errors.Wrapf(err, "failed to open %s", walkPath)
 			}
-			new := strings.Replace(string(old), pathToReplace, newPath, -1)
-			if err = os.WriteFile(walkPath, []byte(new), 0); err != nil {
+			n := strings.Replace(string(old), pathToReplace, newPath, -1)
+			if err = os.WriteFile(walkPath, []byte(n), 0); err != nil {
 				return errors.Wrapf(err, "failed to update %s with subpath %s", walkPath, subpath)
 			}
 		}

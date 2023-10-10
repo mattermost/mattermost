@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes} from 'react';
 import classNames from 'classnames';
+import React from 'react';
+import type {HTMLAttributes} from 'react';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {ExtendedPost} from 'mattermost-redux/actions/posts';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {UserThread} from '@mattermost/types/threads';
+
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 
-import {FakePost} from 'types/store/rhs';
-
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {UserThread} from '@mattermost/types/threads';
+import type {FakePost} from 'types/store/rhs';
 
 import ThreadViewerVirtualized from '../virtualized_thread_viewer';
 
@@ -31,7 +31,6 @@ export type Props = Attrs & {
     userThread?: UserThread | null;
     channel: Channel | null;
     selected: Post | FakePost;
-    previousRhsState?: string;
     currentUserId: string;
     currentTeamId: string;
     socketConnectionStatus: boolean;
@@ -40,7 +39,6 @@ export type Props = Attrs & {
         getNewestPostThread: (rootId: string) => Promise<any>|ActionFunc;
         getPostThread: (rootId: string, fetchThreads: boolean) => Promise<any>|ActionFunc;
         getThread: (userId: string, teamId: string, threadId: string, extended: boolean) => Promise<any>|ActionFunc;
-        removePost: (post: ExtendedPost) => void;
         selectPostCard: (post: Post) => void;
         updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;

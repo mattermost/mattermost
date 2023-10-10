@@ -25,7 +25,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 const (
@@ -258,15 +258,16 @@ func AppErrorInit(t i18n.TranslateFunc) {
 }
 
 type AppError struct {
-	Id            string `json:"id"`
-	Message       string `json:"message"`               // Message to be display to the end user without debugging information
-	DetailedError string `json:"detailed_error"`        // Internal error string to help the developer
-	RequestId     string `json:"request_id,omitempty"`  // The RequestId that's also set in the header
-	StatusCode    int    `json:"status_code,omitempty"` // The http status code
-	Where         string `json:"-"`                     // The function where it happened in the form of Struct.Func
-	IsOAuth       bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
-	params        map[string]any
-	wrapped       error
+	Id              string `json:"id"`
+	Message         string `json:"message"`               // Message to be display to the end user without debugging information
+	DetailedError   string `json:"detailed_error"`        // Internal error string to help the developer
+	RequestId       string `json:"request_id,omitempty"`  // The RequestId that's also set in the header
+	StatusCode      int    `json:"status_code,omitempty"` // The http status code
+	Where           string `json:"-"`                     // The function where it happened in the form of Struct.Func
+	IsOAuth         bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
+	SkipTranslation bool   `json:"-"`                     // Whether translation for the error should be skipped.
+	params          map[string]any
+	wrapped         error
 }
 
 const maxErrorLength = 1024
@@ -304,6 +305,10 @@ func (er *AppError) Error() string {
 }
 
 func (er *AppError) Translate(T i18n.TranslateFunc) {
+	if er.SkipTranslation {
+		return
+	}
+
 	if T == nil {
 		er.Message = er.Id
 		return

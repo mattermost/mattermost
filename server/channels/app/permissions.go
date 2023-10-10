@@ -13,9 +13,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
 const permissionsExportBatchSize = 100
@@ -282,7 +282,7 @@ func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleNa
 
 	_, err = a.UpdateRole(roleCreated)
 	if err != nil {
-		return errors.New(fmt.Sprintf("%v: %v\n", err.Message, err.DetailedError))
+		return fmt.Errorf("failed to update role: %w", err)
 	}
 
 	return nil

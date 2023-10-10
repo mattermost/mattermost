@@ -3,26 +3,29 @@
 
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
+import {logError} from 'mattermost-redux/actions/errors';
+import {Permissions} from 'mattermost-redux/constants';
 import {
     getChannelsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {Permissions} from 'mattermost-redux/constants';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
-import {logError} from 'mattermost-redux/actions/errors';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store.jsx';
+
 import {Constants} from 'utils/constants';
 
-import Provider, {ResultsCallback} from './provider';
-import {SuggestionContainer, SuggestionProps} from './suggestion';
+import Provider from './provider';
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
 
 interface WrappedChannel {
     channel: Channel;

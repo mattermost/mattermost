@@ -3,34 +3,35 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership, ServerChannel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {ServerError} from '@mattermost/types/errors';
-import {Role} from '@mattermost/types/roles';
+import type {Channel, ChannelMembership, ServerChannel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Role} from '@mattermost/types/roles';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Client4} from 'mattermost-redux/client';
 import {ChannelTypes, PreferenceTypes, RoleTypes} from 'mattermost-redux/action_types';
 import * as ChannelActions from 'mattermost-redux/actions/channels';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 import {logError} from 'mattermost-redux/actions/errors';
-import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Client4} from 'mattermost-redux/client';
 import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
 import {
     getChannelsAndChannelMembersQueryString,
     transformToReceivedChannelsReducerPayload,
     transformToReceivedChannelMembersReducerPayload,
-    ChannelsAndChannelMembersQueryResponseType,
-    GraphQLChannel,
-    GraphQLChannelMember,
     CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE,
 } from 'actions/channel_queries';
+import type {
+    ChannelsAndChannelMembersQueryResponseType,
+    GraphQLChannel,
+    GraphQLChannelMember} from 'actions/channel_queries';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants, Preferences, NotificationLevels} from 'utils/constants';
@@ -109,7 +110,7 @@ export function loadChannelsForCurrentUser(): ActionFunc {
     };
 }
 
-export function searchMoreChannels(term: string, showArchivedChannels: boolean): ActionFunc<Channel[], ServerError> {
+export function searchMoreChannels(term: string, showArchivedChannels: boolean, hideJoinedChannels: boolean): ActionFunc<Channel[], ServerError> {
     return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
@@ -121,9 +122,7 @@ export function searchMoreChannels(term: string, showArchivedChannels: boolean):
         const {data, error} = await dispatch(ChannelActions.searchChannels(teamId, term, showArchivedChannels));
         if (data) {
             const myMembers = getMyChannelMemberships(state);
-
-            // When searching public channels, only get channels user is not a member of
-            const channels = showArchivedChannels ? data : (data as Channel[]).filter((c) => !myMembers[c.id]);
+            const channels = hideJoinedChannels ? (data as Channel[]).filter((channel) => !myMembers[channel.id]) : data;
             return {data: channels};
         }
 

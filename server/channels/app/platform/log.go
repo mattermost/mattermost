@@ -13,9 +13,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/logr/v2"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 func (ps *PlatformService) Log() mlog.LoggerIFace {
@@ -31,7 +32,7 @@ func (ps *PlatformService) initLogging() error {
 	// create the app logger if needed
 	if ps.logger == nil {
 		var err error
-		ps.logger, err = mlog.NewLogger()
+		ps.logger, err = mlog.NewLogger(logr.MaxFieldLen(*ps.Config().LogSettings.MaxFieldSize))
 		if err != nil {
 			return err
 		}
@@ -141,7 +142,7 @@ func (ps *PlatformService) GetLogsSkipSend(page, perPage int, logFilter *model.L
 		var lineCount int
 		const searchPos = -1
 		b := make([]byte, 1)
-		var endOffset int64 = 0
+		var endOffset int64
 
 		// if the file exists and it's last byte is '\n' - skip it
 		var stat os.FileInfo

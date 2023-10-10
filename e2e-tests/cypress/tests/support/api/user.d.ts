@@ -209,6 +209,7 @@ declare namespace Cypress {
         apiCreateUser(options?: {
             user?: Partial<UserProfile>;
             prefix?: string;
+            createAt?: number;
             bypassTutorial?: boolean;
             showOnboarding?: boolean;
         }): Chainable<{user: UserProfile}>;

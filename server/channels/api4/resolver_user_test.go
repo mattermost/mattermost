@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"sort"
@@ -13,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestGraphQLUser(t *testing.T) {
@@ -134,7 +135,7 @@ func TestGraphQLUser(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Props, q.User.Props)
 		assert.Equal(t, th.BasicUser.NotifyProps, q.User.NotifyProps)
 
-		roles, _, err := th.Client.GetRolesByNames(th.BasicUser.GetRoles())
+		roles, _, err := th.Client.GetRolesByNames(context.Background(), th.BasicUser.GetRoles())
 		require.NoError(t, err)
 
 		assert.Len(t, q.User.Roles, 1)
@@ -145,7 +146,7 @@ func TestGraphQLUser(t *testing.T) {
 		assert.Equal(t, float64(roles[0].UpdateAt), q.User.Roles[0].UpdateAt)
 		assert.Equal(t, float64(roles[0].DeleteAt), q.User.Roles[0].DeleteAt)
 
-		prefs, _, err := th.Client.GetPreferences(th.BasicUser.Id)
+		prefs, _, err := th.Client.GetPreferences(context.Background(), th.BasicUser.Id)
 		require.NoError(t, err)
 
 		sort.Slice(prefs, func(i, j int) bool {
