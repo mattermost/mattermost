@@ -59,7 +59,7 @@ type State = {
     runningReport?: boolean;
 }
 
-class ComplianceReports extends React.PureComponent<Props, State> {
+export default class ComplianceReports extends React.PureComponent<Props, State> {
     private descInput: React.RefObject<HTMLInputElement>;
     private emailsInput: React.RefObject<HTMLInputElement>;
     private fromInput: React.RefObject<HTMLInputElement>;
