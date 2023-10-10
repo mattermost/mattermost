@@ -15,13 +15,11 @@ const (
 	broadcastAddFollowers = "addfollowers"
 )
 
-func (s *Server) RegisterBroadcastHooks() {
-	broadcastHooks := map[string]platform.BroadcastHook{
+func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
+	return map[string]platform.BroadcastHook{
 		broadcastAddMentions:  &addMentionsBroadcastHook{},
 		broadcastAddFollowers: &addFollowersBroadcastHook{},
 	}
-
-	s.platform.HubsUseBroadcastHooks(broadcastHooks)
 }
 
 type addMentionsBroadcastHook struct{}

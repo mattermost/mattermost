@@ -91,7 +91,7 @@ func newWebHub(ps *PlatformService) *Hub {
 }
 
 // hubStart starts all the hubs.
-func (ps *PlatformService) hubStart() {
+func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
@@ -101,6 +101,7 @@ func (ps *PlatformService) hubStart() {
 	for i := 0; i < numberOfHubs; i++ {
 		hubs[i] = newWebHub(ps)
 		hubs[i].connectionIndex = i
+		hubs[i].broadcastHooks = broadcastHooks
 		hubs[i].Start()
 	}
 	// Assigning to the hubs slice without any mutex is fine because it is only assigned once
@@ -118,12 +119,6 @@ func (ps *PlatformService) HubStop() {
 
 	for _, hub := range ps.hubs {
 		hub.Stop()
-	}
-}
-
-func (ps *PlatformService) HubsUseBroadcastHooks(hooks map[string]BroadcastHook) {
-	for _, hub := range ps.hubs {
-		hub.broadcastHooks = hooks
 	}
 }
 
