@@ -10,7 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 
 import LoadingScreen from 'components/loading_screen';
-import LocalizedInput from 'components/localized_input/localized_input';
+
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 
 import {t} from 'utils/i18n';
@@ -59,7 +59,7 @@ type State = {
     runningReport?: boolean;
 }
 
-export default class ComplianceReports extends React.PureComponent<Props, State> {
+class ComplianceReports extends React.PureComponent<Props, State> {
     private descInput: React.RefObject<HTMLInputElement>;
     private emailsInput: React.RefObject<HTMLInputElement>;
     private fromInput: React.RefObject<HTMLInputElement>;
@@ -345,7 +345,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='Job Name:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='desc'
@@ -361,7 +361,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='From:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='from'
@@ -377,7 +377,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='To:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='to'
@@ -395,7 +395,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='Emails:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='emails'
@@ -411,7 +411,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='Keywords:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='keywords'
