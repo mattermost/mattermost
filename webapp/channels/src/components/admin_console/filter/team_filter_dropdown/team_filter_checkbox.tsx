@@ -14,8 +14,8 @@ const TeamFilterCheckbox = ({
     checked,
     label,
     updateOption,
-}: React.FC<Props>) => {
-    // Use useCallback to memoize the callback
+}: Props) => {
+
     const toggleOption = useCallback(() => {
         updateOption(!checked, id);
     }, [checked, id, updateOption]);
