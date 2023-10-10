@@ -238,7 +238,7 @@ function initRequestCountingIfNecessary() {
         for (const entry of entries.getEntries()) {
             const url = entry.name;
 
-            if (!url.includes('/api/v4/') && !url.includes('/api/v5/')) {
+            if (!url.includes('/api/v4/')) {
                 // Don't count requests made outside of the MM server's API
                 continue;
             }

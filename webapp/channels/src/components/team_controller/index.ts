@@ -8,11 +8,9 @@ import type {RouteComponentProps} from 'react-router-dom';
 import {fetchAllMyTeamsChannelsAndChannelMembersREST, fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
-import {isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {fetchChannelsAndMembers} from 'actions/channel_actions';
 import {markChannelAsReadOnFocus} from 'actions/views/channel';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 
@@ -36,7 +34,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
     const currentUser = getCurrentUser(state);
     const plugins = state.plugins.components.NeedsTeamComponent;
-    const graphQLEnabled = isGraphQLEnabled(state);
     const disableRefetchingOnBrowserFocus = config.DisableRefetchingOnBrowserFocus === 'true';
 
     return {
@@ -46,13 +43,11 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         plugins,
         selectedThreadId: getSelectedThreadIdInCurrentTeam(state),
         mfaRequired: checkIfMFARequired(currentUser, license, config, ownProps.match.url),
-        graphQLEnabled,
         disableRefetchingOnBrowserFocus,
     };
 }
 
 const mapDispatchToProps = {
-    fetchChannelsAndMembers,
     fetchMyChannelsAndMembersREST,
     fetchAllMyTeamsChannelsAndChannelMembersREST,
     markChannelAsReadOnFocus,
