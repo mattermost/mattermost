@@ -81,7 +81,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJSON(relayProps)))
 	}
 
-	data, err := samlInterface.BuildRequest(relayState)
+	data, err := samlInterface.BuildRequest(c.AppContext, relayState)
 	if err != nil {
 		c.Err = err
 		return
@@ -138,11 +138,12 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
+
+		c.Logger.Error("Failed to complete SAML login", mlog.Err(err))
 	}
 
 	if len(encodedXML) > maxSAMLResponseSize {
 		err := model.NewAppError("completeSaml", "api.user.authorize_oauth_user.saml_response_too_long.app_error", nil, "SAML response is too long", http.StatusBadRequest)
-		mlog.Error(err.Error())
 		handleError(err)
 		return
 	}
@@ -150,13 +151,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
 	if err != nil {
 		c.LogAudit("fail")
-		mlog.Error(err.Error())
 		handleError(err)
 		return
 	}
 
 	if err = c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
-		mlog.Error(err.Error())
 		handleError(err)
 		return
 	}
@@ -191,7 +190,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
 	if err != nil {
-		mlog.Error(err.Error())
 		handleError(err)
 		return
 	}
