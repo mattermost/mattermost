@@ -133,4 +133,4 @@ const OAuthToEmail = (props: Props) => {
     );
 };
 
-export default injectIntl(OAuthToEmail);
+export default OAuthToEmail;
