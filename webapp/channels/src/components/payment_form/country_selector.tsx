@@ -22,7 +22,7 @@ const CountrySelector = (props: CountrySelectorProps) => {
         <DropdownInput
             testId={props.testId || 'CountrySelector'}
             onChange={props.onChange}
-            value={props.value ? {value: props.value, label: getName(props.value)} : undefined}
+            value={props.value ? {value: props.value, label: getName(props.value) || ''} : undefined}
             options={COUNTRIES.map((country) => ({
                 value: country.code,
                 label: country.name,
