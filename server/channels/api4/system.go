@@ -347,7 +347,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var logFilter *model.LogFilter
 	err := json.NewDecoder(r.Body).Decode(&logFilter)
-	if err != nil {
+	if err != nil || logFilter == nil {
 		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusInternalServerError)
 		return
 	}
@@ -661,7 +661,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
+			msg, appError := notificationInterface.GetNotificationMessage(c.AppContext, &ack, c.AppContext.Session().UserId)
 			if appError != nil {
 				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
 				return
