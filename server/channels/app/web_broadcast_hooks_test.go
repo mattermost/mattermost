@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAddMentionsHook_HasChanges(t *testing.T) {
+func TestAddMentionsHook_ShouldProcess(t *testing.T) {
 	hook := &addMentionsBroadcastHook{}
 
 	userID := model.NewId()
@@ -28,7 +28,7 @@ func TestAddMentionsHook_HasChanges(t *testing.T) {
 			"mentions": model.StringArray{userID, otherUserID},
 		}
 
-		assert.Equal(t, true, hook.HasChanges(msg, webConn, args))
+		assert.Equal(t, true, hook.ShouldProcess(msg, webConn, args))
 	})
 
 	t.Run("should not make changes to a new post event only mentioning another user", func(t *testing.T) {
@@ -36,7 +36,7 @@ func TestAddMentionsHook_HasChanges(t *testing.T) {
 			"mentions": model.StringArray{otherUserID},
 		}
 
-		assert.Equal(t, false, hook.HasChanges(msg, webConn, args))
+		assert.Equal(t, false, hook.ShouldProcess(msg, webConn, args))
 	})
 
 	t.Run("should not make changes other types of events", func(t *testing.T) {
@@ -44,9 +44,9 @@ func TestAddMentionsHook_HasChanges(t *testing.T) {
 			"followers": model.StringArray{otherUserID, userID},
 		}
 
-		assert.Equal(t, false, hook.HasChanges(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", "", nil, ""), webConn, args))
-		assert.Equal(t, false, hook.HasChanges(model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", "", nil, ""), webConn, args))
-		assert.Equal(t, false, hook.HasChanges(model.NewWebSocketEvent(model.WebsocketEventDeleteTeam, "", "", "", nil, ""), webConn, args))
+		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", "", nil, ""), webConn, args))
+		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", "", nil, ""), webConn, args))
+		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventDeleteTeam, "", "", "", nil, ""), webConn, args))
 	})
 }
 
@@ -101,7 +101,7 @@ func TestAddMentionsHook_Process(t *testing.T) {
 	})
 }
 
-func TestAddFollowersHook_HasChanges(t *testing.T) {
+func TestAddFollowersHook_ShouldProcess(t *testing.T) {
 	hook := &addFollowersBroadcastHook{}
 
 	userID := model.NewId()
@@ -117,7 +117,7 @@ func TestAddFollowersHook_HasChanges(t *testing.T) {
 			"followers": model.StringArray{otherUserID, userID},
 		}
 
-		assert.Equal(t, true, hook.HasChanges(msg, webConn, args))
+		assert.Equal(t, true, hook.ShouldProcess(msg, webConn, args))
 	})
 
 	t.Run("should not make changes to a new post event only followed by another user", func(t *testing.T) {
@@ -125,7 +125,7 @@ func TestAddFollowersHook_HasChanges(t *testing.T) {
 			"followers": model.StringArray{otherUserID},
 		}
 
-		assert.Equal(t, false, hook.HasChanges(msg, webConn, args))
+		assert.Equal(t, false, hook.ShouldProcess(msg, webConn, args))
 	})
 
 	t.Run("should not make changes other types of events", func(t *testing.T) {
@@ -133,9 +133,9 @@ func TestAddFollowersHook_HasChanges(t *testing.T) {
 			"followers": model.StringArray{otherUserID, userID},
 		}
 
-		assert.Equal(t, false, hook.HasChanges(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", "", nil, ""), webConn, args))
-		assert.Equal(t, false, hook.HasChanges(model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", "", nil, ""), webConn, args))
-		assert.Equal(t, false, hook.HasChanges(model.NewWebSocketEvent(model.WebsocketEventDeleteTeam, "", "", "", nil, ""), webConn, args))
+		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", "", nil, ""), webConn, args))
+		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", "", nil, ""), webConn, args))
+		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventDeleteTeam, "", "", "", nil, ""), webConn, args))
 	})
 }
 

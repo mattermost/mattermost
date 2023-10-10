@@ -6,7 +6,7 @@ package platform
 import "github.com/mattermost/mattermost/server/public/model"
 
 type BroadcastHook interface {
-	HasChanges(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) bool
+	ShouldProcess(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) bool
 	Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) *model.WebSocketEvent
 }
 
@@ -27,7 +27,7 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn) *mo
 			continue
 		}
 
-		if hook.HasChanges(msg, webConn, args) {
+		if hook.ShouldProcess(msg, webConn, args) {
 			hasChanges = true
 			break
 		}

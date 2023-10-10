@@ -26,7 +26,7 @@ func (s *Server) RegisterBroadcastHooks() {
 
 type addMentionsBroadcastHook struct{}
 
-func (h *addMentionsBroadcastHook) HasChanges(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) bool {
+func (h *addMentionsBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) bool {
 	if msg.EventType() != model.WebsocketEventPosted {
 		return false
 	}
@@ -69,7 +69,7 @@ func UseAddMentionsHook(message *model.WebSocketEvent, mentionedUsers model.Stri
 
 type addFollowersBroadcastHook struct{}
 
-func (h *addFollowersBroadcastHook) HasChanges(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) bool {
+func (h *addFollowersBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) bool {
 	if msg.EventType() != model.WebsocketEventPosted {
 		return false
 	}
