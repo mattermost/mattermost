@@ -10,7 +10,6 @@ import type {AuthChangeResponse} from '@mattermost/types/users';
 import {oauthToEmail} from 'actions/admin_actions.jsx';
 
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 import {isValidPassword, localizeMessage, toTitleCase} from 'utils/utils';
 import type {getPasswordConfig} from 'utils/utils';
 
@@ -102,7 +101,7 @@ const OAuthToEmail = (props: Props) => {
                         name='password'
                         ref={passwordInput}
                         placeholder={intl.formatMessage({
-                            id: t('claim.oauth_to_email.newPwd'),
+                            id: 'claim.oauth_to_email.newPwd',
                             defaultMessage: 'New Password',
                         })}
                         spellCheck='false'
@@ -115,7 +114,7 @@ const OAuthToEmail = (props: Props) => {
                         name='passwordconfirm'
                         ref={passwordConfirmInput}
                         placeholder={intl.formatMessage({
-                            id: t('claim.oauth_to_email.confirm'),
+                            id: 'claim.oauth_to_email.confirm',
                             defaultMessage: 'Confirm Password',
                         })}
                         spellCheck='false'
