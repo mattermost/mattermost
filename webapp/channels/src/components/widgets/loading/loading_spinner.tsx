@@ -2,36 +2,28 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import LocalizedIcon from 'components/localized_icon';
+import {useIntl} from 'react-intl';
 
 import {t} from 'utils/i18n';
 
 type Props = {
-    text: React.ReactNode;
+    text?: React.ReactNode;
     style?: React.CSSProperties;
 }
 
-export default class LoadingSpinner extends React.PureComponent<Props> {
-    public static defaultProps: Props = {
-        text: null,
-    };
+const LoadingSpinner: React.FunctionComponent<Props> = ({text = null, style}: Props) => {
+    const {formatMessage} = useIntl();
+    return (
+        <div
+            id='loadingSpinner'
+            className={'LoadingSpinner'}
+            style={style}
+            data-testid='loadingSpinner'
+            title={formatMessage({id: t('generic_icons.loading'), defaultMessage: 'Loading Icon'})}
+        >
+            <div/><div/><div/><div/>{text && <div className='loadingSpinnerText'>{text}</div>}
+        </div>
 
-    public render() {
-        return (
-            <span
-                id='loadingSpinner'
-                className={'LoadingSpinner' + (this.props.text ? ' with-text' : '')}
-                style={this.props.style}
-                data-testid='loadingSpinner'
-            >
-                <LocalizedIcon
-                    className='fa fa-spinner fa-fw fa-pulse spinner'
-                    component='span'
-                    title={{id: t('generic_icons.loading'), defaultMessage: 'Loading Icon'}}
-                />
-                {this.props.text}
-            </span>
-        );
-    }
-}
+    );
+};
+export default LoadingSpinner;
