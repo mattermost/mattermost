@@ -31,7 +31,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *Worker {
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
-		logger:    jobServer.Logger().With(mlog.String("workername", workerName)),
+		logger:    jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		app:       app,
 	}
 
@@ -52,9 +52,6 @@ func (worker *Worker) Run() {
 			worker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-worker.jobs:
-			job.Logger = job.Logger.With(mlog.String("workername", worker.name))
-
-			job.Logger.Debug("Worker received a new candidate job")
 			worker.DoJob(&job)
 		}
 	}
@@ -75,32 +72,35 @@ func (worker *Worker) IsEnabled(cfg *model.Config) bool {
 }
 
 func (worker *Worker) DoJob(job *model.Job) {
+	logger := worker.logger.With(jobs.JobLoggerFields(job)...)
+	logger.Debug("Worker: Received a new candidate job.")
+
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		job.Logger.Info("Worker experienced an error while trying to claim job", mlog.Err(err))
+		logger.Info("Worker experienced an error while trying to claim job", mlog.Err(err))
 		return
 	} else if !claimed {
 		return
 	}
 
 	if err := worker.app.DeleteAllExpiredPluginKeys(); err != nil {
-		job.Logger.Error("Worker: Failed to delete expired keys", mlog.Err(err))
-		worker.setJobError(job, err)
+		logger.Error("Worker: Failed to delete expired keys", mlog.Err(err))
+		worker.setJobError(logger, job, err)
 		return
 	}
 
-	job.Logger.Info("Worker: Job is complete")
-	worker.setJobSuccess(job)
+	logger.Info("Worker: Job is complete")
+	worker.setJobSuccess(logger, job)
 }
 
-func (worker *Worker) setJobSuccess(job *model.Job) {
+func (worker *Worker) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
 	if err := worker.jobServer.SetJobSuccess(job); err != nil {
-		job.Logger.Error("Worker: Failed to set success for job", mlog.Err(err))
-		worker.setJobError(job, err)
+		logger.Error("Worker: Failed to set success for job", mlog.Err(err))
+		worker.setJobError(logger, job, err)
 	}
 }
 
-func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
+func (worker *Worker) setJobError(logger mlog.LoggerIFace, job *model.Job, appError *model.AppError) {
 	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		job.Logger.Error("Worker: Failed to set job error", mlog.Err(err))
+		logger.Error("Worker: Failed to set job error", mlog.Err(err))
 	}
 }
