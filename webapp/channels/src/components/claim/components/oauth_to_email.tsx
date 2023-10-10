@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import {FormattedMessage, type IntlShape} from 'react-intl';
 
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
