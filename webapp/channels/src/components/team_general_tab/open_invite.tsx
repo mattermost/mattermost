@@ -4,14 +4,13 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {Team} from '@mattermost/types/teams';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import SettingItemMax from 'components/setting_item_max';
-
-import SettingItemMin from 'components/setting_item_min';
-
-import type {Team} from '@mattermost/types/teams';
 import ExternalLink from 'components/external_link';
+import SettingItemMax from 'components/setting_item_max';
+import SettingItemMin from 'components/setting_item_min';
 
 type Props = {
     teamId?: string;

@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
-import {readAccess} from './types';
-
 import SystemRolePermission from './system_role_permission';
+import {readAccess} from './types';
 
 describe('admin_console/system_role_permission', () => {
     test('should match snapshot', () => {

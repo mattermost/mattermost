@@ -62,6 +62,8 @@ const (
 	UserLocaleMaxLength   = 5
 	UserTimezoneMaxRunes  = 256
 	UserRolesMaxLength    = 256
+
+	DesktopTokenTTL = time.Minute * 3
 )
 
 //msgp:tuple User
@@ -183,7 +185,6 @@ func (u *UserPatch) Auditable() map[string]interface{} {
 
 //msgp:ignore UserAuth
 type UserAuth struct {
-	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
 }
@@ -974,7 +975,7 @@ func IsValidUsernameAllowRemote(s string) bool {
 	return !found
 }
 
-func CleanUsername(username string) string {
+func CleanUsername(logger mlog.LoggerIFace, username string) string {
 	s := NormalizeUsername(strings.Replace(username, " ", "-", -1))
 
 	for _, value := range reservedName {
@@ -996,7 +997,7 @@ func CleanUsername(username string) string {
 
 	if !IsValidUsername(s) {
 		s = "a" + NewId()
-		mlog.Warn("Generating new username since provided username was invalid",
+		logger.Warn("Generating new username since provided username was invalid",
 			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}
 

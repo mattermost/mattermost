@@ -125,7 +125,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -303,7 +307,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -481,7 +489,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -659,7 +671,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }

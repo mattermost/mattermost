@@ -17,7 +17,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -1070,7 +1069,6 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 
 func TestExecuteCommandReadOnly(t *testing.T) {
 	th := Setup(t).InitBasic()
-	ctx := request.EmptyContext(th.TestLogger)
 	defer th.TearDown()
 	client := th.Client
 
@@ -1128,7 +1126,7 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
 	_, appErr = th.App.PatchChannelModerationsForChannel(
-		ctx,
+		th.Context,
 		th.BasicChannel,
 		[]*model.ChannelModerationPatch{{
 			Name: &model.PermissionCreatePost.Id,

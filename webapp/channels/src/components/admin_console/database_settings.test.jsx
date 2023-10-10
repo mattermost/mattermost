@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import DatabaseSettings from 'components/admin_console/database_settings.jsx';
+import DatabaseSettings from 'components/admin_console/database_settings';
 
 jest.mock('actions/admin_actions.jsx', () => {
     const pingFn = () => {

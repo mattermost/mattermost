@@ -3,10 +3,11 @@
 
 import React from 'react';
 
-import {localizeMessage} from 'utils/utils';
+import type {Channel} from '@mattermost/types/channels';
 
 import InfoIcon from 'components/widgets/icons/info_icon';
-import {Channel} from '@mattermost/types/channels';
+
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     channel: Channel;

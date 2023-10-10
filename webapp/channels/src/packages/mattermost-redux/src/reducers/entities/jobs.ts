@@ -3,10 +3,11 @@
 
 import {combineReducers} from 'redux';
 
+import type {JobsState, JobType, Job, JobsByType} from '@mattermost/types/jobs';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
+
 import {JobTypes} from 'mattermost-redux/action_types';
-import {JobsState, JobType, Job, JobsByType} from '@mattermost/types/jobs';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {IDMappedObjects} from '@mattermost/types/utilities';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function jobs(state: IDMappedObjects<Job> = {}, action: GenericAction): IDMappedObjects<Job> {
     switch (action.type) {

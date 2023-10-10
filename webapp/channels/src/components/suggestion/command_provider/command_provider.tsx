@@ -2,26 +2,28 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {Store} from 'redux';
 
-import {Store} from 'redux';
+import {DockWindowIcon} from '@mattermost/compass-icons/components';
+import type {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
 import globalStore from 'stores/redux_store';
 
-import * as UserAgent from 'utils/user_agent';
 import {Constants} from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 
-import {SuggestionContainer, SuggestionProps} from '../suggestion';
-import Provider, {ResultsCallback} from '../provider';
-
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
 import {intlShim} from './app_command_parser/app_command_parser_dependencies';
-import {DockWindowIcon} from '@mattermost/compass-icons/components';
+
+import Provider from '../provider';
+import type {ResultsCallback} from '../provider';
+import {SuggestionContainer} from '../suggestion';
+import type {SuggestionProps} from '../suggestion';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;

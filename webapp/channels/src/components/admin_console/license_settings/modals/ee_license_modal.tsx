@@ -4,17 +4,16 @@
 import React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
-
-import {isModalOpen} from 'selectors/views/modals';
-
 import {GenericModal} from '@mattermost/components';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {closeModal} from 'actions/views/modals';
+import {isModalOpen} from 'selectors/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {closeModal} from 'actions/views/modals';
+import type {GlobalState} from 'types/store';
 
 import './ee_license_modal.scss';
 
