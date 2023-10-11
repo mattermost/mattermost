@@ -1175,7 +1175,7 @@ func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 }
 
 func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
@@ -1186,7 +1186,7 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 }
 
 func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
 		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
