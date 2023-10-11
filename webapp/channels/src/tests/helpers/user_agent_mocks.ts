@@ -20,7 +20,7 @@ Object.defineProperty(window.navigator, 'userAgent', {
 export function reset() {
     set(initialUA);
 }
-export function set(ua) {
+export function set(ua: string) {
     currentUA = ua;
 }
 export function mockSafari() {
