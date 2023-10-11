@@ -576,7 +576,6 @@ func TestUpdateUserEmail(t *testing.T) {
 		botuser2, appErr := th.App.UpdateUser(th.Context, &botuser, false)
 		assert.Nil(t, appErr)
 		assert.Equal(t, botuser2.Email, newBotEmail)
-
 	})
 
 	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T) {
@@ -1171,7 +1170,6 @@ func TestPasswordRecovery(t *testing.T) {
 		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillisForTime(time.Now().Add(25*time.Hour)))
 		assert.NotNil(t, err)
 	})
-
 }
 
 func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
@@ -1742,7 +1740,6 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
-
 	t.Run("Ensure thread membership is created and followed", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

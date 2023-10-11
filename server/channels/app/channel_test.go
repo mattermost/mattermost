@@ -2341,7 +2341,6 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 }
 
 func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2662,5 +2661,4 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	convertedChannel, appErr := th.App.ConvertGroupMessageToChannel(th.Context, "user_id_1", conversionRequest)
 	require.Nil(t, appErr)
 	require.Equal(t, model.ChannelTypePrivate, convertedChannel.Type)
-
 }

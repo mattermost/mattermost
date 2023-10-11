@@ -1312,7 +1312,6 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
-
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 

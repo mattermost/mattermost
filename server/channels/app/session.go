@@ -101,7 +101,6 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		!session.IsOAuth && !session.IsMobileApp() &&
 		session.Props[model.SessionPropType] != model.SessionTypeUserAccessToken &&
 		!*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
-
 		timeout := int64(*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes) * 1000 * 60
 		if (model.GetMillis() - session.LastActivityAt) > timeout {
 			// Revoking the session is an asynchronous task anyways since we are not checking
@@ -210,7 +209,6 @@ func (a *App) RevokeSessionById(sessionID string) *model.AppError {
 		return model.NewAppError("RevokeSessionById", "app.session.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	return a.RevokeSession(session)
-
 }
 
 func (a *App) RevokeSession(session *model.Session) *model.AppError {
@@ -346,7 +344,6 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 	}
 
 	return token, nil
-
 }
 
 func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Session, *model.AppError) {
@@ -411,7 +408,6 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	a.ch.srv.platform.AddSessionToCache(session)
 
 	return session, nil
-
 }
 
 func (a *App) RevokeUserAccessToken(token *model.UserAccessToken) *model.AppError {
@@ -483,7 +479,6 @@ func (a *App) GetUserAccessTokensForUser(userID string, page, perPage int) ([]*m
 	}
 
 	return tokens, nil
-
 }
 
 func (a *App) GetUserAccessToken(tokenID string, sanitize bool) (*model.UserAccessToken, *model.AppError) {

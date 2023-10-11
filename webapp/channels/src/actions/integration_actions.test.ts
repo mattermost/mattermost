@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@mattermost/types/integrations';
+
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
-import * as Actions from 'actions/integration_actions.jsx';
+import * as Actions from 'actions/integration_actions';
 
 import mockStore from 'tests/test_store';
 
@@ -12,6 +14,12 @@ jest.mock('mattermost-redux/actions/users', () => ({
         return {type: ''};
     }),
 }));
+
+interface CustomMatchers<R = unknown> {
+    arrayContainingExactly(stringArray: string[]): R;
+}
+
+type GreatExpectations = typeof expect & CustomMatchers;
 
 describe('actions/integration_actions', () => {
     const initialState = {
@@ -35,14 +43,14 @@ describe('actions/integration_actions', () => {
     describe('loadProfilesForIncomingHooks', () => {
         test('load profiles for hooks including user we already have', () => {
             const testStore = mockStore(initialState);
-            testStore.dispatch(Actions.loadProfilesForIncomingHooks([{user_id: 'current_user_id'}, {user_id: 'user_id2'}]));
-            expect(getProfilesByIds).toHaveBeenCalledWith(expect.arrayContainingExactly(['user_id2']));
+            testStore.dispatch(Actions.loadProfilesForIncomingHooks([{user_id: 'current_user_id'}, {user_id: 'user_id2'}] as IncomingWebhook[]));
+            expect(getProfilesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id2']));
         });
 
         test('load profiles for hooks including only users we don\'t have', () => {
             const testStore = mockStore(initialState);
-            testStore.dispatch(Actions.loadProfilesForIncomingHooks([{user_id: 'user_id1'}, {user_id: 'user_id2'}]));
-            expect(getProfilesByIds).toHaveBeenCalledWith(expect.arrayContainingExactly(['user_id1', 'user_id2']));
+            testStore.dispatch(Actions.loadProfilesForIncomingHooks([{user_id: 'user_id1'}, {user_id: 'user_id2'}] as IncomingWebhook[]));
+            expect(getProfilesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id1', 'user_id2']));
         });
 
         test('load profiles for empty hooks', () => {
@@ -55,14 +63,14 @@ describe('actions/integration_actions', () => {
     describe('loadProfilesForOutgoingHooks', () => {
         test('load profiles for hooks including user we already have', () => {
             const testStore = mockStore(initialState);
-            testStore.dispatch(Actions.loadProfilesForOutgoingHooks([{creator_id: 'current_user_id'}, {creator_id: 'user_id2'}]));
-            expect(getProfilesByIds).toHaveBeenCalledWith(expect.arrayContainingExactly(['user_id2']));
+            testStore.dispatch(Actions.loadProfilesForOutgoingHooks([{creator_id: 'current_user_id'}, {creator_id: 'user_id2'}] as OutgoingWebhook[]));
+            expect(getProfilesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id2']));
         });
 
         test('load profiles for hooks including only users we don\'t have', () => {
             const testStore = mockStore(initialState);
-            testStore.dispatch(Actions.loadProfilesForOutgoingHooks([{creator_id: 'user_id1'}, {creator_id: 'user_id2'}]));
-            expect(getProfilesByIds).toHaveBeenCalledWith(expect.arrayContainingExactly(['user_id1', 'user_id2']));
+            testStore.dispatch(Actions.loadProfilesForOutgoingHooks([{creator_id: 'user_id1'}, {creator_id: 'user_id2'}] as OutgoingWebhook[]));
+            expect(getProfilesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id1', 'user_id2']));
         });
 
         test('load profiles for empty hooks', () => {
@@ -75,14 +83,14 @@ describe('actions/integration_actions', () => {
     describe('loadProfilesForCommands', () => {
         test('load profiles for commands including user we already have', () => {
             const testStore = mockStore(initialState);
-            testStore.dispatch(Actions.loadProfilesForCommands([{creator_id: 'current_user_id'}, {creator_id: 'user_id2'}]));
-            expect(getProfilesByIds).toHaveBeenCalledWith(expect.arrayContainingExactly(['user_id2']));
+            testStore.dispatch(Actions.loadProfilesForCommands([{creator_id: 'current_user_id'}, {creator_id: 'user_id2'}] as Command[]));
+            expect(getProfilesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id2']));
         });
 
         test('load profiles for commands including only users we don\'t have', () => {
             const testStore = mockStore(initialState);
-            testStore.dispatch(Actions.loadProfilesForCommands([{creator_id: 'user_id1'}, {creator_id: 'user_id2'}]));
-            expect(getProfilesByIds).toHaveBeenCalledWith(expect.arrayContainingExactly(['user_id1', 'user_id2']));
+            testStore.dispatch(Actions.loadProfilesForCommands([{creator_id: 'user_id1'}, {creator_id: 'user_id2'}] as Command[]));
+            expect(getProfilesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id1', 'user_id2']));
         });
 
         test('load profiles for empty commands', () => {
@@ -95,14 +103,14 @@ describe('actions/integration_actions', () => {
     describe('loadProfilesForOAuthApps', () => {
         test('load profiles for apps including user we already have', () => {
             const testStore = mockStore(initialState);
-            testStore.dispatch(Actions.loadProfilesForOAuthApps([{creator_id: 'current_user_id'}, {creator_id: 'user_id2'}]));
-            expect(getProfilesByIds).toHaveBeenCalledWith(expect.arrayContainingExactly(['user_id2']));
+            testStore.dispatch(Actions.loadProfilesForOAuthApps([{creator_id: 'current_user_id'}, {creator_id: 'user_id2'}] as OAuthApp[]));
+            expect(getProfilesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id2']));
         });
 
         test('load profiles for apps including only users we don\'t have', () => {
             const testStore = mockStore(initialState);
-            testStore.dispatch(Actions.loadProfilesForOAuthApps([{creator_id: 'user_id1'}, {creator_id: 'user_id2'}]));
-            expect(getProfilesByIds).toHaveBeenCalledWith(expect.arrayContainingExactly(['user_id1', 'user_id2']));
+            testStore.dispatch(Actions.loadProfilesForOAuthApps([{creator_id: 'user_id1'}, {creator_id: 'user_id2'}] as OAuthApp[]));
+            expect(getProfilesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id1', 'user_id2']));
         });
 
         test('load profiles for empty apps', () => {
