@@ -8780,7 +8780,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
-    "translation": "If GlobalRelaySettings.CustomerType is 'CUSTOM', then GlobalRelaySettings.CustomSMTPServerName must be set."
+    "translation": "If GlobalRelaySettings.CustomerType is 'CUSTOM', then GlobalRelaySettings.CustomSMTPServerName and GlobalRelaySettings.CustomSMTPPort must be set."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
