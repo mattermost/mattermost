@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import cidrRegex from 'cidr-regex';
 import React, {useState} from 'react';
 import {Button, Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
@@ -22,8 +23,7 @@ type Props = {
 }
 
 function validateCIDR(cidr: string) {
-    const cidrRegex = /^(\d{1,3}\.){3}\d{1,3}\/(1[0-9]|[1-9]|[0-2][0-9]|3[0-2])$/;
-    return cidrRegex.test(cidr);
+    return cidrRegex.v4({exact: true}).test(cidr) || cidrRegex.v6({exact: true}).test(cidr);
 }
 
 export default function IPFilteringAddOrEditModal({onClose, onSave, existingRange, currentIP}: Props) {
@@ -145,7 +145,7 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
                     type='button'
                     className='btn-save'
                     onClick={handleSave}
-                    disabled={cidrError !== null}
+                    disabled={cidrError !== null || !name}
                 >
                     {existingRange ? formatMessage({id: 'admin.ip_filtering.update_filter', defaultMessage: 'Update filter'}) : formatMessage({id: 'admin.ip_filtering.save', defaultMessage: 'Save'})}
                 </Button>
