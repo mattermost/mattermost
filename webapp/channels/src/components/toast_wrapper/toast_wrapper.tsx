@@ -376,6 +376,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
 
         scrollToLatestMessages();
         this.hideUnreadToast();
+        this.hideScrollToBottomToast();
     };
 
     scrollToUnreadMessages = () => {

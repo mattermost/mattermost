@@ -9,6 +9,9 @@ import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
 
 import './scroll_to_bottom_toast.scss';
 
+export const SCROLL_TO_BOTTOM_TOAST_TESTID = 'scroll-to-bottom-toast';
+export const SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID = 'scroll-to-bottom-toast--dismiss-button';
+
 type ScrollToBottomToastProps = {
     onDismiss: () => void;
     onClick: () => void;
@@ -35,6 +38,7 @@ export const ScrollToBottomToast = ({onDismiss, onClick}: ScrollToBottomToastPro
 
     return (
         <div
+            data-testid={SCROLL_TO_BOTTOM_TOAST_TESTID}
             className='scroll-to-bottom-toast'
             onClick={handleScrollToBottom}
         >
@@ -43,7 +47,7 @@ export const ScrollToBottomToast = ({onDismiss, onClick}: ScrollToBottomToastPro
             <div
                 className='scroll-to-bottom-toast__dismiss'
                 onClick={handleDismiss}
-                data-testid='dismissScrollToBottomToast'
+                data-testid={SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID}
             >
                 <CloseIcon
                     className='close-btn'
