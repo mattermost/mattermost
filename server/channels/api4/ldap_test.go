@@ -145,7 +145,7 @@ func TestSyncLdap(t *testing.T) {
 	ldapMock := &mocks.LdapInterface{}
 	mockCall := ldapMock.On(
 		"StartSynchronizeJob",
-		mock.AnythingOfType("*request.Context"),
+		mock.AnythingOfType("request.CTX"),
 		mock.AnythingOfType("bool"),
 		mock.AnythingOfType("bool"),
 	).Return(nil, nil)

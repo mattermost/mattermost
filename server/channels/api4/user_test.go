@@ -7316,7 +7316,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		ldapMock := &mocks.LdapInterface{}
 		ldapMock.Mock.On(
 			"CheckProviderAttributes",
-			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("request.CTX"),
 			mock.AnythingOfType("*model.LdapSettings"),
 			mock.AnythingOfType("*model.User"),
 			mock.AnythingOfType("*model.UserPatch"),
@@ -7340,7 +7340,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
 			ldapMock := &mocks.LdapInterface{}
 			ldapMock.Mock.On(
-				"CheckProviderAttributes", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.LdapSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
+				"CheckProviderAttributes", mock.AnythingOfType("request.CTX"), mock.AnythingOfType("*model.LdapSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
 			).Return("")
 			th.App.Channels().Ldap = ldapMock
 			th.SystemAdminClient.PatchUser(context.Background(), user.Id, &model.UserPatch{})
@@ -7354,7 +7354,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
 			samlMock := &mocks.SamlInterface{}
 			samlMock.Mock.On(
-				"CheckProviderAttributes", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.SamlSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
+				"CheckProviderAttributes", mock.AnythingOfType("request.CTX"), mock.AnythingOfType("*model.SamlSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
 			).Return("")
 			th.App.Channels().Saml = samlMock
 			th.SystemAdminClient.PatchUser(context.Background(), user.Id, &model.UserPatch{})

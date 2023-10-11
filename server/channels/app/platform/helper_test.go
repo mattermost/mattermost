@@ -21,7 +21,7 @@ import (
 )
 
 type TestHelper struct {
-	Context *request.Context
+	Context request.CTX
 	Service *PlatformService
 	Suite   SuiteIFace
 

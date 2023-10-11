@@ -153,8 +153,8 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
-	mockSessionStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Session")).Return(sess1, nil)
-	mockSessionStore.On("Get", mock.AnythingOfType("*request.Context"), mock.Anything, "id1").Return(sess1, nil)
+	mockSessionStore.On("Save", mock.AnythingOfType("request.CTX"), mock.AnythingOfType("*model.Session")).Return(sess1, nil)
+	mockSessionStore.On("Get", mock.AnythingOfType("request.CTX"), mock.Anything, "id1").Return(sess1, nil)
 	mockSessionStore.On("Remove", "id1").Return(nil)
 
 	mockStatusStore := mocks.StatusStore{}
