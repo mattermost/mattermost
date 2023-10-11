@@ -21,7 +21,6 @@ func TestNotifyAdmin(t *testing.T) {
 
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, statusCode)
-
 	})
 
 	t.Run("error when plan is unknown when notifying on upgrade", func(t *testing.T) {
@@ -36,7 +35,6 @@ func TestNotifyAdmin(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, ": Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
-
 	})
 
 	t.Run("error when plan is unknown when notifying to trial", func(t *testing.T) {
@@ -52,7 +50,6 @@ func TestNotifyAdmin(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, ": Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
-
 	})
 
 	t.Run("error when feature is unknown when notifying on upgrade", func(t *testing.T) {
@@ -132,7 +129,6 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, ": Internal error during cloud api request.", err.Error())
 		require.Equal(t, http.StatusForbidden, statusCode)
-
 	})
 
 	t.Run("error when non admins try to trigger notifications", func(t *testing.T) {
