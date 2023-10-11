@@ -196,12 +196,10 @@ func (worker *BatchMigrationWorker) DoJob(job *model.Job) {
 func (worker *BatchMigrationWorker) resetJob(logger mlog.LoggerIFace, job *model.Job) {
 	job.Data = nil
 	job.Progress = 0
+	job.Status = model.JobStatusPending
 
 	if _, err := worker.store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err != nil {
 		worker.logger.Error("Worker: Failed to reset job data. May resume instead of restarting.", mlog.Err(err))
-	}
-	if _, err := worker.store.Job().UpdateStatus(job.Id, model.JobStatusPending); err != nil {
-		worker.logger.Error("Worker: Failed to reset job back to pending. May resume instead of restarting.", mlog.Err(err))
 	}
 }
 
