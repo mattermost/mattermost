@@ -5,7 +5,7 @@ import React from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import ExternalLink from '../external_link';
+import ExternalLink from 'components/external_link';
 
 type Props = {
     showPreview?: boolean;
