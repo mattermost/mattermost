@@ -38,11 +38,14 @@ describe('Notifications', () => {
             cy.apiAddUserToChannel(otherChannel.id, sender.id);
             return cy.apiAddUserToChannel(otherChannel.id, receiver.id);
         }).then(() => {
-            // # Login as receiver and visit off-topic channel
+            // # Login as receiver to test channels and post a message
             cy.apiLogin(receiver);
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+            cy.postMessage(`hello ${testChannel.name}`);
             cy.get(`#sidebarItem_${otherChannel.name}`).click();
+            cy.postMessage(`hello ${otherChannel.name}`);
             cy.get('#sidebarItem_off-topic').click();
+            cy.postMessage('hello off-topic');
         });
     });
 

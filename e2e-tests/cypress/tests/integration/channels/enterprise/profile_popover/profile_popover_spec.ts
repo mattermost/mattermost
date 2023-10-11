@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @profile_popover
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
@@ -44,7 +43,7 @@ describe('Profile popover', () => {
         cy.get('.admin-console__header', {timeout: TIMEOUTS.TWO_MIN}).should('be.visible').and('have.text', 'System Scheme');
     });
 
-    it('MM-T2 Add user — Error if already in channel', () => {
+    it('MM-T2 Add user — Error if already in channel -- KNOWN ISSUE: MM-54457', () => {
         cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are enabled
@@ -113,7 +112,7 @@ describe('Profile popover', () => {
         });
     });
 
-    it('MM-T4 Add user — Public OFF / Private ON', () => {
+    it('MM-T4 Add user — Public OFF / Private ON -- KNOWN ISSUE: MM-54457', () => {
         cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled
@@ -130,6 +129,9 @@ describe('Profile popover', () => {
         // # Login as the second user now
         cy.apiLogin(otherUser);
         cy.visit(offTopicUrl);
+
+        // # Mention the user
+        cy.uiGetPostTextBox().clear().type(`Hello @${testUser.username}`).type('{enter}');
 
         clickAddToChannel(testUser);
 
@@ -148,7 +150,7 @@ describe('Profile popover', () => {
         });
     });
 
-    it('MM-T6 Add User - Channel Admins (Public only)', () => {
+    it('MM-T6 Add User - Channel Admins (Public only) -- KNOWN ISSUE: MM-54457', () => {
         cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
 
         cy.findByTestId('all_users-private_channel-checkbox').scrollIntoView().should('be.visible').click();
@@ -186,6 +188,9 @@ describe('Profile popover', () => {
         promoteToChannelOrTeamAdmin(otherUser, testChannel.id);
         cy.visit(offTopicUrl);
 
+        // # Mention the user
+        cy.uiGetPostTextBox().clear().type(`Hello @${testUser.username}`).type('{enter}');
+
         clickAddToChannel(testUser);
 
         cy.get('div[aria-labelledby="addChannelModalLabel"]').within(() => {
@@ -218,7 +223,7 @@ describe('Profile popover', () => {
         cy.findByTestId('postView', {timeout: TIMEOUTS.ONE_MIN}).find('.post-message__text').should('contain.text', `@${testUser.username} added to the channel by you.`);
     });
 
-    it('MM-T7 Add User — Team admins (Private only)', () => {
+    it('MM-T7 Add User — Team admins (Private only) -- KNOWN ISSUE: MM-54457', () => {
         cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled
@@ -292,7 +297,7 @@ describe('Profile popover', () => {
         cy.findByTestId('postView', {timeout: TIMEOUTS.ONE_MIN}).find('.post-message__text').should('contain.text', `@${testUser.username} added to the channel by you.`);
     });
 
-    it('MM-T9 Add User - Any user (can add users)', () => {
+    it('MM-T9 Add User - Any user (can add users) -- KNOWN ISSUE: MM-54457', () => {
         cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are enabled
@@ -463,7 +468,7 @@ const verifyAddToChannel = (user: Cypress.UserProfile, visible = true) => {
 const clickAddToChannel = (user: Cypress.UserProfile) => {
     // # Open profile popover
     cy.get('#postListContent', {timeout: TIMEOUTS.ONE_MIN}).within(() => {
-        cy.findAllByText(`${user.username}`).first().should('have.text', user.username).click();
+        cy.findAllByText(`@${user.username}`).first().click();
     });
 
     // * Add to a Channel should not be visible

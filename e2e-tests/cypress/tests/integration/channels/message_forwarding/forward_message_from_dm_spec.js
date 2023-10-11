@@ -207,10 +207,10 @@ describe('Forward Message', () => {
 
             if (cancel) {
                 // * Assert if button is active
-                cy.get('.GenericModal__button.cancel').should('not.be.disabled').type('{esc}', {force: true});
+                cy.findByText('Cancel').should('not.be.disabled').type('{esc}', {force: true});
             } else {
                 // * Assert if button is active
-                cy.get('.GenericModal__button.confirm').should('not.be.disabled').type('{enter}', {force: true});
+                cy.findByText('Forward').should('not.be.disabled').type('{enter}', {force: true});
             }
         });
     };

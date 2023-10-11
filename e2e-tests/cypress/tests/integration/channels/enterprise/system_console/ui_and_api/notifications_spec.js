@@ -20,7 +20,6 @@ describe('System Console', () => {
             EmailSettings: {
                 PushNotificationContents: 'full',
                 FeedbackName: 'Mattermost Test Team',
-                FeedbackEmail: 'feedback@mattertest.com',
             },
             SupportSettings: {
                 SupportEmail: 'support@mattertest.com',
@@ -87,7 +86,7 @@ describe('System Console', () => {
         });
     });
 
-    it('MM-T1210+MM-41671 Can change Support Email setting', () => {
+    it('MM-T1210 Can change Support Email setting', () => {
         // # Scroll Support Email section into view and verify that it's visible
         cy.findByTestId('SupportSettings.SupportEmail').scrollIntoView().should('be.visible');
 
