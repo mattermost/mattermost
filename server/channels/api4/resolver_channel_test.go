@@ -273,7 +273,6 @@ func TestGraphQLChannels(t *testing.T) {
 				assert.Equal(t, myTeam.DisplayName, ch.Team.DisplayName)
 			}
 		}
-
 	})
 
 	t.Run("Delete+Update", func(t *testing.T) {
@@ -500,7 +499,6 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 		cache["user2"] = "teststring!!"
 		assert.Equal(t, "teststring!!", getPrettyDNForUsers("full_name", users, "user1", cache))
 	})
-
 }
 
 func TestChannelCursor(t *testing.T) {

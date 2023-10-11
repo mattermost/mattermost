@@ -3,6 +3,8 @@
 
 // Based on https://stackoverflow.com/a/41434763
 class LocalStorageMock {
+    store: {[key: string]: string};
+
     constructor() {
         this.store = {};
     }
@@ -11,17 +13,19 @@ class LocalStorageMock {
         this.store = {};
     }
 
-    getItem(key) {
+    getItem(key: string): string | null {
         return this.store[key] || null;
     }
 
-    setItem(key, value) {
+    setItem(key: string, value: {toString: () => string}) {
         this.store[key] = value.toString();
     }
 
-    removeItem(key) {
+    removeItem(key: string) {
         delete this.store[key];
     }
 }
 
-global.localStorage = new LocalStorageMock();
+(global as any).localStorage = new LocalStorageMock();
+
+export {};

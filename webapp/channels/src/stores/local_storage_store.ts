@@ -4,7 +4,7 @@
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 
 import {getBasePath} from 'selectors/general';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import {PreviousViewedTypes} from 'utils/constants';
 

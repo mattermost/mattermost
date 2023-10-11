@@ -1426,7 +1426,6 @@ func TestGetGroupsByUserId(t *testing.T) {
 	groups, _, err = th.Client.GetGroupsByUserId(context.Background(), user1.Id)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
-
 }
 
 func TestGetGroupStats(t *testing.T) {

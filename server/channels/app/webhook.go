@@ -813,7 +813,6 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 		default:
 			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-
 	}
 	return savedHook, nil
 }

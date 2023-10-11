@@ -577,7 +577,6 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
 	}
 	return info.Size, nil
-
 }
 
 func (b *S3FileBackend) RemoveFile(path string) error {
