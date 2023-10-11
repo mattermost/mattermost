@@ -49,12 +49,15 @@ jobs:
       - name: Run mmctl Tests
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
-            export MMCTL_TESTFLAGS="-timeout 30m -race"
+            export TESTFLAGS="-timeout 30m -race"
+          else
+            export TESTFLAGS="-timeout 30m"
           fi
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env MMCTL_TESTFLAGS="$TESTFLAGS" \
             -v $(go env GOCACHE):/go/cache \
             -e GOCACHE=/go/cache \
             -v $PWD:/mattermost \
