@@ -151,7 +151,7 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 		return nil, c.Err
 	}
 
-	canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, args.UserID)
+	canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, args.UserID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -167,7 +167,7 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 			return nil, c.Err
 		}
 
-		tm, appErr2 := c.App.GetTeamMember(args.TeamID, args.UserID)
+		tm, appErr2 := c.App.GetTeamMember(c.AppContext, args.TeamID, args.UserID)
 		if appErr2 != nil {
 			return nil, appErr2
 		}
@@ -181,7 +181,7 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 	}
 
 	// Do not return archived team members
-	members, appErr := c.App.GetTeamMembersForUser(args.UserID, excludeTeamID, false)
+	members, appErr := c.App.GetTeamMembersForUser(c.AppContext, args.UserID, excludeTeamID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
