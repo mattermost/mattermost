@@ -1767,7 +1767,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 
 	count := 0
 
-	if channel.Type == model.ChannelTypeDirect {
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		// In a DM channel, every post made by the other user is a mention
 		otherId := channel.GetOtherUserIdForDM(user.Id)
 		for _, p := range posts {
@@ -1812,7 +1812,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		return 0, 0, 0, err
 	}
 
-	if channel.Type == model.ChannelTypeDirect {
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		// In a DM channel, every post made by the other user is a mention
 		count, countRoot, nErr := a.Srv().Store().Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 		if nErr != nil {
