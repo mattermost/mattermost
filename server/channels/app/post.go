@@ -2205,9 +2205,9 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		}
 
 		if team.Type == model.TeamOpen {
-			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPublicTeams)
+			hasPermissionToAccessTeam = a.HasPermissionToTeam(c, userID, team.Id, model.PermissionJoinPublicTeams)
 		} else if team.Type == model.TeamInvite {
-			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPrivateTeams)
+			hasPermissionToAccessTeam = a.HasPermissionToTeam(c, userID, team.Id, model.PermissionJoinPrivateTeams)
 		}
 	} else {
 		// This happens in case of DMs and GMs.
@@ -2240,7 +2240,7 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		HasJoinedChannel:   channelMemberErr == nil,
 	}
 	if team != nil {
-		_, teamMemberErr := a.GetTeamMember(team.Id, userID)
+		_, teamMemberErr := a.GetTeamMember(c, team.Id, userID)
 
 		info.TeamId = team.Id
 		info.TeamType = team.Type
