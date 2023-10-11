@@ -55,7 +55,7 @@ func TestNotifySessionsExpired(t *testing.T) {
 		}
 
 		for _, d := range data {
-			_, err := th.App.CreateSession(&model.Session{
+			_, err := th.App.CreateSession(th.Context, &model.Session{
 				UserId:        th.BasicUser.Id,
 				DeviceId:      d.deviceID,
 				ExpiresAt:     d.expiresAt,
