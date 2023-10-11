@@ -993,10 +993,8 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		if err := a.RevokeAllSessions(ruser.Id); err != nil {
 			return nil, err
 		}
-		if ruser.DeleteAt == 0 {
-			if err := a.userDeactivated(c, ruser.Id); err != nil {
-				return nil, err
-			}
+		if err := a.userDeactivated(c, ruser.Id); err != nil {
+			return nil, err
 		}
 	}
 
