@@ -31,7 +31,7 @@ import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils'
 
 import {searchForTerm} from 'actions/post_actions';
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import type {TextboxElement} from 'components/textbox';
 
