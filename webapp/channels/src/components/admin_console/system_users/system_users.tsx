@@ -425,4 +425,7 @@ class SystemUsers extends React.PureComponent<Props, State> {
     }
 }
 
+// Exported for tests
+export {SystemUsers as RawSystemUsers};
+
 export default injectIntl(SystemUsers);
