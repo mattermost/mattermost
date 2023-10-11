@@ -21,7 +21,7 @@ import SaveConfirmationModal from './save_confirmation_modal';
 import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
 
 import './ip_filtering.scss';
-
+// 
 const IPFiltering = () => {
     const {formatMessage} = useIntl();
     const [showAddModal, setShowAddModal] = useState(false);
