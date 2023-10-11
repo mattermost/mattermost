@@ -746,7 +746,7 @@ func (th *TestHelper) Login(client *model.Client4, user *model.User) {
 		Roles:   user.GetRawRoles(),
 		IsOAuth: false,
 	}
-	session, _ = th.App.CreateSession(session)
+	session, _ = th.App.CreateSession(th.Context, session)
 	client.AuthToken = session.Token
 	client.AuthType = model.HeaderBearer
 }
