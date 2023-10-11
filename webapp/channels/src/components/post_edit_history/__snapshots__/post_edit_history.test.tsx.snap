@@ -174,7 +174,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
           class="edit-post-history__container edit-post-history__container__background"
         >
           <div
-            aria-label="At 12:00 AM Thursday, January 1, Someone wrote, post message"
+            aria-label="At 12:00 AM Thursday, January 1, Someone wrote, post message"
             class="a11y__section post"
             id="searchResult_post_id"
           >
@@ -202,7 +202,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                   <time
                     datetime="1970-01-01T00:00:00.000"
                   >
-                    January 01, 1970 at 12:00 AM
+                    January 01, 1970 at 12:00 AM
                   </time>
                 </span>
                 <div
@@ -273,7 +273,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
           class="edit-post-history__container"
         >
           <div
-            aria-label="At 12:00 AM Thursday, January 1, Someone wrote, post message version 1"
+            aria-label="At 12:00 AM Thursday, January 1, Someone wrote, post message version 1"
             class="a11y__section post"
             id="searchResult_post_id_1"
           >
@@ -301,7 +301,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                   <time
                     datetime="1970-01-01T00:00:00.000"
                   >
-                    January 01, 1970 at 12:00 AM
+                    January 01, 1970 at 12:00 AM
                   </time>
                 </span>
               </div>
@@ -322,7 +322,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
           class="edit-post-history__container"
         >
           <div
-            aria-label="At 12:00 AM Thursday, January 1, Someone wrote, post message version 2"
+            aria-label="At 12:00 AM Thursday, January 1, Someone wrote, post message version 2"
             class="a11y__section post"
             id="searchResult_post_id_2"
           >
@@ -350,7 +350,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                   <time
                     datetime="1970-01-01T00:00:00.000"
                   >
-                    January 01, 1970 at 12:00 AM
+                    January 01, 1970 at 12:00 AM
                   </time>
                 </span>
               </div>
