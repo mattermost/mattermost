@@ -2207,11 +2207,11 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		}
 
 		teamMember, appErr := a.GetTeamMember(channel.TeamId, c.Session().UserId)
-		if appErr == nil {
-			if appErr.StatusCode != http.StatusNotFound {
-				return nil, appErr
-			}
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+			return nil, appErr
+		}
 
+		if appErr == nil {
 			if teamMember.DeleteAt == 0 {
 				hasPermissionToAccessTeam = true
 			}
