@@ -368,7 +368,6 @@ func (ps *PlatformService) IsFirstUserAccount() bool {
 	}
 
 	return true
-
 }
 
 func (ps *PlatformService) MaxPostSize() int {
@@ -402,5 +401,4 @@ func (ps *PlatformService) GetSystemInstallDate() (int64, *model.AppError) {
 
 func (ps *PlatformService) ClientConfig() map[string]string {
 	return ps.clientConfig.Load().(map[string]string)
-
 }
