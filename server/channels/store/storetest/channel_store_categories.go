@@ -531,7 +531,6 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("should place the new category first if Favorites is not first", func(t *testing.T) {
-
 		userId := model.NewId()
 
 		team := setupTeam(t, ss, userId)
