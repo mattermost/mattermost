@@ -2,17 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {Action} from 'mattermost-redux/types/actions';
+import type {Action} from 'mattermost-redux/types/actions';
+
+import {openModal} from 'actions/views/modals';
+import {isModalOpen} from 'selectors/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {isModalOpen} from 'selectors/views/modals';
-import {openModal} from 'actions/views/modals';
 
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 import TeamMembersModal from './team_members_modal';
 

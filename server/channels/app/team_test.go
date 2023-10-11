@@ -1358,17 +1358,17 @@ func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	job, err := th.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, map[string]string{})
+	job, err := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeResendInvitationEmail, map[string]string{})
 	require.Nil(t, err)
 
 	sysVar := &model.System{Name: job.Id, Value: "0"}
 	e := th.App.Srv().Store().System().SaveOrUpdate(sysVar)
 	require.NoError(t, e)
 
-	appErr := th.App.InvalidateAllResendInviteEmailJobs()
+	appErr := th.App.InvalidateAllResendInviteEmailJobs(th.Context)
 	require.Nil(t, appErr)
 
-	j, e := th.App.Srv().Store().Job().Get(job.Id)
+	j, e := th.App.Srv().Store().Job().Get(th.Context, job.Id)
 	require.NoError(t, e)
 	require.Equal(t, j.Status, model.JobStatusCanceled)
 
@@ -1408,7 +1408,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	err = th.App.Srv().Store().Token().Save(&t3)
 	require.NoError(t, err)
 
-	appErr := th.App.InvalidateAllEmailInvites()
+	appErr := th.App.InvalidateAllEmailInvites(th.Context)
 	require.Nil(t, appErr)
 
 	_, err = th.App.Srv().Store().Token().GetByToken(t1.Token)

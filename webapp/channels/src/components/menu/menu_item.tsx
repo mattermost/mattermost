@@ -1,31 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {
-    ReactElement,
-    ReactNode,
-    Children,
-    KeyboardEvent,
-    MouseEvent,
-    useContext,
-    useRef,
-    useEffect,
-} from 'react';
-import {styled} from '@mui/material/styles';
-import {useSelector} from 'react-redux';
 import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
+import {styled} from '@mui/material/styles';
 import {cloneDeep} from 'lodash';
+import React, {
+    Children,
+    useContext,
+} from 'react';
+import type {
+    ReactElement,
+    ReactNode,
+    KeyboardEvent,
+    MouseEvent} from 'react';
+import {useSelector} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
 import Constants, {EventTypes} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
-import {MENU_CLOSE_ANIMATION_DURATION} from './menu';
 import {MenuContext, SubMenuContext} from './menu_context';
-
-const DELAY_CLICK_EVENT_EXECUTION_MODIFIER = 1.2;
 
 export interface Props extends MuiMenuItemProps {
 
@@ -124,8 +120,6 @@ export function MenuItem(props: Props) {
 
     const isMobileView = useSelector(getIsMobileView);
 
-    const onClickEventRef = useRef<MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>>();
-
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
             // close submenu first if it is open
@@ -143,40 +137,16 @@ export function MenuItem(props: Props) {
                     // If the menu is in mobile view, we execute the click event immediately.
                     onClick(event);
                 } else {
-                    // We set the ref of event here, see the `useEffect` hook below for more details.
-                    onClickEventRef.current = cloneDeep(event);
+                    // Clone the event since we delay the click handler until after the menu has closed.
+                    const clonedEvent = cloneDeep(event);
+
+                    menuContext.addOnClosedListener(() => {
+                        onClick(clonedEvent);
+                    });
                 }
             }
         }
     }
-
-    // This `useEffect` hook is responsible for executing a click event (`onClick`).
-    // 1. If MenuItem was part of submenu then both menu and submenu should be closed before executing the click event.
-    // 2. If MenuItem was part of only Menu then only should be closed before executing the click event.
-    // After the conditions are met the delay is introduced to allow the menu to animate out properly before executing the click event.
-    // This delay also improves percieved UX as it gives the user a chance to see the menu close before the click event is executed. (eg in case of opening a modal)
-    useEffect(() => {
-        let shouldExecuteClick = false;
-
-        if (subMenuContext.close) {
-            // This means that the menu item is a submenu item and both menu and submenu are closed.
-            shouldExecuteClick = subMenuContext.isOpen === false && menuContext.isOpen === false && Boolean(onClickEventRef.current);
-        } else {
-            shouldExecuteClick = menuContext.isOpen === false && Boolean(onClickEventRef.current);
-        }
-
-        if (shouldExecuteClick) {
-            const delayExecutionTimeout = MENU_CLOSE_ANIMATION_DURATION * DELAY_CLICK_EVENT_EXECUTION_MODIFIER;
-
-            setTimeout(() => {
-                if (onClick && onClickEventRef.current) {
-                    onClick(onClickEventRef.current);
-                }
-
-                onClickEventRef.current = undefined;
-            }, delayExecutionTimeout);
-        }
-    }, [menuContext.isOpen, subMenuContext.isOpen, subMenuContext.close, onClick]);
 
     // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
     const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
@@ -188,8 +158,8 @@ export function MenuItem(props: Props) {
             isDestructive={isDestructive}
             hasSecondaryLabel={hasSecondaryLabel}
             isLabelsRowLayout={isLabelsRowLayout}
+            onClick={handleClick}
             onKeyDown={handleClick}
-            onMouseDown={handleClick}
             {...otherProps}
         >
             {leadingElement && <div className='leading-element'>{leadingElement}</div>}
@@ -326,7 +296,7 @@ function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | Keyboa
         }
 
         return false;
-    } else if (event.type === EventTypes.MOUSE_DOWN) {
+    } else if (event.type === EventTypes.CLICK) {
         const mouseEvent = event as MouseEvent<HTMLLIElement>;
         if (mouseEvent.button === 0) {
             return true;

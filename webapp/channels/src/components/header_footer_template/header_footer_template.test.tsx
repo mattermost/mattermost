@@ -3,10 +3,11 @@
 
 import React from 'react';
 
-import {DeepPartial} from '@mattermost/types/utilities';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithIntlAndStore} from 'tests/react_testing_utils';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 import HeaderFooterNotLoggedIn from './header_footer_template';
 

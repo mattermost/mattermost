@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import PQueue from 'p-queue';
+import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+
+import {loadProfilesForSidebar} from 'actions/user_actions';
 
 import {Constants} from 'utils/constants';
-import {loadProfilesForSidebar} from 'actions/user_actions';
 
 const queue = new PQueue({concurrency: 2});
 
@@ -20,6 +21,9 @@ type Props = {
     sidebarLoaded: boolean;
 
     unreadChannels: Channel[];
+
+    disableWebappPrefetchAllowed: boolean;
+    dataPrefetchEnabled: boolean;
     actions: {
         prefetchChannelPosts: (channelId: string, delay?: number) => Promise<any>;
         trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
@@ -51,15 +55,20 @@ export default class DataPrefetch extends React.PureComponent<Props> {
     private prefetchTimeout?: number;
 
     async componentDidUpdate(prevProps: Props) {
-        const {currentChannelId, prefetchQueueObj, sidebarLoaded} = this.props;
+        const {currentChannelId, prefetchQueueObj, sidebarLoaded, disableWebappPrefetchAllowed, dataPrefetchEnabled} = this.props;
+        const enablePrefetch = (!disableWebappPrefetchAllowed) || (disableWebappPrefetchAllowed && dataPrefetchEnabled);
         if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {
             queue.add(async () => this.prefetchPosts(currentChannelId));
             await loadProfilesForSidebar();
-            this.prefetchData();
+            if (enablePrefetch) {
+                this.prefetchData();
+            }
         } else if (prevProps.prefetchQueueObj !== prefetchQueueObj) {
             clearTimeout(this.prefetchTimeout);
             await queue.clear();
-            this.prefetchData();
+            if (enablePrefetch) {
+                this.prefetchData();
+            }
         }
 
         if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {

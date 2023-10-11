@@ -10,7 +10,7 @@
 
 .modal-backdrop {
     &.in {
-        opacity: 0.73;
+        opacity: 0.64;
     }
 }
 
@@ -166,10 +166,6 @@
         padding: 12px 30px 12px 15px;
     }
 
-    .btn {
-        font-size: 13px;
-    }
-
     .info__label {
         margin-bottom: 3px;
         font-size: 0.9em;
@@ -310,17 +306,6 @@
             span {
                 font-family: 'Open Sans', sans-serif;
                 line-height: 10px;
-            }
-        }
-
-        .btn {
-            &.btn-primary {
-                position: relative;
-                margin-top: -4px;
-
-                i {
-                    margin-right: 5px;
-                }
             }
         }
     }
@@ -866,7 +851,7 @@
             height: 16px;
             margin-top: 0;
             margin-left: 8px;
-            color: rgba(61, 60, 64, 0.75);
+            color: rgba(61, 60, 64, 0.72);
             font-size: 16px;
             line-height: 16px;
 
@@ -879,6 +864,7 @@
             display: flex;
             overflow: hidden;
             min-width: 0;
+            align-items: center;
             margin: 5px 0;
             gap: 4px;
             text-overflow: ellipsis;
@@ -891,7 +877,7 @@
 
             .more-modal__name_count {
                 font-weight: 400;
-                opacity: 0.73;
+                opacity: 0.6;
             }
 
             svg {
@@ -932,7 +918,7 @@
     .more-modal__description {
         display: block;
         overflow: hidden;
-        opacity: 0.73;
+        opacity: 0.6;
         text-overflow: ellipsis;
         white-space: nowrap;
 
@@ -966,10 +952,16 @@
             .more-modal__lastPostAt {
                 display: none;
             }
+
+            .more-modal__details {
+                .add-group-members {
+                    display: flex;
+                }
+            }
         }
 
         .more-modal__shared-actions {
-            color: rgba(61, 60, 64, 0.75);
+            color: rgba(61, 60, 64, 0.72);
 
             .shared-user-icon {
                 width: 16px;
@@ -992,7 +984,7 @@
     .more-modal__lastPostAt {
         display: block;
         margin-left: 5px;
-        opacity: 0.73;
+        opacity: 0.6;
 
         time {
             font-weight: bold;
@@ -1180,22 +1172,29 @@
             button.modal-header-back-button {
                 position: absolute;
                 left: 18px;
+                display: flex;
                 width: 4rem;
                 height: 4rem;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
+                align-items: center;
+                justify-content: center;
+                border: none;
+                background: transparent;
+                border-radius: 4px;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
                 float: left;
 
                 &:hover {
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
                 }
 
                 &:active {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
                     background-color: rgba(var(--button-bg-rgb), 0.08);
                     color: var(--button-bg);
                 }
 
                 i {
-                    display: inline;
                     font-size: 24px;
                     line-height: 24px;
                 }
@@ -1206,7 +1205,7 @@
                 width: 4rem;
                 height: 4rem;
                 margin-top: 0;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
+                color: rgba(var(--center-channel-color-rgb), 0.56);
                 font-size: 32px;
                 font-weight: normal;
                 line-height: 30px;
@@ -1214,8 +1213,8 @@
                 &:hover {
                     background: rgba(var(--center-channel-color-rgb), 0.08);
                     border-radius: 4px;
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    fill: rgba(var(--center-channel-color-rgb), 0.75);
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    fill: rgba(var(--center-channel-color-rgb), 0.72);
                 }
 
                 &:active {

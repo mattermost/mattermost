@@ -5,10 +5,11 @@
 
         .modal-title {
             margin-left: 46px;
-        }
 
-        button.user-groups-create {
-            margin-right: 24px;
+            i {
+                margin-left: 5px;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+            }
         }
 
         .details-action {
@@ -16,34 +17,6 @@
 
             .MenuWrapper {
                 margin-left: auto;
-            }
-
-            button.action-wrapper {
-                width: 4rem;
-                height: 4rem;
-                border: none;
-                margin-left: auto;
-                border-radius: 4px;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-                text-decoration: none;
-
-                &:hover {
-                    background: rgba(var(--center-channel-color-rgb), 0.08);
-                    border-radius: 4px;
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    fill: rgba(var(--center-channel-color-rgb), 0.75);
-                }
-
-                &:active {
-                    background-color: rgba(var(--button-bg-rgb), 0.08);
-                    color: var(--button-bg);
-                }
-
-                i.icon {
-                    display: inline;
-                    font-size: 24px;
-                    line-height: 24px;
-                }
             }
         }
     }
@@ -58,7 +31,7 @@
 
             span.group-name {
                 margin-left: 70px;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
                 font-size: 12px;
                 line-height: 12px;
             }
@@ -118,36 +91,15 @@
 
                     .group-member-username {
                         padding-left: 8px;
-                        color: rgba(var(--center-channel-color-rgb), 0.75);
+                        color: rgba(var(--center-channel-color-rgb), 0.64);
                         font-size: 12px;
                         line-height: 18px;
                     }
 
                     button.remove-group-member {
                         display: none;
-                        width: 2.4rem;
-                        height: 2.4rem;
                         margin-right: 0;
                         margin-left: auto;
-                        color: rgba(var(--center-channel-color-rgb), 0.75);
-                        font-size: inherit;
-
-                        &:hover {
-                            background: rgba(var(--center-channel-color-rgb), 0.08);
-                            border-radius: 4px;
-                            color: rgba(var(--center-channel-color-rgb), 0.75);
-                            fill: rgba(var(--center-channel-color-rgb), 0.75);
-                        }
-
-                        &:active {
-                            background-color: rgba(var(--button-bg-rgb), 0.08);
-                            color: var(--button-bg);
-                        }
-
-                        i {
-                            font-size: 14px;
-                            line-height: 14px;
-                        }
                     }
 
                     &:hover {

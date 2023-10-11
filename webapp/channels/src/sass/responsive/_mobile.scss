@@ -757,13 +757,6 @@
                 display: block;
             }
 
-            .custom-textarea {
-                &.custom-textarea--emoji-picker {
-                    max-height: 162px;
-                    padding-right: 135px;
-                }
-            }
-
             textarea {
                 .app-content & {
                     border-right: none;

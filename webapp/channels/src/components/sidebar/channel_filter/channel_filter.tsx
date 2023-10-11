@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
-
-import {injectIntl, IntlShape} from 'react-intl';
+import React from 'react';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
+
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import * as Keyboard from 'utils/keyboard';
+
 import Constants from 'utils/constants';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import * as Keyboard from 'utils/keyboard';
 
 type Props = {
     intl: IntlShape;

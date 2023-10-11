@@ -27,7 +27,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -639,11 +638,10 @@ func TestChannelsPluginsInit(t *testing.T) {
 	defer th.TearDown()
 
 	runNoPanicTest := func(t *testing.T) {
-		ctx := request.EmptyContext(th.TestLogger)
 		path, _ := fileutils.FindDir("tests")
 
 		require.NotPanics(t, func() {
-			th.Server.Channels().initPlugins(ctx, path, path)
+			th.Server.Channels().initPlugins(th.Context, path, path)
 		})
 	}
 
