@@ -640,7 +640,6 @@ func TestDatabaseStoreSet(t *testing.T) {
 		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
 		assertDatabaseEqualsConfig(t, minimalConfig)
 	})
-
 }
 
 func TestDatabaseStoreLoad(t *testing.T) {
