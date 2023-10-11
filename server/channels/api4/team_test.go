@@ -1376,7 +1376,6 @@ func TestGetTeamByName(t *testing.T) {
 		_, resp, err = client.GetTeamByName(context.Background(), "", "")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -2427,7 +2426,6 @@ func TestAddTeamMemberMyself(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestAddTeamMembersDomainConstrained(t *testing.T) {
@@ -2732,7 +2730,6 @@ func TestRemoveTeamMemberEvents(t *testing.T) {
 			assert.Equal(t, eventUserId, th.BasicUser2.Id)
 		})
 	})
-
 }
 
 func TestGetTeamStats(t *testing.T) {
