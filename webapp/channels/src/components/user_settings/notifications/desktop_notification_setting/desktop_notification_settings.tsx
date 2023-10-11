@@ -53,11 +53,9 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
 
     constructor(props: Props) {
         super(props);
-        const selectedOption = {value: props.selectedSound, label: props.selectedSound};
-        const callsSelectedOption = {value: props.callsSelectedSound, label: props.callsSelectedSound};
         this.state = {
-            selectedOption,
-            callsSelectedOption,
+            selectedOption: {value: props.selectedSound, label: props.selectedSound},
+            callsSelectedOption: {value: props.callsSelectedSound, label: props.callsSelectedSound},
             blurDropdown: false,
         };
         this.dropdownSoundRef = React.createRef();
@@ -502,9 +500,14 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
 
     componentDidUpdate(prevProps: Props) {
         this.blurDropdown();
-
         if (prevProps.active && !this.props.active && this.props.areAllSectionsInactive) {
             this.focusEditButton();
+        }
+        if (this.props.selectedSound !== prevProps.selectedSound) {
+            this.setState({selectedOption: {value: this.props.selectedSound, label: this.props.selectedSound}});
+        }
+        if (this.props.callsSelectedSound !== prevProps.callsSelectedSound) {
+            this.setState({selectedOption: {value: this.props.callsSelectedSound, label: this.props.callsSelectedSound}});
         }
     }
 
