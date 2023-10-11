@@ -21,7 +21,6 @@ func (api *API) InitDrafts() {
 }
 
 func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	if !*c.App.Config().ServiceSettings.AllowSyncedDrafts {
 		c.Err = model.NewAppError("upsertDraft", "api.drafts.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
