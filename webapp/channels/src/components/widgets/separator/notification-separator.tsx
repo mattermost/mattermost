@@ -12,5 +12,4 @@ function NotificationSeparator({ children }: React.PropsWithChildren<any>) {
     </div>
   );
 }
-
 export default NotificationSeparator;
