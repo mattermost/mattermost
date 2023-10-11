@@ -293,8 +293,8 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                                 id='display_name'
                                 className='form-control'
                                 placeholder={this.props.intl.formatMessage({
-                                    id: "rename_channel.displayNameHolder",
-                                    defaultMessage: "Enter display name",
+                                    id: 'rename_channel.displayNameHolder',
+                                    defaultMessage: 'Enter display name',
                                 })}
                                 value={this.state.displayName}
                                 maxLength={Constants.MAX_CHANNELNAME_LENGTH}
