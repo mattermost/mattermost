@@ -48,7 +48,7 @@ func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
 	for name, fn := range functions {
 		fileData, err := fn(c)
 		if err != nil {
-			mlog.Error("Failed to generate file for support package", mlog.Err(err), mlog.String("file", name))
+			c.Logger().Error("Failed to generate file for support package", mlog.Err(err), mlog.String("file", name))
 			warnings = append(warnings, err.Error())
 		} else if fileData != nil {
 			fileDatas = append(fileDatas, *fileData)
@@ -231,7 +231,6 @@ func (a *App) generateSupportPacketYaml(c *request.Context) (*model.FileData, er
 }
 
 func (a *App) createPluginsFile(_ *request.Context) (*model.FileData, error) {
-
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
 	pluginsResponse, appErr := a.GetPlugins()
 	if appErr != nil {
@@ -248,7 +247,6 @@ func (a *App) createPluginsFile(_ *request.Context) (*model.FileData, error) {
 		Body:     pluginsPrettyJSON,
 	}
 	return fileData, nil
-
 }
 
 func (a *App) getNotificationsLog(_ *request.Context) (*model.FileData, error) {
