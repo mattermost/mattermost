@@ -184,7 +184,6 @@ func TestGetRolesByNames(t *testing.T) {
 		_, _, err = client.GetRolesByNames(context.Background(), []string{model.NewId(), model.NewId(), "", "    "})
 		require.NoError(t, err)
 	})
-
 }
 
 func TestPatchRole(t *testing.T) {
@@ -208,7 +207,6 @@ func TestPatchRole(t *testing.T) {
 	}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-
 		// Cannot edit a system admin
 		adminRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_admin")
 		assert.NoError(t, err)

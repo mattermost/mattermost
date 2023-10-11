@@ -421,7 +421,6 @@ func TestCheckChannelsCommandWebhooksIntegrity(t *testing.T) {
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
 			require.Empty(t, data.Records)
-
 		})
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			channelId := model.NewId()

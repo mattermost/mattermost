@@ -1358,7 +1358,6 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
-
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
