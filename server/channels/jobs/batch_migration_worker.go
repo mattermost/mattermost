@@ -169,8 +169,6 @@ func (worker *BatchMigrationWorker) DoJob(job *model.Job) {
 				return
 			}
 
-			worker.logger.Trace("Worker: processing batch", mlog.Any("data", job.Data))
-
 			nextData, done, err := worker.doMigrationBatch(job.Data, worker.store)
 			if err != nil {
 				worker.logger.Error("Worker: Failed to do migration batch. Exiting", mlog.Err(err))
