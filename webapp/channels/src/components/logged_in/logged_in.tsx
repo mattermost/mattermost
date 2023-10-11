@@ -14,7 +14,7 @@ import BrowserStore from 'stores/browser_store';
 
 import LoadingScreen from 'components/loading_screen';
 
-import WebSocketClient from 'client/web_websocket_client.jsx';
+import WebSocketClient from 'client/web_websocket_client';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {getBrowserTimezone} from 'utils/timezone';

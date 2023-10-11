@@ -39,7 +39,7 @@ func (*groupmsgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 	}
 }
 
-func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	targetUsers := map[string]*model.User{}
 	targetUsersSlice := []string{args.UserId}
 	invalidUsernames := []string{}
@@ -55,7 +55,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 			continue
 		}
 
-		canSee, err := a.UserCanSeeOtherUser(args.UserId, targetUser.Id)
+		canSee, err := a.UserCanSeeOtherUser(c, args.UserId, targetUser.Id)
 		if err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}

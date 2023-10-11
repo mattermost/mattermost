@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import MainMenu from 'components/main_menu/main_menu';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
@@ -15,7 +17,7 @@ describe('plugins/MainMenuActions', () => {
         teamType: '',
         teamDisplayName: 'some name',
         teamName: 'somename',
-        currentUser: {id: 'someuserid', roles: 'system_user'},
+        currentUser: {id: 'someuserid', roles: 'system_user'} as UserProfile,
         enableCommands: true,
         enableCustomEmoji: true,
         enableIncomingWebhooks: true,
@@ -27,7 +29,7 @@ describe('plugins/MainMenuActions', () => {
         enablePluginMarketplace: true,
         showDropdown: true,
         onToggleDropdown: () => {}, //eslint-disable-line no-empty-function
-        pluginMenuItems: [{id: 'someplugin', text: 'some plugin text', action: pluginAction}],
+        pluginMenuItems: [{id: 'someplugin', pluginId: 'test', text: 'some plugin text', action: pluginAction}],
         canCreateOrDeleteCustomEmoji: true,
         canManageIntegrations: true,
         moreTeamsToJoin: true,
@@ -54,6 +56,7 @@ describe('plugins/MainMenuActions', () => {
         isFreeTrial: false,
         teamsLimitReached: false,
         usageDeltaTeams: -1,
+        mobile: false,
     };
 
     test('should match snapshot in web view', () => {
