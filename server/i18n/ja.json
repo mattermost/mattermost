@@ -675,7 +675,9 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} は既にチャンネルに追加されています。"
+    "translation": {
+      "other": "{{.User}} は既にチャンネルに追加されています。"
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1354,10 +1356,6 @@
     "translation": {
       "other": "{{.Count}} 画像送信: {{.Filenames}}{{.Count}} 画像送信: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "リンクプレビュー機能はシステム管理者によって無効にされています。"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -4745,11 +4743,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 112+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5689,11 +5687,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} はチームのメンバーではありません。"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "このチャンネルはグループによって管理されています。  このユーザーはこのチャンネルと同期しているグループのメンバーではありません。"
+    "translation": "{{.Users}}をこのチャンネルに追加するには、**{{.Team}}**チームのメンバーにする必要があります。"
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -9660,26 +9654,12 @@
     "translation": "Mattermost Enterprise Editionでのみ利用可能なサービスです"
   },
   {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "実行のタイムラインに追加する"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "other": "対応期限を迎えている{{.Count}}タスクが割り当てられています:"
-    }
-  },
-  {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "oauth データを削除することができませんでした。"
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "営業に問い合わせる"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -9872,5 +9852,117 @@
   {
     "id": "app.save_config.plugin_hook_error",
     "translation": "設定保存時のplugin hookを実行する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "グループメッセージから非公開チャネルへの変換は許可されていません"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "ダイレクトメッセージ、グループメッセージの名前、表示名、目的の更新は許可されていません。"
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "未読とメンションを確認できませんでした"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "チャンネルはグループメッセージではありません。"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "共通のチームを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "変換されたグループメッセージに対する既存のサイドバーカテゴリを削除できませんでした。"
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "ユーザーのチャンネルメンバーシップが見つかりませんでした"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "変換リクエスト内で指定されたチームIDに、グループメッセージのメンバー全員が含まれていません"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "変換予定のチャンネルはグループメッセージではありません。グループメッセージのみ変換できます"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "チャンネル変換投稿へのグループメッセージを作成できませんでした"
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "トークンが存在しないか期限切れです"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "トークンが有効でないか期限切れです"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "このトークンに対するユーザーが見つかりませんでした"
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "ファイルの検索可能なコンテンツを設定できませんでした。"
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "インポートしたチャンネルをアーカイブできませんでした。"
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "ユーザーに対するリアクションを削除できませんでした。"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "チャンネルの全てのスレッドを既読としてマークできませんでした"
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}}と{{.LastItem}}"
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "リンクメタデータのタイムアウト値が不正です。正の数でなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "ユーザーステータスが離席中になるタイムアウト値が不正です。正の数でなければなりません。"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "リモートユーザーのログインが許可されていないため、ログインできませんでした。"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "ファイル保存先ドライバはリンク生成をサポートしていません。"
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "このチャンネルはグループによって管理されています。  このユーザーはこのチャンネルと同期しているグループのメンバーではありません。"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}}と他{{.Others}}名は既にチャンネルに追加されています。"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.Channel}}チャンネルに{{.FirstUser}}と他{{.Others}}名を追加しました。"
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "{{.FirstUser}}と他{{.Others}}名をこのチャンネルに追加するには、**{{.Team}}**チームのメンバーにする必要があります。"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}}が{{.GMMembers}}とのグループメッセージからこのチャンネルを作成しました。"
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "ダイレクトメッセージ、グループメッセージの名前、表示名、目的の更新は許可されていません。"
   }
 ]

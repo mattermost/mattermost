@@ -321,7 +321,7 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                     <Modal.Footer>
                         <button
                             type='button'
-                            className='btn btn-link'
+                            className='btn btn-tertiary'
                             onClick={this.onHide}
                         >
                             <FormattedMessage

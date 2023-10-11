@@ -407,7 +407,7 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
                                 <button
                                     id='revoke-all-users'
                                     type='button'
-                                    className='btn btn-default'
+                                    className='btn btn-tertiary'
                                     onClick={() => this.handleShowRevokeAllSessionsModal()}
                                     disabled={this.props.isDisabled}
                                 >

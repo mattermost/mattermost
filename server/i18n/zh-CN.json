@@ -675,7 +675,9 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} 已在频道。"
+    "translation": {
+      "other": "{{.User}} 已在频道。"
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1356,10 +1358,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "链接预览已被系统管理员禁用。"
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "无法在已删除的频道更新消息。"
   },
@@ -1405,7 +1403,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "消息只允许在 {{.limeLimit}} 秒内编辑。详情请咨询您的系统管理员。"
+    "translation": "消息只允许在 {{.timeLimit}} 秒内编辑。详情请咨询您的系统管理员。"
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -4121,7 +4119,7 @@
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
-    "translation": "无效帖子图标。"
+    "translation": "无效消息图标。"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4917,7 +4915,7 @@
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "无法从数据库中获取最早的实体（用户、频道或帖子）。"
+    "translation": "无法从数据库中获取最早的实体（用户、频道或消息）。"
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
@@ -5186,10 +5184,6 @@
   {
     "id": "api.command.execute_command.format.app_error",
     "translation": "命令触发词缺少斜杠符号"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "此频道由组管理。此用户并不属于同步到此频道的组。"
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
@@ -5497,7 +5491,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} 不是此团队的成员。"
+    "translation": "一旦{{.Users}}成为**{{.Team}}**团队的成员，您可以将他们添加到此频道中。"
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -5821,11 +5815,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 112+"
+    "translation": "版本 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 110+"
+    "translation": "版本 116+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6181,7 +6175,7 @@
   },
   {
     "id": "ent.message_export.run_export.app_error",
-    "translation": "无法选择帖子导出数据。"
+    "translation": "无法选择消息导出数据。"
   },
   {
     "id": "app.compliance.save.saving.app_error",
@@ -6389,11 +6383,11 @@
   },
   {
     "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "无法删除该用户被选择的帖子。"
+    "translation": "无法删除该用户被选择的消息。"
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
-    "translation": "无法根据频道删除帖子。"
+    "translation": "无法根据频道删除消息。"
   },
   {
     "id": "app.post.get.app_error",
@@ -6401,7 +6395,7 @@
   },
   {
     "id": "app.post.delete.app_error",
-    "translation": "无法删除帖子。"
+    "translation": "无法删除消息。"
   },
   {
     "id": "app.status.get.missing.app_error",
@@ -6725,11 +6719,11 @@
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "无法为索引获取帖子。"
+    "translation": "无法为索引获取消息。"
   },
   {
     "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "无法为索引获取帖子。"
+    "translation": "无法为索引获取消息。"
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7301,7 +7295,7 @@
   },
   {
     "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "无法获取帖子的文件信息。"
+    "translation": "无法获取消息的文件信息。"
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
@@ -7341,7 +7335,7 @@
   },
   {
     "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "无法获取帖子的文件信息。"
+    "translation": "无法获取消息的文件信息。"
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
@@ -7353,7 +7347,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
-    "translation": "无法从数据库中获取最早的实体（用户、频道或帖子）"
+    "translation": "无法从数据库中获取最早的实体（用户、频道或消息）"
   },
   {
     "id": "app.upload.upload_data.read_file.app_error",
@@ -7393,11 +7387,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "您的 Mattermost 系统包含大量消息。默认的 Mattermost 数据库搜索在大约 250 万个帖子市开始显示性能下降。 Elasticsearch 在拥有超过 500 万个帖子时可以帮助避免重大性能问题，例如超时，搜索和提示问题。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n[了解有关提高性能的更多信息](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/) ，并接收产品电子邮件。"
+    "translation": "您的 Mattermost 系统包含大量消息。默认的 Mattermost 数据库搜索在大约 250 万个消息时开始显示性能下降。 Elasticsearch 在拥有超过 500 万个消息时可以帮助避免重大性能问题，例如超时，搜索和提示问题。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n[了解有关提高性能的更多信息](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/) ，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "您的 Mattermost 系统包含大量消息。默认的 Mattermost 数据库搜索在大约 250 万个帖子市开始显示性能下降。 Elasticsearch 在拥有超过 500 万个帖子时可以帮助避免重大性能问题，例如超时，搜索和提示问题。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n[了解有关提高性能的更多信息](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "您的 Mattermost 系统包含大量消息。默认的 Mattermost 数据库搜索在大约 250 万个消息时开始显示性能下降。 Elasticsearch 在拥有超过 500 万个信息时可以帮助避免重大性能问题，例如超时，搜索和提示问题。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n[了解有关提高性能的更多信息](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
@@ -7429,7 +7423,7 @@
   },
   {
     "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "无法获取帖子的文件信息。"
+    "translation": "无法获取消息的文件信息。"
   },
   {
     "id": "api.templates.email_us_anytime_at",
@@ -8657,11 +8651,11 @@
   },
   {
     "id": "sharedchannel.permalink.not_found",
-    "translation": "这帖子包含指向其他频道的永久链接，其他网站的用户可能无法看到。"
+    "translation": "这消息包含指向其他频道的永久链接，其他网站的用户可能无法看到。"
   },
   {
     "id": "sharedchannel.cannot_deliver_post",
-    "translation": "一个或多个帖子无法传送到远程站点 {{.Remote}}，因为它处于离线状态。帖子将在网站上线时发送。"
+    "translation": "一个或多个消息无法传送到远程站点 {{.Remote}}，因为它处于离线状态。消息将在网站上线时发送。"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -8925,11 +8919,11 @@
   },
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "无法从已归档频道的获取帖子"
+    "translation": "无法从已归档频道的获取消息"
   },
   {
     "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "无法从已归档频道的获取帖子"
+    "translation": "无法从已归档频道的获取消息"
   },
   {
     "id": "api.templates.invite_body.title.reminder",
@@ -9161,11 +9155,11 @@
   },
   {
     "id": "app.post.cloud.get.app_error",
-    "translation": "无法获取帖子，因为它超过了云的计划限制。"
+    "translation": "无法获取消息，因为它超过了云的计划限制。"
   },
   {
     "id": "app.last_accessible_post.app_error",
-    "translation": "获取最后可访问的帖子时出错"
+    "translation": "获取最后可访问的消息时出错"
   },
   {
     "id": "api.templates.delinquency_14.button",
@@ -9644,12 +9638,6 @@
     "translation": "CWS 服务器删除工作区时失败。"
   },
   {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "other": "您有 {{.Count}} 个任务现在已经逾期："
-    }
-  },
-  {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "不能删除oauth认证信息。"
   },
@@ -9751,7 +9739,7 @@
   },
   {
     "id": "app.post_priority.delete_persistent_notification_post.app_error",
-    "translation": "删除持久通知帖子失败"
+    "translation": "删除持久通知消息失败"
   },
   {
     "id": "app.channel.update_member.app_error",
@@ -9823,7 +9811,7 @@
   },
   {
     "id": "model.config.is_valid.persistent_notifications_count.app_error",
-    "translation": "持久通知每个帖子的总数无效。必须是正数。"
+    "translation": "每个持久通知消息的总数无效。必须是正数。"
   },
   {
     "id": "model.config.is_valid.persistent_notifications_interval.app_error",
@@ -9835,11 +9823,11 @@
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
-    "translation": "持久通知帖子最多允许 {{.MaxRecipients}} 个收件人。"
+    "translation": "持久通知消息最多允许 {{.MaxRecipients}} 个收件人。"
   },
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
-    "translation": "持久通知帖子必须至少有 1 个收件人。"
+    "translation": "持久通知消息必须至少有 1 个收件人。"
   },
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
@@ -9847,15 +9835,15 @@
   },
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
-    "translation": "用户不允许创建优先级帖子或持久通知。"
+    "translation": "用户不允许创建优先级消息或持久通知。"
   },
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
-    "translation": "只有根帖子可以具有优先级。"
+    "translation": "只有根消息可以具有优先级。"
   },
   {
     "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
-    "translation": "持久通知帖子必须具有紧急优先级。"
+    "translation": "持久通知消息必须具有紧急优先级。"
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -9868,5 +9856,113 @@
   {
     "id": "api.user.invalidate_password_recovery_tokens_parse.error",
     "translation": "在使密码恢复令牌失效时无法解析令牌"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "登录失败，因为远程用户不被允许登录。"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "频道不是一个群组消息。"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "无法获取常用团队。"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "无法删除已转换的群组消息的现有侧边栏分类。"
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "找不到用户的频道成员资格"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "转换请求中指定的团队 ID 不包含所有群组消息成员"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "被转换的频道不是一个群组消息。你只能转换群组消息"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "创建群组消息到频道转换消息失败"
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "令牌不存在或已过期"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "令牌无效或已过期"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "无法找到与此令牌相关的用户"
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "无法设置文件的可搜索内容。"
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "无法归档导入的频道。"
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "无法删除用户的反应。"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "用户不被允许将群组消息转换为私人频道"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} 从包含{{.GMMembers}}的群组消息创建了此频道。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "您不被允许更新直接消息或群组消息的名称、显示名称和目的。"
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "您不被允许更新直接或群组消息的名称、显示名称和目的。"
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "该频道由群组管理。  该用户不是与该频道同步的群组的成员。"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}}和{{.Others}}已添加到{{.Channel}}频道中。"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}}和{{.Others}}等人已经在频道中。"
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "一旦{{.FirstUser}}和{{.Others}}等人成为**{{.Team}}**团队的成员，您可以将他们添加到此频道中。"
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} 和 {{.LastItem}}"
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "链接元数据超时的值无效。必须是一个正数。"
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "用户状态离开超时的值无效。必须是一个正数。"
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "无法检查未读和提及的消息"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "无法将频道中的所有主题标记为已读"
   }
 ]
