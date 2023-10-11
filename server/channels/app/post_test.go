@@ -2864,11 +2864,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, post)
 
-	session1, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 	require.NotNil(t, session1)
 
-	session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 	require.NotNil(t, session2)
 
