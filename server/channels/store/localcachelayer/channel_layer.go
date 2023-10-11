@@ -157,7 +157,6 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 }
 
 func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
-
 	if allowFromCache {
 		var cacheItem *model.Channel
 		if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &cacheItem); err == nil {
