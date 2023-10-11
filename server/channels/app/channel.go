@@ -3205,7 +3205,6 @@ func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channe
 }
 
 func (a *App) postChannelMoveMessage(c request.CTX, user *model.User, channel *model.Channel, previousTeam *model.Team) *model.AppError {
-
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.move_channel.success"), previousTeam.Name),

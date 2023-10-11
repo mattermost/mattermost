@@ -221,7 +221,6 @@ func testFileInfoGetForPost(t *testing.T, ss store.Store) {
 			)
 			require.NoError(t, err)
 			assert.Len(t, postInfos, tc.ExpectedPosts)
-
 		})
 	}
 }

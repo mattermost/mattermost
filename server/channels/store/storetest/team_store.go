@@ -3198,7 +3198,6 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 }
 
 func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
-
 	// team icon initially updated a second ago
 	lastTeamIconUpdateInitial := model.GetMillis() - 1000
 
