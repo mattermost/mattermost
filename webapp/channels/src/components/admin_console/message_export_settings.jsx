@@ -217,12 +217,66 @@ export default class MessageExportSettings extends AdminSettings {
                 />
             );
 
+            const globalRelaySMTPServerName = (
+                <TextSetting
+                    id='globalRelayCustomSMTPServerName'
+                    label={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomSMTPServerName.title'
+                            defaultMessage='SMTP Server Name:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.complianceExport.globalRelayCustomSMTPServerName.example', 'E.g.: "feeds.globalrelay.com"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomSMTPServerName.description'
+                            defaultMessage='The SMTP server name that will receive your Global Relay EML.'
+                        />
+                    }
+                    value={this.state.globalRelayCustomSMTPServerName ? this.state.globalRelayCustomSMTPServerName : ''}
+                    onChange={this.handleChange}
+                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomSMTPServerName')}
+                    disabled={this.props.isDisabled || !this.state.enableComplianceExport}
+                />
+            );
+
+            const globalRelaySMTPPort = (
+                <TextSetting
+                    id='globalRelayCustomSMTPPort'
+                    label={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomSMTPPort.title'
+                            defaultMessage='SMTP Server Port:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.complianceExport.globalRelayCustomSMTPPort.example', 'E.g.: "25"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomSMTPPort.description'
+                            defaultMessage='The SMTP server port that will receive your Global Relay EML.'
+                        />
+                    }
+                    value={this.state.globalRelayCustomSMTPPort ? this.state.globalRelayCustomSMTPPort : ''}
+                    onChange={this.handleChange}
+                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomSMTPPort')}
+                    disabled={this.props.isDisabled || !this.state.enableComplianceExport}
+                />
+            );
+
             globalRelaySettings = (
                 <SettingsGroup id={'globalRelaySettings'} >
                     {globalRelayCustomerType}
                     {globalRelaySMTPUsername}
                     {globalRelaySMTPPassword}
                     {globalRelayEmail}
+                    {
+                        this.state.globalRelayCustomerType === 'CUSTOM' &&
+                        globalRelaySMTPServerName
+                    }
+                    {
+                        this.state.globalRelayCustomerType === 'CUSTOM' &&
+                        globalRelaySMTPPort
+                    }
                 </SettingsGroup>
             );
         }
