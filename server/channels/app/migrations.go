@@ -467,7 +467,6 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 	if err := s.Store().System().Save(&system); err != nil {
 		mlog.Fatal("Failed to mark playbook roles creation migration as completed.", mlog.Err(err))
 	}
-
 }
 
 // arbitrary choice, though if there is an longstanding installation with less than 10 messages,
@@ -599,7 +598,6 @@ func (s *Server) doCloudS3PathMigrations(c *request.Context) {
 		mlog.Fatal("failed to start job for migrating s3 file paths", mlog.Err(appErr))
 		return
 	}
-
 }
 
 func (s *Server) doDeleteEmptyDraftsMigration(c *request.Context) {
