@@ -45,7 +45,6 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 	for _, testcase := range cases {
 		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
 	}
-
 }
 
 func TestChannelRolesGrantPermission(t *testing.T) {
@@ -58,17 +57,17 @@ func TestHasPermissionToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	assert.True(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.BasicUser, th.BasicTeam)
-	assert.False(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.False(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 }
 
 func TestSessionHasPermissionToChannel(t *testing.T) {
@@ -333,7 +332,7 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 func TestHasPermissionToCategory(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 
 	categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
@@ -419,7 +418,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 			th.RemovePermissionFromRole(permission.Id, groupRole.Name)
 		}
 
-		session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
 		require.Nil(t, err)
 
 		result := th.App.SessionHasPermissionToGroup(*session, group.Id, permission)
