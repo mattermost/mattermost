@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/user_groups_modal should match snapshot with groups 1`] = `
+<div
+  className="user-groups-modal__content user-groups-list"
+  style={
+    Object {
+      "overflow": "overlay",
+    }
+  }
+>
+  <InfiniteLoader
+    isItemLoaded={[Function]}
+    itemCount={100000}
+    loadMoreItems={[MockFunction]}
+  >
+    <Component />
+  </InfiniteLoader>
+  <Memo(ADLDAPUpsellBanner) />
+</div>
+`;
+
+exports[`component/user_groups_modal should match snapshot without groups 1`] = `
+<div
+  className="user-groups-modal__content user-groups-list"
+  style={
+    Object {
+      "overflow": "overlay",
+    }
+  }
+>
+  <InfiniteLoader
+    isItemLoaded={[Function]}
+    itemCount={100000}
+    loadMoreItems={[MockFunction]}
+  >
+    <Component />
+  </InfiniteLoader>
+  <Memo(ADLDAPUpsellBanner) />
+</div>
+`;

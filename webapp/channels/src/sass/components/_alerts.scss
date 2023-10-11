@@ -1,0 +1,37 @@
+@charset 'UTF-8';
+
+.alert {
+    padding: 8px 12px;
+    border-radius: $border-rad;
+
+    .alert-transparent {
+        background: var(--center-channel-bg);
+    }
+}
+
+.alert-grey {
+    background: #f2f2f2;
+    color: #999;
+}
+
+.alert--confirm {
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 1px 0 0 10px;
+}
+
+.alert .btn-close {
+    float: right;
+    font-size: 21px;
+    line-height: 20px;
+
+    &,
+    &:link,
+    &:visited,
+    &:hover,
+    &:focus,
+    &:active {
+        color: inherit;
+        text-decoration: none;
+    }
+}

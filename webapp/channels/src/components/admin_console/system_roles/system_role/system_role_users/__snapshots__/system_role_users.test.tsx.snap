@@ -1,0 +1,713 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/system_role_users should match snapshot 1`] = `
+<AdminPanel
+  button={
+    <Memo(Connect(ToggleModalButton))
+      className="btn btn-primary"
+      dialogProps={
+        Object {
+          "excludeUsers": Object {
+            "userToAdd": Object {
+              "auth_service": "",
+              "bot_description": "",
+              "create_at": 0,
+              "delete_at": 0,
+              "email": "",
+              "first_name": "",
+              "id": "user_id",
+              "is_bot": false,
+              "last_activity_at": 0,
+              "last_name": "",
+              "last_password_update": 0,
+              "last_picture_update": 0,
+              "locale": "",
+              "mfa_active": false,
+              "nickname": "",
+              "notify_props": Object {
+                "calls_desktop_sound": "true",
+                "channel": "false",
+                "comments": "never",
+                "desktop": "default",
+                "desktop_sound": "false",
+                "email": "false",
+                "first_name": "false",
+                "mark_unread": "mention",
+                "mention_keys": "",
+                "push": "none",
+                "push_status": "offline",
+              },
+              "password": "",
+              "position": "",
+              "props": Object {},
+              "roles": "",
+              "terms_of_service_create_at": 0,
+              "terms_of_service_id": "",
+              "update_at": 0,
+              "username": "some-user",
+            },
+          },
+          "includeUsers": Object {
+            "userToRemove": Object {
+              "auth_service": "",
+              "bot_description": "",
+              "create_at": 0,
+              "delete_at": 0,
+              "email": "",
+              "first_name": "",
+              "id": "user_id",
+              "is_bot": false,
+              "last_activity_at": 0,
+              "last_name": "",
+              "last_password_update": 0,
+              "last_picture_update": 0,
+              "locale": "",
+              "mfa_active": false,
+              "nickname": "",
+              "notify_props": Object {
+                "calls_desktop_sound": "true",
+                "channel": "false",
+                "comments": "never",
+                "desktop": "default",
+                "desktop_sound": "false",
+                "email": "false",
+                "first_name": "false",
+                "mark_unread": "mention",
+                "mention_keys": "",
+                "push": "none",
+                "push_status": "offline",
+              },
+              "password": "",
+              "position": "",
+              "props": Object {},
+              "roles": "",
+              "terms_of_service_create_at": 0,
+              "terms_of_service_id": "",
+              "update_at": 0,
+              "username": "some-user",
+            },
+          },
+          "onAddCallback": [Function],
+          "role": Object {
+            "built_in": false,
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "role_description",
+            "display_name": "role_display_name",
+            "id": "role_id",
+            "name": "role_name",
+            "permissions": Array [],
+            "scheme_managed": false,
+            "update_at": 0,
+          },
+          "skipCommit": true,
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      disabled={false}
+      id="addRoleMembers"
+      modalId="add_user_to_role"
+    >
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add People"
+        id="admin.permissions.system_role_users.add_people"
+      />
+    </Memo(Connect(ToggleModalButton))>
+  }
+  className=""
+  id="SystemRoleUsers"
+  subtitleDefault="List of people assigned to this system role."
+  subtitleId="admin.permissions.system_role_users.description"
+  titleDefault="Assigned People"
+  titleId="admin.permissions.system_role_users.title"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.user_grid.name"
+          />,
+          "width": 3,
+        },
+        Object {
+          "field": "new",
+          "fixed": true,
+          "name": "",
+          "width": 1,
+        },
+        Object {
+          "field": "remove",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={2}
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "id": "user_id",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
+                }
+              }
+            />,
+            "new": null,
+            "remove": <UserGridRemove
+              isDisabled={false}
+              removeUser={[Function]}
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "user_id",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
+                }
+              }
+            />,
+            "new": null,
+            "remove": <UserGridRemove
+              isDisabled={false}
+              removeUser={[Function]}
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
+                }
+              }
+            />,
+          },
+        },
+      ]
+    }
+    searchPlaceholder=""
+    startCount={1}
+    term="asdfasdf"
+    total={2}
+  />
+</AdminPanel>
+`;
+
+exports[`admin_console/system_role_users should match snapshot with readOnly true 1`] = `
+<AdminPanel
+  button={
+    <Memo(Connect(ToggleModalButton))
+      className="btn btn-primary"
+      dialogProps={
+        Object {
+          "excludeUsers": Object {
+            "userToAdd": Object {
+              "auth_service": "",
+              "bot_description": "",
+              "create_at": 0,
+              "delete_at": 0,
+              "email": "",
+              "first_name": "",
+              "id": "user_id",
+              "is_bot": false,
+              "last_activity_at": 0,
+              "last_name": "",
+              "last_password_update": 0,
+              "last_picture_update": 0,
+              "locale": "",
+              "mfa_active": false,
+              "nickname": "",
+              "notify_props": Object {
+                "calls_desktop_sound": "true",
+                "channel": "false",
+                "comments": "never",
+                "desktop": "default",
+                "desktop_sound": "false",
+                "email": "false",
+                "first_name": "false",
+                "mark_unread": "mention",
+                "mention_keys": "",
+                "push": "none",
+                "push_status": "offline",
+              },
+              "password": "",
+              "position": "",
+              "props": Object {},
+              "roles": "",
+              "terms_of_service_create_at": 0,
+              "terms_of_service_id": "",
+              "update_at": 0,
+              "username": "some-user",
+            },
+          },
+          "includeUsers": Object {
+            "userToRemove": Object {
+              "auth_service": "",
+              "bot_description": "",
+              "create_at": 0,
+              "delete_at": 0,
+              "email": "",
+              "first_name": "",
+              "id": "user_id",
+              "is_bot": false,
+              "last_activity_at": 0,
+              "last_name": "",
+              "last_password_update": 0,
+              "last_picture_update": 0,
+              "locale": "",
+              "mfa_active": false,
+              "nickname": "",
+              "notify_props": Object {
+                "calls_desktop_sound": "true",
+                "channel": "false",
+                "comments": "never",
+                "desktop": "default",
+                "desktop_sound": "false",
+                "email": "false",
+                "first_name": "false",
+                "mark_unread": "mention",
+                "mention_keys": "",
+                "push": "none",
+                "push_status": "offline",
+              },
+              "password": "",
+              "position": "",
+              "props": Object {},
+              "roles": "",
+              "terms_of_service_create_at": 0,
+              "terms_of_service_id": "",
+              "update_at": 0,
+              "username": "some-user",
+            },
+          },
+          "onAddCallback": [Function],
+          "role": Object {
+            "built_in": false,
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "role_description",
+            "display_name": "role_display_name",
+            "id": "role_id",
+            "name": "role_name",
+            "permissions": Array [],
+            "scheme_managed": false,
+            "update_at": 0,
+          },
+          "skipCommit": true,
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      disabled={true}
+      id="addRoleMembers"
+      modalId="add_user_to_role"
+    >
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add People"
+        id="admin.permissions.system_role_users.add_people"
+      />
+    </Memo(Connect(ToggleModalButton))>
+  }
+  className=""
+  id="SystemRoleUsers"
+  subtitleDefault="List of people assigned to this system role."
+  subtitleId="admin.permissions.system_role_users.description"
+  titleDefault="Assigned People"
+  titleId="admin.permissions.system_role_users.title"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.user_grid.name"
+          />,
+          "width": 3,
+        },
+        Object {
+          "field": "new",
+          "fixed": true,
+          "name": "",
+          "width": 1,
+        },
+        Object {
+          "field": "remove",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={2}
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "id": "user_id",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
+                }
+              }
+            />,
+            "new": null,
+            "remove": <UserGridRemove
+              isDisabled={true}
+              removeUser={[Function]}
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "user_id",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
+                }
+              }
+            />,
+            "new": null,
+            "remove": <UserGridRemove
+              isDisabled={true}
+              removeUser={[Function]}
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
+                }
+              }
+            />,
+          },
+        },
+      ]
+    }
+    searchPlaceholder=""
+    startCount={1}
+    term="asdfasdf"
+    total={2}
+  />
+</AdminPanel>
+`;

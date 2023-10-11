@@ -1,0 +1,5 @@
+.FullScreenModal:has(.delete-workspace-result_modal__success) {
+    .close-x {
+        display: none;
+    }
+}

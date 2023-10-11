@@ -1,0 +1,149 @@
+@import 'utils/variables';
+
+.PlanDetails {
+    width: 568px;
+    padding: 28px 32px;
+    border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+    background: var(--sys-center-channel-bg);
+    border-radius: 4px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
+}
+
+.PlanDetails__top {
+    display: flex;
+    align-items: center;
+}
+
+.PlanDetails__productName {
+    color: var(--sys-center-channel-color);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+}
+
+.PlanDetails__userCount {
+    display: block;
+    margin-left: auto;
+    color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.PlanDetails__viewPlansButton {
+    display: block;
+    margin-left: auto;
+
+    &.btn {
+        padding: 11px 16px;
+        background: $primary-color;
+        border-radius: 4px;
+        color: $white;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 9.5px;
+
+        &:focus,
+        &:active,
+        &:focus:active {
+            border-color: transparent;
+            outline: none;
+        }
+
+        &.btn-secondary {
+            background: rgba(var(--denim-button-bg-rgb), 0.08);
+            color: var(--denim-button-bg);
+        }
+    }
+}
+
+.PlanDetails__planName {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 32px;
+}
+
+.PlanDetails__teamAndChannelCount {
+    margin-top: 24px;
+    color: var(--sys-center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.PlanDetails__description {
+    display: flex;
+    margin-top: 8px;
+    color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 16px;
+
+    .PlanDetails__planDetailsName {
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    a {
+        color: var(--sys-sidebar-text-active-border);
+    }
+
+    a::before { content: "\00a0"; }
+}
+
+.PlanDetails__currentPlan {
+    display: flex;
+    align-items: center;
+    margin-top: 24px;
+    color: var(--sys-online-indicator);
+
+    i {
+        font-size: 18px;
+        line-height: 21px;
+
+        &::before {
+            margin: 0;
+        }
+    }
+
+    span {
+        margin-left: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 14px;
+    }
+}
+
+.TrialBadge {
+    padding: 0 4px;
+    margin-left: 10px;
+    background: var(--sys-online-indicator);
+    border-radius: 3px;
+    color: #fff;
+    text-transform: uppercase;
+
+    span {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 16px;
+    }
+}
+
+.RecurringIntervalBadge {
+    display: inline-block;
+    height: 16px;
+    margin-left: 12px;
+    text-transform: uppercase;
+
+    span {
+        position: relative;
+        bottom: 2px;
+        color: rgba(var(--center-channel-text-rgb), 0.56);
+        font-family: 'Open Sans';
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 16px;
+    }
+}

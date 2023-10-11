@@ -1,0 +1,99 @@
+name: Performance Benchmarks
+on:
+  workflow_call:
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest-4-cores
+    name: Run Cypress benchmarks
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_USER: mmuser
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Check out web app
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.10.0
+
+      - name: Download and install Cypress
+        uses: cypress-io/github-action@v5
+        with:
+          runTests: false
+          working-directory: e2e/cypress
+
+      - name: Download the thing
+        working-directory: e2e/cypress
+        run: |
+          if [[ "${{ github.event.pull_request.head.sha }}" != "" ]]; then
+            echo "Using server build from pr-builds.mattermost.com"
+            curl https://pr-builds.mattermost.com/mattermost-webapp/commit/${{ github.event.pull_request.head.sha }}/mattermost-enterprise-linux-amd64.tar.gz > mattermost.tar.gz
+
+            tar xf mattermost.tar.gz
+          else
+            echo "Using server build from releases.mattermost.com with web app build from pr-builds.mattermost.com"
+
+            # Note that the server commit might not be the latest if we merge server and web app branches at the same time
+            curl https://s3.amazonaws.com/releases.mattermost.com/gitlab/bundle/${{ github.ref_name }}/mattermost-enterprise-linux-amd64.tar.gz > mattermost-server.tar.gz
+            curl https://pr-builds.mattermost.com/mattermost-webapp/commit/${{ github.sha }}/mattermost-webapp.tar.gz > mattermost-webapp.tar.gz
+
+            # Unzip the server, replace the web app, and re-add product files
+            tar xf mattermost-server.tar.gz
+            mv mattermost/client client-original
+            tar xf mattermost-webapp.tar.gz
+            mv client mattermost
+            mv client-original/products mattermost/client/products
+          fi
+      - name: Run the E2E tests
+        uses: cypress-io/github-action@v5
+        with:
+          browser: chrome
+          config: video=true,videosFolder=tests/videos
+          install: false
+          spec: ./tests/integration/performance/*
+          start: npm run benchmarks:run-server
+          wait-on: http://localhost:8065
+          working-directory: e2e/cypress
+        env:
+          MM_LOGSETTINGS_ENABLECONSOLE: false
+          MM_LOGSETTINGS_FILELEVEL: debug
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost/postgres?sslmode=disable&connect_timeout=10&binary_parameters=yes
+          MM_TEAMSETTINGS_ENABLEOPENSERVER: true
+      - name: Upload Cypress logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Cypress logs
+          path: e2e/cypress/tests/integration/performance/logs/
+          retention-days: 3
+      - name: Upload Mattermost logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Mattermost logs
+          path: e2e/cypress/mattermost/logs/mattermost.log
+          retention-days: 3
+      - name: Upload screenshots
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test screenshots
+          path: e2e/cypress/tests/screenshots
+          retention-days: 3
+      - name: Upload videos
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test Videos
+          path: e2e/cypress/tests/videos

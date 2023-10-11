@@ -1,0 +1,191 @@
+@charset 'UTF-8';
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    position: relative;
+    width: 100%;
+    background: $bg--gray;
+
+    &.sticky {
+        .container-fluid {
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+
+    &.admin-onboarding {
+        background-image: url('images/admin-onboarding-background.jpg');
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+}
+
+*:focus {
+    outline: none;
+}
+
+.sticky {
+    background: $white;
+
+    > .channel-view {
+        overflow: auto;
+        height: 100vh;
+        padding: 0 15px;
+    }
+
+    .inner-wrap {
+        width: 100%;
+
+        > .row {
+            &.content {
+                min-height: calc(100vh - 89px);
+
+                @media (max-width: 768px) {
+                    min-height: calc(100vh - 187px);
+                }
+            }
+        }
+    }
+}
+
+.help-page {
+    overflow: hidden;
+    padding: 3em 0;
+}
+
+.inner-wrap {
+    height: 100%;
+
+    &.sticky {
+        overflow: auto;
+    }
+
+    > .row {
+        &.main {
+            position: relative;
+            height: 100%;
+        }
+    }
+}
+
+.container-fluid {
+    @include pie-clearfix;
+
+    position: relative;
+    height: 100%;
+}
+
+.channel-view {
+    @include clearfix;
+
+    position: relative;
+    height: 100%;
+}
+
+/* stylelint-disable -- grid-template indentation */
+#root,
+body.app__body #root {
+    display: grid;
+    overflow: hidden;
+
+    --columns: min-content min-content minmax(385px, 1fr) minmax(0, auto) min-content;
+    grid-template:
+        'announcement announcement announcement announcement announcement' min-content
+        'header header header header header' min-content
+        'team-sidebar lhs center rhs app-sidebar'
+        'footer footer footer footer footer' min-content
+        / var(--columns);
+    ;
+
+    > :only-child {
+        grid-area: center;
+        width: 100%;
+    }
+
+
+    .announcement-bar {
+        grid-area: announcement;
+    }
+
+    #global-header {
+        grid-area: header;
+    }
+    .team-sidebar {
+        grid-area: team-sidebar;
+    }
+    #SidebarContainer {
+        grid-area: lhs;
+    }
+    #channel_view,
+    .product-wrapper {
+        grid-area: center;
+        overflow: hidden;
+    }
+    .sidebar--right--width-holder {
+        grid-area: rhs;
+    }
+    #sidebar-right {
+        grid-area: rhs;
+
+        @media screen and (min-width: 768px) {
+            position: absolute;
+            right: 0;
+        }
+    }
+    .app-bar {
+        grid-area: app-sidebar;
+    }
+
+    &:not(.console__root) {
+        @media screen and (max-width: 768px) {
+            grid-template:
+                'announcement' min-content
+                'header' min-content
+                'center'
+                'footer' min-content
+                / auto
+            ;
+            .team-sidebar,
+            #SidebarContainer,
+            #channel_view,
+            .product-wrapper,
+            #sidebar-right,
+            .app-bar {
+                grid-area: center;
+            }
+            #SidebarContainer.move--right {
+                position: relative;
+            }
+        }
+    }
+
+    @media screen and (min-width: 768px) and (max-width: 1200px) {
+        &.rhs-open-expanded {
+            .sidebar--right--width-holder {
+                display: none;
+            }
+            #sidebar-right {
+                position: relative;
+                width: 100%;
+            }
+            --columns: min-content min-content 0 1fr min-content;
+        }
+        #sidebar-right {
+            transition: none;
+        }
+    }
+}
+
+/* stylelint-enable -- grid-template indentation */
+
+#channel_view.channel-view {
+    background: var(--center-channel-bg);
+}
+
+img {
+    max-width: 100%;
+}

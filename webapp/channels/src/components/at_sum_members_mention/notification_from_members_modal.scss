@@ -1,0 +1,16 @@
+.NotificationFromMembersModal {
+    .modal-content {
+        .modal-header {
+            .close {
+                top: 16px !important;
+                right: 15px !important;
+            }
+        }
+
+        .modal-body {
+            .GenericModal__header {
+                padding: 6px 24px 16px 24px;
+            }
+        }
+    }
+}

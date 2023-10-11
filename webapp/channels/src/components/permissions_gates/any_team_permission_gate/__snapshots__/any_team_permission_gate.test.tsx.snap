@@ -1,0 +1,298 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/permissions_gates TeamPermissionGate should match snapshot when user doesn't have permission 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(AnyTeamPermissionGate)
+    permissions={
+      Array [
+        "invalid_permission",
+      ]
+    }
+  >
+    <AnyTeamPermissionGate
+      dispatch={[Function]}
+      hasPermission={false}
+      invert={false}
+      permissions={
+        Array [
+          "invalid_permission",
+        ]
+      }
+    />
+  </Connect(AnyTeamPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates TeamPermissionGate should match snapshot when user have at least one of the permissions 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(AnyTeamPermissionGate)
+    permissions={
+      Array [
+        "test_team_permission",
+        "not_existing_permission",
+      ]
+    }
+  >
+    <AnyTeamPermissionGate
+      dispatch={[Function]}
+      hasPermission={true}
+      invert={false}
+      permissions={
+        Array [
+          "test_team_permission",
+          "not_existing_permission",
+        ]
+      }
+    >
+      <p>
+        Valid permission (shown)
+      </p>
+    </AnyTeamPermissionGate>
+  </Connect(AnyTeamPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates TeamPermissionGate should match snapshot when user have permission 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(AnyTeamPermissionGate)
+    permissions={
+      Array [
+        "test_team_permission",
+      ]
+    }
+  >
+    <AnyTeamPermissionGate
+      dispatch={[Function]}
+      hasPermission={true}
+      invert={false}
+      permissions={
+        Array [
+          "test_team_permission",
+        ]
+      }
+    >
+      <p>
+        Valid permission (shown)
+      </p>
+    </AnyTeamPermissionGate>
+  </Connect(AnyTeamPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates TeamPermissionGate should match snapshot when user have permission and use invert 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(AnyTeamPermissionGate)
+    invert={true}
+    permissions={
+      Array [
+        "test_team_permission",
+      ]
+    }
+  >
+    <AnyTeamPermissionGate
+      dispatch={[Function]}
+      hasPermission={true}
+      invert={true}
+      permissions={
+        Array [
+          "test_team_permission",
+        ]
+      }
+    />
+  </Connect(AnyTeamPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates TeamPermissionGate should match snapshot when user have permission system wide 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(AnyTeamPermissionGate)
+    permissions={
+      Array [
+        "test_system_permission",
+      ]
+    }
+  >
+    <AnyTeamPermissionGate
+      dispatch={[Function]}
+      hasPermission={true}
+      invert={false}
+      permissions={
+        Array [
+          "test_system_permission",
+        ]
+      }
+    >
+      <p>
+        Valid permission (shown)
+      </p>
+    </AnyTeamPermissionGate>
+  </Connect(AnyTeamPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates TeamPermissionGate should match snapshot when user have the permission in other team 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(AnyTeamPermissionGate)
+    permissions={
+      Array [
+        "other_permission",
+      ]
+    }
+  >
+    <AnyTeamPermissionGate
+      dispatch={[Function]}
+      hasPermission={true}
+      invert={false}
+      permissions={
+        Array [
+          "other_permission",
+        ]
+      }
+    >
+      <p>
+        Valid permission (shown)
+      </p>
+    </AnyTeamPermissionGate>
+  </Connect(AnyTeamPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates TeamPermissionGate should match snapshot when user have the permission in other team and use invert 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(AnyTeamPermissionGate)
+    invert={true}
+    permissions={
+      Array [
+        "other_permission",
+      ]
+    }
+  >
+    <AnyTeamPermissionGate
+      dispatch={[Function]}
+      hasPermission={true}
+      invert={true}
+      permissions={
+        Array [
+          "other_permission",
+        ]
+      }
+    />
+  </Connect(AnyTeamPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates TeamPermissionGate should match snapshot when user not have permission and use invert 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(AnyTeamPermissionGate)
+    invert={true}
+    permissions={
+      Array [
+        "invalid_permission",
+      ]
+    }
+  >
+    <AnyTeamPermissionGate
+      dispatch={[Function]}
+      hasPermission={false}
+      invert={true}
+      permissions={
+        Array [
+          "invalid_permission",
+        ]
+      }
+    >
+      <p>
+        Invalid permission but inverted (shown)
+      </p>
+    </AnyTeamPermissionGate>
+  </Connect(AnyTeamPermissionGate)>
+</Provider>
+`;

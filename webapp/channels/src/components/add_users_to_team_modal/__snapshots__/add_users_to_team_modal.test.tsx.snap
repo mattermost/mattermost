@@ -1,0 +1,373 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal should match snapshot with 2 users 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="addUsersToTeamModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add New Members to {teamName} Team"
+        id="add_users_to_team.title"
+        values={
+          Object {
+            "teamName": <strong>
+              test-team
+            </strong>,
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
+      buttonSubmitLoadingText="Adding..."
+      buttonSubmitText="Add"
+      focusOnLoad={true}
+      handleAdd={[Function]}
+      handleDelete={[Function]}
+      handleInput={[Function]}
+      handlePageChange={[Function]}
+      handleSubmit={[Function]}
+      key="addUsersToTeamKey"
+      loading={true}
+      maxValues={20}
+      numRemainingText={
+        <div
+          id="numPeopleRemaining"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. "
+            id="multiselect.numPeopleRemaining"
+            values={
+              Object {
+                "num": 20,
+              }
+            }
+          />
+        </div>
+      }
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "userid1",
+            "is_bot": false,
+            "label": "user-1",
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "calls_desktop_sound": "true",
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "user-1",
+            "value": "userid1",
+          },
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "userid2",
+            "is_bot": false,
+            "label": "user-2",
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "calls_desktop_sound": "true",
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "user-2",
+            "value": "userid2",
+          },
+        ]
+      }
+      perPage={50}
+      placeholderText="Search and add members"
+      saveButtonPosition="top"
+      saving={false}
+      savingEnabled={true}
+      selectedItemRef={
+        Object {
+          "current": null,
+        }
+      }
+      valueRenderer={[Function]}
+      valueWithImage={false}
+      values={Array []}
+    />
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal should match snapshot with 2 users, 1 included and 1 removed 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="addUsersToTeamModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add New Members to {teamName} Team"
+        id="add_users_to_team.title"
+        values={
+          Object {
+            "teamName": <strong>
+              test-team
+            </strong>,
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
+      buttonSubmitLoadingText="Adding..."
+      buttonSubmitText="Add"
+      focusOnLoad={true}
+      handleAdd={[Function]}
+      handleDelete={[Function]}
+      handleInput={[Function]}
+      handlePageChange={[Function]}
+      handleSubmit={[Function]}
+      key="addUsersToTeamKey"
+      loading={true}
+      maxValues={20}
+      numRemainingText={
+        <div
+          id="numPeopleRemaining"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. "
+            id="multiselect.numPeopleRemaining"
+            values={
+              Object {
+                "num": 20,
+              }
+            }
+          />
+        </div>
+      }
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "userid2",
+            "is_bot": false,
+            "label": "user-2",
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "calls_desktop_sound": "true",
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "user-2",
+            "value": "userid2",
+          },
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "userid-not-removed",
+            "is_bot": false,
+            "label": "user-not-removed",
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "calls_desktop_sound": "true",
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "user-not-removed",
+            "value": "userid-not-removed",
+          },
+        ]
+      }
+      perPage={50}
+      placeholderText="Search and add members"
+      saveButtonPosition="top"
+      saving={false}
+      savingEnabled={true}
+      selectedItemRef={
+        Object {
+          "current": null,
+        }
+      }
+      valueRenderer={[Function]}
+      valueWithImage={false}
+      values={Array []}
+    />
+  </ModalBody>
+</Modal>
+`;

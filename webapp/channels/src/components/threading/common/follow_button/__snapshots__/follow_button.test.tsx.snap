@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/threading/common/follow_button should say follow 1`] = `
+<Memo(FollowButton)
+  isFollowing={false}
+  onClick={[MockFunction]}
+>
+  <Memo(Button)
+    className="FollowButton"
+    disabled={false}
+    isActive={false}
+    onClick={[MockFunction]}
+  >
+    <button
+      className="Button Button___transparent FollowButton"
+      disabled={false}
+      onClick={[MockFunction]}
+    >
+      <span
+        className="Button_label"
+      >
+        Follow
+      </span>
+    </button>
+  </Memo(Button)>
+</Memo(FollowButton)>
+`;
+
+exports[`components/threading/common/follow_button should say following 1`] = `
+<Memo(FollowButton)
+  isFollowing={true}
+>
+  <Memo(Button)
+    className="FollowButton"
+    disabled={false}
+    isActive={true}
+  >
+    <button
+      className="Button Button___transparent is-active FollowButton"
+      disabled={false}
+    >
+      <span
+        className="Button_label"
+      >
+        Following
+      </span>
+    </button>
+  </Memo(Button)>
+</Memo(FollowButton)>
+`;

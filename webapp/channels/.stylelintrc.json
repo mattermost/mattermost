@@ -1,0 +1,20 @@
+{
+    "extends": ["stylelint-config-recommended", "stylelint-config-standard", "stylelint-config-idiomatic-order", "stylelint-config-recommended-scss"],
+    "rules": {
+        "indentation": 4,
+        "no-descending-specificity": null,
+        "font-family-no-missing-generic-family-keyword": null,
+        "property-no-unknown": [
+            true,
+            {
+                "ignoreProperties": ["scrollbar-3dlight-color"]
+            }
+        ],
+        "block-no-empty": [
+            true,
+            {
+                "ignore": ["comments"]
+            }
+        ]
+    }
+}

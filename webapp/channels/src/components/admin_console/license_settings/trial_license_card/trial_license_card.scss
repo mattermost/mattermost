@@ -1,0 +1,33 @@
+@import 'utils/variables';
+
+.RenewLicenseCard.TrialLicense {
+    .TrialLicenseCard__text-title {
+        margin-bottom: 22px;
+        color: var(--sys-button-bg);
+        font-size: 18px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 18px;
+    }
+
+    .RenewLicenseCard__buttons {
+        button {
+            padding: 6px 12px !important;
+        }
+    }
+
+    .RenewLicenseCard__text-description {
+        margin-bottom: 16px;
+        line-height: 20px;
+    }
+
+    button {
+        display: inline-block;
+        margin-top: 0;
+    }
+
+    button.contact-us {
+        padding: 11px 19px;
+        margin-left: 10px;
+    }
+}

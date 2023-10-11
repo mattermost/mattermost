@@ -1,0 +1,100 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/group/GroupRow should match snapshot 1`] = `
+<div
+  className="group"
+  id="group"
+>
+  <div
+    className="group-row"
+    id="group-row"
+  >
+    <span
+      className="group-name row-content"
+    >
+      DN
+    </span>
+    <span
+      className="group-description row-content"
+    >
+      <Connect(ToggleModalButton)
+        className="color--link"
+        dialogProps={
+          Object {
+            "group": Object {
+              "display_name": "DN",
+              "id": "123",
+              "member_count": 3,
+            },
+          }
+        }
+        dialogType={[Function]}
+        id="DNMembersToggle"
+        modalId="group_members"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="{memberCount, number} {memberCount, plural, one {member} other {members}}"
+          id="admin.team_channel_settings.group_row.members"
+          values={
+            Object {
+              "memberCount": 3,
+            }
+          }
+        />
+      </Connect(ToggleModalButton)>
+    </span>
+    <div
+      className="group-description row-content roles"
+    >
+      <MenuWrapper
+        animationComponent={[Function]}
+        className=""
+      >
+        <div>
+          <a
+            data-testid="current-role"
+          >
+            <span>
+              <MemoizedFormattedMessage
+                defaultMessage="Member"
+                id="admin.team_channel_settings.group_row.member"
+              />
+            </span>
+            <span
+              className="caret"
+            />
+          </a>
+        </div>
+        <Menu
+          ariaLabel="Member Role"
+          id="role-to-be-menu"
+          openLeft={true}
+          openUp={false}
+        >
+          <MenuItemAction
+            id="role-to-be"
+            onClick={[Function]}
+            show={true}
+            text="Channel Admin"
+          />
+        </Menu>
+      </MenuWrapper>
+    </div>
+    <span
+      className="group-actions"
+      id="group-actions"
+    >
+      <a
+        className=""
+        href="#"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Remove"
+          id="admin.team_channel_settings.group_row.remove"
+        />
+      </a>
+    </span>
+  </div>
+</div>
+`;

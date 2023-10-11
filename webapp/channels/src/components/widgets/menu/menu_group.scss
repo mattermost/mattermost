@@ -1,0 +1,10 @@
+@import 'utils/variables';
+@import 'utils/functions';
+
+.MenuGroup {
+    &.menu-divider {
+        height: 1px;
+        margin: 8px 0;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+}

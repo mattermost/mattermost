@@ -1,0 +1,155 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import 'utils/mixins';
+
+$app-bar-icon-size: 24px;
+$app-bar-width: 48px;
+
+.app-bar {
+    // Do not show App Bar if on mobile
+    @media (max-width: 768px) {
+        display: none;
+    }
+
+    display: flex;
+    min-height: 0;
+    flex-flow: column;
+    border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+    background-color: var(--center-channel-bg);
+
+    &__top {
+        position: relative;
+        display: flex;
+        width: $app-bar-width;
+        flex: 1;
+        flex-flow: column;
+        padding-top: 16px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        -ms-overflow-style: none;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        scrollbar-width: none;
+        text-align: center;
+
+        .app-bar__icon {
+            position: relative;
+            // Render App Bar icons on top of the RHS background div
+            //(see `@media screen and (min-width: 769px) > #sidebar-right` in sass/layout/_sidebar-right.scss)
+            z-index: 21;
+            width: 100%;
+            border-left: none;
+            margin-bottom: 16px;
+            cursor: pointer;
+
+            &--active {
+                &::before {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 3px;
+                    height: $app-bar-icon-size;
+                    background-color: var(--sidebar-text-active-border);
+                    border-radius: 0 2px 2px 0;
+                    content: '';
+                }
+
+                .app-bar__icon-inner,
+                span:not(.pulsating_dot) {
+                    // if we want to show a tourtip/pulsating dot in any of the app bar icons, these styles must be ommitted when span.pulsating_dot
+                    box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
+
+                    &:hover {
+                        box-shadow: 0 0 0 2px rgba(var(--sidebar-text-active-border-rgb), 0.92) !important;
+                    }
+                }
+            }
+
+            .app-bar__icon-inner,
+            span:not(.pulsating_dot) {
+                display: block;
+                overflow: hidden;
+                width: $app-bar-icon-size;
+                height: $app-bar-icon-size;
+                margin: 0 auto;
+                border-radius: 50%;
+                line-height: 1;
+
+                &:hover {
+                    box-shadow: 0 0 0 2px rgba(var(--center-channel-color-rgb), 0.16);
+                }
+
+                img {
+                    width: $app-bar-icon-size;
+                    height: $app-bar-icon-size;
+                    border-radius: 50%;
+                }
+            }
+
+            span:not(.pulsating_dot) {
+                padding: 2px;
+                background-color: white;
+                fill: var(--button-bg);
+                font-size: 14px;
+                line-height: 20px;
+                vertical-align: middle;
+
+                &.CompassIcon,
+                &.icon-brand-zoom {
+                    font-size: 20px;
+
+                    &::before {
+                        margin: 0 0 0 0.5px;
+                    }
+                }
+            }
+
+            .app-bar__old-icon {
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+
+                &:hover,
+                &--active {
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                }
+            }
+
+            .app-bar__icon-inner--centered {
+                display: grid;
+                place-items: center;
+            }
+        }
+
+        .app-bar__divider {
+            width: 28px;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            margin-top: 14px;
+            margin-bottom: 14px;
+        }
+
+        .app-bar__icon.channel-header__icon--active {
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--button-bg);
+            fill: var(--button-bg);
+        }
+    }
+
+    &__bottom {
+        position: relative;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        padding-top: 24px;
+        padding-bottom: 36px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+
+        .app_bar__marketplace_button {
+            @include icon-button;
+            @include icon-button-small-compact;
+        }
+    }
+}
+
+// This style is defined outside the .app-bar block above because it doesn't seem to work when defined there
+.app-bar__top::-webkit-scrollbar {
+    display: none;
+}

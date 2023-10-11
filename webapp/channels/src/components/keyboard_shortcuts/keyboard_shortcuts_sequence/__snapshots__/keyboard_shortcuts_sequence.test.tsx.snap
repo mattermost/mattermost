@@ -1,0 +1,285 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/shortcuts/KeyboardShortcutsSequence should create sequence with order 1`] = `
+<Memo(KeyboardShortcutSequence)
+  hideDescription={true}
+  isInsideTooltip={true}
+  shortcut={
+    Object {
+      "default": Object {
+        "defaultMessage": "Ctrl|Alt|{order}",
+        "id": "team.button.tooltip",
+      },
+      "mac": Object {
+        "defaultMessage": "⌘|⌥|{order}",
+        "id": "team.button.tooltip.mac",
+      },
+    }
+  }
+  values={
+    Object {
+      "order": 3,
+    }
+  }
+>
+  <div
+    className="shortcut-line"
+  >
+    <ShortcutKey
+      key="Ctrl"
+      variant="tooltip"
+    >
+      <mark
+        className="shortcut-key shortcut-key--tooltip"
+      >
+        Ctrl
+      </mark>
+    </ShortcutKey>
+    <ShortcutKey
+      key="Alt"
+      variant="tooltip"
+    >
+      <mark
+        className="shortcut-key shortcut-key--tooltip"
+      >
+        Alt
+      </mark>
+    </ShortcutKey>
+    <ShortcutKey
+      key="3"
+      variant="tooltip"
+    >
+      <mark
+        className="shortcut-key shortcut-key--tooltip"
+      >
+        3
+      </mark>
+    </ShortcutKey>
+  </div>
+</Memo(KeyboardShortcutSequence)>
+`;
+
+exports[`components/shortcuts/KeyboardShortcutsSequence should match snapshot when used for modal with description 1`] = `
+<Memo(KeyboardShortcutSequence)
+  shortcut={
+    Object {
+      "defaultMessage": "Keyboard shortcuts	⌘|/",
+      "id": "test",
+    }
+  }
+>
+  <div
+    className="shortcut-line"
+  >
+    <span>
+      Keyboard shortcuts
+    </span>
+    <ShortcutKey
+      key="⌘"
+      variant="shortcut"
+    >
+      <mark
+        className="shortcut-key shortcut-key--shortcut-modal"
+      >
+        ⌘
+      </mark>
+    </ShortcutKey>
+    <ShortcutKey
+      key="/"
+      variant="shortcut"
+    >
+      <mark
+        className="shortcut-key shortcut-key--shortcut-modal"
+      >
+        /
+      </mark>
+    </ShortcutKey>
+  </div>
+</Memo(KeyboardShortcutSequence)>
+`;
+
+exports[`components/shortcuts/KeyboardShortcutsSequence should match snapshot with alternative shortcut 1`] = `
+<Memo(KeyboardShortcutSequence)
+  shortcut={
+    Object {
+      "defaultMessage": "Keyboard shortcuts	⌘||P	Ctrl|P",
+      "id": "test",
+    }
+  }
+>
+  <div
+    className="shortcut-line"
+  >
+    <span>
+      Keyboard shortcuts
+    </span>
+    <ShortcutKey
+      key="⌘"
+      variant="shortcut"
+    >
+      <mark
+        className="shortcut-key shortcut-key--shortcut-modal"
+      >
+        ⌘
+      </mark>
+    </ShortcutKey>
+    <ShortcutKey
+      key=""
+      variant="shortcut"
+    >
+      <mark
+        className="shortcut-key shortcut-key--shortcut-modal"
+      />
+    </ShortcutKey>
+    <ShortcutKey
+      key="P"
+      variant="shortcut"
+    >
+      <mark
+        className="shortcut-key shortcut-key--shortcut-modal"
+      >
+        P
+      </mark>
+    </ShortcutKey>
+    <span>
+      	|	
+    </span>
+    <ShortcutKey
+      key="Ctrl"
+      variant="shortcut"
+    >
+      <mark
+        className="shortcut-key shortcut-key--shortcut-modal"
+      >
+        Ctrl
+      </mark>
+    </ShortcutKey>
+    <ShortcutKey
+      key="P"
+      variant="shortcut"
+    >
+      <mark
+        className="shortcut-key shortcut-key--shortcut-modal"
+      >
+        P
+      </mark>
+    </ShortcutKey>
+  </div>
+</Memo(KeyboardShortcutSequence)>
+`;
+
+exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence hoisting description 1`] = `
+<Memo(KeyboardShortcutSequence)
+  hoistDescription={true}
+  isInsideTooltip={true}
+  shortcut={
+    Object {
+      "defaultMessage": "Keyboard shortcuts	⌘|/",
+      "id": "test",
+    }
+  }
+>
+  Keyboard shortcuts
+  <div
+    className="shortcut-line"
+  >
+    <ShortcutKey
+      key="⌘"
+      variant="tooltip"
+    >
+      <mark
+        className="shortcut-key shortcut-key--tooltip"
+      >
+        ⌘
+      </mark>
+    </ShortcutKey>
+    <ShortcutKey
+      key="/"
+      variant="tooltip"
+    >
+      <mark
+        className="shortcut-key shortcut-key--tooltip"
+      >
+        /
+      </mark>
+    </ShortcutKey>
+  </div>
+</Memo(KeyboardShortcutSequence)>
+`;
+
+exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence without description 1`] = `
+<Memo(KeyboardShortcutSequence)
+  hideDescription={true}
+  shortcut={
+    Object {
+      "defaultMessage": "Keyboard shortcuts	⌘|/",
+      "id": "test",
+    }
+  }
+>
+  <div
+    className="shortcut-line"
+  >
+    <ShortcutKey
+      key="⌘"
+      variant="shortcut"
+    >
+      <mark
+        className="shortcut-key shortcut-key--shortcut-modal"
+      >
+        ⌘
+      </mark>
+    </ShortcutKey>
+    <ShortcutKey
+      key="/"
+      variant="shortcut"
+    >
+      <mark
+        className="shortcut-key shortcut-key--shortcut-modal"
+      >
+        /
+      </mark>
+    </ShortcutKey>
+  </div>
+</Memo(KeyboardShortcutSequence)>
+`;
+
+exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence without description 2`] = `
+<Memo(KeyboardShortcutSequence)
+  isInsideTooltip={true}
+  shortcut={
+    Object {
+      "defaultMessage": "Keyboard shortcuts	⌘|/",
+      "id": "test",
+    }
+  }
+>
+  <div
+    className="shortcut-line"
+  >
+    <span>
+      Keyboard shortcuts
+    </span>
+    <ShortcutKey
+      key="⌘"
+      variant="tooltip"
+    >
+      <mark
+        className="shortcut-key shortcut-key--tooltip"
+      >
+        ⌘
+      </mark>
+    </ShortcutKey>
+    <ShortcutKey
+      key="/"
+      variant="tooltip"
+    >
+      <mark
+        className="shortcut-key shortcut-key--tooltip"
+      >
+        /
+      </mark>
+    </ShortcutKey>
+  </div>
+</Memo(KeyboardShortcutSequence)>
+`;

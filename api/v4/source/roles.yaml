@@ -1,0 +1,179 @@
+  "/api/v4/roles":
+    get:
+      tags:
+        - roles
+      summary: Get a list of all the roles
+      description: |
+        ##### Permissions
+
+        `manage_system` permission is required.
+
+        __Minimum server version__: 5.33
+      operationId: GetAllRoles
+      responses:
+        "200":
+          description: Roles retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Role"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/roles/{role_id}":
+    get:
+      tags:
+        - roles
+      summary: Get a role
+      description: |
+        Get a role from the provided role id.
+
+        ##### Permissions
+        Requires an active session but no other permissions.
+
+        __Minimum server version__: 4.9
+      operationId: GetRole
+      parameters:
+        - name: role_id
+          in: path
+          description: Role GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Role retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/roles/name/{role_name}":
+    get:
+      tags:
+        - roles
+      summary: Get a role
+      description: |
+        Get a role from the provided role name.
+
+        ##### Permissions
+        Requires an active session but no other permissions.
+
+        __Minimum server version__: 4.9
+      operationId: GetRoleByName
+      parameters:
+        - name: role_name
+          in: path
+          description: Role Name
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Role retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/roles/{role_id}/patch":
+    put:
+      tags:
+        - roles
+      summary: Patch a role
+      description: >
+        Partially update a role by providing only the fields you want to update.
+        Omitted fields will not be updated. The fields that can be updated are
+        defined in the request body, all other provided fields will be ignored.
+
+
+        ##### Permissions
+
+        `manage_system` permission is required.
+
+
+        __Minimum server version__: 4.9
+      operationId: PatchRole
+      parameters:
+        - name: role_id
+          in: path
+          description: Role GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  description: The permissions the role should grant.
+        description: Role object to be updated
+        required: true
+      responses:
+        "200":
+          description: Role patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v4/roles/names:
+    post:
+      tags:
+        - roles
+      summary: Get a list of roles by name
+      description: |
+        Get a list of roles from their names.
+
+        ##### Permissions
+        Requires an active session but no other permissions.
+
+        __Minimum server version__: 4.9
+      operationId: GetRolesByNames
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: List of role names
+        required: true
+      responses:
+        "200":
+          description: Role list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Role"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"

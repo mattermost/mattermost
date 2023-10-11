@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/group_settings/group_details/GroupProfileAndSettings should match snapshot, with toggle off 1`] = `
+<AdminPanel
+  className=""
+  id="group_profile"
+  subtitleDefault="The name for this group."
+  subtitleId="admin.group_settings.group_detail.groupProfileDescription"
+  titleDefault="Group Profile"
+  titleId="admin.group_settings.group_detail.groupProfileTitle"
+>
+  <GroupProfile
+    customID="groupDisplayName"
+    isDisabled={true}
+    name="GroupProfileAndSettings"
+    showAtMention={false}
+    title="admin.group_settings.group_details.group_profile.name"
+    titleDefault="Name:"
+  />
+  <div
+    className="group-settings"
+  >
+    <div
+      className="group-settings--body"
+    >
+      <div
+        className="section-separator"
+      >
+        <hr
+          className="separator__hr"
+        />
+      </div>
+      <GroupSettingsToggle
+        allowReference={false}
+        isDefault={false}
+        onToggle={[MockFunction]}
+      />
+    </div>
+  </div>
+</AdminPanel>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupProfileAndSettings should match snapshot, with toggle on 1`] = `
+<AdminPanel
+  className=""
+  id="group_profile"
+  subtitleDefault="The name for this group."
+  subtitleId="admin.group_settings.group_detail.groupProfileDescription"
+  titleDefault="Group Profile"
+  titleId="admin.group_settings.group_detail.groupProfileTitle"
+>
+  <GroupProfile
+    customID="groupDisplayName"
+    isDisabled={true}
+    name="GroupProfileAndSettings"
+    showAtMention={false}
+    title="admin.group_settings.group_details.group_profile.name"
+    titleDefault="Name:"
+  />
+  <div
+    className="group-settings"
+  >
+    <div
+      className="group-settings--body"
+    >
+      <div
+        className="section-separator"
+      >
+        <hr
+          className="separator__hr"
+        />
+      </div>
+      <GroupSettingsToggle
+        allowReference={true}
+        isDefault={false}
+        onToggle={[MockFunction]}
+      />
+    </div>
+  </div>
+  <GroupProfile
+    customID="groupMention"
+    name="GroupProfileAndSettings"
+    onChange={[MockFunction]}
+    showAtMention={true}
+    title="admin.group_settings.group_details.group_mention.name"
+    titleDefault="Group Mention:"
+  />
+</AdminPanel>
+`;

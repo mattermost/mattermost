@@ -1,0 +1,23 @@
+.FeedbackModal {
+    &__Container {
+        .radio-list > .radio {
+            margin-bottom: 20px;
+        }
+    }
+
+    &__FreeFormText {
+        width: 100%;
+        padding: 10px;
+        border-color: rgba(var(--sys-denim-center-channel-text-rgb), 0.16);
+        margin-bottom: 15px;
+        border-radius: 4px;
+        color: black;
+        font-size: 15px;
+        resize: none;
+    }
+
+    &__FreeFormTextLimit {
+        color: var(--dnd-indicator);
+        float: right;
+    }
+}

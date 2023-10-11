@@ -1,0 +1,584 @@
+@charset "UTF-8";
+
+@import "sass/utils/variables";
+@import "sass/utils/functions";
+
+$backdrop-index: 999;
+$tip-index: 1000;
+
+.tutorial-tip {
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+        &__title {
+            flex: auto;
+            order: 0;
+            margin: 0;
+            font-family: inherit;
+            font-size: 1.4rem;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 2rem;
+        }
+
+        &__close {
+            display: flex;
+            overflow: hidden;
+            width: 3.2rem;
+            height: 3.2rem;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            border: unset;
+            margin-left: 1.2rem;
+            background: transparent;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-weight: 600;
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+
+            &.active {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+
+            i {
+                font-size: 1.8rem;
+                line-height: 1.8rem;
+
+                ::before {
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        margin-top: 0.6rem;
+
+        p {
+            margin: 0 0 0.8rem;
+            font-size: 1.4rem;
+            line-height: 2rem;
+
+            &:last-of-type {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    &__btn-ctr {
+        display: flex;
+        flex-grow: 1;
+        justify-content: flex-end;
+    }
+
+    &__btn {
+        display: inline-flex;
+        height: 3.2rem;
+        align-items: center;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 12px;
+    }
+
+    &__confirm-btn {
+        background: var(--button-bg);
+        color: var(--button-color);
+
+        &:hover:not(.disabled) {
+            background:
+                linear-gradient(
+                    0deg,
+                    rgba(var(--center-channel-color-rgb), 0.16),
+                    rgba(var(--center-channel-color-rgb), 0.16)
+                ),
+                var(--button-bg);
+        }
+
+        &:active {
+            background:
+                linear-gradient(
+                    0deg,
+                    rgba(var(--center-channel-color-rgb), 0.32),
+                    rgba(var(--center-channel-color-rgb), 0.32)
+                ),
+                var(--button-bg);
+        }
+
+        &:focus {
+            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+        }
+
+        .icon-chevron-right::before {
+            margin-right: -7px;
+        }
+    }
+
+    &__cancel-btn {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 4px;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        border-radius: 4px;
+        color: var(--button-bg);
+        text-decoration: none;
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.04);
+        }
+
+        &:active {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &:focus {
+            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+        }
+
+        .icon-chevron-left::before {
+            margin-left: -7px;
+        }
+    }
+
+    &__circles-ctr {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    &__circular-ring {
+        position: relative;
+        display: flex;
+        width: 12px;
+        height: 12px;
+        align-items: center;
+        justify-content: center;
+        margin-right: 4px;
+        background: transparent;
+        border-radius: 50%;
+
+        &:last-child {
+            margin-right: 0;
+        }
+    }
+
+    &__circular-ring-active {
+        background: rgba(var(--button-bg-rgb), 0.16);
+    }
+
+    &__circle {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 6px;
+        height: 6px;
+        background: rgba(var(--button-bg-rgb), 0.32);
+        border-radius: 6px;
+
+        &.active {
+            background: rgba(var(--button-bg-rgb), 1);
+        }
+    }
+
+    &__footer {
+        display: flex;
+        flex-direction: column;
+        margin-top: 2.4rem;
+
+        &-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+        }
+    }
+
+    &__opt {
+        align-self: flex-end;
+        margin-top: 1.2rem;
+        font-size: 12px;
+
+        span {
+            opacity: 0.9;
+        }
+    }
+}
+
+.tip-backdrop {
+    position: absolute;
+    z-index: $backdrop-index;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: alpha-color($black, 0.5);
+}
+
+.tip-overlay {
+    position: absolute;
+    z-index: $tip-index;
+    width: 32rem;
+    padding: 1.8rem 2.4rem 2.4rem;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    background: var(--center-channel-bg);
+    border-radius: 4px;
+    filter: drop-shadow(0 12px 32px rgba($black, 0.12));
+
+    .arrow {
+        position: absolute;
+        left: 24px;
+        display: block;
+        width: 1.7rem;
+        height: 1.7rem;
+        border-width: 1px 0 0 1px;
+        border-style: solid;
+        border-color: rgba(var(--center-channel-color-rgb), 0.16);
+        background: var(--center-channel-bg);
+        transform: rotate(-45deg);
+    }
+
+    .svg-wrapper {
+        display: flex;
+
+        svg {
+            margin: 0 auto;
+        }
+    }
+
+    .handSvg.svg-wrapper {
+        margin: 20px 0 30px 0;
+    }
+
+    &.tip-overlay--sidebar {
+        margin: 154px 0 0 6px;
+
+        .tutorial__footer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .arrow {
+            top: 32px;
+            left: -9px;
+            margin-top: -10px;
+        }
+
+        &.first-channel {
+            margin-top: 131px;
+        }
+    }
+
+    &.tip-overlay--header--left {
+        margin: 10px 0 0 7px;
+
+        .arrow {
+            top: 34px;
+            left: -9px;
+        }
+
+        &.tip-overlay--header--heading {
+            .arrow {
+                top: 40px;
+            }
+        }
+    }
+
+    &.tip-overlay--header--bottom {
+        margin-top: -10px;
+
+        .arrow {
+            top: -9px;
+            left: 50%;
+            margin-left: -10px;
+        }
+    }
+
+    &.tip-overlay--start-trial {
+        margin-top: 100px;
+        margin-left: 5px;
+        box-shadow: var(--elevation-2);
+
+        .arrow {
+            top: 25px;
+            left: -10px;
+            border-right-color: var(--center-channel-bg);
+            border-left-width: 0;
+        }
+    }
+
+    &.tip-overlay--chat {
+        width: 40.8rem;
+        margin-top: -7px;
+        box-shadow: var(--elevation-2);
+
+        .arrow {
+            bottom: -10px;
+            left: calc(50% - 7px);
+            transform: rotate(-135deg);
+        }
+    }
+
+    &.tip-overlay--add-channels {
+        margin-left: 6px;
+
+        .arrow {
+            top: 81px;
+            left: -9px;
+        }
+
+        &.tip-overlay--top-row-placement {
+            .arrow {
+                top: 41px;
+            }
+        }
+    }
+
+    &.tip-overlay--threads-welcome {
+        margin: 85px 0 0 6px;
+
+        .arrow {
+            top: 24px;
+            left: -9px;
+        }
+    }
+
+    &.tip-overlay--threads-list {
+        margin: 99px 0 0 6px;
+
+        .arrow {
+            top: 24px;
+            left: -9px;
+        }
+    }
+
+    &.tip-overlay--threads-unread {
+        margin: 6px 0 0 126px;
+
+        .arrow {
+            top: -9px;
+            left: 24px;
+            transform: rotate(45deg);
+        }
+    }
+
+    &.tip-overlay--threads-pane {
+        margin: 37px 0 0 -6px;
+
+        .arrow {
+            top: 24px;
+            right: -9px;
+            left: unset;
+            transform: rotate(135deg);
+        }
+    }
+
+    &.tip-overlay--product-switcher {
+        margin-top: 6px;
+        margin-left: 4px;
+
+        .arrow {
+            top: -9px;
+            left: 24px;
+            transform: rotate(45deg);
+        }
+    }
+
+    &.tip-overlay--settings {
+        margin: 7px 0 0 -20px;
+
+        .arrow {
+            top: -9px;
+            right: 24px;
+            left: unset;
+            transform: rotate(45deg);
+        }
+    }
+}
+
+.tip-button {
+    position: relative;
+    z-index: 998;
+    top: -10px;
+    right: -10px;
+    cursor: pointer;
+}
+
+.tip-div {
+    position: absolute;
+    top: 0;
+    right: 0;
+
+    &.tip-overlay--chat {
+        right: unset;
+        left: 0;
+    }
+
+    &.tip-overlay--start-trial {
+        top: 15px;
+        right: -15px;
+        left: unset;
+    }
+
+    &.tip-overlay--header {
+        top: 21px;
+        right: 2px;
+
+        .tip-button {
+            opacity: 0.8;
+        }
+    }
+
+    &.tip-overlay--header--left {
+        // needs to be over the top of the dropdown trigger
+        z-index: 1;
+        top: 8px;
+        right: 14px;
+        padding: 0 0 12px 12px;
+
+        &.tip-overlay--header--heading {
+            top: 0;
+            right: -6px;
+            padding: 0 0 12px 12px;
+        }
+    }
+
+    &.tip-overlay--actions {
+        margin-top: -7px;
+        margin-right: 8px;
+    }
+
+    &.tip-overlay--sidebar {
+        top: 10px;
+        right: 10px;
+    }
+
+    &.tip-overlay--add-channels {
+        top: -6px;
+        right: -13px;
+        padding: 0 8px 24px 24px;
+        cursor: pointer;
+    }
+
+    &.tip-overlay--threads-welcome {
+        top: 10px;
+        right: 5px;
+        padding: 0 8px 24px 24px;
+        cursor: pointer;
+    }
+
+    &.tip-overlay--threads-list {
+        top: 58px;
+        right: -2px;
+        padding: 0 8px 24px 24px;
+        cursor: pointer;
+    }
+
+    &.tip-overlay--threads-unread {
+        top: 35px;
+        right: 24px;
+        padding: 0 8px 24px 24px;
+        cursor: pointer;
+    }
+
+    &.tip-overlay--threads-pane {
+        top: 25px;
+        right: unset;
+        left: 4px;
+        cursor: pointer;
+    }
+
+    &.tip-overlay--product-switcher {
+        z-index: $backdrop-index + 1;
+        right: unset;
+        padding: 16px 0 0 20px;
+        margin: 0;
+        cursor: pointer;
+
+        .arrow {
+            top: -13px;
+            right: 44px;
+        }
+    }
+
+    &.tip-overlay--settings {
+        // needs to be over:
+        // the highest .channel-header setting
+        // the tip backdrop because it spills over the highlighted punchout
+        // needs to be underneath the tip.
+        z-index: $backdrop-index + 1;
+        top: 23px;
+        right: 38px;
+        padding: 10px;
+        margin: 0;
+    }
+}
+
+body.announcement-bar--fixed {
+    .tip-overlay {
+        &.tip-overlay--add-channels {
+            margin-top: $announcement-bar-height;
+        }
+
+        &.tip-overlay--header--left {
+            margin-top: 10px + $announcement-bar-height;
+        }
+    }
+}
+
+// Mobile view
+@media screen and (max-width: 768px) {
+    .tip-div {
+        &.tip-overlay--chat {
+            left: calc(50% - 4px);
+        }
+
+        &.tip-overlay--sidebar,
+        &.tip-overlay--threads-welcome {
+            top: 17px;
+        }
+
+        &.tip-overlay--threads-list {
+            top: unset;
+            right: unset;
+            bottom: -16px;
+            left: calc(50% - 16px);
+        }
+    }
+
+    .tip-overlay {
+        top: unset !important;
+        bottom: 0 !important;
+        left: calc(50% - 16rem) !important;
+        margin: 0 0 20px 0 !important;
+
+        .arrow {
+            display: none;
+        }
+
+        &.tip-overlay--chat {
+            left: calc(50% - 204px) !important;
+            margin-left: unset;
+        }
+    }
+}
+
+@media screen and (max-width: 425px) {
+    .tip-overlay {
+        &.tip-overlay--chat {
+            left: calc(50% - 16rem) !important;
+            width: 32rem;
+        }
+    }
+}

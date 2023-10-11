@@ -1,0 +1,1403 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree should hide disabbled integration options 1`] = `
+<div
+  className="permissions-tree"
+>
+  <div
+    className="permissions-tree--header"
+  >
+    <div
+      className="permission-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Permission"
+        id="admin.permissions.permissionsTree.permission"
+      />
+    </div>
+    <div
+      className="permission-description"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Description"
+        id="admin.permissions.permissionsTree.description"
+      />
+    </div>
+  </div>
+  <div
+    className="permissions-tree--body"
+  >
+    <PermissionGroup
+      additionalValues={
+        Object {
+          "edit_post": Object {
+            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+              isDisabled={false}
+              onClick={[Function]}
+            />,
+          },
+        }
+      }
+      combined={false}
+      id="all"
+      key="all"
+      onChange={[Function]}
+      permissions={
+        Array [
+          Object {
+            "id": "teams",
+            "permissions": Array [
+              Object {
+                "combined": true,
+                "id": "send_invites",
+                "permissions": Array [
+                  "invite_user",
+                  "get_public_link",
+                  "add_user_to_team",
+                ],
+              },
+              "create_team",
+            ],
+          },
+          Object {
+            "id": "public_channel",
+            "permissions": Array [
+              "create_public_channel",
+              "manage_public_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_public_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_public_channel_members",
+                  "read_public_channel_groups",
+                ],
+              },
+              "delete_public_channel",
+              Object {
+                "combined": true,
+                "id": "convert_public_channel_to_private",
+                "permissions": Array [
+                  "convert_public_channel_to_private",
+                  "convert_private_channel_to_public",
+                ],
+              },
+            ],
+          },
+          Object {
+            "id": "private_channel",
+            "permissions": Array [
+              "create_private_channel",
+              "manage_private_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_private_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_private_channel_members",
+                  "read_private_channel_groups",
+                ],
+              },
+              "delete_private_channel",
+            ],
+          },
+          Object {
+            "id": "playbook_public",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_public_create",
+              "playbook_public_manage_properties",
+              "playbook_public_manage_members",
+              "playbook_public_make_private",
+            ],
+          },
+          Object {
+            "id": "playbook_private",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_private_create",
+              "playbook_private_manage_properties",
+              "playbook_private_manage_members",
+              "playbook_private_make_public",
+            ],
+          },
+          Object {
+            "id": "runs",
+            "permissions": Array [
+              "run_create",
+            ],
+          },
+          Object {
+            "id": "posts",
+            "permissions": Array [
+              Object {
+                "id": "edit_posts",
+                "permissions": Array [
+                  "edit_post",
+                  "edit_others_posts",
+                ],
+              },
+              Object {
+                "id": "delete_posts",
+                "permissions": Array [
+                  "delete_post",
+                  "delete_others_posts",
+                ],
+              },
+              Object {
+                "combined": true,
+                "id": "reactions",
+                "permissions": Array [
+                  "add_reaction",
+                  "remove_reaction",
+                ],
+              },
+              "use_channel_mentions",
+              "create_post",
+            ],
+          },
+          Object {
+            "id": "integrations",
+            "permissions": Array [],
+          },
+          Object {
+            "id": "manage_shared_channels",
+            "permissions": Array [],
+          },
+          Object {
+            "id": "custom_groups",
+            "permissions": Array [
+              "create_custom_group",
+              "manage_custom_group_members",
+              "edit_custom_group",
+              "delete_custom_group",
+              "restore_custom_group",
+            ],
+          },
+        ]
+      }
+      readOnly={false}
+      role={
+        Object {
+          "name": "test",
+          "permissions": Array [],
+        }
+      }
+      root={true}
+      scope="channel_scope"
+      selectRow={[MockFunction]}
+      uniqId="test"
+    />
+  </div>
+  <Connect(EditPostTimeLimitModal)
+    onClose={[Function]}
+    show={false}
+  />
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree should match snapshot on default data 1`] = `
+<div
+  className="permissions-tree"
+>
+  <div
+    className="permissions-tree--header"
+  >
+    <div
+      className="permission-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Permission"
+        id="admin.permissions.permissionsTree.permission"
+      />
+    </div>
+    <div
+      className="permission-description"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Description"
+        id="admin.permissions.permissionsTree.description"
+      />
+    </div>
+  </div>
+  <div
+    className="permissions-tree--body"
+  >
+    <PermissionGroup
+      additionalValues={
+        Object {
+          "edit_post": Object {
+            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+              isDisabled={false}
+              onClick={[Function]}
+            />,
+          },
+        }
+      }
+      combined={false}
+      id="all"
+      key="all"
+      onChange={[Function]}
+      permissions={
+        Array [
+          Object {
+            "id": "teams",
+            "permissions": Array [
+              Object {
+                "combined": true,
+                "id": "send_invites",
+                "permissions": Array [
+                  "invite_user",
+                  "get_public_link",
+                  "add_user_to_team",
+                ],
+              },
+              "create_team",
+            ],
+          },
+          Object {
+            "id": "public_channel",
+            "permissions": Array [
+              "create_public_channel",
+              "manage_public_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_public_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_public_channel_members",
+                  "read_public_channel_groups",
+                ],
+              },
+              "delete_public_channel",
+              Object {
+                "combined": true,
+                "id": "convert_public_channel_to_private",
+                "permissions": Array [
+                  "convert_public_channel_to_private",
+                  "convert_private_channel_to_public",
+                ],
+              },
+            ],
+          },
+          Object {
+            "id": "private_channel",
+            "permissions": Array [
+              "create_private_channel",
+              "manage_private_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_private_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_private_channel_members",
+                  "read_private_channel_groups",
+                ],
+              },
+              "delete_private_channel",
+            ],
+          },
+          Object {
+            "id": "playbook_public",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_public_create",
+              "playbook_public_manage_properties",
+              "playbook_public_manage_members",
+              "playbook_public_make_private",
+            ],
+          },
+          Object {
+            "id": "playbook_private",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_private_create",
+              "playbook_private_manage_properties",
+              "playbook_private_manage_members",
+              "playbook_private_make_public",
+            ],
+          },
+          Object {
+            "id": "runs",
+            "permissions": Array [
+              "run_create",
+            ],
+          },
+          Object {
+            "id": "posts",
+            "permissions": Array [
+              Object {
+                "id": "edit_posts",
+                "permissions": Array [
+                  "edit_post",
+                  "edit_others_posts",
+                ],
+              },
+              Object {
+                "id": "delete_posts",
+                "permissions": Array [
+                  "delete_post",
+                  "delete_others_posts",
+                ],
+              },
+              Object {
+                "combined": true,
+                "id": "reactions",
+                "permissions": Array [
+                  "add_reaction",
+                  "remove_reaction",
+                ],
+              },
+              "use_channel_mentions",
+              "create_post",
+            ],
+          },
+          Object {
+            "id": "integrations",
+            "permissions": Array [
+              "manage_incoming_webhooks",
+              "manage_outgoing_webhooks",
+              "manage_oauth",
+              "manage_slash_commands",
+              "create_emojis",
+              "delete_emojis",
+              "delete_others_emojis",
+            ],
+          },
+          Object {
+            "id": "manage_shared_channels",
+            "permissions": Array [],
+          },
+          Object {
+            "id": "custom_groups",
+            "permissions": Array [
+              "create_custom_group",
+              "manage_custom_group_members",
+              "edit_custom_group",
+              "delete_custom_group",
+              "restore_custom_group",
+            ],
+          },
+        ]
+      }
+      readOnly={false}
+      role={
+        Object {
+          "name": "test",
+          "permissions": Array [],
+        }
+      }
+      root={true}
+      scope="channel_scope"
+      selectRow={[MockFunction]}
+      uniqId="test"
+    />
+  </div>
+  <Connect(EditPostTimeLimitModal)
+    onClose={[Function]}
+    show={false}
+  />
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree should match snapshot on license without LDAPGroups 1`] = `
+<div
+  className="permissions-tree"
+>
+  <div
+    className="permissions-tree--header"
+  >
+    <div
+      className="permission-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Permission"
+        id="admin.permissions.permissionsTree.permission"
+      />
+    </div>
+    <div
+      className="permission-description"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Description"
+        id="admin.permissions.permissionsTree.description"
+      />
+    </div>
+  </div>
+  <div
+    className="permissions-tree--body"
+  >
+    <PermissionGroup
+      additionalValues={
+        Object {
+          "edit_post": Object {
+            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+              isDisabled={false}
+              onClick={[Function]}
+            />,
+          },
+        }
+      }
+      combined={false}
+      id="all"
+      key="all"
+      onChange={[Function]}
+      permissions={
+        Array [
+          Object {
+            "id": "teams",
+            "permissions": Array [
+              Object {
+                "combined": true,
+                "id": "send_invites",
+                "permissions": Array [
+                  "invite_user",
+                  "get_public_link",
+                  "add_user_to_team",
+                ],
+              },
+              "create_team",
+            ],
+          },
+          Object {
+            "id": "public_channel",
+            "permissions": Array [
+              "create_public_channel",
+              "manage_public_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_public_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_public_channel_members",
+                  "read_public_channel_groups",
+                ],
+              },
+              "delete_public_channel",
+              Object {
+                "combined": true,
+                "id": "convert_public_channel_to_private",
+                "permissions": Array [
+                  "convert_public_channel_to_private",
+                  "convert_private_channel_to_public",
+                ],
+              },
+            ],
+          },
+          Object {
+            "id": "private_channel",
+            "permissions": Array [
+              "create_private_channel",
+              "manage_private_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_private_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_private_channel_members",
+                  "read_private_channel_groups",
+                ],
+              },
+              "delete_private_channel",
+            ],
+          },
+          Object {
+            "id": "playbook_public",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_public_create",
+              "playbook_public_manage_properties",
+              "playbook_public_manage_members",
+            ],
+          },
+          Object {
+            "id": "runs",
+            "permissions": Array [
+              "run_create",
+            ],
+          },
+          Object {
+            "id": "posts",
+            "permissions": Array [
+              Object {
+                "id": "edit_posts",
+                "permissions": Array [
+                  "edit_post",
+                  "edit_others_posts",
+                ],
+              },
+              Object {
+                "id": "delete_posts",
+                "permissions": Array [
+                  "delete_post",
+                  "delete_others_posts",
+                ],
+              },
+              Object {
+                "combined": true,
+                "id": "reactions",
+                "permissions": Array [
+                  "add_reaction",
+                  "remove_reaction",
+                ],
+              },
+              "use_channel_mentions",
+              "create_post",
+            ],
+          },
+          Object {
+            "id": "integrations",
+            "permissions": Array [
+              "manage_incoming_webhooks",
+              "manage_outgoing_webhooks",
+              "manage_oauth",
+              "manage_slash_commands",
+              "create_emojis",
+              "delete_emojis",
+              "delete_others_emojis",
+            ],
+          },
+          Object {
+            "id": "manage_shared_channels",
+            "permissions": Array [],
+          },
+          Object {
+            "id": "custom_groups",
+            "permissions": Array [
+              "create_custom_group",
+              "manage_custom_group_members",
+              "edit_custom_group",
+              "delete_custom_group",
+              "restore_custom_group",
+            ],
+          },
+        ]
+      }
+      readOnly={false}
+      role={
+        Object {
+          "name": "test",
+          "permissions": Array [],
+        }
+      }
+      root={true}
+      scope="channel_scope"
+      selectRow={[MockFunction]}
+      uniqId="test"
+    />
+  </div>
+  <Connect(EditPostTimeLimitModal)
+    onClose={[Function]}
+    show={false}
+  />
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree should match snapshot on read only 1`] = `
+<div
+  className="permissions-tree"
+>
+  <div
+    className="permissions-tree--header"
+  >
+    <div
+      className="permission-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Permission"
+        id="admin.permissions.permissionsTree.permission"
+      />
+    </div>
+    <div
+      className="permission-description"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Description"
+        id="admin.permissions.permissionsTree.description"
+      />
+    </div>
+  </div>
+  <div
+    className="permissions-tree--body"
+  >
+    <PermissionGroup
+      additionalValues={
+        Object {
+          "edit_post": Object {
+            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+              isDisabled={true}
+              onClick={[Function]}
+            />,
+          },
+        }
+      }
+      combined={false}
+      id="all"
+      key="all"
+      onChange={[Function]}
+      permissions={
+        Array [
+          Object {
+            "id": "teams",
+            "permissions": Array [
+              Object {
+                "combined": true,
+                "id": "send_invites",
+                "permissions": Array [
+                  "invite_user",
+                  "get_public_link",
+                  "add_user_to_team",
+                ],
+              },
+              "create_team",
+            ],
+          },
+          Object {
+            "id": "public_channel",
+            "permissions": Array [
+              "create_public_channel",
+              "manage_public_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_public_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_public_channel_members",
+                  "read_public_channel_groups",
+                ],
+              },
+              "delete_public_channel",
+              Object {
+                "combined": true,
+                "id": "convert_public_channel_to_private",
+                "permissions": Array [
+                  "convert_public_channel_to_private",
+                  "convert_private_channel_to_public",
+                ],
+              },
+            ],
+          },
+          Object {
+            "id": "private_channel",
+            "permissions": Array [
+              "create_private_channel",
+              "manage_private_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_private_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_private_channel_members",
+                  "read_private_channel_groups",
+                ],
+              },
+              "delete_private_channel",
+            ],
+          },
+          Object {
+            "id": "playbook_public",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_public_create",
+              "playbook_public_manage_properties",
+              "playbook_public_manage_members",
+              "playbook_public_make_private",
+            ],
+          },
+          Object {
+            "id": "playbook_private",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_private_create",
+              "playbook_private_manage_properties",
+              "playbook_private_manage_members",
+              "playbook_private_make_public",
+            ],
+          },
+          Object {
+            "id": "runs",
+            "permissions": Array [
+              "run_create",
+            ],
+          },
+          Object {
+            "id": "posts",
+            "permissions": Array [
+              Object {
+                "id": "edit_posts",
+                "permissions": Array [
+                  "edit_post",
+                  "edit_others_posts",
+                ],
+              },
+              Object {
+                "id": "delete_posts",
+                "permissions": Array [
+                  "delete_post",
+                  "delete_others_posts",
+                ],
+              },
+              Object {
+                "combined": true,
+                "id": "reactions",
+                "permissions": Array [
+                  "add_reaction",
+                  "remove_reaction",
+                ],
+              },
+              "use_channel_mentions",
+              "create_post",
+            ],
+          },
+          Object {
+            "id": "integrations",
+            "permissions": Array [
+              "manage_incoming_webhooks",
+              "manage_outgoing_webhooks",
+              "manage_oauth",
+              "manage_slash_commands",
+              "create_emojis",
+              "delete_emojis",
+              "delete_others_emojis",
+            ],
+          },
+          Object {
+            "id": "manage_shared_channels",
+            "permissions": Array [],
+          },
+          Object {
+            "id": "custom_groups",
+            "permissions": Array [
+              "create_custom_group",
+              "manage_custom_group_members",
+              "edit_custom_group",
+              "delete_custom_group",
+              "restore_custom_group",
+            ],
+          },
+        ]
+      }
+      readOnly={true}
+      role={
+        Object {
+          "name": "test",
+          "permissions": Array [],
+        }
+      }
+      root={true}
+      scope="channel_scope"
+      selectRow={[MockFunction]}
+      uniqId="test"
+    />
+  </div>
+  <Connect(EditPostTimeLimitModal)
+    onClose={[Function]}
+    show={false}
+  />
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree should match snapshot on system scope 1`] = `
+<div
+  className="permissions-tree"
+>
+  <div
+    className="permissions-tree--header"
+  >
+    <div
+      className="permission-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Permission"
+        id="admin.permissions.permissionsTree.permission"
+      />
+    </div>
+    <div
+      className="permission-description"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Description"
+        id="admin.permissions.permissionsTree.description"
+      />
+    </div>
+  </div>
+  <div
+    className="permissions-tree--body"
+  >
+    <PermissionGroup
+      additionalValues={
+        Object {
+          "edit_post": Object {
+            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+              isDisabled={false}
+              onClick={[Function]}
+            />,
+          },
+        }
+      }
+      combined={false}
+      id="all"
+      key="all"
+      onChange={[Function]}
+      permissions={
+        Array [
+          Object {
+            "id": "teams",
+            "permissions": Array [
+              Object {
+                "combined": true,
+                "id": "send_invites",
+                "permissions": Array [
+                  "invite_user",
+                  "get_public_link",
+                  "add_user_to_team",
+                ],
+              },
+              "create_team",
+            ],
+          },
+          Object {
+            "id": "public_channel",
+            "permissions": Array [
+              "create_public_channel",
+              "manage_public_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_public_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_public_channel_members",
+                  "read_public_channel_groups",
+                ],
+              },
+              "delete_public_channel",
+              Object {
+                "combined": true,
+                "id": "convert_public_channel_to_private",
+                "permissions": Array [
+                  "convert_public_channel_to_private",
+                  "convert_private_channel_to_public",
+                ],
+              },
+            ],
+          },
+          Object {
+            "id": "private_channel",
+            "permissions": Array [
+              "create_private_channel",
+              "manage_private_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_private_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_private_channel_members",
+                  "read_private_channel_groups",
+                ],
+              },
+              "delete_private_channel",
+            ],
+          },
+          Object {
+            "id": "playbook_public",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_public_create",
+              "playbook_public_manage_properties",
+              "playbook_public_manage_members",
+              "playbook_public_make_private",
+            ],
+          },
+          Object {
+            "id": "playbook_private",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_private_create",
+              "playbook_private_manage_properties",
+              "playbook_private_manage_members",
+              "playbook_private_make_public",
+            ],
+          },
+          Object {
+            "id": "runs",
+            "permissions": Array [
+              "run_create",
+            ],
+          },
+          Object {
+            "id": "posts",
+            "permissions": Array [
+              Object {
+                "id": "edit_posts",
+                "permissions": Array [
+                  "edit_post",
+                  "edit_others_posts",
+                ],
+              },
+              Object {
+                "id": "delete_posts",
+                "permissions": Array [
+                  "delete_post",
+                  "delete_others_posts",
+                ],
+              },
+              Object {
+                "combined": true,
+                "id": "reactions",
+                "permissions": Array [
+                  "add_reaction",
+                  "remove_reaction",
+                ],
+              },
+              "use_channel_mentions",
+              "create_post",
+            ],
+          },
+          Object {
+            "id": "integrations",
+            "permissions": Array [
+              "manage_incoming_webhooks",
+              "manage_outgoing_webhooks",
+              "manage_oauth",
+              "manage_slash_commands",
+              "create_emojis",
+              "delete_emojis",
+              "delete_others_emojis",
+            ],
+          },
+          Object {
+            "id": "manage_shared_channels",
+            "permissions": Array [],
+          },
+          Object {
+            "id": "custom_groups",
+            "permissions": Array [
+              "create_custom_group",
+              "manage_custom_group_members",
+              "edit_custom_group",
+              "delete_custom_group",
+              "restore_custom_group",
+            ],
+          },
+        ]
+      }
+      readOnly={false}
+      role={
+        Object {
+          "name": "test",
+          "permissions": Array [],
+        }
+      }
+      root={true}
+      scope="system_scope"
+      selectRow={[MockFunction]}
+      uniqId="test"
+    />
+  </div>
+  <Connect(EditPostTimeLimitModal)
+    onClose={[Function]}
+    show={false}
+  />
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree should match snapshot on team scope 1`] = `
+<div
+  className="permissions-tree"
+>
+  <div
+    className="permissions-tree--header"
+  >
+    <div
+      className="permission-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Permission"
+        id="admin.permissions.permissionsTree.permission"
+      />
+    </div>
+    <div
+      className="permission-description"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Description"
+        id="admin.permissions.permissionsTree.description"
+      />
+    </div>
+  </div>
+  <div
+    className="permissions-tree--body"
+  >
+    <PermissionGroup
+      additionalValues={
+        Object {
+          "edit_post": Object {
+            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+              isDisabled={false}
+              onClick={[Function]}
+            />,
+          },
+        }
+      }
+      combined={false}
+      id="all"
+      key="all"
+      onChange={[Function]}
+      permissions={
+        Array [
+          Object {
+            "id": "teams_team_scope",
+            "permissions": Array [
+              Object {
+                "combined": true,
+                "id": "send_invites",
+                "permissions": Array [
+                  "invite_user",
+                  "get_public_link",
+                  "add_user_to_team",
+                ],
+              },
+              "create_team",
+            ],
+          },
+          Object {
+            "id": "public_channel",
+            "permissions": Array [
+              "create_public_channel",
+              "manage_public_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_public_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_public_channel_members",
+                  "read_public_channel_groups",
+                ],
+              },
+              "delete_public_channel",
+              Object {
+                "combined": true,
+                "id": "convert_public_channel_to_private",
+                "permissions": Array [
+                  "convert_public_channel_to_private",
+                  "convert_private_channel_to_public",
+                ],
+              },
+            ],
+          },
+          Object {
+            "id": "private_channel",
+            "permissions": Array [
+              "create_private_channel",
+              "manage_private_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_private_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_private_channel_members",
+                  "read_private_channel_groups",
+                ],
+              },
+              "delete_private_channel",
+            ],
+          },
+          Object {
+            "id": "playbook_public",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_public_create",
+              "playbook_public_manage_properties",
+              "playbook_public_manage_members",
+              "playbook_public_make_private",
+            ],
+          },
+          Object {
+            "id": "playbook_private",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_private_create",
+              "playbook_private_manage_properties",
+              "playbook_private_manage_members",
+              "playbook_private_make_public",
+            ],
+          },
+          Object {
+            "id": "runs",
+            "permissions": Array [
+              "run_create",
+            ],
+          },
+          Object {
+            "id": "posts",
+            "permissions": Array [
+              Object {
+                "id": "edit_posts",
+                "permissions": Array [
+                  "edit_post",
+                  "edit_others_posts",
+                ],
+              },
+              Object {
+                "id": "delete_posts",
+                "permissions": Array [
+                  "delete_post",
+                  "delete_others_posts",
+                ],
+              },
+              Object {
+                "combined": true,
+                "id": "reactions",
+                "permissions": Array [
+                  "add_reaction",
+                  "remove_reaction",
+                ],
+              },
+              "use_channel_mentions",
+              "create_post",
+            ],
+          },
+          Object {
+            "id": "integrations",
+            "permissions": Array [
+              "manage_incoming_webhooks",
+              "manage_outgoing_webhooks",
+              "manage_oauth",
+              "manage_slash_commands",
+              "create_emojis",
+              "delete_emojis",
+              "delete_others_emojis",
+            ],
+          },
+          Object {
+            "id": "manage_shared_channels",
+            "permissions": Array [],
+          },
+          Object {
+            "id": "custom_groups",
+            "permissions": Array [
+              "create_custom_group",
+              "manage_custom_group_members",
+              "edit_custom_group",
+              "delete_custom_group",
+              "restore_custom_group",
+            ],
+          },
+        ]
+      }
+      readOnly={false}
+      role={
+        Object {
+          "name": "test",
+          "permissions": Array [],
+        }
+      }
+      root={true}
+      scope="team_scope"
+      selectRow={[MockFunction]}
+      uniqId="test"
+    />
+  </div>
+  <Connect(EditPostTimeLimitModal)
+    onClose={[Function]}
+    show={false}
+  />
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree should match snapshot with parentRole with permissions 1`] = `
+<div
+  className="permissions-tree"
+>
+  <div
+    className="permissions-tree--header"
+  >
+    <div
+      className="permission-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Permission"
+        id="admin.permissions.permissionsTree.permission"
+      />
+    </div>
+    <div
+      className="permission-description"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Description"
+        id="admin.permissions.permissionsTree.description"
+      />
+    </div>
+  </div>
+  <div
+    className="permissions-tree--body"
+  >
+    <PermissionGroup
+      additionalValues={
+        Object {
+          "edit_post": Object {
+            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+              isDisabled={false}
+              onClick={[Function]}
+            />,
+          },
+        }
+      }
+      combined={false}
+      id="all"
+      key="all"
+      onChange={[Function]}
+      parentRole={
+        Object {
+          "permissions": Array [
+            "invite_user",
+          ],
+        }
+      }
+      permissions={
+        Array [
+          Object {
+            "id": "teams",
+            "permissions": Array [
+              Object {
+                "combined": true,
+                "id": "send_invites",
+                "permissions": Array [
+                  "invite_user",
+                  "get_public_link",
+                  "add_user_to_team",
+                ],
+              },
+              "create_team",
+            ],
+          },
+          Object {
+            "id": "public_channel",
+            "permissions": Array [
+              "create_public_channel",
+              "manage_public_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_public_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_public_channel_members",
+                  "read_public_channel_groups",
+                ],
+              },
+              "delete_public_channel",
+              Object {
+                "combined": true,
+                "id": "convert_public_channel_to_private",
+                "permissions": Array [
+                  "convert_public_channel_to_private",
+                  "convert_private_channel_to_public",
+                ],
+              },
+            ],
+          },
+          Object {
+            "id": "private_channel",
+            "permissions": Array [
+              "create_private_channel",
+              "manage_private_channel_properties",
+              Object {
+                "combined": true,
+                "id": "manage_private_channel_members_and_read_groups",
+                "permissions": Array [
+                  "manage_private_channel_members",
+                  "read_private_channel_groups",
+                ],
+              },
+              "delete_private_channel",
+            ],
+          },
+          Object {
+            "id": "playbook_public",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_public_create",
+              "playbook_public_manage_properties",
+              "playbook_public_manage_members",
+              "playbook_public_make_private",
+            ],
+          },
+          Object {
+            "id": "playbook_private",
+            "isVisible": [Function],
+            "permissions": Array [
+              "playbook_private_create",
+              "playbook_private_manage_properties",
+              "playbook_private_manage_members",
+              "playbook_private_make_public",
+            ],
+          },
+          Object {
+            "id": "runs",
+            "permissions": Array [
+              "run_create",
+            ],
+          },
+          Object {
+            "id": "posts",
+            "permissions": Array [
+              Object {
+                "id": "edit_posts",
+                "permissions": Array [
+                  "edit_post",
+                  "edit_others_posts",
+                ],
+              },
+              Object {
+                "id": "delete_posts",
+                "permissions": Array [
+                  "delete_post",
+                  "delete_others_posts",
+                ],
+              },
+              Object {
+                "combined": true,
+                "id": "reactions",
+                "permissions": Array [
+                  "add_reaction",
+                  "remove_reaction",
+                ],
+              },
+              "use_channel_mentions",
+              "create_post",
+            ],
+          },
+          Object {
+            "id": "integrations",
+            "permissions": Array [
+              "manage_incoming_webhooks",
+              "manage_outgoing_webhooks",
+              "manage_oauth",
+              "manage_slash_commands",
+              "create_emojis",
+              "delete_emojis",
+              "delete_others_emojis",
+            ],
+          },
+          Object {
+            "id": "manage_shared_channels",
+            "permissions": Array [],
+          },
+          Object {
+            "id": "custom_groups",
+            "permissions": Array [
+              "create_custom_group",
+              "manage_custom_group_members",
+              "edit_custom_group",
+              "delete_custom_group",
+              "restore_custom_group",
+            ],
+          },
+        ]
+      }
+      readOnly={false}
+      role={
+        Object {
+          "name": "test",
+          "permissions": Array [],
+        }
+      }
+      root={true}
+      scope="system_scope"
+      selectRow={[MockFunction]}
+      uniqId="test"
+    />
+  </div>
+  <Connect(EditPostTimeLimitModal)
+    onClose={[Function]}
+    show={false}
+  />
+</div>
+`;

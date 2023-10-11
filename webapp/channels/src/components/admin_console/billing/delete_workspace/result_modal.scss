@@ -1,0 +1,79 @@
+.delete-workspace-result_modal {
+    .IconMessage {
+        transform: translateY(50%);
+    }
+}
+
+.ResultModal__small {
+    .modal-header {
+        .close {
+            &:hover,
+            &:active,
+            &:focus,
+            &:active:focus {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                opacity: 1;
+            }
+
+            top: 26px;
+            right: 26px;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+            font-family:
+                'Open Sans',
+                sans-serif;
+            font-size: 32px;
+            font-weight: 400;
+        }
+    }
+
+    .modal-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 600px;
+        height: 360px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: auto;
+        border-radius: 8px;
+        transform: translate(-50%, -50%) !important;
+
+        .modal-header {
+            border: none;
+            background: var(--center-channel-bg) !important;
+        }
+
+        .modal-content {
+            height: 100%;
+            border-radius: 8px;
+
+            .IconMessage__svg-wrapper {
+                margin-left: 0;
+            }
+
+            .IconMessage-h3 {
+                margin-top: 0;
+            }
+
+            .IconMessage-sub {
+                max-width: 504px;
+                margin-top: 0;
+            }
+
+            .IconMessage-buttons {
+                justify-content: right;
+                padding-right: 24px;
+                margin-top: 60px;
+
+                .btn {
+                    font-family: 'Open sans', sans-serif;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+}

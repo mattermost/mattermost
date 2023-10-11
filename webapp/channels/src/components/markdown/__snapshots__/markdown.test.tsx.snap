@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/Markdown should not render markdown when formatting is disabled 1`] = `
+<span>
+  This _is_ some **Markdown**
+  <Connect(PostEditedIndicator)
+    editedAt={0}
+    postId=""
+  />
+</span>
+`;
+
+exports[`components/Markdown should render properly 1`] = `
+<p
+  key="0"
+>
+  This 
+  <em
+    key="1"
+  >
+    is
+  </em>
+   some 
+  <strong
+    key="3"
+  >
+    Markdown
+  </strong>
+</p>
+`;

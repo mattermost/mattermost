@@ -2,7 +2,7 @@
 
 [Mattermost](https://mattermost.com) is an open source platform for secure collaboration across the entire software development lifecycle. This repo is the primary source for core development on the Mattermost platform; it's written in Go and React and runs as a single Linux binary with MySQL or PostgreSQL. A new compiled version is released under an MIT license every month on the 16th.
 
-[Use it for free in Mattermost Cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme) or [deploy on-premises](https://mattermost.com/deploy/?utm_source=github-mattermost-server-readme).
+[Deploy Mattermost on-premises](https://mattermost.com/deploy/?utm_source=github-mattermost-server-readme), or [try it for free in the cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme).
 
 <img width="1006" alt="mattermost-hero" src="https://user-images.githubusercontent.com/7205829/136107976-7a894c9e-290a-490d-8501-e5fdbfc3785a.png">
 
@@ -21,19 +21,19 @@ Other useful resources:
 Table of contents
 =================
 
-  * [Try out Mattermost](#try-out-mattermost)
-  * [Install Mattermost](#install-mattermost)
-  * [Native Mobile and Desktop Apps](#native-mobile-and-desktop-apps)
-  * [Get Security Bulletins](#get-security-bulletins)
-  * [Get Involved](#get-involved)
-  * [Learn More](#learn-more)
-  * [Get the Latest News](#get-the-latest-news)
-  * [Contributing](#contributing)
+- [Install Mattermost](#install-mattermost)
+- [Native mobile and desktop apps](#native-mobile-and-desktop-apps)
+- [Get security bulletins](#get-security-bulletins)
+- [Get involved](#get-involved)
+- [Learn more](#learn-more)
+- [License](#license)
+- [Get the latest news](#get-the-latest-news)
+- [Contributing](#contributing)
 
 ## Install Mattermost
 
 - [Download and Install Mattermost Self-Hosted](https://docs.mattermost.com/guides/deployment.html) - Deploy a Mattermost Self-hosted instance in minutes via Docker, Ubuntu, or tar.
-- [Get started with Mattermost Cloud](https://customers.mattermost.com/cloud/signup) to use Mattermost instantly.
+- [Get started in the cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme) to try Mattermost today.
 - [Developer machine setup](https://developers.mattermost.com/contribute/server/developer-setup) - Follow this guide if you want to write code for Mattermost.
 
 
@@ -51,9 +51,9 @@ Other install guides:
 
 ## Native mobile and desktop apps
 
-In addition to the web interface, you can also download Mattermost clients for [Android](https://mattermost.com/mattermost-android-app/), [iOS](https://mattermost.com/mattermost-ios-app/), [Windows PC](https://docs.mattermost.com/install/desktop-app-install.html#windows-10-windows-8-1), [macOS](https://docs.mattermost.com/install/desktop-app-install.html#macos-10-9), and [Linux](https://docs.mattermost.com/install/desktop-app-install.html#linux).
+In addition to the web interface, you can also download Mattermost clients for [Android](https://mattermost.com/pl/android-app/), [iOS](https://mattermost.com/pl/ios-app/), [Windows PC](https://docs.mattermost.com/install/desktop-app-install.html#windows-10-windows-8-1), [macOS](https://docs.mattermost.com/install/desktop-app-install.html#macos-10-9), and [Linux](https://docs.mattermost.com/install/desktop-app-install.html#linux).
 
-[![Google Play](https://user-images.githubusercontent.com/33878967/33095356-39b6fbf8-ceb8-11e7-8a61-c3a18fa5e658.png)](https://mattermost.com/mattermost-android-app/)  [![App Store](https://user-images.githubusercontent.com/33878967/33095353-397e69b4-ceb8-11e7-8175-f95a97d5274f.png)](https://itunes.apple.com/us/app/mattermost/id1257222717?mt=8)  [![Windows PC](https://user-images.githubusercontent.com/33878967/33095357-39cab8d2-ceb8-11e7-89a6-67dccc571ca3.png)](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7)  [![Mac OSX](https://user-images.githubusercontent.com/33878967/33095355-39a36f2a-ceb8-11e7-9b33-73d4f6d5d6c1.png)](https://docs.mattermost.com/install/desktop.html#macos-10-9)  [![Linux](https://user-images.githubusercontent.com/33878967/33095354-3990e256-ceb8-11e7-965d-b00a16e578de.png)](https://docs.mattermost.com/install/desktop.html#linux)
+[![Google Play](https://user-images.githubusercontent.com/33878967/33095356-39b6fbf8-ceb8-11e7-8a61-c3a18fa5e658.png)](https://mattermost.com/pl/android-app/)  [![App Store](https://user-images.githubusercontent.com/33878967/33095353-397e69b4-ceb8-11e7-8175-f95a97d5274f.png)](https://itunes.apple.com/us/app/mattermost/id1257222717?mt=8)  [![Windows PC](https://user-images.githubusercontent.com/33878967/33095357-39cab8d2-ceb8-11e7-89a6-67dccc571ca3.png)](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7)  [![Mac OSX](https://user-images.githubusercontent.com/33878967/33095355-39a36f2a-ceb8-11e7-9b33-73d4f6d5d6c1.png)](https://docs.mattermost.com/install/desktop.html#macos-10-9)  [![Linux](https://user-images.githubusercontent.com/33878967/33095354-3990e256-ceb8-11e7-965d-b00a16e578de.png)](https://docs.mattermost.com/install/desktop.html#linux)
 
 ## Get security bulletins
 
@@ -85,7 +85,7 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 - **Facebook** - Follow [Mattermost](https://www.facebook.com/MattermostHQ).
 - **LinkedIn** - Follow [Mattermost](https://www.linkedin.com/company/mattermost/).
 - **Email** - Subscribe to our [newsletter](https://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month).
-- **Mattermost** - Join the ~contributors channel on [the Mattermost Community Server](https://community.mattermost.com). 
+- **Mattermost** - Join the ~contributors channel on [the Mattermost Community Server](https://community.mattermost.com).
 - **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
 
 ## Contributing

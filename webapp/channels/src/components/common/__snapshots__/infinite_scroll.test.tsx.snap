@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`/components/common/InfiniteScroll should match snapshot 1`] = `
+<InfiniteScroll
+  bufferValue={100}
+  callBack={[MockFunction]}
+  endOfData={false}
+  endOfDataMessage="No more items to fetch"
+  itemsPerPage={10}
+  loaderStyle={Object {}}
+  pageNumber={1}
+  styleClass="signup-team-all"
+  totalItems={20}
+>
+  <div
+    className="infinite-scroll signup-team-all"
+  >
+    <div />
+    No more items to fetch
+  </div>
+</InfiniteScroll>
+`;
+
+exports[`/components/common/InfiniteScroll should not show loading screen if there is no data 1`] = `
+<InfiniteScroll
+  bufferValue={100}
+  callBack={[MockFunction]}
+  endOfData={false}
+  endOfDataMessage="No more items to fetch"
+  itemsPerPage={10}
+  loaderStyle={Object {}}
+  pageNumber={1}
+  styleClass="signup-team-all"
+  totalItems={20}
+>
+  <div
+    className="infinite-scroll signup-team-all"
+  >
+    <div />
+    <LoadingScreen
+      message=" "
+      style={Object {}}
+    >
+      <div
+        className="loading-screen"
+        style={
+          Object {
+            "position": "relative",
+          }
+        }
+      >
+        <div
+          className="loading__content"
+        >
+          <p>
+             
+          </p>
+          <div
+            className="round round-1"
+          />
+          <div
+            className="round round-2"
+          />
+          <div
+            className="round round-3"
+          />
+        </div>
+      </div>
+    </LoadingScreen>
+  </div>
+</InfiniteScroll>
+`;

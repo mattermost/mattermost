@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/external_link should match snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <ExternalLink
+    href="https://mattermost.com"
+  >
+    <a
+      href="https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=&uid=currentUserId&sid="
+      onClick={[Function]}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      Click Me
+    </a>
+  </ExternalLink>
+</Provider>
+`;

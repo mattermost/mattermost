@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es6",
+        "declaration": true,
+        "strict": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "jsx": "react",
+        "outDir": "./lib",
+        "rootDir": "./src",
+        "composite": true
+    },
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "**/*.test.*"
+    ]
+}

@@ -1,0 +1,120 @@
+@import 'sass/utils/_mixins';
+
+.DelinquencyModal {
+    .modal-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: auto;
+        transform: translate(-50%, -50%) !important;
+    }
+
+    .modal-content {
+        max-width: 512px;
+        max-height: 465px;
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modal-footer {
+        padding-top: 24px;
+        padding-bottom: 24px;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .modal-header,
+    .modal-footer {
+        display: flex;
+        padding-right: 32px;
+        padding-left: 32px;
+    }
+
+    .DelinquencyModal__header {
+        align-items: center;
+        border: none;
+
+        &.modal-header {
+            background: var(--center-channel-bg);
+        }
+
+        h3 {
+            margin: 0;
+            color: rgba(63, 67, 80, 1);
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 28px;
+        }
+
+        .icon-close {
+            @include button-medium;
+
+            padding: 0;
+            border: none;
+            margin-left: auto;
+            background: var(--center-channel-bg);
+            color: rgba(63, 67, 80, 1);
+            font-size: 24px;
+        }
+    }
+
+    .modal-body {
+        display: block;
+        overflow: hidden;
+        max-height: none;
+        padding: 0 32px;
+        margin-bottom: 28px;
+        color: rgba(63, 67, 80, 1);
+    }
+
+    &__body {
+        text-align: center;
+
+        &__freemium {
+            text-align: left;
+        }
+
+        &__title {
+            margin-bottom: 8px;
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 28px;
+        }
+
+        &__information {
+            margin: 0;
+            font-size: 12px;
+        }
+
+        &__limits-information {
+            margin: 0;
+            margin-bottom: 24px;
+            font-size: 12px;
+        }
+
+        &__subheader {
+            display: block;
+            margin-bottom: 16px;
+            color: rgba(63, 67, 80, 0.56);
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+    }
+
+    &__footer {
+        &--secondary {
+            @include tertiary-button;
+            @include button-large;
+        }
+
+        &--primary {
+            @include primary-button;
+            @include button-large;
+
+            margin-left: auto;
+        }
+    }
+}

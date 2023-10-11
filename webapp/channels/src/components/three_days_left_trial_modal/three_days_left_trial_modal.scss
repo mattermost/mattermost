@@ -1,0 +1,116 @@
+@import 'utils/variables';
+@import 'utils/mixins';
+
+//  since the modal is kind of tall, this makes it look more aligned to the top and the content better distributed
+.GenericModal.modal-dialog {
+    margin-top: calc(40vh - 240px) !important;
+}
+
+.ThreeDaysLeftTrialModal {
+    .modal-content,
+    .modal-header {
+        border-radius: 8px;
+    }
+
+    .modal-body {
+        display: flex;
+        overflow: hidden;
+        width: 100%;
+        flex-direction: column;
+        padding-bottom: 24px !important;
+
+        .header-subtitle-text {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 16px;
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            margin-right: 24px;
+
+            .three-days-left-card {
+                display: flex;
+                width: 100%;
+                height: 136px;
+                align-items: flex-start;
+                padding: 28px 0 16px;
+                gap: 10px;
+
+                .svg-wrapper {
+                    width: 130px;
+                    height: 91px;
+                }
+
+                .content-wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    margin-left: 15px;
+                    font-family: 'Open Sans';
+                    font-style: normal;
+
+                    .title {
+                        color: var(--center-channel-color);
+                        font-size: 14px;
+                        font-weight: 600;
+                        line-height: 20px;
+                    }
+
+                    .description {
+                        margin-top: 8px;
+                        font-size: 14px;
+                        font-weight: 400;
+                        line-height: 20px;
+                    }
+
+                    .LearnMoreActionButton {
+                        margin-left: 5px;
+                    }
+                }
+            }
+
+            .workspace-limits-panel {
+                margin: 24px 0;
+
+                .limits-title {
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 0.02em;
+                    line-height: 16px;
+                    text-transform: uppercase;
+                }
+            }
+        }
+
+        .divisory-line {
+            width: 598px;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.1);
+            margin-left: -32px;
+        }
+
+        .footer-content {
+            display: flex;
+            min-height: 60px;
+
+            .open-view-plans-modal-btn {
+                align-self: self-end;
+                margin-top: 24px;
+                margin-left: auto;
+
+                @include primary-button;
+                @include button-medium;
+
+                &:focus-visible {
+                    outline: none !important;
+                }
+
+                &:focus {
+                    border: 0;
+                }
+            }
+        }
+    }
+}

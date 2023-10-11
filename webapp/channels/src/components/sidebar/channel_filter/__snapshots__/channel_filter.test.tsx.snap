@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/channel_filter should match snapshot 1`] = `
+<div
+  className="SidebarFilters"
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={500}
+    overlay={
+      <Tooltip
+        className="hidden-xs"
+        id="new-group-tooltip"
+      >
+        Filter by unread
+        <Memo(KeyboardShortcutSequence)
+          hideDescription={true}
+          isInsideTooltip={true}
+          shortcut={
+            Object {
+              "default": Object {
+                "defaultMessage": "Toggle unread/all channels:	Ctrl|Shift|U",
+                "id": "shortcuts.nav.toggle_unreads",
+              },
+              "mac": Object {
+                "defaultMessage": "Toggle unread/all channels:	⌘|Shift|U",
+                "id": "shortcuts.nav.toggle_unreads.mac",
+              },
+            }
+          }
+        />
+      </Tooltip>
+    }
+    placement="right"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <a
+      aria-label="unreads filter"
+      className="SidebarFilters_filterButton"
+      href="#"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-filter-variant"
+      />
+    </a>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/sidebar/channel_filter should match snapshot if the unread filter is enabled 1`] = `
+<div
+  className="SidebarFilters"
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={500}
+    overlay={
+      <Tooltip
+        className="hidden-xs"
+        id="new-group-tooltip"
+      >
+        Show all channels
+        <Memo(KeyboardShortcutSequence)
+          hideDescription={true}
+          isInsideTooltip={true}
+          shortcut={
+            Object {
+              "default": Object {
+                "defaultMessage": "Toggle unread/all channels:	Ctrl|Shift|U",
+                "id": "shortcuts.nav.toggle_unreads",
+              },
+              "mac": Object {
+                "defaultMessage": "Toggle unread/all channels:	⌘|Shift|U",
+                "id": "shortcuts.nav.toggle_unreads.mac",
+              },
+            }
+          }
+        />
+      </Tooltip>
+    }
+    placement="right"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <a
+      aria-label="unreads filter"
+      className="SidebarFilters_filterButton active"
+      href="#"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-filter-variant"
+      />
+    </a>
+  </OverlayTrigger>
+</div>
+`;

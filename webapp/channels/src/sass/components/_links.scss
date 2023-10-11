@@ -1,0 +1,38 @@
+@charset 'UTF-8';
+
+a {
+    color: $primary-color;
+    cursor: pointer;
+    text-decoration: none;
+    word-break: break-word;
+
+    &:hover,
+    &:focus {
+        color: $primary-color--hover;
+        outline: 0;
+    }
+}
+
+button.style--link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--link-color);
+    cursor: pointer;
+    line-height: normal;
+    word-break: break-word;
+
+    &:hover,
+    &:focus {
+        text-decoration: underline;
+    }
+}
+
+.text-danger {
+    color: desaturate($red, 20%);
+
+    &:hover,
+    &:focus {
+        color: desaturate($red, 20%);
+    }
+}

@@ -1,0 +1,27 @@
+.user-groups-modal-update {
+    .modal-body {
+        .update-buttons-wrapper {
+            display: flex;
+            align-items: center;
+            padding: 0 24px 24px;
+            float: right;
+
+            .Input___error {
+                margin-top: 0;
+                margin-right: 12px;
+            }
+
+            button {
+                height: 40px;
+                padding: 0 20px;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            button[disabled] {
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+        }
+    }
+}

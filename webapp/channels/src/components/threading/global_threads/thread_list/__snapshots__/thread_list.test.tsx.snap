@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/threading/global_threads/thread_list should match snapshot 1`] = `
+<div
+  className="ThreadList"
+  id="threads-list-container"
+  tabIndex={0}
+>
+  <Header
+    heading={
+      <React.Fragment>
+        <div
+          className="tab-button-wrapper"
+        >
+          <Memo(Button)
+            className="Button___large Margined"
+            isActive={true}
+            onClick={[Function]}
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="All your threads"
+              id="threading.filters.allThreads"
+            />
+          </Memo(Button)>
+        </div>
+        <div
+          className="tab-button-wrapper"
+          id="threads-list-unread-button"
+        >
+          <Memo(Button)
+            className="Button___large Margined"
+            hasDot={true}
+            isActive={false}
+            onClick={[Function]}
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Unreads"
+              id="threading.filters.unreads"
+            />
+          </Memo(Button)>
+        </div>
+      </React.Fragment>
+    }
+    id="tutorial-threads-mobile-header"
+    right={
+      <div
+        className="right-anchor"
+      >
+        <SimpleTooltip
+          content="Mark all as read"
+          id="threadListMarkRead"
+        >
+          <Memo(Button)
+            className="Button___large Button___icon"
+            id="threads-list__mark-all-as-read"
+            marginTop={true}
+            onClick={[Function]}
+          >
+            <span
+              className="icon"
+            >
+              <PlaylistCheckIcon
+                size={18}
+              />
+            </span>
+          </Memo(Button)>
+        </SimpleTooltip>
+      </div>
+    }
+  />
+  <div
+    className="threads"
+    data-testid="threads_list"
+  >
+    <Memo(VirtualizedThreadList)
+      addNoMoreResultsItem={false}
+      ids={
+        Array [
+          "1",
+          "2",
+          "3",
+        ]
+      }
+      isLoading={false}
+      key="threads_list_"
+      loadMoreItems={[Function]}
+      total={0}
+    />
+  </div>
+</div>
+`;

@@ -1,0 +1,89 @@
+@import 'utils/variables';
+@import 'utils/mixins';
+
+.TrialBenefitsModalStep {
+    &.slide-container {
+        padding: 0 24px;
+
+        .svg-wrapper {
+            display: flex;
+            min-height: 200px;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .title {
+            width: 100%;
+            margin: 0 auto;
+            margin-top: 10px 0;
+            color: var(--center-channel-color);
+            font-family: Metropolis, sans-serif;
+            font-size: 22px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 28px;
+            text-align: left;
+        }
+
+        .description {
+            width: 100%;
+            margin: 0 auto;
+            margin-top: 8px;
+            font-family: 'Open Sans';
+            font-size: 14px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 16px;
+            text-align: left;
+        }
+
+        .bottom-text-left-message {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 12px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 16px;
+        }
+
+        &.trial-just-started {
+            .title {
+                text-align: center;
+            }
+
+            .description {
+                font-size: 12px;
+            }
+
+            .svg-wrapper {
+                min-height: 180px;
+                margin-top: 0;
+            }
+
+            .buttons-section-wrapper {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 10px;
+
+                .tertiary-button {
+                    @include tertiary-button;
+                    @include button-medium;
+
+                    height: 32px;
+                    font-size: 12px;
+                }
+
+                .primary-button {
+                    @include primary-button;
+                    @include button-small;
+
+                    margin-left: 8px;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,124 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/audit_table/AuditTable should match snapshot with audits 1`] = `
+<table
+  className="table"
+>
+  <thead>
+    <tr>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="Timestamp"
+          id="audit_table.timestamp"
+        />
+      </th>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="User ID"
+          id="audit_table.userId"
+        />
+      </th>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="Action"
+          id="audit_table.action"
+        />
+      </th>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="IP Address"
+          id="audit_table.ip"
+        />
+      </th>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="Session ID"
+          id="audit_table.session"
+        />
+      </th>
+    </tr>
+  </thead>
+  <tbody
+    data-testid="auditTableBody"
+  >
+    <FormatAudit
+      audit={
+        Object {
+          "action": "/api/v4/channels",
+          "create_at": 50778112674,
+          "extra_info": "name=yeye",
+          "id": "id_2",
+          "ip_address": "::1",
+          "session_id": "hb8febm9ytdiz8zqaxj18efqhy",
+          "user_id": "user_id_1",
+        }
+      }
+      key="id_2"
+      showIp={true}
+      showSession={true}
+      showUserId={true}
+    />
+    <FormatAudit
+      audit={
+        Object {
+          "action": "/api/v4/users/login",
+          "create_at": 51053522355,
+          "extra_info": "success",
+          "id": "id_1",
+          "ip_address": "::1",
+          "session_id": "",
+          "user_id": "user_id_1",
+        }
+      }
+      key="id_1"
+      showIp={true}
+      showSession={true}
+      showUserId={true}
+    />
+  </tbody>
+</table>
+`;
+
+exports[`components/audit_table/AuditTable should match snapshot with no audits 1`] = `
+<table
+  className="table"
+>
+  <thead>
+    <tr>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="Timestamp"
+          id="audit_table.timestamp"
+        />
+      </th>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="User ID"
+          id="audit_table.userId"
+        />
+      </th>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="Action"
+          id="audit_table.action"
+        />
+      </th>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="IP Address"
+          id="audit_table.ip"
+        />
+      </th>
+      <th>
+        <MemoizedFormattedMessage
+          defaultMessage="Session ID"
+          id="audit_table.session"
+        />
+      </th>
+    </tr>
+  </thead>
+  <tbody
+    data-testid="auditTableBody"
+  />
+</table>
+`;

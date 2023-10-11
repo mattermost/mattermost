@@ -1,0 +1,81 @@
+.file-preview-modal {
+    &__info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+
+        &-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 12px;
+        }
+    }
+
+    &__avatar {
+        &.Avatar {
+            width: 40px;
+            min-width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+    }
+
+    &__file-name {
+        overflow: hidden;
+        max-width: 30vw;
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 600;
+        line-height: 24px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__file-details {
+        overflow: hidden;
+        max-width: 30vw;
+        color: rgba(255, 255, 255, 0.56);
+        font-size: 1.4rem;
+        font-weight: 400;
+        text-overflow: ellipsis;
+        text-transform: capitalize;
+        white-space: nowrap;
+
+        &-user-name {
+            color: white;
+        }
+    }
+
+    &__user-name {
+        margin: unset;
+        font-size: 1.6rem;
+        font-weight: 600;
+        line-height: 20px;
+        text-transform: capitalize;
+    }
+
+    &__channel {
+        margin-left: 8px;
+    }
+
+    @media screen and (max-width: 768px) {
+        &__avatar {
+            &.Avatar {
+                width: 32px;
+                min-width: 32px;
+                height: 32px;
+                border-radius: 50%;
+            }
+        }
+
+        &__channel {
+            overflow: hidden;
+            max-width: calc(100vw - 150px);
+            margin-left: unset;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+}

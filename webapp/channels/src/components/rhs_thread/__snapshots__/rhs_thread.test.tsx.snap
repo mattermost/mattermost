@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/RhsThread should match snapshot 1`] = `
+<div
+  className="sidebar-right__body"
+  id="rhsContainer"
+>
+  <Connect(RhsHeaderPost)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "",
+        "delete_at": 0,
+        "display_name": "",
+        "group_constrained": false,
+        "header": "",
+        "id": "channel_id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "",
+        "purpose": "",
+        "scheme_id": "",
+        "status": "",
+        "team_id": "team_id",
+        "teammate_id": "",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    rootPostId="id"
+  />
+  <Connect(ThreadViewer)
+    isThreadView={false}
+    rootPostId="id"
+    useRelativeTimestamp={false}
+  />
+</div>
+`;

@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/widgets/links/UpgradeLink should match the snapshot on show 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <UpgradeLink />
+</ContextProvider>
+`;
+
+exports[`components/widgets/links/UpgradeLink should trigger telemetry call when button clicked 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <UpgradeLink
+    telemetryInfo="testing"
+  >
+    <button
+      className="upgradeLink"
+      onClick={[Function]}
+    >
+      <FormattedMessage
+        defaultMessage="Upgrade now"
+        id="upgradeLink.warn.upgrade_now"
+      >
+        <span>
+          Upgrade now
+        </span>
+      </FormattedMessage>
+    </button>
+  </UpgradeLink>
+</Provider>
+`;

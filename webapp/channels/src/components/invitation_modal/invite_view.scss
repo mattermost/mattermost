@@ -1,0 +1,60 @@
+@import 'sass/utils/_mixins';
+
+.InviteView {
+    &__sectionTitle {
+        padding-top: 16px;
+        padding-bottom: 8px;
+        font-weight: 600;
+
+        &--first {
+            padding-top: 0;
+        }
+    }
+
+    &__footer {
+        display: flex;
+        justify-content: space-between;
+
+        // to override clearfix rule in clearfix.less
+        &::before,
+        &::after {
+            display: none;
+        }
+
+        &-guest {
+            justify-content: flex-end;
+        }
+
+        .btn {
+            font-weight: 600;
+        }
+    }
+
+    &__sectionTitleParenthetical {
+        color: rgba(var(--center-channel-color-rgb), 0.6);
+        font-weight: normal;
+    }
+}
+
+// UX decision to show no more than about 5 1/4 lines of users/emails at a time.
+$less-than-6-user-lines-height: 227px;
+
+.modal-body {
+    .UsersEmailsInput {
+        &.no-selections {
+            // placeholder and input position is difficult to change.
+            // This overrides the default positioning of the input & placeholders
+            // to make the taller than normal input look ok when nothing has yet been selected
+            .users-emails-input__value-container {
+                margin-top: 6px;
+            }
+        }
+
+        .users-emails-input__control {
+            overflow: auto;
+            min-height: 84px;
+            max-height: $less-than-6-user-lines-height;
+            align-items: flex-start;
+        }
+    }
+}

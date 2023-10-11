@@ -1,0 +1,76 @@
+@import '../../sass/utils/module';
+
+.post-reminder-modal {
+    width: 600px;
+
+    .modal &.GenericModal .modal {
+        &-body {
+            overflow: visible;
+        }
+
+        &-content {
+            width: 100%;
+            padding: 28px 8px 24px 24px;
+        }
+
+        &-footer {
+            padding: 0;
+            padding-right: 16px;
+            margin-top: 22px;
+        }
+    }
+
+    .dateTime__calendar-input {
+        width: 260px;
+        border: 2px solid var(--button-bg);
+        font-size: 14px;
+
+        &:hover {
+            border: 2px solid var(--button-bg);
+            cursor: pointer;
+        }
+
+        &:focus-within {
+            box-shadow: 0;
+        }
+
+        .Input_wrapper {
+            padding: 0 10px;
+        }
+
+        button.dateTime__calendar-icon {
+            margin: 0 8px 0 0;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        input#customStatus__calendar-input {
+            &.form-control {
+                height: auto;
+                padding: 0;
+                border: 0;
+                font-weight: 400;
+
+                &[readonly] {
+                    background: transparent;
+                }
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    .dateTime {
+        width: 100%;
+        margin: unset;
+
+        .dateTime__date {
+            margin-right: 16px;
+        }
+
+        .dateTime__input {
+            width: 260px;
+        }
+    }
+}

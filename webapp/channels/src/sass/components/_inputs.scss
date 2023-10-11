@@ -1,0 +1,103 @@
+@charset 'UTF-8';
+
+.help-text {
+    display: block;
+    margin: 10px 0 0;
+    color: $dark-gray;
+
+    ul,
+    ol {
+        padding-left: 23px;
+    }
+
+    a {
+        opacity: 0.5;
+    }
+
+    .help-link {
+        margin-right: 5px;
+    }
+
+    .btn {
+        font-size: 13px;
+    }
+
+    &.remove-filename {
+        position: relative;
+        top: -2px;
+        margin-bottom: 5px;
+    }
+}
+
+.form-control {
+    border-radius: $border-rad;
+    text-align: left;
+
+    &:focus {
+        box-shadow: none;
+    }
+
+    &.no-padding {
+        padding: 0;
+        line-height: 32px;
+    }
+
+    &.no-resize {
+        resize: none;
+    }
+
+    &[disabled],
+    [readonly] {
+        @include alpha-property(background, $white, 0.1);
+
+        color: inherit;
+        cursor: auto;
+    }
+}
+
+fieldset {
+    &[disabled] {
+        .form-control {
+            @include alpha-property(background, $white, 0.1);
+
+            color: inherit;
+            cursor: auto;
+        }
+    }
+}
+
+.admin-textarea {
+    resize: none;
+}
+
+input {
+    &[type='radio'],
+    &[type='checkbox'] {
+        margin-top: 3px;
+        font-size: 14px;
+    }
+}
+
+input::-webkit-file-upload-button {
+    display: none;
+}
+
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: inherit;
+    opacity: 0.5;
+}
+
+::-moz-placeholder { /* Firefox 19+ */
+    color: inherit;
+    opacity: 0.5;
+}
+
+:-ms-input-placeholder { /* IE 10+ */
+    color: inherit;
+    opacity: 0.5;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+    color: inherit;
+    opacity: 0.5;
+}

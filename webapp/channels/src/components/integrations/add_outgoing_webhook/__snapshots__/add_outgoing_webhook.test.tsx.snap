@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/AddOutgoingWebhook should match snapshot 1`] = `
+<AbstractOutgoingWebhook
+  action={[Function]}
+  enablePostIconOverride={false}
+  enablePostUsernameOverride={false}
+  footer={
+    Object {
+      "defaultMessage": "Save",
+      "id": "add_outgoing_webhook.save",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Add",
+      "id": "integrations.add",
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Saving...",
+      "id": "add_outgoing_webhook.saving",
+    }
+  }
+  renderExtra=""
+  serverError=""
+  team={
+    Object {
+      "allow_open_invite": false,
+      "allowed_domains": "",
+      "company_name": "",
+      "create_at": 0,
+      "delete_at": 0,
+      "description": "",
+      "display_name": "name",
+      "email": "",
+      "group_constrained": false,
+      "id": "testteamid",
+      "invite_id": "",
+      "name": "test",
+      "scheme_id": "id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+/>
+`;
