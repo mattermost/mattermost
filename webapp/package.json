@@ -18,7 +18,6 @@
     "clean": "npm run clean --workspaces --if-present"
   },
   "dependencies": {
-    "cidr-regex": "4.0.3",
     "react-intl": "6.3.2"
   },
   "devDependencies": {
