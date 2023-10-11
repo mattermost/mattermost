@@ -102,7 +102,7 @@ func (a *App) SwitchEmailToLdap(c *request.Context, email, password, code, ldapL
 		return "", err
 	}
 
-	if err := a.RevokeAllSessions(user.Id); err != nil {
+	if err := a.RevokeAllSessions(c, user.Id); err != nil {
 		return "", err
 	}
 
@@ -155,7 +155,7 @@ func (a *App) SwitchLdapToEmail(c *request.Context, ldapPassword, code, email, n
 		return "", err
 	}
 
-	if err := a.RevokeAllSessions(user.Id); err != nil {
+	if err := a.RevokeAllSessions(c, user.Id); err != nil {
 		return "", err
 	}
 
