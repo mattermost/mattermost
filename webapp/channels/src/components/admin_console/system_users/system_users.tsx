@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent} from 'react';
-import {FormattedMessage, type IntlShape} from 'react-intl';
+import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
@@ -22,7 +22,6 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import SystemUsersList from './list';
@@ -32,9 +31,6 @@ const USERS_PER_PAGE = 50;
 
 type Props = {
 
-    /**
-     * react-intl helper object
-     */
     intl: IntlShape;
 
     /**
@@ -118,7 +114,7 @@ type State = {
     term?: string;
 };
 
-export default class SystemUsers extends React.PureComponent<Props, State> {
+class SystemUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -325,7 +321,7 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
                     <input
                         id='searchUsers'
                         className='form-control filter-textbox'
-                        placeholder={this.props.intl.formatMessage({id: t('filtered_user_list.search'), defaultMessage: 'Search users'})}
+                        placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
                         onInput={doSearch}
                     />
                 </div>
@@ -428,3 +424,5 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SystemUsers);
