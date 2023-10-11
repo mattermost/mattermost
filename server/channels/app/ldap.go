@@ -19,7 +19,6 @@ import (
 // be re-added; otherwise, they will not be re-added.
 func (a *App) SyncLdap(c *request.Context, includeRemovedMembers bool) {
 	a.Srv().Go(func() {
-
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
 			if !*a.Config().LdapSettings.EnableSync {
 				c.Logger().Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
