@@ -358,7 +358,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
 
             i {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 16px;
                 line-height: 16px;
             }
@@ -436,13 +436,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
 
             i {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 16px;
                 line-height: 16px;
             }
 
             svg {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
             }
         }
 
@@ -531,7 +531,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             .selected {
                 width: 60%;
                 margin-top: 1px;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 text-align: right;
                 text-transform: none;
@@ -766,7 +766,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             color: rgba(var(--center-channel-color-rgb), 0.9);
 
             i {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
             }
         }
     }

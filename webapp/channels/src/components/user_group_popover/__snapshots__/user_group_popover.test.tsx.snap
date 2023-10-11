@@ -222,7 +222,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                         </Heading>
                         <Subtitle>
                           <div
-                            className="Subtitle-ocLvS yXVnq"
+                            className="Subtitle-ocLvS dzpPJy"
                           >
                             <span
                               className="overflow--ellipsis text-nowrap"
@@ -295,7 +295,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                     </Header>
                     <SearchBar>
                       <div
-                        className="SearchBar-cqKmJF easqtW"
+                        className="SearchBar-cqKmJF kmMKLO"
                       >
                         <MagnifyIcon>
                           <svg

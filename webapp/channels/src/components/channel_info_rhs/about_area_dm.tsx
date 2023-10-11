@@ -73,7 +73,7 @@ const ChannelId = styled.div`
     font-size: 11px;
     line-height: 16px;
     letter-spacing: 0.02em;
-    color: rgba(var(--center-channel-color-rgb), .64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 interface Props {

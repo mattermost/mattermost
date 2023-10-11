@@ -17,16 +17,16 @@ const ChannelInfoRhsTopButtons = styled.div`
 `;
 
 const Button = styled.button`
-    border-radius: 4px;
-    border: 0;
-    padding: 12px 0 10px 0;
-    background: rgba(var(--center-channel-color-rgb), 0.04);
     flex: 1;
+    padding: 12px 0 10px 0;
+    border: 0;
     margin: 0 6px;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    border-radius: 4px;
 
     &:hover {
-       background: rgba(var(--center-channel-color-rgb), 0.08);
-       color: rgba(var(--center-channel-color-rgb), 0.88);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.88);
 
         & i {
             color: rgba(var(--center-channel-color-rgb), 0.8);
@@ -37,16 +37,21 @@ const Button = styled.button`
     &.active {
         background: rgba(var(--button-bg-rgb), 0.08);
         color: var(--button-bg);
+
+        & i {
+            color: var(--button-bg-rgb);
+        }
     }
 
     & i {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 24px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
     }
+
     & span {
-        line-height: 16px;
         font-size: 10px;
         font-weight: 600;
+        line-height: 16px;
     }
 `;
 
