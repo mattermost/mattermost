@@ -466,7 +466,6 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 	})
-
 }
 
 func TestAdjustTeamsFromProductLimits(t *testing.T) {
@@ -522,7 +521,6 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	})
 
 	t.Run("Should not do anything if the amount of teams is equal to the limit", func(t *testing.T) {
-
 		expectedTeamsList, err := th.App.GetAllTeams()
 
 		var expectedActiveTeams []*model.Team
@@ -590,7 +588,6 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	})
 
 	t.Run("Should only restore teams that were archived by cloud limits", func(t *testing.T) {
-
 		activeLimit := 1
 		teamLimits := &model.TeamsLimits{Active: &activeLimit}
 
@@ -622,7 +619,6 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Equal(t, int64(0), teamsList[1].DeleteAt)
 		require.Equal(t, int64(0), teamsList[2].DeleteAt)
 	})
-
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
@@ -1205,7 +1201,6 @@ func TestGetTeamMembers(t *testing.T) {
 	})
 
 	t.Run("Ensure Sorted By User ID when no TeamMemberGetOptions is passed", func(t *testing.T) {
-
 		// Sort them by UserID because the result of GetTeamMembers() is also sorted
 		sort.Slice(users, func(i, j int) bool {
 			return users[i].Id < users[j].Id

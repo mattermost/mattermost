@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import {Preferences} from 'mattermost-redux/constants';
+
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import Pluggable from './pluggable';
@@ -18,8 +20,28 @@ jest.mock('actions/views/profile_popover');
 describe('plugins/Pluggable', () => {
     const baseProps = {
         pluggableName: '',
-        components: {},
-        theme: {},
+        components: {
+            Product: [],
+            CallButton: [],
+            PostDropdownMenu: [],
+            PostAction: [],
+            PostEditorAction: [],
+            CodeBlockAction: [],
+            NewMessagesSeparatorAction: [],
+            FilePreview: [],
+            MainMenu: [],
+            LinkTooltip: [],
+            RightHandSidebarComponent: [],
+            ChannelHeaderButton: [],
+            MobileChannelHeaderButton: [],
+            AppBar: [],
+            UserGuideDropdownItem: [],
+            FilesWillUploadHook: [],
+            NeedsTeamComponent: [],
+            CreateBoardFromTemplate: [],
+            DesktopNotificationHooks: [],
+        },
+        theme: Preferences.THEMES.denim,
     };
 
     test('should match snapshot with no extended component', () => {
@@ -37,7 +59,7 @@ describe('plugins/Pluggable', () => {
             <Pluggable
                 {...baseProps}
                 pluggableName='PopoverSection1'
-                components={{PopoverSection1: [{component: ProfilePopoverPlugin}]}}
+                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
             />,
         );
 
@@ -51,7 +73,7 @@ describe('plugins/Pluggable', () => {
             <Pluggable
                 {...baseProps}
                 pluggableName='PopoverSection1'
-                components={{PopoverSection1: [{component: ProfilePopoverPlugin}]}}
+                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
             />,
         );
 
@@ -64,7 +86,7 @@ describe('plugins/Pluggable', () => {
         const wrapper = mountWithIntl(
             <Pluggable
                 {...baseProps}
-                components={{PopoverSection1: [{component: ProfilePopoverPlugin}]}}
+                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
             />,
         );
 
@@ -85,9 +107,10 @@ describe('plugins/Pluggable', () => {
     test('should match snapshot with non-null pluggableId', () => {
         const wrapper = mountWithIntl(
             <Pluggable
+                {...baseProps}
                 pluggableName='PopoverSection1'
                 pluggableId={'pluggableId'}
-                components={{PopoverSection1: [{component: ProfilePopoverPlugin}]}}
+                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
             />,
         );
 
@@ -100,7 +123,7 @@ describe('plugins/Pluggable', () => {
             <Pluggable
                 {...baseProps}
                 pluggableName='PopoverSection1'
-                components={{PopoverSection1: [{component: ProfilePopoverPlugin}]}}
+                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
             />,
         );
 
@@ -114,7 +137,7 @@ describe('plugins/Pluggable', () => {
                 {...baseProps}
                 pluggableName='PopoverSection1'
                 pluggableId={'pluggableId'}
-                components={{PopoverSection1: [{id: 'pluggableId', component: ProfilePopoverPlugin}]}}
+                components={{...baseProps.components, PopoverSection1: [{id: 'pluggableId', pluginId: '', component: ProfilePopoverPlugin}]}}
             />,
         );
 

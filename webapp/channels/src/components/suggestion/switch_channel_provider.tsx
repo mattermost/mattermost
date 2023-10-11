@@ -49,7 +49,7 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {getPostDraft} from 'selectors/rhs';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';

@@ -215,7 +215,6 @@ func TestImportImportScheme(t *testing.T) {
 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, "team", scheme.Scope)
-
 }
 
 func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {

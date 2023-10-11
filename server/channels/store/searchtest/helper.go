@@ -326,7 +326,6 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 	}
 
 	return channel, nil
-
 }
 
 func (th *SearchTestHelper) deleteChannel(channel *model.Channel) error {

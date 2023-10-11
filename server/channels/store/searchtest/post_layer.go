@@ -1767,7 +1767,6 @@ func testSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper) {
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p2.Id, results.Posts)
 	})
-
 }
 
 func testHashtagSearchShouldSupportThreeOrMoreCharacters(t *testing.T, th *SearchTestHelper) {
