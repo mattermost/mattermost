@@ -287,11 +287,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         }
     };
 
-    hideScrollToBottomToast = () => {
-        if (this.props.onScrollToBottomToastDismiss) {
-            this.props.onScrollToBottomToastDismiss();
-        }
-    };
+    hideScrollToBottomToast = () => this.props.onScrollToBottomToastDismiss?.();
 
     newMessagesToastText = (count: number | undefined, since: number) => {
         if (this.props.width > TOAST_TEXT_COLLAPSE_WIDTH && typeof since !== 'undefined') {
