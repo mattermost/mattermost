@@ -7,7 +7,7 @@ import './notification-separator.scss';
 
 type Props = React.PropsWithChildren<any>;
 
-const NotificationSeparator = ({ children }: Props) => {
+const NotificationSeparator = ({children}: Props) => {
     return (
         <div
             className='Separator NotificationSeparator'
@@ -21,7 +21,7 @@ const NotificationSeparator = ({ children }: Props) => {
             )}
         </div>
     );
-}
+};
 
 export default React.memo(NotificationSeparator);
 
