@@ -17,7 +17,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
-import {loadIncomingHooksAndProfilesForTeam} from 'actions/integration_actions.jsx';
+import {loadIncomingHooksAndProfilesForTeam} from 'actions/integration_actions';
 
 import InstalledIncomingWebhooks from './installed_incoming_webhooks';
 

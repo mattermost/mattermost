@@ -677,7 +677,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} уже находится в канале."
+    "translation": {
+      "few": "{{.User}} уже находятся в канале.",
+      "many": "{{.User}} уже находятся в канале.",
+      "one": "{{.User}} уже находится в канале."
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1362,10 +1366,6 @@
       "many": "{{.Count}} изображений отправлено: {{.Filenames}}",
       "one": "{{.Count}} изображение отправлено: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Предпросмотр ссылок был запрещён системным администратором."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -5160,10 +5160,6 @@
     "translation": "В слове триггера команды отсутствует начальный символ косой черты"
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Этот канал управляется группами.  Этот пользователь не является частью группы, которая синхронизируется с этим каналом."
-  },
-  {
     "id": "api.command_remove.group_constrained_user_denied",
     "translation": "Пользователь не может быть удален из канала, поскольку он является участником групп, связанных с этим каналом. Чтобы удалить его из этого канала, он должен быть удален из связанных групп."
   },
@@ -5585,7 +5581,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "{{.Username}} не является участником команды."
+    "translation": "Вы можете добавлять {{.Users}} в этот канал, если они являются членами команды **{{.Team}}**."
   },
   {
     "id": "api.context.local_origin_required.app_error",
@@ -5833,11 +5829,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 110+"
+    "translation": "Версия 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 112+"
+    "translation": "Версия 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -9688,10 +9684,6 @@
     "translation": "Пропуск установки плагина {{.Id}}, поскольку существующая версия плагина идентична текущей или более новая."
   },
   {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "Используйте контрольные списки и автоматизацию, чтобы привлечь ключевых членов команды, и расскажите, как продвигается процесс разрешения инцидента."
-  },
-  {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Недопустимое значение для байтов при загрузке лицензии."
   },
@@ -9874,5 +9866,13 @@
   {
     "id": "model.config.is_valid.local_mode_socket.app_error",
     "translation": "Невозможно найти каталог локального файла сокета."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Невозможно проверить непрочитанные и упоминания"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Невозможно пометить все обсуждения, как прочитанные каналом"
   }
 ]
