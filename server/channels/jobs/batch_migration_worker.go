@@ -105,7 +105,13 @@ func (worker *BatchMigrationWorker) checkIsClusterInSync() bool {
 	clusterStatus := worker.app.GetClusterStatus()
 	for i := 1; i < len(clusterStatus); i++ {
 		if clusterStatus[i].SchemaVersion != clusterStatus[0].SchemaVersion {
-			worker.logger.Warn("Worker: cluster not in sync", mlog.String("schema_version_a", clusterStatus[0].SchemaVersion), mlog.String("schema_version_b", clusterStatus[1].SchemaVersion))
+			worker.logger.Warn(
+				"Worker: cluster not in sync",
+				mlog.String("schema_version_a", clusterStatus[0].SchemaVersion),
+				mlog.String("schema_version_b", clusterStatus[1].SchemaVersion),
+				mlog.String("server_ip_a", clusterStatus[0].IPAddress),
+				mlog.String("server_ip_b", clusterStatus[1].IPAddress),
+			)
 			return false
 		}
 	}
