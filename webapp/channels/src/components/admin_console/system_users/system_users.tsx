@@ -114,7 +114,7 @@ type State = {
     term?: string;
 };
 
-class SystemUsers extends React.PureComponent<Props, State> {
+export class SystemUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -424,8 +424,5 @@ class SystemUsers extends React.PureComponent<Props, State> {
         );
     }
 }
-
-// Exported for tests
-export {SystemUsers as RawSystemUsers};
 
 export default injectIntl(SystemUsers);
