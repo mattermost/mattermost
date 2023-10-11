@@ -1036,7 +1036,6 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -1115,7 +1114,6 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s Sq
 }
 
 func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -2554,7 +2552,6 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -4269,7 +4266,6 @@ func testCount(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	// Create 5 users statuses u0, u1, u2, u3, u4.
@@ -4354,7 +4350,6 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore)
 }
 
 func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	// Create 5 users statuses u0, u1, u2, u3, u4.
@@ -4483,7 +4478,6 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	result, err := ss.User().AnalyticsGetSystemAdminCount()
 	require.NoError(t, err)
 	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
-
 }
 
 func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {

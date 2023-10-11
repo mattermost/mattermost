@@ -52,7 +52,6 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) error {
 	}
 
 	return nil
-
 }
 
 // Get obtains the license with the provided id parameter from the database.

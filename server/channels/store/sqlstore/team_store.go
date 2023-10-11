@@ -248,7 +248,6 @@ func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
 // if the team exists in the database.
 // It returns the updated team if the operation is successful.
 func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
-
 	team.PreUpdate()
 
 	if err := team.IsValid(); err != nil {
@@ -259,7 +258,6 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
 	err := s.GetMasterX().Get(&oldTeam, `SELECT * FROM Teams WHERE Id=?`, team.Id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get Team with id=%s", team.Id)
-
 	}
 
 	if oldTeam.Id == "" {
@@ -365,7 +363,6 @@ func (s SqlTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
 // If there is no match in the database, it returns a model.AppError with a
 // http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) GetByName(name string) (*model.Team, error) {
-
 	team := model.Team{}
 	query, args, err := s.teamsQuery.Where(sq.Eq{"Name": name}).ToSql()
 	if err != nil {
@@ -1337,7 +1334,6 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 			WHERE TeamId=:TeamId AND UserId=:UserId`, &member); err != nil {
 			return nil, errors.Wrap(err, "failed to update TeamMember")
 		}
-
 	}
 
 	if err := transaction.Commit(); err != nil {
@@ -1369,7 +1365,6 @@ func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
 // ClearAllCustomRoleAssignments removes all custom role assignments from TeamMembers.
 func (s SqlTeamStore) ClearAllCustomRoleAssignments() (err error) {
-
 	builtInRoles := model.MakeDefaultRoles()
 	lastUserId := strings.Repeat("0", 26)
 	lastTeamId := strings.Repeat("0", 26)

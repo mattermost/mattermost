@@ -451,7 +451,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, 200, response.Code)
 		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
 	})
-
 }
 
 func TestGenerateDevCSP(t *testing.T) {

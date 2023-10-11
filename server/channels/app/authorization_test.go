@@ -45,7 +45,6 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 	for _, testcase := range cases {
 		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
 	}
-
 }
 
 func TestChannelRolesGrantPermission(t *testing.T) {

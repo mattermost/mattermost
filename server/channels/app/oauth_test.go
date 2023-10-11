@@ -469,7 +469,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(th.Context, nil, nil, model.ServiceOpenid, "", "", "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.get_authorization_code.endpoint.app_error", err.Id)
-
 	})
 
 	t.Run("enabled and properly configured", func(t *testing.T) {

@@ -1376,7 +1376,6 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, user4.Id, ids[0], "should've returned mention key of First")
 	dup_count := func(list []string) map[string]int {
-
 		duplicate_frequency := make(map[string]int)
 
 		for _, item := range list {
@@ -1779,7 +1778,6 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 }
 
 func TestGetMentionsEnabledFields(t *testing.T) {
-
 	attachmentWithTextAndPreText := model.SlackAttachment{
 		Text:    "@here with mentions",
 		Pretext: "@Channel some comment for the channel",
@@ -2244,7 +2242,6 @@ func TestCheckForMentionUsers(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-
 			e := &ExplicitMentions{}
 			e.checkForMention(tc.Word, tc.Keywords, nil)
 
@@ -2550,7 +2547,6 @@ func TestUserAllowsEmail(t *testing.T) {
 
 		assert.False(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotifcationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
-
 }
 
 func TestInsertGroupMentions(t *testing.T) {

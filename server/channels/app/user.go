@@ -807,7 +807,6 @@ func (a *App) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.
 }
 
 func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
-
 	if err := a.UpdateDefaultProfileImage(c, user); err != nil {
 		c.Logger().Error("Failed to update default profile image for user", mlog.String("user_id", user.Id), mlog.Err(err))
 		return err
@@ -1598,7 +1597,6 @@ func (a *App) UpdateUserRoles(c request.CTX, userID string, newRoles string, sen
 }
 
 func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
-
 	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
 	}

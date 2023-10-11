@@ -72,7 +72,6 @@ func (sp *ShareProvider) GetAutoCompleteListItems(c request.CTX, a *app.App, com
 	case strings.Contains(parsed, " uninvite "):
 
 		return sp.getAutoCompleteUnInviteRemote(a, commandArgs, arg)
-
 	}
 	return nil, errors.New("invalid action")
 }

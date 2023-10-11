@@ -161,7 +161,6 @@ func TestCreateUserInputFilter(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("DomainRestriction", func(t *testing.T) {
-
 		enableAPIUserDeletion := th.App.Config().ServiceSettings.EnableAPIUserDeletion
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.EnableOpenServer = true
@@ -354,7 +353,6 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
-
 		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
@@ -375,7 +373,6 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorID(t, err, "api.user.create_user.signup_email_disabled.app_error")
-
 	})
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
@@ -3053,7 +3050,6 @@ func TestGetUsersInGroup(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, len(users), 0)
 	})
-
 }
 
 func TestGetUsersInGroupByDisplayName(t *testing.T) {
@@ -3111,7 +3107,6 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, users[0].Id, user1.Id)
 	})
-
 }
 
 func TestUpdateUserMfa(t *testing.T) {
@@ -3586,7 +3581,6 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	sessions, err = th.Server.Store().Session().GetSessions(th.Context, admin.Id)
 	require.Empty(t, sessions)
 	require.NoError(t, err)
-
 }
 
 func TestAttachDeviceId(t *testing.T) {
@@ -3607,7 +3601,6 @@ func TestAttachDeviceId(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Description, func(t *testing.T) {
-
 				th.App.UpdateConfig(func(cfg *model.Config) {
 					*cfg.ServiceSettings.SiteURL = tc.SiteURL
 				})
@@ -6630,7 +6623,6 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(1), data["previous_unread_mentions"])
 						require.EqualValues(t, float64(0), data["unread_replies"])
 						require.EqualValues(t, float64(0), data["unread_mentions"])
-
 					}
 				case <-time.After(1 * time.Second):
 					return
@@ -6660,7 +6652,6 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(0), data["previous_unread_mentions"])
 						require.EqualValues(t, float64(1), data["unread_replies"])
 						require.EqualValues(t, float64(1), data["unread_mentions"])
-
 					}
 				case <-time.After(1 * time.Second):
 					return
@@ -6852,7 +6843,6 @@ func TestFollowThreads(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, uss.Threads, 1)
 		require.GreaterOrEqual(t, uss.Threads[0].LastViewedAt, uss.Threads[0].LastReplyAt)
-
 	})
 
 	t.Run("No permission to channel", func(t *testing.T) {
@@ -6967,7 +6957,6 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 
 	// should have 2 unread replies now
 	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, &model.GetUserThreadsOpts{Unread: true})
-
 }
 
 func TestThreadCounts(t *testing.T) {
@@ -7167,7 +7156,6 @@ func TestReadThreads(t *testing.T) {
 	})
 	client := th.Client
 	t.Run("all threads", func(t *testing.T) {
-
 		rpost, resp, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)

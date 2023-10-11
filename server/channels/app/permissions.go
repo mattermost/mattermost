@@ -103,14 +103,11 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 }
 
 func (a *App) ExportPermissions(w io.Writer) error {
-
 	next := a.SchemesIterator("", permissionsExportBatchSize)
 	var schemeBatch []*model.Scheme
 
 	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {
-
 		for _, scheme := range schemeBatch {
-
 			roleNames := []string{
 				scheme.DefaultTeamAdminRole,
 				scheme.DefaultTeamUserRole,
@@ -156,7 +153,6 @@ func (a *App) ExportPermissions(w io.Writer) error {
 				return err
 			}
 		}
-
 	}
 
 	defaultRoleNames := []string{}

@@ -76,7 +76,6 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 		Data: map[string]string{},
 	})
 	s.Require().Nil(appErr)
-	job.Logger = nil
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -170,7 +169,6 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 			Data: map[string]string{},
 		})
 		s.Require().Nil(appErr)
-		job2.Logger = nil
 
 		time.Sleep(time.Millisecond)
 
@@ -179,7 +177,6 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 			Data: map[string]string{},
 		})
 		s.Require().Nil(appErr)
-		job3.Logger = nil
 
 		time.Sleep(time.Millisecond)
 

@@ -1635,7 +1635,6 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 }
 
 func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
@@ -2181,7 +2180,6 @@ func (a *App) CheckPostReminders() {
 			}
 		}
 	}
-
 }
 
 func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model.AppError) {

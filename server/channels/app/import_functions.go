@@ -570,7 +570,6 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 		if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
 			c.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
-
 	} else {
 		var appErr *model.AppError
 		if hasUserChanged {

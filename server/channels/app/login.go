@@ -257,7 +257,6 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	if strings.Contains(domain, "localhost") {
 		workspaceName = "localhost"
 	} else {
-
 		// ensure we have a format for a cloud workspace url i.e. example.cloud.mattermost.com
 		if len(strings.Split(domain, ".")) != 4 {
 			return
@@ -278,7 +277,6 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	}
 
 	http.SetCookie(w, cookie)
-
 }
 
 func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request) {

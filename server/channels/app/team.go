@@ -220,7 +220,6 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 
 // RenameTeam is used to rename the team Name and the DisplayName fields
 func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
-
 	// check if name is occupied
 	_, errnf := a.GetTeamByName(newTeamName)
 
@@ -1574,7 +1573,6 @@ func (a *App) InviteGuestsToChannelsGracefully(teamID string, guestsInvite *mode
 						} else {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
 						}
-
 					}
 				}
 			case errors.Is(eErr, email.NoRateLimiterError):
