@@ -406,5 +406,5 @@ func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *
 	if !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0 {
 		return false
 	}
-	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) || (channel.Type == model.ChannelTypeOpen && !*a.Config().MessageExportSettings.EnableExport && a.HasPermissionToTeam(c, userID, channel.TeamId, model.PermissionReadPublicChannel))
+	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) || (channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable && a.HasPermissionToTeam(c, userID, channel.TeamId, model.PermissionReadPublicChannel))
 }
