@@ -39,11 +39,11 @@ type BatchMigrationWorker struct {
 
 	migrationKey       string
 	timeBetweenBatches time.Duration
-	doMigrationBatch   func(model.StringMap, store.Store) (model.StringMap, bool, error)
+	doMigrationBatch   func(data model.StringMap, store store.Store) (model.StringMap, bool, error)
 }
 
 // MakeBatchMigrationWorker creates a worker to process the given migration batch function.
-func MakeBatchMigrationWorker(jobServer *JobServer, store store.Store, app BatchMigrationWorkerAppIFace, migrationKey string, timeBetweenBatches time.Duration, doMigrationBatch func(model.StringMap, store.Store) (model.StringMap, bool, error)) model.Worker {
+func MakeBatchMigrationWorker(jobServer *JobServer, store store.Store, app BatchMigrationWorkerAppIFace, migrationKey string, timeBetweenBatches time.Duration, doMigrationBatch func(data model.StringMap, store store.Store) (model.StringMap, bool, error)) model.Worker {
 	worker := &BatchMigrationWorker{
 		jobServer:          jobServer,
 		logger:             jobServer.Logger().With(mlog.String("worker_name", migrationKey)),
@@ -172,7 +172,7 @@ func (worker *BatchMigrationWorker) DoJob(job *model.Job) {
 			nextData, done, err := worker.doMigrationBatch(job.Data, worker.store)
 			if err != nil {
 				worker.logger.Error("Worker: Failed to do migration batch. Exiting", mlog.Err(err))
-				worker.setJobError(logger, job, model.NewAppError("doMigrationsBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
+				worker.setJobError(logger, job, model.NewAppError("doMigrationBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 				return
 			} else if done {
 				logger.Info("Worker: Job is complete")
