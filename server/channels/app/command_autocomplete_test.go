@@ -198,7 +198,6 @@ func TestParseNamedArguments(t *testing.T) {
 	assert.False(t, found)
 	assert.Equal(t, "bla", parsed)
 	assert.Equal(t, "", toBeParsed)
-
 }
 
 func TestSuggestions(t *testing.T) {

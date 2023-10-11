@@ -287,7 +287,6 @@ func (ch *Channels) Start() error {
 				ch.ShutDownPlugins()
 			}
 		}
-
 	})
 
 	// TODO: This should be moved to the platform service.
