@@ -719,7 +719,7 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	c.App.Srv().Platform().Busy.Clear()
-	mlog.Info("server busy state cleared - non-critical services enabled")
+	c.Logger.Info("server busy state cleared - non-critical services enabled")
 
 	auditRec.Success()
 	ReturnStatusOK(w)
