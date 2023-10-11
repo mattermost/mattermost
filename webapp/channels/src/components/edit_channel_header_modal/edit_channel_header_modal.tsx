@@ -10,10 +10,9 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import Textbox from 'components/textbox';
+import Textbox, {TextboxLinks} from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
-import TextboxLinks from 'components/textbox';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
