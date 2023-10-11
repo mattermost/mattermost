@@ -29,9 +29,9 @@ export default function StateSelector(props: Props) {
     };
 
     let stateList = [] as StateCode[];
-    if (props.country === getName('US')) {
+    if (props.country === 'US') {
         stateList = US_STATES;
-    } else if (props.country === getName('CA')) {
+    } else if (props.country === 'CA') {
         stateList = CA_PROVINCES;
     }
 
