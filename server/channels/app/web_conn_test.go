@@ -186,5 +186,4 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 
 	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil, "")
 	assert.False(t, basicUserWc.ShouldSendEvent(event3))
-
 }

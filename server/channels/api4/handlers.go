@@ -54,7 +54,6 @@ func (api *API) APISessionRequired(h handlerFunc) http.Handler {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
@@ -74,7 +73,6 @@ func (api *API) CloudAPIKeyRequired(h handlerFunc) http.Handler {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // RemoteClusterTokenRequired provides a handler for remote cluster requests to /remotecluster endpoints.
@@ -115,7 +113,6 @@ func (api *API) APISessionRequiredMfa(h handlerFunc) http.Handler {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // APIHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
@@ -136,7 +133,6 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
@@ -156,7 +152,6 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc) http.Handler {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
@@ -177,7 +172,6 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc) http.Handler {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // APILocal provides a handler for API endpoints to be used in local

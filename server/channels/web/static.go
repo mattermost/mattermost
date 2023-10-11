@@ -60,7 +60,6 @@ func (w *Web) InitStatic() {
 }
 
 func root(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	if !CheckClientCompatibility(r.UserAgent()) {
 		w.Header().Set("Cache-Control", "no-store")
 		data := renderUnsupportedBrowser(c.AppContext, r)

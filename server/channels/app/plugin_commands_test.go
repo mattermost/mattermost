@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
@@ -441,7 +440,6 @@ func TestPluginCommand(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, 500, err.StatusCode)
 	})
-
 }
 
 // Test Product with the minimum code needed to handle
@@ -491,8 +489,7 @@ func TestProductCommands(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		ctx := request.EmptyContext(th.TestLogger)
-		resp, err2 := th.App.ExecuteCommand(ctx, &model.CommandArgs{
+		resp, err2 := th.App.ExecuteCommand(th.Context, &model.CommandArgs{
 			TeamId:    th.BasicTeam.Id,
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
@@ -522,8 +519,7 @@ func TestProductCommands(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		ctx := request.EmptyContext(th.TestLogger)
-		resp, err2 := th.App.ExecuteCommand(ctx, &model.CommandArgs{
+		resp, err2 := th.App.ExecuteCommand(th.Context, &model.CommandArgs{
 			TeamId:    th.BasicTeam.Id,
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
@@ -615,8 +611,7 @@ func TestProductCommands(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		ctx := request.EmptyContext(th.TestLogger)
-		resp, err2 := th.App.ExecuteCommand(ctx, &model.CommandArgs{
+		resp, err2 := th.App.ExecuteCommand(th.Context, &model.CommandArgs{
 			TeamId:    th.BasicTeam.Id,
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
@@ -625,6 +620,5 @@ func TestProductCommands(t *testing.T) {
 		require.Nil(t, err2)
 		require.NotNil(t, resp)
 		assert.Equal(t, "plugin slash command called", resp.Text)
-
 	})
 }

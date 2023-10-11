@@ -127,7 +127,6 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 }
 
 func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) string {
-
 	asMain := pluginID != "test_db_driver"
 	return setupMultiPluginAPITest(t,
 		[]string{pluginCode}, []string{pluginManifest}, []string{pluginID},

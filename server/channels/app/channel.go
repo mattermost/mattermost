@@ -697,6 +697,9 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
+			if invErr.Entity == "Channel" && invErr.Field == "Name" {
+				return nil, model.NewAppError("UpdateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
@@ -3202,7 +3205,6 @@ func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channe
 }
 
 func (a *App) postChannelMoveMessage(c request.CTX, user *model.User, channel *model.Channel, previousTeam *model.Team) *model.AppError {
-
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.move_channel.success"), previousTeam.Name),

@@ -680,7 +680,6 @@ func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
-
 	ch := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -1032,7 +1031,6 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 1, 1, userId)
 	require.NoError(t, nErr, nErr)
 	require.Len(t, list, 1, "wrong list length")
-
 }
 
 func testChannelMemberStore(t *testing.T, ss store.Store) {

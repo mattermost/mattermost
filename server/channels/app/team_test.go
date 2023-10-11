@@ -19,7 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
@@ -467,7 +466,6 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 	})
-
 }
 
 func TestAdjustTeamsFromProductLimits(t *testing.T) {
@@ -523,7 +521,6 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	})
 
 	t.Run("Should not do anything if the amount of teams is equal to the limit", func(t *testing.T) {
-
 		expectedTeamsList, err := th.App.GetAllTeams()
 
 		var expectedActiveTeams []*model.Team
@@ -591,7 +588,6 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	})
 
 	t.Run("Should only restore teams that were archived by cloud limits", func(t *testing.T) {
-
 		activeLimit := 1
 		teamLimits := &model.TeamsLimits{Active: &activeLimit}
 
@@ -623,7 +619,6 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Equal(t, int64(0), teamsList[1].DeleteAt)
 		require.Equal(t, int64(0), teamsList[2].DeleteAt)
 	})
-
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
@@ -1206,7 +1201,6 @@ func TestGetTeamMembers(t *testing.T) {
 	})
 
 	t.Run("Ensure Sorted By User ID when no TeamMemberGetOptions is passed", func(t *testing.T) {
-
 		// Sort them by UserID because the result of GetTeamMembers() is also sorted
 		sort.Slice(users, func(i, j int) bool {
 			return users[i].Id < users[j].Id
@@ -1358,19 +1352,18 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	ctx := request.EmptyContext(th.TestLogger)
 
-	job, err := th.App.Srv().Jobs.CreateJob(ctx, model.JobTypeResendInvitationEmail, map[string]string{})
+	job, err := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeResendInvitationEmail, map[string]string{})
 	require.Nil(t, err)
 
 	sysVar := &model.System{Name: job.Id, Value: "0"}
 	e := th.App.Srv().Store().System().SaveOrUpdate(sysVar)
 	require.NoError(t, e)
 
-	appErr := th.App.InvalidateAllResendInviteEmailJobs(ctx)
+	appErr := th.App.InvalidateAllResendInviteEmailJobs(th.Context)
 	require.Nil(t, appErr)
 
-	j, e := th.App.Srv().Store().Job().Get(ctx, job.Id)
+	j, e := th.App.Srv().Store().Job().Get(th.Context, job.Id)
 	require.NoError(t, e)
 	require.Equal(t, j.Status, model.JobStatusCanceled)
 
@@ -1382,7 +1375,6 @@ func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 func TestInvalidateAllEmailInvites(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	ctx := request.EmptyContext(th.TestLogger)
 
 	t1 := model.Token{
 		Token:    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
@@ -1411,7 +1403,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	err = th.App.Srv().Store().Token().Save(&t3)
 	require.NoError(t, err)
 
-	appErr := th.App.InvalidateAllEmailInvites(ctx)
+	appErr := th.App.InvalidateAllEmailInvites(th.Context)
 	require.Nil(t, appErr)
 
 	_, err = th.App.Srv().Store().Token().GetByToken(t1.Token)
