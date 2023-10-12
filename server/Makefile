@@ -95,6 +95,11 @@ else
 	BUILD_TYPE_NAME = team
 endif
 
+# Clean up the old means of importing enterprise source, if it exists
+ifneq ($(wildcard channels/imports/imports.go),)
+	IGNORE := $(shell rm -f channels/imports/imports.go)
+endif
+
 # Source available, already included with enterprise but also available during development.
 ifeq ($(BUILD_NUMBER),dev)
 	BUILD_TAGS += sourceavailable
