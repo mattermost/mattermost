@@ -189,7 +189,6 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         }
 
         const app = {
-            id: this.props.initialApp?.id || '',
             name: this.state.name,
             callback_urls: callbackUrls,
             homepage: this.state.homepage,
