@@ -26,7 +26,6 @@ func TestRemoteClusterStore(t *testing.T, ss store.Store) {
 }
 
 func testRemoteClusterSave(t *testing.T, ss store.Store) {
-
 	t.Run("Save", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "some_remote",

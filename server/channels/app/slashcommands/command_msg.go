@@ -40,7 +40,7 @@ func (*msgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command 
 	}
 }
 
-func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	splitMessage := strings.SplitN(message, " ", 2)
 
 	parsedMessage := ""
@@ -62,7 +62,7 @@ func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	canSee, err := a.UserCanSeeOtherUser(args.UserId, userProfile.Id)
+	canSee, err := a.UserCanSeeOtherUser(c, args.UserId, userProfile.Id)
 	if err != nil {
 		mlog.Error(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
