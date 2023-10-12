@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	graphql "github.com/graph-gophers/graphql-go"
 	_ "github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -144,7 +143,6 @@ type Routes struct {
 
 type API struct {
 	srv        *app.Server
-	schema     *graphql.Schema
 	BaseRoutes *Routes
 }
 
@@ -311,9 +309,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitHostedCustomer()
 	api.InitDrafts()
 	api.InitIPFiltering()
-	if err := api.InitGraphQL(); err != nil {
-		return nil, err
-	}
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

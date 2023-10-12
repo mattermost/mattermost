@@ -5718,28 +5718,6 @@ func (a *OpenTracingAppLayer) GetChannelsForTeamForUser(c request.CTX, teamID st
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelsForTeamForUserWithCursor(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForTeamForUserWithCursor")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelsForTeamForUserWithCursor(c, teamID, userID, opts, afterChannelID)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) GetChannelsForUser(c request.CTX, userID string, includeDeleted bool, lastDeleteAt int, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForUser")
@@ -11267,7 +11245,7 @@ func (a *OpenTracingAppLayer) GetWarnMetricsBot() (*model.Bot, *model.AppError) 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
+func (a *OpenTracingAppLayer) GetWarnMetricsStatus(rctx request.CTX) (map[string]*model.WarnMetricStatus, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWarnMetricsStatus")
 
@@ -11279,7 +11257,7 @@ func (a *OpenTracingAppLayer) GetWarnMetricsStatus() (map[string]*model.WarnMetr
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetWarnMetricsStatus()
+	resultVar0, resultVar1 := a.app.GetWarnMetricsStatus(rctx)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12736,7 +12714,7 @@ func (a *OpenTracingAppLayer) NewPluginAPI(c *request.Context, manifest *model.M
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
+func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(rctx request.CTX, warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyAndSetWarnMetricAck")
 
@@ -12748,7 +12726,7 @@ func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sen
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.NotifyAndSetWarnMetricAck(warnMetricId, sender, forceAck, isBot)
+	resultVar0 := a.app.NotifyAndSetWarnMetricAck(rctx, warnMetricId, sender, forceAck, isBot)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
