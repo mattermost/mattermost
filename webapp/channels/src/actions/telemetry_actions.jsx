@@ -8,7 +8,7 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isDevModeEnabled} from 'selectors/general';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 const SUPPORTS_CLEAR_MARKS = isSupported([performance.clearMarks]);
 const SUPPORTS_MARK = isSupported([performance.mark]);
@@ -238,7 +238,7 @@ function initRequestCountingIfNecessary() {
         for (const entry of entries.getEntries()) {
             const url = entry.name;
 
-            if (!url.includes('/api/v4/') && !url.includes('/api/v5/')) {
+            if (!url.includes('/api/v4/')) {
                 // Don't count requests made outside of the MM server's API
                 continue;
             }

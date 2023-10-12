@@ -30,8 +30,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.Si
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ImportSettings.Directory != "" && *cfg.ImportSettings.RetentionDays > 0
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		importPath := *app.Config().ImportSettings.Directory
 		retentionTime := time.Duration(*app.Config().ImportSettings.RetentionDays) * 24 * time.Hour
@@ -45,7 +45,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.Si
 			filename := filepath.Base(imports[i])
 			modTime, appErr := app.FileModTime(filepath.Join(importPath, filename))
 			if appErr != nil {
-				job.Logger.Debug("Worker: Failed to get file modification time",
+				logger.Debug("Worker: Failed to get file modification time",
 					mlog.Err(appErr), mlog.String("import", imports[i]))
 				multipleErrors.Append(appErr)
 				continue
@@ -60,7 +60,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.Si
 				if len(filename) > minLen && filepath.Ext(filename) == model.IncompleteUploadSuffix {
 					uploadID := filename[:26]
 					if storeErr := s.UploadSession().Delete(uploadID); storeErr != nil {
-						job.Logger.Debug("Worker: Failed to delete UploadSession",
+						logger.Debug("Worker: Failed to delete UploadSession",
 							mlog.Err(storeErr), mlog.String("upload_id", uploadID))
 						multipleErrors.Append(storeErr)
 						continue
@@ -71,13 +71,13 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.Si
 					info, storeErr := s.FileInfo().GetByPath(filePath)
 					var nfErr *store.ErrNotFound
 					if storeErr != nil && !errors.As(storeErr, &nfErr) {
-						job.Logger.Debug("Worker: Failed to get FileInfo",
+						logger.Debug("Worker: Failed to get FileInfo",
 							mlog.Err(storeErr), mlog.String("path", filePath))
 						multipleErrors.Append(storeErr)
 						continue
 					} else if storeErr == nil {
 						if storeErr = s.FileInfo().PermanentDelete(info.Id); storeErr != nil {
-							job.Logger.Debug("Worker: Failed to delete FileInfo",
+							logger.Debug("Worker: Failed to delete FileInfo",
 								mlog.Err(storeErr), mlog.String("file_id", info.Id))
 							multipleErrors.Append(storeErr)
 							continue
@@ -87,7 +87,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.Si
 
 				// remove file data from storage.
 				if appErr := app.RemoveFile(imports[i]); appErr != nil {
-					job.Logger.Debug("Worker: Failed to remove file",
+					logger.Debug("Worker: Failed to remove file",
 						mlog.Err(appErr), mlog.String("import", imports[i]))
 					multipleErrors.Append(appErr)
 					continue
@@ -96,7 +96,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.Si
 		}
 
 		if err := multipleErrors.ErrorOrNil(); err != nil {
-			job.Logger.Warn("Worker: errors occurred", mlog.Err(err))
+			logger.Warn("Worker: errors occurred", mlog.Err(err))
 		}
 		return nil
 	}
