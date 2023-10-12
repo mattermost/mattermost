@@ -139,6 +139,6 @@ describe('EditSection', () => {
         );
 
         expect(screen.getByText('No IP filtering rules added')).toBeInTheDocument();
-        expect(screen.getByText('add a filter')).toBeInTheDocument();
+        expect(screen.getByText('Add a filter')).toBeInTheDocument();
     });
 });

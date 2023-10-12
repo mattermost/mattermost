@@ -145,7 +145,7 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
                     type='button'
                     className='btn-save'
                     onClick={handleSave}
-                    disabled={cidrError !== null || !name}
+                    disabled={Boolean(cidrError) || !cidr.length || !name.length}
                 >
                     {existingRange ? formatMessage({id: 'admin.ip_filtering.update_filter', defaultMessage: 'Update filter'}) : formatMessage({id: 'admin.ip_filtering.save', defaultMessage: 'Save'})}
                 </Button>

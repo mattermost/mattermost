@@ -1182,7 +1182,7 @@
   "admin.integrations.gif": "GIF (Beta)",
   "admin.integrations.integrationManagement": "Integration Management",
   "admin.integrations.integrationManagement.title": "Integration Management",
-  "admin.ip_filtering.add_filter": "add a filter",
+  "admin.ip_filtering.add_filter": "Add a filter",
   "admin.ip_filtering.add_ip_filter": "Add IP Filter",
   "admin.ip_filtering.add_your_ip": "Add your IP address",
   "admin.ip_filtering.all_ip_addresses_will_have_access": "All IP addresses will have access to the workspace.",

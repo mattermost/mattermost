@@ -47,7 +47,13 @@ describe('IPFiltering', () => {
 
     const mockedStore = testConfigureStore({
         entities: {
-
+            users: {
+                currentUserId: 'current_user_id',
+            },
+            general: {
+                config: {},
+                license: {},
+            },
         },
         views: {
             admin: {

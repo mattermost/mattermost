@@ -6,6 +6,12 @@ import React from 'react';
 
 import SaveConfirmationModal from './save_confirmation_modal';
 
+jest.mock('components/external_link', () => {
+    return jest.fn().mockImplementation(({children, ...props}) => {
+        return <a {...props}>{children}</a>;
+    });
+});
+
 describe('SaveConfirmationModal', () => {
     const onCloseMock = jest.fn();
     const onConfirmMock = jest.fn();

@@ -21,7 +21,7 @@ import SaveConfirmationModal from './save_confirmation_modal';
 import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
 
 import './ip_filtering.scss';
-// 
+
 const IPFiltering = () => {
     const {formatMessage} = useIntl();
     const [showAddModal, setShowAddModal] = useState(false);
@@ -108,6 +108,7 @@ const IPFiltering = () => {
             updatedFilters[index] = filter;
             return updatedFilters;
         });
+        setSaveNeeded(true);
     }
 
     function handleConfirmDeleteFilter(filter: AllowedIPRange) {
@@ -121,6 +122,7 @@ const IPFiltering = () => {
 
     function handleAddFilter(filter: AllowedIPRange) {
         setIpFilters((prevIpFilters) => [...(prevIpFilters ?? []), filter]);
+        setSaveNeeded(true);
     }
 
     function handleSave() {

@@ -8,6 +8,12 @@ import type {AllowedIPRange} from '@mattermost/types/config';
 
 import IPFilteringAddOrEditModal from './add_edit_ip_filter_modal';
 
+jest.mock('components/external_link', () => {
+    return jest.fn().mockImplementation(({children, ...props}) => {
+        return <a {...props}>{children}</a>;
+    });
+});
+
 describe('IPFilteringAddOrEditModal', () => {
     const onClose = jest.fn();
     const onSave = jest.fn();

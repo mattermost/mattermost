@@ -183,7 +183,7 @@ const EditSection: React.FC<EditSectionProps> = ({
                                                 className='Button'
                                                 type='button'
                                             >
-                                                {formatMessage({id: 'admin.ip_filtering.add_filter', defaultMessage: 'add a filter'})}
+                                                {formatMessage({id: 'admin.ip_filtering.add_filter', defaultMessage: 'Add a filter'})}
                                             </Button>
                                         ),
                                     },
