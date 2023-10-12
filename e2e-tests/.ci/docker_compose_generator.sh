@@ -139,18 +139,18 @@ elasticsearch='
         file: ../../server/build/gitlab-dc.common.yml
         service: elasticsearch'
 
-elasticsearch_arm64="
+elasticsearch_arm64='
   elasticsearch:
     image: mattermostdevelopment/mattermost-elasticsearch:7.17.10
     platform: linux/arm64/v8
-    restart: 'no'
+    restart: "no"
     container_name: mattermost-elasticsearch
     ports:
-      - \"9200:9200\"
-      - \"9300:9300\"
+      - "9200:9200"
+      - "9300:9300"
     extends:
         file: ../../server/build/gitlab-dc.common.yml
-        service: elasticsearch"
+        service: elasticsearch'
 
 keycloak='
   keycloak:
@@ -189,6 +189,7 @@ services:
     restart: always
     env_file:
       - "./.env.server"
+      - "./.env.server.cloud"
     environment:
       MM_LICENSE: \${MM_LICENSE}
       MM_SERVICESETTINGS_SITEURL: http://server:8065

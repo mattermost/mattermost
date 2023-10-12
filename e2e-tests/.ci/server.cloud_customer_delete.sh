@@ -8,6 +8,9 @@ if [ "$SERVER" != "cloud" ]; then
   exit 0
 fi
 
+mme2e_log "Loading .env.server.cloud"
+. .env.server.cloud
+
 # Check if CWS_URL is set or not
 if [ -n "${CWS_URL-}" ] && [ -n "$CWS_URL" ]; then
   mme2e_log "CWS_URL is set."

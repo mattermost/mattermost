@@ -2,7 +2,7 @@
 set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
-. .e2erc_cypress
+. .e2erc_setup
 
 if [ "$TEST" != "cypress" ]; then
   mme2e_log "Not applicable to TEST='$TEST'. For cypress only."

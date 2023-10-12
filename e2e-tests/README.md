@@ -19,7 +19,7 @@ Instructions, detailed:
   * The following variables will be passed over to the server container: `MM_LICENSE` (no enterprise features will be available if this is unset), and the exploded `MM_ENV` (a comma-separated list of env var specifications)
   * `TEST` either `cypress` (default) or `playwright`.
   * `SERVER` either `self-hosted` (default) or `cloud`.
-  * The `ENABLED_DOCKER_SERVICES` can be set for lightweight and faster start up time depending on the test requirement being worked on. However, note of the following:
+  * The `ENABLED_DOCKER_SERVICES` is by default set to `postgres` and `inbucket` for smoke tests purpose, and for lightweight and faster start up time. Depending on the test requirement being worked on, you may want to override as needed, as such:
     * Cypress full tests require full services with `postgres`, `inbucket`, `minio`, `openldap`, `elasticsearch` and `keycloak`.
     * Cypress smoke tests require `postgres` and `inbucket` only.
     * Playwright full tests require `postgres` and `inbucket` only.
@@ -29,7 +29,9 @@ Instructions, detailed:
   * Set `CWS_URL` when spinning up a cloud-like test server that communicates with a test instance of customer web server. 
 2. (optional) `make start-dashboard`: start the automation-dashboard in the background
   * This also sets the `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN` variables for the cypress container
-  * Note that if you run the dashboard locally, but also specify other `AUTOMATION_DASHBOARD_*` variables in your `.ci/env` file, the latter variables will take precedence
+  * Note that if you run the dashboard locally, but also specify other `AUTOMATION_DASHBOARD_*` variables in your `.ci/env` file, the latter variables will take precedence.
+  * The dashboard is used for orchestrating specs with parallel test run and is typically used in CI.
+  * Only Cypress is currently using the dashboard; Playwright is not.
 3. Run the following commands to run with cypress:
   * `TEST=cypress make`: start and prepare the server, then run the cypress tests against self-hosted test server.
   * `TEST=cypress SERVER=cloud make`: create test customer for cloud, start and prepare the server, run the cypress tests against cloud-like test server, then delete the test customer. When anticipating a licensed test server, make sure the loaded license via `MM_LICENSE` is for cloud.

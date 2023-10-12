@@ -7,15 +7,6 @@ export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
 export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
 export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
 
-# Check if docker-compose.server.override.yml exists
-if [ -f docker-compose.server.override.yml ]; then
-  export DC_FILE="docker-compose.server.override.yml"
-else
-  export DC_FILE="docker-compose.server.yml"
-fi
-
-export MME2E_DC_SERVER="docker compose -p mmserver -f $(readlink -f ./$DC_FILE)"
-
 # Default values for optional variables
 export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --short=7 HEAD)"
 export BROWSER_DEFAULT="chrome"

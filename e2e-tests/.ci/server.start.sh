@@ -2,6 +2,7 @@
 set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
+. .e2erc_setup
 
 if [ "$TEST" != "cypress" ] && [ "$TEST" != "playwright" ] && [ "$TEST" != "server" ]; then
   mme2e_log "Invalid TEST='$TEST', expected: 'cypress', 'playwright' or 'server'"
@@ -21,15 +22,17 @@ ${MME2E_DC_SERVER} down -v --remove-orphans
 
 # Generate .env.server
 mme2e_log "Generating .env.server"
+if [ "$SERVER" = "cloud" ]; then
+  export "MM_NOTIFY_ADMIN_COOL_OFF_DAYS=0.00000001"
+  export 'MM_FEATUREFLAGS_ANNUALSUBSCRIPTION="true"'
+fi
 mme2e_generate_envfile_from_var_names >.env.server <<EOF
-MM_CLOUDSETTINGS_CWSURL
-MM_CLOUDSETTINGS_CWSAPIURL
-MM_CLOUD_API_KEY
-MM_CUSTOMER_ID
-MM_CLOUD_INSTALLATION_ID
 MM_ELASTICSEARCHSETTINGS_CONNECTIONURL
 MM_LDAPSETTINGS_LDAPSERVER
+MM_NOTIFY_ADMIN_COOL_OFF_DAYS
+MM_FEATUREFLAGS_ANNUALSUBSCRIPTION
 EOF
+
 # shellcheck disable=SC2086
 envarr=$(echo ${MM_ENV:-} | tr "," "\n")
 for env in $envarr; do
@@ -37,11 +40,6 @@ for env in $envarr; do
 done
 
 if [ "$TEST" = "cypress" ]; then
-  mme2e_log "Cypress: Preparing server setup"
-
-  # Load .e2erc_cypress
-  . .e2erc_cypress
-
   # Generate .env.cypress
   mme2e_log "Cypress: Generating .env.cypress"
   mme2e_generate_envfile_from_var_names >.env.cypress <<EOF
@@ -77,11 +75,6 @@ EOF
     echo "CYPRESS_serverEdition=E20" >>.env.cypress
   fi
 elif [ "$TEST" = "playwright" ]; then
-  mme2e_log "Playwright: Preparing server setup"
-
-  # Load .e2erc_playwright
-  . .e2erc_playwright
-
   # Generate .env.playwright
   mme2e_log "Playwright: Generating .env.playwright"
   mme2e_generate_envfile_from_var_names >.env.playwright <<EOF
@@ -90,11 +83,6 @@ BUILD_ID
 EOF
 else
   mme2e_log "Preparing server setup only"
-fi
-
-if [ $# -gt 1 ] && [ "$2" = "cloud" ]; then
-  echo "MM_NOTIFY_ADMIN_COOL_OFF_DAYS=0.00000001" >>.env.server
-  echo 'MM_FEATUREFLAGS_ANNUALSUBSCRIPTION="true"' >>.env.server
 fi
 
 # Wait for the required server image

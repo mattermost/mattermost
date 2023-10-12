@@ -5,13 +5,7 @@ export
 SHELL := /bin/bash
 TEST ?= cypress
 SERVER ?= self-hosted
-
-# Define a conditional default value for ENABLED_DOCKER_SERVICES
-ifeq ($(TEST),cypress)
-    ENABLED_DOCKER_SERVICES ?= postgres inbucket minio openldap elasticsearch keycloak
-else
-    ENABLED_DOCKER_SERVICES ?= postgres inbucket
-endif
+ENABLED_DOCKER_SERVICES ?= postgres inbucket
 
 define log_message
     @echo "[$(shell date '+%Y-%m-%dT%H:%M:%S%Z')]$1"
@@ -19,7 +13,7 @@ endef
 
 .PHONY: all run stop
 all: run
-run: info create-cloud-customer generate-docker-compose start-server-test prepare-server run-test delete-cloud-customer
+run: info generate-docker-compose create-cloud-customer start-server-test prepare-server run-test delete-cloud-customer
 stop: stop-server stop-dashboard clean-env-placeholders
 
 .PHONY: info generate-docker-compose start-server-test run-test start-server prepare-server stop-server restart-server
@@ -38,7 +32,7 @@ info:
 	$(call log_message, "SERVER: $(SERVER)")
 	$(call log_message, "ENABLED_DOCKER_SERVICES: $(ENABLED_DOCKER_SERVICES)")
 
-start-server:
+start-server: generate-docker-compose
 	TEST=server bash ./.ci/server.start.sh
 stop-server:
 	bash ./.ci/server.stop.sh
@@ -54,8 +48,8 @@ stop-dashboard:
 print-env-placeholders:
 	find .ci -maxdepth 1 -name '.env.*'  | xargs --verbose -l cat
 clean-env-placeholders:
-	git reset .ci/.env.{cypress,server,dashboard}
-	git checkout .ci/.env.{cypress,server,dashboard}
+	git reset .ci/.env.{cypress,server,server.cloud,dashboard}
+	git checkout .ci/.env.{cypress,server,server.cloud,dashboard}
 
 .PHONY: create-cloud-customer delete-cloud-customer
 create-cloud-customer:
