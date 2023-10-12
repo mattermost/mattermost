@@ -196,10 +196,9 @@
                             }
 
                             .section-min__edit {
-                                position: relative;
-                                top: 0;
-                                right: 0;
-                                text-align: left;
+                                span {
+                                    display: none;
+                                }
                             }
 
                             .appearance-section {
@@ -301,19 +300,6 @@
                     }
 
                     .settings-content {
-                        .section-min__edit {
-                            text-align: left;
-
-                            button {
-                                width: 100%;
-                                text-align: left;
-                            }
-
-                            .fa {
-                                display: inline-block;
-                            }
-                        }
-
                         &.minimize-settings {
                             display: none;
                             padding: 0;

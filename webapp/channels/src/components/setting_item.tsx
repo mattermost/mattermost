@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode, RefObject} from 'react';
+import React, {useEffect, useRef, type ReactNode} from 'react';
 
 import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+
+import {a11yFocus} from 'utils/utils';
 
 type Props = {
 
@@ -27,53 +27,59 @@ type Props = {
     /**
      * The setting UI when it is maximized (open)
      */
-    max: ReactNode | null;
+    max: ReactNode;
 
     // Props to pass through for SettingItemMin
     updateSection: (section: string) => void;
     title?: ReactNode;
-    disableOpen?: boolean;
+    isDisabled?: boolean;
     describe?: ReactNode;
-}
-export default class SettingItem extends React.PureComponent<Props> {
-    minRef: RefObject<SettingItemMinComponent>;
+};
 
-    static defaultProps = {
-        infoPosition: 'bottom',
-        saving: false,
-        section: '',
-        containerStyle: '',
-    };
+function SettingItem({
+    section = '',
+    title,
+    updateSection,
+    describe,
+    isDisabled,
+    active,
+    areAllSectionsInactive,
+    max,
+}: Props) {
+    const editButtonRef = useRef<HTMLButtonElement>(null);
+    const previouslyActive = useRef<boolean>(active);
 
-    constructor(props: Props) {
-        super(props);
-        this.minRef = React.createRef();
-    }
+    useEffect(() => {
+        // console.log('SettingItem: useEffect: active: ', active, editButtonRef.current);
 
-    focusEditButton(): void {
-        this.minRef.current?.focus();
-    }
-
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.active && !this.props.active && this.props.areAllSectionsInactive) {
-            this.focusEditButton();
-        }
-    }
-
-    render() {
-        if (this.props.active) {
-            return this.props.max;
+        // We want to bring back focus to the edit button when the section is closed and all sections are closed
+        // since we need to know if the section was previously active, we are using a ref to store the previous value
+        if (previouslyActive.current && !active && areAllSectionsInactive) {
+            editButtonRef.current?.focus();
+            a11yFocus(editButtonRef.current);
         }
 
+        previouslyActive.current = active;
+    }, [active, areAllSectionsInactive]);
+
+    if (active) {
         return (
-            <SettingItemMin
-                title={this.props.title}
-                updateSection={this.props.updateSection}
-                describe={this.props.describe}
-                section={this.props.section}
-                disableOpen={this.props.disableOpen}
-                ref={this.minRef}
-            />
+            <>
+                {max}
+            </>
         );
     }
+
+    return (
+        <SettingItemMin
+            ref={editButtonRef}
+            title={title}
+            updateSection={updateSection}
+            describe={describe}
+            section={section}
+            isDisabled={isDisabled}
+        />
+    );
 }
+
+export default SettingItem;

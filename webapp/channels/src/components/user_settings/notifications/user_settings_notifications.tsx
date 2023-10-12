@@ -1017,6 +1017,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 describe={collapsedDescription}
                 updateSection={this.handleUpdateSection}
                 max={expandedSection}
+                isDisabled={true}
             />);
     };
 

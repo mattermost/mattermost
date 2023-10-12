@@ -16,7 +16,7 @@ import {Constants, LicenseSkus, ModalIdentifiers} from 'utils/constants';
 
 import './restricted_indicator.scss';
 
-type RestrictedIndicatorProps = {
+type Props = {
     useModal?: boolean;
     titleAdminPreTrial?: string;
     messageAdminPreTrial?: string | React.ReactNode;
@@ -56,7 +56,7 @@ const RestrictedIndicator = ({
     customSecondaryButtonInModal,
     feature,
     minimumPlanRequiredForFeature,
-}: RestrictedIndicatorProps) => {
+}: Props) => {
     const {formatMessage} = useIntl();
 
     const getTooltipMessageBlocked = useCallback(() => {
