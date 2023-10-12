@@ -371,7 +371,6 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 		ps.Go(func() {
 			ps.Publish(message)
 		})
-
 	})
 	return nil
 }

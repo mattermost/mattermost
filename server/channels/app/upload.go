@@ -156,7 +156,7 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 }
 
 func (a *App) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
-	us, err := a.Srv().Store().UploadSession().Get(c.Context(), uploadId)
+	us, err := a.Srv().Store().UploadSession().Get(c, uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
