@@ -37,7 +37,32 @@ exports[`plugins/PostMessageView should match snapshot with extended post type 1
   }
   theme={
     Object {
-      "id": "theme_id",
+      "awayIndicator": "#ffbc1f",
+      "buttonBg": "#1c58d9",
+      "buttonColor": "#ffffff",
+      "centerChannelBg": "#ffffff",
+      "centerChannelColor": "#3f4350",
+      "codeTheme": "github",
+      "dndIndicator": "#d24b4e",
+      "errorTextColor": "#d24b4e",
+      "linkColor": "#386fe5",
+      "mentionBg": "#ffffff",
+      "mentionBj": "#ffffff",
+      "mentionColor": "#1e325c",
+      "mentionHighlightBg": "#ffd470",
+      "mentionHighlightLink": "#1b1d22",
+      "newMessageSeparator": "#cc8f00",
+      "onlineIndicator": "#3db887",
+      "sidebarBg": "#1e325c",
+      "sidebarHeaderBg": "#192a4d",
+      "sidebarHeaderTextColor": "#ffffff",
+      "sidebarTeamBarBg": "#14213e",
+      "sidebarText": "#ffffff",
+      "sidebarTextActiveBorder": "#5d89ea",
+      "sidebarTextActiveColor": "#ffffff",
+      "sidebarTextHoverBg": "#28427b",
+      "sidebarUnreadText": "#ffffff",
+      "type": "Denim",
     }
   }
 >
@@ -52,7 +77,32 @@ exports[`plugins/PostMessageView should match snapshot with extended post type 1
     }
     theme={
       Object {
-        "id": "theme_id",
+        "awayIndicator": "#ffbc1f",
+        "buttonBg": "#1c58d9",
+        "buttonColor": "#ffffff",
+        "centerChannelBg": "#ffffff",
+        "centerChannelColor": "#3f4350",
+        "codeTheme": "github",
+        "dndIndicator": "#d24b4e",
+        "errorTextColor": "#d24b4e",
+        "linkColor": "#386fe5",
+        "mentionBg": "#ffffff",
+        "mentionBj": "#ffffff",
+        "mentionColor": "#1e325c",
+        "mentionHighlightBg": "#ffd470",
+        "mentionHighlightLink": "#1b1d22",
+        "newMessageSeparator": "#cc8f00",
+        "onlineIndicator": "#3db887",
+        "sidebarBg": "#1e325c",
+        "sidebarHeaderBg": "#192a4d",
+        "sidebarHeaderTextColor": "#ffffff",
+        "sidebarTeamBarBg": "#14213e",
+        "sidebarText": "#ffffff",
+        "sidebarTextActiveBorder": "#5d89ea",
+        "sidebarTextActiveColor": "#ffffff",
+        "sidebarTextHoverBg": "#28427b",
+        "sidebarUnreadText": "#ffffff",
+        "type": "Denim",
       }
     }
   >
@@ -84,6 +134,7 @@ exports[`plugins/PostMessageView should match snapshot with no extended post typ
           "onImageLoaded": [Function],
         }
       }
+      mentionKeys={Array []}
       message="this is some text"
       options={Object {}}
       post={
