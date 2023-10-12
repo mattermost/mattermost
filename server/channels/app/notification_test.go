@@ -414,14 +414,14 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 			server.Close()
 		}
 		if session != nil {
-			appErr := th.App.RevokeSession(session)
+			appErr := th.App.RevokeSession(th.Context, session)
 			require.Nil(t, appErr)
 		}
 	}
 
 	// Create a session for the user's connection
 	var appErr *model.AppError
-	session, appErr = th.App.CreateSession(&model.Session{
+	session, appErr = th.App.CreateSession(th.Context, &model.Session{
 		UserId: userID,
 	})
 	require.Nil(t, appErr)
