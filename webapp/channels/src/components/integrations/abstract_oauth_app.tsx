@@ -59,7 +59,7 @@ type Props = {
     /**
     * The async function to run when the action button is pressed
     */
-    action: (app: OAuthApp) => Promise<void>;
+    action: (app: Partial<OAuthApp>) => Promise<void>;
 
 }
 
