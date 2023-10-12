@@ -137,11 +137,6 @@ LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildHash=$(
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
-BUILD_TAGS_PARAM =
-ifneq ($(BUILD_TAGS),)
-	BUILD_TAGS_PARAM = -tags "$(BUILD_TAGS)"
-endif
-
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
@@ -607,7 +602,7 @@ run-server: setup-go-work prepackaged-binaries validate-go-version start-docker 
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(BUILD_TAGS_PARAM) $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
@@ -617,7 +612,7 @@ debug-server: start-docker ## Compile and start server using delve.
 		-X github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)\
 		-X github.com/mattermost/mattermost/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 		-X github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'\
-		$(BUILD_TAGS_PARAM)"
+		-tags '$(BUILD_TAGS)'"
 
 debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
@@ -627,13 +622,13 @@ debug-server-headless: start-docker ## Debug server from within an IDE like VSCo
 		-X github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)\
 		-X github.com/mattermost/mattermost/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 		-X github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'\
-		$(BUILD_TAGS_PARAM)"
+		-tags '$(BUILD_TAGS)'"
 
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(BUILD_TAGS_PARAM) $(PLATFORM_FILES) ${ARGS}
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) ${ARGS}
 
 run-client: client ## Runs the webapp.
 	@echo Running mattermost client for development
@@ -693,7 +688,7 @@ restart-client: | stop-client run-client ## Restarts the webapp.
 
 run-job-server: ## Runs the background job server.
 	@echo Running job server for development
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(BUILD_TAGS_PARAM) $(PLATFORM_FILES) jobserver &
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) jobserver &
 
 config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
