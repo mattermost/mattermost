@@ -7,7 +7,7 @@ import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {Constants, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 
 import SystemUsers from './system_users';
-import type {SystemUsers as RawSystemUsers} from './system_users';
+import type {SystemUsers as SystemUserClass} from './system_users';
 
 jest.mock('actions/admin_actions');
 
@@ -55,7 +55,7 @@ describe('components/admin_console/system_users', () => {
 
         wrapper.setState({loading: true});
 
-        const instance = wrapper.instance() as RawSystemUsers;
+        const instance = wrapper.instance() as SystemUserClass;
 
         await instance.loadDataForTeam(SearchUserTeamFilter.ALL_USERS, '');
 
@@ -71,7 +71,7 @@ describe('components/admin_console/system_users', () => {
 
         wrapper.setState({loading: true});
 
-        const instance = wrapper.instance() as RawSystemUsers;
+        const instance = wrapper.instance() as SystemUserClass;
 
         await instance.loadDataForTeam(SearchUserTeamFilter.NO_TEAM, '');
 
@@ -96,7 +96,7 @@ describe('components/admin_console/system_users', () => {
 
         wrapper.setState({loading: true});
 
-        const instance = wrapper.instance() as RawSystemUsers;
+        const instance = wrapper.instance() as SystemUserClass;
 
         await instance.nextPage(0);
 
@@ -116,7 +116,7 @@ describe('components/admin_console/system_users', () => {
 
         wrapper.setState({loading: true});
 
-        const instance = wrapper.instance() as RawSystemUsers;
+        const instance = wrapper.instance() as SystemUserClass;
 
         await instance.nextPage(0);
 
@@ -134,7 +134,7 @@ describe('components/admin_console/system_users', () => {
         };
         const wrapper = shallowWithIntl(<SystemUsers {...props}/>);
 
-        const instance = wrapper.instance() as RawSystemUsers;
+        const instance = wrapper.instance() as SystemUserClass;
 
         await instance.doSearch('searchterm', '', '');
 
@@ -152,7 +152,7 @@ describe('components/admin_console/system_users', () => {
         };
         const wrapper = shallowWithIntl(<SystemUsers {...props}/>);
 
-        const instance = wrapper.instance() as RawSystemUsers;
+        const instance = wrapper.instance() as SystemUserClass;
 
         await instance.doSearch('searchterm', '', 'system_admin');
 
