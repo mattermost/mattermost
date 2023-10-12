@@ -53,7 +53,6 @@ func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
-
 	var err error
 
 	o1 := buildIncomingWebhook()

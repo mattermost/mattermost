@@ -683,7 +683,6 @@ func (s SqlChannelStore) SaveDirectChannel(directChannel *model.Channel, member1
 	}
 
 	return newChannel, nil
-
 }
 
 func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
@@ -2911,7 +2910,6 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 			Channels.Id = Posts.ChannelId
 			AND Posts.Id = ?`, postId); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Channel with postId=%s", postId)
-
 	}
 	return &channel, nil
 }
@@ -3386,7 +3384,6 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			query = query.
 				LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
 				Where("RetentionPoliciesChannels.ChannelId IS NULL")
-
 		} else {
 			query = query.Where(sq.Expr(`c.Id NOT IN (SELECT ChannelId FROM RetentionPoliciesChannels)`))
 		}
@@ -3630,7 +3627,6 @@ func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...stri
 
 		expr := fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', ?))", s.pgDefaultTextSearchConfig, strings.Join(searchColumns, " || ' ' || "))
 		return sq.Expr(expr, fulltextTerm)
-
 	}
 
 	splitTerm := strings.Fields(fulltextTerm)
@@ -3706,7 +3702,6 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 		return s.getQueryBuilder().Select("*").
 			From("Channels").
 			Where(sq.Expr("Id IN (?)", subq))
-
 	}
 
 	baseLikeTerm = "GROUP_CONCAT(u.Username SEPARATOR ', ') LIKE ?"
@@ -3927,7 +3922,6 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 			WHERE ChannelId=:ChannelId AND UserId=:UserId`, &member); err != nil {
 			return nil, errors.Wrap(err, "failed to update ChannelMember")
 		}
-
 	}
 
 	if err := transaction.Commit(); err != nil {
