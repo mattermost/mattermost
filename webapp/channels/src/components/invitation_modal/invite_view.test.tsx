@@ -9,7 +9,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
 import {SelfHostedProducts} from 'utils/constants';
