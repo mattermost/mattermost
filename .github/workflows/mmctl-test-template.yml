@@ -19,6 +19,7 @@ env:
 jobs:
   test:
     name: ${{ inputs.name }}
+    runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
       BUILD_IMAGE: mattermost/mattermost-build-server:20230904_golang-1.20.7
