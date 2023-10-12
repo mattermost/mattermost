@@ -17,7 +17,7 @@ import (
 func TestWebConnShouldSendEvent(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
+	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
 		{
 			UserId: th.BasicUser.Id,
 			TeamId: th.BasicTeam.Id,
@@ -39,7 +39,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUserWc.SetSessionToken(session.Token)
 	basicUserWc.SetSessionExpiresAt(session.ExpiresAt)
 
-	session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles(), TeamMembers: []*model.TeamMember{
+	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles(), TeamMembers: []*model.TeamMember{
 		{
 			UserId: th.BasicUser2.Id,
 			TeamId: th.BasicTeam.Id,
@@ -61,7 +61,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUser2Wc.SetSessionToken(session2.Token)
 	basicUser2Wc.SetSessionExpiresAt(session2.ExpiresAt)
 
-	session3, err := th.App.CreateSession(&model.Session{UserId: th.SystemAdminUser.Id, Roles: th.SystemAdminUser.GetRawRoles()})
+	session3, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.SystemAdminUser.Id, Roles: th.SystemAdminUser.GetRawRoles()})
 	require.Nil(t, err)
 
 	adminUserWc := &platform.WebConn{
@@ -77,7 +77,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	adminUserWc.SetSessionToken(session3.Token)
 	adminUserWc.SetSessionExpiresAt(session3.ExpiresAt)
 
-	session4, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
+	session4, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
 		{
 			UserId: th.BasicUser.Id,
 			TeamId: th.BasicTeam.Id,
@@ -186,5 +186,4 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 
 	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil, "")
 	assert.False(t, basicUserWc.ShouldSendEvent(event3))
-
 }

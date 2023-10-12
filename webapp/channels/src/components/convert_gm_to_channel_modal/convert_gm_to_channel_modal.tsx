@@ -28,6 +28,10 @@ import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/t
 import WarningTextSection from 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+const enum ServerErrorId {
+    CHANNEL_NAME_EXISTS = 'store.sql_channel.save_channel.exists.app_error',
+}
+
 export type Props = {
     onExited: () => void;
     channel: Channel;
@@ -43,8 +47,11 @@ const ConvertGmToChannelModal = (props: Props) => {
 
     const [channelName, setChannelName] = useState<string>('');
     const channelURL = useRef<string>('');
+
+    const [urlError, setURLError] = useState('');
     const handleChannelURLChange = useCallback((newURL: string) => {
         channelURL.current = newURL;
+        setURLError('');
     }, []);
 
     const [channelMemberNames, setChannelMemberNames] = useState<string[]>([]);
@@ -112,7 +119,17 @@ const ConvertGmToChannelModal = (props: Props) => {
         const {error} = await props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.current.trim());
 
         if (error) {
-            setConversionError(error.message);
+            if (error.server_error_id === ServerErrorId.CHANNEL_NAME_EXISTS) {
+                setURLError(
+                    formatMessage({
+                        id: 'channel_modal.alreadyExist',
+                        defaultMessage: 'A channel with that URL already exists',
+                    }),
+                );
+            } else {
+                setConversionError(error.message);
+            }
+
             return;
         }
 
@@ -122,7 +139,7 @@ const ConvertGmToChannelModal = (props: Props) => {
     }, [selectedTeamId, props.channel.id, channelName, channelURL.current, props.actions.moveChannelsInSidebar]);
 
     const showLoader = !commonTeamsFetched || !loadingAnimationTimeout;
-    const canCreate = selectedTeamId !== undefined && channelName !== '' && !nameError;
+    const canCreate = selectedTeamId !== undefined && channelName !== '' && !nameError && !urlError;
     const modalProps: Partial<ComponentProps<typeof GenericModal>> = {};
     let modalBody;
 
@@ -170,6 +187,8 @@ const ConvertGmToChannelModal = (props: Props) => {
                         onDisplayNameChange={setChannelName}
                         onURLChange={handleChannelURLChange}
                         onErrorStateChange={setNameError}
+                        team={selectedTeamId ? commonTeamsById[selectedTeamId] : undefined}
+                        urlError={urlError}
                     />
 
                     {

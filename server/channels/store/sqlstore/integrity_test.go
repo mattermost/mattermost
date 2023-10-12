@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -316,10 +317,10 @@ func createScheme(ss store.Store) *model.Scheme {
 	return s
 }
 
-func createSession(ss store.Store, userId string) *model.Session {
+func createSession(c *request.Context, ss store.Store, userId string) *model.Session {
 	m := model.Session{}
 	m.UserId = userId
-	s, _ := ss.Session().Save(&m)
+	s, _ := ss.Session().Save(c, &m)
 	return s
 }
 
@@ -421,7 +422,6 @@ func TestCheckChannelsCommandWebhooksIntegrity(t *testing.T) {
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
 			require.Empty(t, data.Records)
-
 		})
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			channelId := model.NewId()
@@ -763,6 +763,7 @@ func TestCheckSchemesTeamsIntegrity(t *testing.T) {
 
 func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
+		c := request.TestContext(t)
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -775,7 +776,7 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			userId := model.NewId()
-			session := createSession(ss, model.NewId())
+			session := createSession(c, ss, model.NewId())
 			sessionId := session.Id
 			audit := createAudit(ss, userId, sessionId)
 			dbmap.Exec(`DELETE FROM Sessions WHERE Id=?`, session.Id)
@@ -1493,6 +1494,7 @@ func TestCheckUsersReactionsIntegrity(t *testing.T) {
 
 func TestCheckUsersSessionsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
+		c := request.TestContext(t)
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1505,7 +1507,7 @@ func TestCheckUsersSessionsIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			userId := model.NewId()
-			session := createSession(ss, userId)
+			session := createSession(c, ss, userId)
 			result := checkUsersSessionsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
