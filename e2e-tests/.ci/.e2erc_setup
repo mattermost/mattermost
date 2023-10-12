@@ -18,7 +18,5 @@ fi
 export MME2E_DC_SERVER=$MME2E_DC_SERVER
 alias docker-compose-mmserver='${MME2E_DC_SERVER}'
 
-if [ ! -d dashboard ]; then
-  export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f ./dashboard/docker/docker-compose.yml ./dashboard.override.yml"
-  alias docker-compose-mmdashboard='${MME2E_DC_DASHBOARD}'
-fi
+export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f ./dashboard/docker/docker-compose.yml -f ./dashboard.override.yml"
+alias docker-compose-mmdashboard='${MME2E_DC_DASHBOARD}'
