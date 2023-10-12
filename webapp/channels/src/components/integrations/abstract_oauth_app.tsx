@@ -195,10 +195,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
             homepage: this.state.homepage,
             description: this.state.description,
             is_trusted: this.state.is_trusted,
-            icon_url: this.state.icon_url,
-            create_at: this.props.initialApp?.create_at || 0,
-            update_at: this.props.initialApp?.update_at || 0,
-            client_secret: this.props.initialApp?.client_secret || '',
+            icon_url: this.state.icon_url
         };
 
         this.props.action(app).then(() => this.setState({saving: false}));
