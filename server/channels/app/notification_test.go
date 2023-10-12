@@ -335,28 +335,33 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	})
 
 	t.Run("should inform each user if they are following a thread that was posted in", func(t *testing.T) {
+		t.Log("BasicUser ", th.BasicUser.Id)
+		t.Log("sender ", sender.Id)
 		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
 		defer closeWS1()
 
 		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
 		defer closeWS2()
 
-		// First post mentioning the whole channel
+		// Reply to a post made by BasicUser
 		post := &model.Post{
 			UserId:    sender.Id,
 			ChannelId: th.BasicChannel.Id,
-			Message:   "@channel",
+			RootId:    th.BasicPost.Id,
+			Message:   "This is a test",
 		}
-		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
-		require.NoError(t, err)
+
+		// Use CreatePost instead of SendNotifications here since we need that to set up some threads state
+		_, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
 
 		received1 := <-messages1
 		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
-		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["followers"])
 
 		received2 := <-messages2
 		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
-		assertUnmarshalsTo(t, []string{th.BasicUser2.Id}, received2.GetData()["mentions"])
+		assert.Nil(t, received2.GetData()["followers"])
 	})
 
 	t.Run("should not include broadcast hook information in messages sent to users", func(t *testing.T) {
