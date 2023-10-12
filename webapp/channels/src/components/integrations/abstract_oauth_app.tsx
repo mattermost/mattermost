@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
+import type {ChangeEvent, FormEvent} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -15,60 +19,76 @@ import SpinnerButton from 'components/spinner_button';
 
 import {localizeMessage} from 'utils/utils';
 
-export default class AbstractOAuthApp extends React.PureComponent {
-    static propTypes = {
+type Props = {
 
-        /**
-        * The current team
-        */
-        team: PropTypes.object.isRequired,
+    /**
+   * The current team
+   */
+    team: Team;
 
-        /**
-        * The header text to render, has id and defaultMessage
-        */
-        header: PropTypes.object.isRequired,
+    /**
+   * The header text to render, has id and defaultMessage
+   */
+    header: MessageDescriptor;
 
-        /**
-        * The footer text to render, has id and defaultMessage
-        */
-        footer: PropTypes.object.isRequired,
+    /**
+   * The footer text to render, has id and defaultMessage
+   */
+    footer: MessageDescriptor;
 
-        /**
-        * The spinner loading text to render, has id and defaultMessage
-        */
-        loading: PropTypes.object.isRequired,
+    /**
+   * The spinner loading text to render, has id and defaultMessage
+   */
+    loading: MessageDescriptor;
 
-        /**
-         * Any extra component/node to render
-         */
-        renderExtra: PropTypes.node.isRequired,
+    /**
+   * Any extra component/node to render
+   */
+    renderExtra?: JSX.Element;
 
-        /**
-        * The server error text after a failed action
-        */
-        serverError: PropTypes.string.isRequired,
+    /**
+    * The server error text after a failed action
+    */
+    serverError: string;
 
-        /**
-        * The OAuthApp used to set the initial state
-        */
-        initialApp: PropTypes.object,
+    /**
+   * The OAuthApp used to set the initial state
+   */
+    initialApp?: OAuthApp;
 
-        /**
-        * The async function to run when the action button is pressed
-        */
-        action: PropTypes.func.isRequired,
-    };
+    /**
+    * The async function to run when the action button is pressed
+    */
+    action: (app: OAuthApp) => Promise<void>;
 
-    constructor(props) {
+}
+
+type State = {
+    name: string;
+    description: string;
+    homepage: string;
+    icon_url: string;
+    callbackUrls: string;
+    is_trusted: boolean;
+    has_icon: boolean;
+    saving: boolean;
+    clientError: JSX.Element | null | string;
+};
+
+export default class AbstractOAuthApp extends React.PureComponent<Props, State> {
+    private image: HTMLImageElement;
+    private icon_url: React.RefObject<HTMLInputElement>;
+
+    constructor(props: Props) {
         super(props);
 
         this.image = new Image();
         this.image.onload = this.imageLoaded;
         this.icon_url = React.createRef();
-        this.state = this.getStateFromApp(this.props.initialApp || {});
+        this.state = this.getStateFromApp(this.props.initialApp || {} as OAuthApp);
     }
 
-    getStateFromApp = (app) => {
+    getStateFromApp = (app: OAuthApp) => {
         return {
             name: app.name || '',
             description: app.description || '',
@@ -83,13 +103,15 @@ export default class AbstractOAuthApp extends React.PureComponent {
     };
 
     imageLoaded = () => {
-        this.setState({
-            has_icon: true,
-            icon_url: this.icon_url.current.value,
-        });
+        if (this.icon_url.current?.value) {
+            this.setState({
+                has_icon: true,
+                icon_url: this.icon_url.current.value,
+            });
+        }
     };
 
-    handleSubmit = (e) => {
+    handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
         if (this.state.saving) {
@@ -173,36 +195,36 @@ export default class AbstractOAuthApp extends React.PureComponent {
             description: this.state.description,
             is_trusted: this.state.is_trusted,
             icon_url: this.state.icon_url,
-        };
+        } as OAuthApp;
 
         this.props.action(app).then(() => this.setState({saving: false}));
     };
 
-    updateName = (e) => {
+    updateName = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             name: e.target.value,
         });
     };
 
-    updateTrusted = (e) => {
+    updateTrusted = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             is_trusted: e.target.value === 'true',
         });
     };
 
-    updateDescription = (e) => {
+    updateDescription = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             description: e.target.value,
         });
     };
 
-    updateHomepage = (e) => {
+    updateHomepage = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             homepage: e.target.value,
         });
     };
 
-    updateIconUrl = (e) => {
+    updateIconUrl = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             has_icon: false,
             icon_url: e.target.value,
@@ -210,7 +232,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
         this.image.src = e.target.value;
     };
 
-    updateCallbackUrls = (e) => {
+    updateCallbackUrls = (e: ChangeEvent<HTMLTextAreaElement>) => {
         this.setState({
             callbackUrls: e.target.value,
         });
@@ -315,7 +337,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                 <input
                                     id='name'
                                     type='text'
-                                    maxLength='64'
+                                    maxLength={64}
                                     className='form-control'
                                     value={this.state.name}
                                     onChange={this.updateName}
@@ -342,7 +364,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                 <input
                                     id='description'
                                     type='text'
-                                    maxLength='512'
+                                    maxLength={512}
                                     className='form-control'
                                     value={this.state.description}
                                     onChange={this.updateDescription}
@@ -369,7 +391,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                 <input
                                     id='homepage'
                                     type='url'
-                                    maxLength='256'
+                                    maxLength={256}
                                     className='form-control'
                                     value={this.state.homepage}
                                     onChange={this.updateHomepage}
@@ -397,7 +419,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                     id='icon_url'
                                     ref={this.icon_url}
                                     type='url'
-                                    maxLength='512'
+                                    maxLength={512}
                                     className='form-control'
                                     value={this.state.icon_url}
                                     onChange={this.updateIconUrl}
@@ -423,8 +445,8 @@ export default class AbstractOAuthApp extends React.PureComponent {
                             <div className='col-md-5 col-sm-8'>
                                 <textarea
                                     id='callbackUrls'
-                                    rows='3'
-                                    maxLength='1024'
+                                    rows={3}
+                                    maxLength={1024}
                                     className='form-control'
                                     value={this.state.callbackUrls}
                                     onChange={this.updateCallbackUrls}
@@ -455,7 +477,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage(this.props.loading.id, this.props.loading.defaultMessage)}
+                                spinningText={localizeMessage(this.props.loading?.id || '', (this.props.loading?.defaultMessage || '') as string)}
                                 onClick={this.handleSubmit}
                                 id='saveOauthApp'
                             >
