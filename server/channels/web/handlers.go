@@ -412,7 +412,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				pageLoadContext = ""
 			}
 
-			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed, pageLoadContext)
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed, pageLoadContext)
 		}
 	}
 }
