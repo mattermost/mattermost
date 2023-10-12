@@ -779,10 +779,13 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
   endif
 endif
 
+vet-api: export GO := $(GO)
+vet-api: export GOBIN := $(GOBIN)
+vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
 	$(GO) install github.com/mattermost/mattermost-govet/v2@new
 	make -C ../api build
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -openApiSync -openApiSync.spec=$(ROOT)../api/v4/html/static/mattermost-openapi-v4.yaml ./...
+	./scripts/vet-api-check.sh
 
 gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
 gen-serialized: ## Generates serialization methods for hot structs
