@@ -14,11 +14,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/klauspost/compress/gzhttp"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
-
-	"github.com/mattermost/gziphandler"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -408,14 +407,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			var endpoint string
-			if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
-				// It's a graphQL query, so use the operation name.
-				endpoint = c.GraphQLOperationName
-			} else {
-				endpoint = h.HandlerName
-			}
-
 			pageLoadContext := r.Header.Get("X-Page-Load-Context")
 			if pageLoadContext != "page_load" && pageLoadContext != "reconnect" {
 				pageLoadContext = ""
@@ -487,7 +478,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -507,7 +498,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -526,7 +517,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }

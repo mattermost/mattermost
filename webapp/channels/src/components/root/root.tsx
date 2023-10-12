@@ -49,7 +49,7 @@ import SystemNotice from 'components/system_notice';
 import TeamSidebar from 'components/team_sidebar';
 import WindowSizeObserver from 'components/window_size_observer/WindowSizeObserver';
 
-import webSocketClient from 'client/web_websocket_client.jsx';
+import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';

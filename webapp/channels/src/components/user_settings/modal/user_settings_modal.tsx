@@ -15,7 +15,7 @@ import {Provider} from 'react-redux';
 import type {StatusOK} from '@mattermost/types/client4';
 import type {UserProfile} from '@mattermost/types/users';
 
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import ConfirmModal from 'components/confirm_modal';
 

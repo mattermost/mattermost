@@ -10,6 +10,6 @@ const store = configureStore();
 
 // Export the store to simplify debugging in production environments. This is not a supported API,
 // and should not be relied upon by plugins.
-window.store = store;
+(window as any).store = store;
 
 export default store;
