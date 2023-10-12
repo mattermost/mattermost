@@ -10,17 +10,18 @@ import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import styled, {css} from 'styled-components';
 
-import {SendIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
+import LocalizedIcon from 'components/localized_icon';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatar from 'components/widgets/users/avatar';
 
+import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import {Load} from '../constants';
@@ -190,13 +191,16 @@ const GroupMemberList = (props: Props) => {
                             content={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
                         >
                             <DMButton
-                                className='btn-icon'
+                                className='btn btn-icon btn-xs'
                                 aria-label={formatMessage(
                                     {id: 'group_member_list.sendMessageButton', defaultMessage: 'Send message to {user}'},
                                     {user: name})}
                                 onClick={() => showDirectChannel(user)}
                             >
-                                <SendIcon/>
+                                <LocalizedIcon
+                                    className='icon icon-send'
+                                    ariaLabel={{id: t('user_group_popover.close'), defaultMessage: 'Close'}}
+                                />
                             </DMButton>
                         </SimpleTooltip>
                     </DMContainer>

@@ -25,7 +25,7 @@ import zhCN from './zh-CN.json';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 // should match the values in model/config.go
 const languages = {

@@ -40,7 +40,6 @@ func TestCheckForClientSideCert(t *testing.T) {
 }
 
 func TestCWSLogin(t *testing.T) {
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	license := model.NewTestLicense()
