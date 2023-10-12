@@ -53,7 +53,7 @@ Notes:
 - If you restart the dashboard at any point, you must also restart the server containers, so that it picks up the new IP of the dashboard from the newly generated `.env.dashboard` file
 - If you started the dashboard locally in the past, but want to point to another dashboard later, you can run `make clean-env-placeholders` to remove references to the local dashboard (you'll likely need to restart the server)
 - If new variables need to be passed to any of the containers:
-  * If their value is fixed (e.g. a static server configuration): these may be simply added to the `.ci/docker-compose.server.yml` or `docker_compose_generator.sh` file, to the appropriate container.
+  * If their value is fixed (e.g. a static server configuration), these may be simply added to the `docker_compose_generator.sh` file, to the appropriate container.
   * If you need to introduce variables that you want to control from `.ci/env`: you need to update the scripts under the `.ci/` dir, and configure them to write the new variables' values over to the appropriate `.env.*` file. In particular, avoid defining variables that depend on other variables within the docker-compose override files: this is to ensure uniformity in their availability, and simplifies the question of what container has access to which variable considerably.
 
 ##### For code changes:
