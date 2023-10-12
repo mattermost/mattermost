@@ -834,7 +834,6 @@ func TestDeleteGroupChannel(t *testing.T) {
 		_, err = client.DeleteChannel(context.Background(), rgc.Id)
 		CheckErrorID(t, err, "api.channel.delete_channel.type.invalid")
 	})
-
 }
 
 func TestGetChannel(t *testing.T) {
@@ -2020,7 +2019,6 @@ func TestDeleteChannel(t *testing.T) {
 		require.NoError(t, err)
 	})
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-
 		th.LoginBasic()
 		publicChannel5 := th.CreatePublicChannel()
 		c.Logout(context.Background())
@@ -2041,9 +2039,7 @@ func TestDeleteChannel(t *testing.T) {
 
 		_, err = client.DeleteChannel(context.Background(), publicChannel5.Id)
 		require.NoError(t, err)
-
 	})
-
 }
 
 func TestDeleteChannel2(t *testing.T) {
@@ -3393,7 +3389,6 @@ func TestAddChannelMemberAddMyself(t *testing.T) {
 	client.Login(context.Background(), user.Email, user.Password)
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-
 			// Check the appropriate permissions are enforced.
 			defaultRolePermissions := th.SaveDefaultRolePermissions()
 			defer func() {
