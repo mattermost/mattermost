@@ -358,6 +358,33 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
 		assertUnmarshalsTo(t, []string{th.BasicUser2.Id}, received2.GetData()["mentions"])
 	})
+
+	t.Run("should not include broadcast hook information in messages sent to users", func(t *testing.T) {
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		defer closeWS1()
+
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		defer closeWS2()
+
+		// For a post mentioning only one user, nobody in the channel should receive information about the broadcast hooks
+		post := &model.Post{
+			UserId:    sender.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   fmt.Sprintf("@%s", th.BasicUser.Username),
+		}
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
+		require.NoError(t, err)
+
+		received1 := <-messages1
+		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+		assert.Nil(t, received1.GetBroadcast().BroadcastHooks)
+		assert.Nil(t, received1.GetBroadcast().BroadcastHookArgs)
+
+		received2 := <-messages2
+		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+		assert.Nil(t, received2.GetBroadcast().BroadcastHooks)
+		assert.Nil(t, received2.GetBroadcast().BroadcastHookArgs)
+	})
 }
 
 func assertUnmarshalsTo(t *testing.T, expected any, actual any) {

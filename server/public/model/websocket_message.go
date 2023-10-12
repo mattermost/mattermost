@@ -107,8 +107,14 @@ type WebsocketBroadcast struct {
 
 	// BroadcastHooks is a slice of hooks IDs used to process events before sending them on individual connections. The
 	// IDs should be understood by the WebSocket code.
-	BroadcastHooks    []string         `json:"-"`
-	BroadcastHookArgs []map[string]any `json:"-"`
+	//
+	// This field should never be sent to the client.
+	BroadcastHooks []string `json:"broadcast_hooks,omitempty"`
+	// BroadcastHookArgs is a slice of named arguments for each hook invocation. The index of each entry corresponds to
+	// the index of a hook ID in BroadcastHooks
+	//
+	// This field should never be sent to the client.
+	BroadcastHookArgs []map[string]any `json:"broadcast_hook_args,omitempty"`
 }
 
 func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
@@ -129,6 +135,8 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	c.OmitConnectionId = wb.OmitConnectionId
 	c.ContainsSanitizedData = wb.ContainsSanitizedData
 	c.ContainsSensitiveData = wb.ContainsSensitiveData
+	c.BroadcastHooks = wb.BroadcastHooks
+	c.BroadcastHookArgs = wb.BroadcastHookArgs
 
 	return &c
 }
@@ -200,8 +208,25 @@ func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 	return evCopy
 }
 
-func (ev *WebSocketEvent) RemovePrecomputedJSON() {
-	ev.precomputedJSON = nil
+func (ev *WebSocketEvent) RemovePrecomputedJSON() *WebSocketEvent {
+	evCopy := ev.Copy()
+	evCopy.precomputedJSON = nil
+	return evCopy
+}
+
+// RemoveHooks removes the broadcast hook information from the WebsocketBroadcast and returns it. It's intended
+// to be called before the WebSocketEvent is sent to the client.
+func (ev *WebSocketEvent) RemoveBroadcastHooks() (*WebSocketEvent, []string, []map[string]any) {
+	hooks := ev.broadcast.BroadcastHooks
+	hookArgs := ev.broadcast.BroadcastHookArgs
+
+	evCopy := ev.Copy()
+	evCopy.broadcast = ev.broadcast.copy()
+
+	evCopy.broadcast.BroadcastHooks = nil
+	evCopy.broadcast.BroadcastHookArgs = nil
+
+	return evCopy, hooks, hookArgs
 }
 
 func (ev *WebSocketEvent) Add(key string, value any) {

@@ -494,14 +494,19 @@ func (h *Hub) Start() {
 				if metrics := h.platform.metricsIFace; metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
+
+				// Remove the broadcast hook information before precomputing the JSON so that those aren't included in it
+				msg, broadcastHooks, broadcastHookArgs := msg.RemoveBroadcastHooks()
+
 				msg = msg.PrecomputeJSON()
+
 				broadcast := func(webConn *WebConn) {
 					if !connIndex.Has(webConn) {
 						return
 					}
 					if webConn.ShouldSendEvent(msg) {
 						select {
-						case webConn.send <- h.runBroadcastHooks(msg, webConn):
+						case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
 						default:
 							// Don't log the warning if it's an inactive connection.
 							if webConn.active.Load() {
