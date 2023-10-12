@@ -189,18 +189,13 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         }
 
         const app = {
-            id: this.props.initialApp?.id || '',
             name: this.state.name,
             callback_urls: callbackUrls,
             homepage: this.state.homepage,
             description: this.state.description,
             is_trusted: this.state.is_trusted,
             icon_url: this.state.icon_url,
-            create_at: this.props.initialApp?.create_at || 0,	
-            update_at: this.props.initialApp?.update_at || 0,	
-            creator_id: this.props.initialApp?.creator_id || '',	
-            client_secret: this.props.initialApp?.client_secret || '',
-        };
+        } as OAuthApp;
 
         this.props.action(app).then(() => this.setState({saving: false}));
     };
