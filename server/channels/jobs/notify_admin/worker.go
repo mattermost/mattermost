@@ -5,6 +5,7 @@ package notify_admin
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
@@ -18,12 +19,12 @@ type AppIface interface {
 	DoCheckForAdminNotifications(trial bool) *model.AppError
 }
 
-func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) *jobs.SimpleWorker {
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		appErr := app.DoCheckForAdminNotifications(false)
 		if appErr != nil {
@@ -36,12 +37,12 @@ func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, 
 	return worker
 }
 
-func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) *jobs.SimpleWorker {
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		appErr := app.DoCheckForAdminNotifications(true)
 		if appErr != nil {
@@ -54,12 +55,12 @@ func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, ap
 	return worker
 }
 
-func MakeInstallPluginNotifyWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeInstallPluginNotifyWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	isEnabled := func(_ *model.Config) bool {
 		return true
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		appErr := app.DoCheckForAdminNotifications(false)
 		if appErr != nil {

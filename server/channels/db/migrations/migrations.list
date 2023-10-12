@@ -220,6 +220,10 @@ channels/db/migrations/mysql/000109_create_persistent_notifications.down.sql
 channels/db/migrations/mysql/000109_create_persistent_notifications.up.sql
 channels/db/migrations/mysql/000111_update_vacuuming.down.sql
 channels/db/migrations/mysql/000111_update_vacuuming.up.sql
+channels/db/migrations/mysql/000112_rework_desktop_tokens.down.sql
+channels/db/migrations/mysql/000112_rework_desktop_tokens.up.sql
+channels/db/migrations/mysql/000113_create_retentionidsfordeletion_table.down.sql
+channels/db/migrations/mysql/000113_create_retentionidsfordeletion_table.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -440,3 +444,7 @@ channels/db/migrations/postgres/000109_create_persistent_notifications.down.sql
 channels/db/migrations/postgres/000109_create_persistent_notifications.up.sql
 channels/db/migrations/postgres/000111_update_vacuuming.down.sql
 channels/db/migrations/postgres/000111_update_vacuuming.up.sql
+channels/db/migrations/postgres/000112_rework_desktop_tokens.down.sql
+channels/db/migrations/postgres/000112_rework_desktop_tokens.up.sql
+channels/db/migrations/postgres/000113_create_retentionidsfordeletion_table.down.sql
+channels/db/migrations/postgres/000113_create_retentionidsfordeletion_table.up.sql

@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 

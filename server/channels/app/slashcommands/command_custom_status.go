@@ -11,8 +11,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type CustomStatusProvider struct {
@@ -41,7 +41,7 @@ func (*CustomStatusProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model
 	}
 }
 
-func (*CustomStatusProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !*a.Config().TeamSettings.EnableCustomUserStatuses {
 		return nil
 	}

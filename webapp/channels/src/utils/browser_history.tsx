@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createBrowserHistory, History} from 'history';
-
-import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
+import {createBrowserHistory} from 'history';
+import type {History} from 'history';
 
 import {getModule} from 'module_registry';
+import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
+import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
 
 const b = createBrowserHistory({basename: window.basename});
 const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '5.0.0');

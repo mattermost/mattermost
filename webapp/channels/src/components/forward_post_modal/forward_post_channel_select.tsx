@@ -1,42 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React, {useEffect, useRef} from 'react';
+import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+import {components} from 'react-select';
+import type {IndicatorProps, OptionProps, SingleValueProps, ValueType} from 'react-select';
+import AsyncSelect from 'react-select/async';
+
 import {
     ArchiveOutlineIcon, ChevronDownIcon,
     GlobeIcon,
     LockOutlineIcon,
     MessageTextOutlineIcon,
 } from '@mattermost/compass-icons/components';
-
-import React, {useEffect, useRef} from 'react';
-
-import {useIntl} from 'react-intl';
-
-import {useSelector} from 'react-redux';
-
-import {components, IndicatorProps, OptionProps, SingleValueProps, ValueType} from 'react-select';
-
-import AsyncSelect from 'react-select/async';
-
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
+import type {Channel} from '@mattermost/types/channels';
 
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getMyTeams, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import {GlobalState} from 'types/store';
-import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
+import type {ProviderResult} from 'components/suggestion/provider';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {ProviderResult} from 'components/suggestion/provider';
+import Constants from 'utils/constants';
+import * as Utils from 'utils/utils';
 
-import {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from 'types/store';
 
 import {getBaseStyles} from './forward_post_channel_select_styles';
 

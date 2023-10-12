@@ -4,12 +4,13 @@
 import React, {useState} from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {OAuthApp} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
-import {ActionResult} from 'mattermost-redux/types/actions.js';
+import type {ActionResult} from 'mattermost-redux/types/actions.js';
 
 import {t} from 'utils/i18n';
+
 import AbstractOAuthApp from '../abstract_oauth_app.jsx';
 
 const HEADER = {id: t('add_oauth_app.header'), defaultMessage: 'Add'};

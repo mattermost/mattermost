@@ -675,7 +675,9 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} は既にチャンネルに追加されています。"
+    "translation": {
+      "other": "{{.User}} は既にチャンネルに追加されています。"
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1354,10 +1356,6 @@
     "translation": {
       "other": "{{.Count}} 画像送信: {{.Filenames}}{{.Count}} 画像送信: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "リンクプレビュー機能はシステム管理者によって無効にされています。"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -4745,11 +4743,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5689,11 +5687,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} はチームのメンバーではありません。"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "このチャンネルはグループによって管理されています。  このユーザーはこのチャンネルと同期しているグループのメンバーではありません。"
+    "translation": "{{.Users}}をこのチャンネルに追加するには、**{{.Team}}**チームのメンバーにする必要があります。"
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -9660,26 +9654,12 @@
     "translation": "Mattermost Enterprise Editionでのみ利用可能なサービスです"
   },
   {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "実行のタイムラインに追加する"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "other": "対応期限を迎えている{{.Count}}タスクが割り当てられています:"
-    }
-  },
-  {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "oauth データを削除することができませんでした。"
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "営業に問い合わせる"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -9700,5 +9680,289 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "トライアル用のビジネス用電子メールが不正です"
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "チームの取得中にエラーが発生しました。"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "チャンネル別の永続的な通知を削除できませんでした。"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "棚卸しプロファイルをCWSに送信できませんでした。"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "永続的な通知は、最大 {{.MaxRecipients}} 人の受信者への通知が許可されています。"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "エラー: セルフホストのオンボーディングで組織名が指定されていません。"
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "削除されない通知では、少なくとも1人の受信対象の指定が必要です。"
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "永続的な通知の投稿を削除できませんでした"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "channel-auto-follow-threadsの値が不正です。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "投稿ごとの永続的な通知の総数が不正です。正の数である必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "永続的な通知の間隔が不正です。2分以上でなくてはなりません。"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "チーム別の永続的な通知を削除できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "永続的な通知の最大受信者数が不正です。正の数である必要があります。"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "エクスポートをダウンロードするためのリンクを生成します。"
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "エクスポートファイルが見つかりません。"
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "要求されたファイルが見つかりませんでした。"
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "ファイルはこちらからダウンロードできます: {{.Link}}。\nこのリンクの有効期限は {{.Expiration}} です。"
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "エクスポートファイルを取得できませんでした。"
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "このコマンドを実行するのに十分な権限がありません。"
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Presign URLを生成できませんでした。"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "指定されたチャンネルのメンバー数が見つかりませんでした。"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "メンバー数が見つかりませんでした。"
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "チャンネルメンバーを更新できませんでした。notify propsのサイズが制限を超えています。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Presigned URLを生成できませんでした。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "この操作には、専用のエクスポート保存先を使用する必要があります。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "お使いのエクスポート保存先ドライバはPresign URLの生成をサポートしていません。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "この機能はフィーチャーフラグによって制限されています。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "ファイルの存在を確認できませんでした。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "エクスポートファイルが見つかりませんでした。"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify propsのサイズが制限を超えています。"
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "ローカルソケットファイルのディレクトリが見つかりませんでした。"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "GIFをデコードできませんでした。"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "優先度付きの投稿や永続的な通知の作成は許可されていません。"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "優先度の設定はrootの投稿にのみ許可されています。"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "パスワードリカバリトークンを無効にする際に、タイプ別のトークンを取得できませんでした"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "パスワードリカバリトークンを無効化する際にトークンを解析できませんでした"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "永続的な通知の検証に失敗しました。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "破棄時に無視されるインデックスはダッシュで始まっていてはいけません。"
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "永続的な通知の投稿は、緊急の優先度が設定されている必要があります。"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "パスワードリカバリトークンを無効にする際に、トークンを削除できませんでした"
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "チャンネルメンバーを更新できませんでした。"
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "設定保存時のplugin hookを実行する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "グループメッセージから非公開チャネルへの変換は許可されていません"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "ダイレクトメッセージ、グループメッセージの名前、表示名、目的の更新は許可されていません。"
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "未読とメンションを確認できませんでした"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "チャンネルはグループメッセージではありません。"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "共通のチームを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "変換されたグループメッセージに対する既存のサイドバーカテゴリを削除できませんでした。"
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "ユーザーのチャンネルメンバーシップが見つかりませんでした"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "変換リクエスト内で指定されたチームIDに、グループメッセージのメンバー全員が含まれていません"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "変換予定のチャンネルはグループメッセージではありません。グループメッセージのみ変換できます"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "チャンネル変換投稿へのグループメッセージを作成できませんでした"
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "トークンが存在しないか期限切れです"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "トークンが有効でないか期限切れです"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "このトークンに対するユーザーが見つかりませんでした"
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "ファイルの検索可能なコンテンツを設定できませんでした。"
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "インポートしたチャンネルをアーカイブできませんでした。"
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "ユーザーに対するリアクションを削除できませんでした。"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "チャンネルの全てのスレッドを既読としてマークできませんでした"
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}}と{{.LastItem}}"
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "リンクメタデータのタイムアウト値が不正です。正の数でなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "ユーザーステータスが離席中になるタイムアウト値が不正です。正の数でなければなりません。"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "リモートユーザーのログインが許可されていないため、ログインできませんでした。"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "ファイル保存先ドライバはリンク生成をサポートしていません。"
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "このチャンネルはグループによって管理されています。  このユーザーはこのチャンネルと同期しているグループのメンバーではありません。"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}}と他{{.Others}}名は既にチャンネルに追加されています。"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.Channel}}チャンネルに{{.FirstUser}}と他{{.Others}}名を追加しました。"
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "{{.FirstUser}}と他{{.Others}}名をこのチャンネルに追加するには、**{{.Team}}**チームのメンバーにする必要があります。"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}}が{{.GMMembers}}とのグループメッセージからこのチャンネルを作成しました。"
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "ダイレクトメッセージ、グループメッセージの名前、表示名、目的の更新は許可されていません。"
   }
 ]

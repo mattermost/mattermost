@@ -16,7 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -813,7 +813,6 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 		default:
 			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-
 	}
 	return savedHook, nil
 }

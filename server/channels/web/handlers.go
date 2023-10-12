@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/gziphandler"
+	"github.com/klauspost/compress/gzhttp"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
@@ -22,9 +22,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	app_opentracing "github.com/mattermost/mattermost/server/v8/channels/app/opentracing"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/opentracinglayer"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
@@ -148,6 +148,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	appInstance := app.New(app.ServerConnector(h.Srv.Channels()))
 
+	c := &Context{
+		AppContext: &request.Context{},
+		App:        appInstance,
+	}
+
 	requestID := model.NewId()
 	var statusCode string
 	defer func() {
@@ -156,6 +161,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
 		}
+		// if there is a session then include the user_id
+		if c.AppContext.Session() != nil {
+			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
+		}
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
 			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
@@ -163,19 +172,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.Debug("Received HTTP request", responseLogFields...)
 	}()
 
-	c := &Context{
-		AppContext: &request.Context{},
-		App:        appInstance,
-	}
-
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
-	c.AppContext.SetT(t)
-	c.AppContext.SetRequestId(requestID)
-	c.AppContext.SetIPAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
-	c.AppContext.SetUserAgent(r.UserAgent())
-	c.AppContext.SetAcceptLanguage(r.Header.Get("Accept-Language"))
-	c.AppContext.SetPath(r.URL.Path)
-	c.AppContext.SetContext(context.Background())
+	c.AppContext = request.NewContext(
+		context.Background(),
+		requestID,
+		utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader),
+		r.Header.Get("X-Forwarded-For"),
+		r.URL.Path,
+		r.UserAgent(),
+		r.Header.Get("Accept-Language"),
+		t,
+	)
+
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 
@@ -399,16 +407,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			var endpoint string
-			if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
-				// It's a graphQL query, so use the operation name.
-				endpoint = c.GraphQLOperationName
-			} else {
-				endpoint = h.HandlerName
-			}
-
 			originDevice := string(originDevice(r))
-			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, originDevice, elapsed)
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originDevice, elapsed)
 		}
 	}
 }
@@ -516,7 +516,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -536,7 +536,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -555,7 +555,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }

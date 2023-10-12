@@ -3,21 +3,22 @@
 
 import nock from 'nock';
 
-import * as Actions from 'mattermost-redux/actions/channels';
-import {addUserToTeam} from 'mattermost-redux/actions/teams';
-import {getProfilesByIds, loadMeREST} from 'mattermost-redux/actions/users';
-import {createIncomingHook, createOutgoingHook} from 'mattermost-redux/actions/integrations';
-import {Client4} from 'mattermost-redux/client';
+import type {IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+
 import {UserTypes} from 'mattermost-redux/action_types';
-import TestHelper from '../../test/test_helper';
-import configureStore from '../../test/test_store';
+import * as Actions from 'mattermost-redux/actions/channels';
+import {createIncomingHook, createOutgoingHook} from 'mattermost-redux/actions/integrations';
+import {addUserToTeam} from 'mattermost-redux/actions/teams';
+import {getProfilesByIds, loadMe} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
+import TestHelper from '../../test/test_helper';
+import configureStore from '../../test/test_store';
 import {General, RequestStatus, Preferences, Permissions} from '../constants';
 import {CategoryTypes} from '../constants/channel_categories';
 import {MarkUnread} from '../constants/channels';
-import {IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 const OK_RESPONSE = {status: 'OK'};
 
@@ -184,7 +185,7 @@ describe('Actions.Channels', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/users/ids').
@@ -357,7 +358,7 @@ describe('Actions.Channels', () => {
         expect(myMembers[TestHelper.basicChannel!.id]).toBeTruthy();
     });
 
-    it('fetchMyChannelsAndMembersREST', async () => {
+    it('fetchChannelsAndMembers', async () => {
         nock(Client4.getBaseRoute()).
             post('/users').
             query(true).
@@ -385,7 +386,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'channel_user', channel_id: directChannel.id}, TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchMyChannelsAndMembersREST(TestHelper.basicTeam!.id));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         const {channels, channelsInTeam, myMembers} = store.getState().entities.channels;
         expect(channels).toBeTruthy();
@@ -411,7 +412,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchMyChannelsAndMembersREST(TestHelper.basicTeam!.id));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         nock(Client4.getBaseRoute()).
             put(`/channels/${TestHelper.basicChannel!.id}/members/${TestHelper.basicUser!.id}/notify_props`).
@@ -474,7 +475,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'channel_user', channel_id: secondChannel.id}, TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchMyChannelsAndMembersREST(TestHelper.basicTeam!.id));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         nock(Client4.getBaseRoute()).
             post('/hooks/incoming').
@@ -578,7 +579,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'channel_user', channel_id: secondChannel.id}, TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchMyChannelsAndMembersREST(TestHelper.basicTeam!.id));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         nock(Client4.getBaseRoute()).
             post('/hooks/incoming').
@@ -1899,7 +1900,7 @@ describe('Actions.Channels', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/channels').
@@ -1932,7 +1933,7 @@ describe('Actions.Channels', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/channels').

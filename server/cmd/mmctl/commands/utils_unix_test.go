@@ -13,6 +13,7 @@ import (
 )
 
 func TestCheckValidSocket(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-54264")
 	t.Run("should return error if the file is not a socket", func(t *testing.T) {
 		f, err := ioutil.TempFile(os.TempDir(), "mmctl_socket_")
 		require.NoError(t, err)

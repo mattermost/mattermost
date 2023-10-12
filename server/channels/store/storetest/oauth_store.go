@@ -4,13 +4,13 @@
 package storetest
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -357,6 +357,8 @@ func testOAuthGetAccessDataByUserForApp(t *testing.T, ss store.Store) {
 }
 
 func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	a1 := model.OAuthApp{}
 	a1.CreatorId = model.NewId()
 	a1.Name = "TestApp" + model.NewId()
@@ -374,7 +376,7 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 	s1.Token = model.NewId()
 	s1.IsOAuth = true
 
-	s1, nErr := ss.Session().Save(s1)
+	s1, nErr := ss.Session().Save(c, s1)
 	require.NoError(t, nErr)
 
 	ad1 := model.AccessData{}
@@ -390,7 +392,7 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 	err = ss.OAuth().DeleteApp(a1.Id)
 	require.NoError(t, err)
 
-	_, nErr = ss.Session().Get(context.Background(), s1.Token)
+	_, nErr = ss.Session().Get(c, s1.Token)
 	require.Error(t, nErr, "should error - session should be deleted")
 
 	_, err = ss.OAuth().GetAccessData(s1.Token)
