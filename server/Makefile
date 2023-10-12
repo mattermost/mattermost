@@ -50,10 +50,6 @@ ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
 endif
 
-ifeq ($(BUILD_NUMBER),dev)
-	export MM_FEATUREFLAGS_GRAPHQL = true
-endif
-
 # Ensure developer invocation and tests are anchored.
 MM_SERVER_PATH ?= $(ROOT)
 

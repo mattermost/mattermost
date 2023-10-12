@@ -440,7 +440,6 @@ func TestPluginCommand(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, 500, err.StatusCode)
 	})
-
 }
 
 // Test Product with the minimum code needed to handle
@@ -621,6 +620,5 @@ func TestProductCommands(t *testing.T) {
 		require.Nil(t, err2)
 		require.NotNil(t, resp)
 		assert.Equal(t, "plugin slash command called", resp.Text)
-
 	})
 }

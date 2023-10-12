@@ -297,7 +297,6 @@ func newProxyRequest(r *http.Request, baseURL *url.URL) (*proxyRequest, error) {
 		if err != nil {
 			return nil, URLError{fmt.Sprintf("unable to parse remote URL: %v", err), r.URL}
 		}
-
 	}
 
 	if baseURL != nil {

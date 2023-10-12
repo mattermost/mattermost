@@ -709,7 +709,7 @@ func TestLeaveLastChannel(t *testing.T) {
 	t.Run("Guest leaves not last channel", func(t *testing.T) {
 		err = th.App.LeaveChannel(th.Context, townSquare.Id, guest.Id)
 		require.Nil(t, err)
-		_, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		_, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, err, "It should maintain the team membership")
 	})
 
@@ -718,7 +718,7 @@ func TestLeaveLastChannel(t *testing.T) {
 		assert.Nil(t, err, "It should allow to remove a guest user from the default channel")
 		_, err = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, guest.Id)
 		assert.NotNil(t, err)
-		_, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		_, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, err, "It should remove the team membership")
 	})
 }
@@ -2341,7 +2341,6 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 }
 
 func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2662,5 +2661,4 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	convertedChannel, appErr := th.App.ConvertGroupMessageToChannel(th.Context, "user_id_1", conversionRequest)
 	require.Nil(t, appErr)
 	require.Equal(t, model.ChannelTypePrivate, convertedChannel.Type)
-
 }

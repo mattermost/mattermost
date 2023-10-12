@@ -15,7 +15,6 @@ import (
 )
 
 func ValidateSchemeImportData(data *SchemeImportData) *model.AppError {
-
 	if data.Scope == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.null_scope.error", nil, "", http.StatusBadRequest)
 	}
@@ -85,7 +84,6 @@ func ValidateSchemeImportData(data *SchemeImportData) *model.AppError {
 }
 
 func ValidateRoleImportData(data *RoleImportData) *model.AppError {
-
 	if data.Name == nil || !model.IsValidRoleName(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
 	}
@@ -118,7 +116,6 @@ func ValidateRoleImportData(data *RoleImportData) *model.AppError {
 }
 
 func ValidateTeamImportData(data *TeamImportData) *model.AppError {
-
 	if data.Name == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	} else if len(*data.Name) > model.TeamNameMaxLength {
@@ -153,7 +150,6 @@ func ValidateTeamImportData(data *TeamImportData) *model.AppError {
 }
 
 func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
-
 	if data.Team == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.team_missing.error", nil, "", http.StatusBadRequest)
 	}
