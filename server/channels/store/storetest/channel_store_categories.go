@@ -435,50 +435,6 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 		require.Equal(t, categories, categories2)
 	})
-
-	t.Run("graphQL path to create initial favorites/channels/DMs categories on different teams", func(t *testing.T) {
-		userId := model.NewId()
-
-		t1 := &model.Team{
-			DisplayName: "DisplayName",
-			Name:        NewTestId(),
-			Email:       MakeEmail(),
-			Type:        model.TeamOpen,
-			InviteId:    model.NewId(),
-		}
-		t1, err := ss.Team().Save(t1)
-		require.NoError(t, err)
-
-		m1 := &model.TeamMember{TeamId: t1.Id, UserId: userId}
-		_, nErr := ss.Team().SaveMember(m1, -1)
-		require.NoError(t, nErr)
-
-		t2 := &model.Team{
-			DisplayName: "DisplayName2",
-			Name:        NewTestId(),
-			Email:       MakeEmail(),
-			Type:        model.TeamOpen,
-			InviteId:    model.NewId(),
-		}
-		t2, err = ss.Team().Save(t2)
-		require.NoError(t, err)
-
-		m2 := &model.TeamMember{TeamId: t2.Id, UserId: userId}
-		_, nErr = ss.Team().SaveMember(m2, -1)
-		require.NoError(t, nErr)
-
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID:      t1.Id,
-			ExcludeTeam: true,
-		}
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(c, userId, opts)
-		require.NoError(t, nErr)
-		require.NotEmpty(t, res)
-
-		for _, cat := range res.Categories {
-			assert.Equal(t, t2.Id, cat.TeamId)
-		}
-	})
 }
 
 func testCreateSidebarCategory(t *testing.T, ss store.Store) {
