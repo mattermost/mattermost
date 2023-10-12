@@ -835,13 +835,14 @@ describe('Selectors.Users', () => {
         it('filter roles', () => {
             const filter = {
                 roles: ['system_admin'],
-                channelRoles: ['team_admin'],
+                team_roles: ['team_admin'],
             };
-            const newProfiles = {
-                ...profiles,
-                [user3.id]: {...user3, team_roles: ['team_admin']},
-            };
-            expect(Object.keys(Selectors.filterProfiles(newProfiles, filter)).length).toEqual(4);
+
+            const membership = TestHelper.fakeTeamMember(user3.id, team1.id);
+            membership.scheme_admin = true;
+            const memberships = {[user3.id]: membership};
+
+            expect(Object.keys(Selectors.filterProfiles(profiles, filter, memberships)).length).toEqual(4);
         });
 
         it('exclude_roles', () => {
