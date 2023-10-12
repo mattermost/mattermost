@@ -326,7 +326,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		wasLicensed := (oldLicense != nil && *oldLicense.Features.Metrics) || (model.BuildNumber == "dev")
 		isLicensed := (newLicense != nil && *newLicense.Features.Metrics) || (model.BuildNumber == "dev")
 
-		if wasLicensed != isLicensed || !ps.startMetrics {
+		if wasLicensed == isLicensed || !ps.startMetrics {
 			return
 		}
 
