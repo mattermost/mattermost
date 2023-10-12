@@ -635,7 +635,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(emailArg, "", nil).
+			GetUserByEmail(context.Background(), emailArg, "").
 			Return(nil, &model.Response{}, errors.New("Eror while getting user by email")).
 			Times(1)
 
@@ -653,13 +653,13 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(usernameArg, "", nil).
+			GetUserByEmail(context.Background(), usernameArg, "").
 			Return(nil, &model.Response{}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(usernameArg, "", nil).
+			GetUserByUsername(context.Background(), usernameArg, "").
 			Return(nil, &model.Response{}, errors.New("Eror while getting user by username")).
 			Times(1)
 
@@ -677,19 +677,19 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(userArg, "", nil).
+			GetUserByEmail(context.Background(), userArg, "").
 			Return(nil, &model.Response{}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(userArg, "", nil).
+			GetUserByUsername(context.Background(), userArg, "").
 			Return(nil, &model.Response{}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(userArg, "", nil).
+			GetUserByUsername(context.Background(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("Eror while getting user")).
 			Times(1)
 
