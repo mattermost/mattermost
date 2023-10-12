@@ -407,52 +407,52 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			originDevice := string(originDevice(r))
-			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originDevice, elapsed)
+			originClient := string(originClient(r))
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originClient, elapsed)
 		}
 	}
 }
 
-type OriginDevice string
+type OriginClient string
 
 const (
-	OriginDeviceUnknown OriginDevice = "unknown"
-	OriginDeviceWeb     OriginDevice = "web"
-	OriginDeviceMobile  OriginDevice = "mobile"
-	OriginDeviceDesktop OriginDevice = "desktop"
+	OriginClientUnknown OriginClient = "unknown"
+	OriginClientWeb     OriginClient = "web"
+	OriginClientMobile  OriginClient = "mobile"
+	OriginClientDesktop OriginClient = "desktop"
 )
 
-// originDevice returns the device from which the provided request was issued. The algorithm roughly looks like:
+// originClient returns the device from which the provided request was issued. The algorithm roughly looks like:
 // - If the URL contains the query mobilev2=true, then it's mobile
 // - If the first field of the user agent starts with either "rnbeta" or "Mattermost", then it's mobile
 // - If the last field of the user agent starts with "Mattermost", then it's desktop
 // - Otherwise, it's web
-func originDevice(r *http.Request) OriginDevice {
+func originClient(r *http.Request) OriginClient {
 	userAgent := r.Header.Get("User-Agent")
 	fields := strings.Fields(userAgent)
 	if len(fields) < 1 {
-		return OriginDeviceUnknown
+		return OriginClientUnknown
 	}
 
 	// Is mobile post v2?
 	queryParam := r.URL.Query().Get("mobilev2")
 	if queryParam == "true" {
-		return OriginDeviceMobile
+		return OriginClientMobile
 	}
 
 	// Is mobile pre v2?
 	clientAgent := fields[0]
 	if strings.HasPrefix(clientAgent, "rnbeta") || strings.HasPrefix(clientAgent, "Mattermost") {
-		return OriginDeviceMobile
+		return OriginClientMobile
 	}
 
 	// Is desktop?
 	if strings.HasPrefix(fields[len(fields)-1], "Mattermost") {
-		return OriginDeviceDesktop
+		return OriginClientDesktop
 	}
 
 	// Default to web
-	return OriginDeviceWeb
+	return OriginClientWeb
 }
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not

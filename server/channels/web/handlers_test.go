@@ -883,48 +883,48 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 }
 
-func TestOriginDevice(t *testing.T) {
+func TestOriginClient(t *testing.T) {
 	testCases := []struct {
 		name           string
 		userAgent      string
 		mobilev2       bool
-		expectedDevice OriginDevice
+		expectedClient OriginClient
 	}{
 		{
-			name:           "No user agent - unknown device",
+			name:           "No user agent - unknown client",
 			userAgent:      "",
-			expectedDevice: OriginDeviceUnknown,
+			expectedClient: OriginClientUnknown,
 		},
 		{
 			name:           "Mozilla user agent",
 			userAgent:      "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0",
-			expectedDevice: OriginDeviceWeb,
+			expectedClient: OriginClientWeb,
 		},
 		{
 			name:           "Chrome user agent",
 			userAgent:      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-			expectedDevice: OriginDeviceWeb,
+			expectedClient: OriginClientWeb,
 		},
 		{
 			name:           "Mobile post v2",
 			userAgent:      "someother-agent/3.2.4",
 			mobilev2:       true,
-			expectedDevice: OriginDeviceMobile,
+			expectedClient: OriginClientMobile,
 		},
 		{
 			name:           "Mobile Android",
 			userAgent:      "rnbeta/2.0.0.441 someother-agent/3.2.4",
-			expectedDevice: OriginDeviceMobile,
+			expectedClient: OriginClientMobile,
 		},
 		{
 			name:           "Mobile iOS",
 			userAgent:      "Mattermost/2.0.0.441 someother-agent/3.2.4",
-			expectedDevice: OriginDeviceMobile,
+			expectedClient: OriginClientMobile,
 		},
 		{
 			name:           "Desktop user agent",
 			userAgent:      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.177 Electron/23.1.2 Safari/537.36 Mattermost/5.3.1",
-			expectedDevice: OriginDeviceDesktop,
+			expectedClient: OriginClientDesktop,
 		},
 	}
 
@@ -944,9 +944,9 @@ func TestOriginDevice(t *testing.T) {
 			req.URL.RawQuery = q.Encode()
 		}
 
-		// Compute origin device
-		actualDevice := originDevice(req)
+		// Compute origin client
+		actualClient := originClient(req)
 
-		require.Equal(t, tc.expectedDevice, actualDevice)
+		require.Equal(t, tc.expectedClient, actualClient)
 	}
 }
