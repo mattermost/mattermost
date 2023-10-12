@@ -28,7 +28,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import store from 'stores/redux_store';
 
-// should match the values in model/config.go
+// should match the values in server/public/shared/i18n/i18n.go
 const languages = {
     de: {
         value: 'de',
