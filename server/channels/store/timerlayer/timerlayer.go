@@ -1243,22 +1243,6 @@ func (s *TimerLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (ma
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.GetChannelsWithCursor(teamId, userId, opts, afterChannelID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsWithCursor", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 	start := time.Now()
 
@@ -1527,22 +1511,6 @@ func (s *TimerLayerChannelStore) GetMembersForUser(teamID string, userID string)
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMembersForUser", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetMembersForUserWithCursor(userID string, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.GetMembersForUserWithCursor(userID, teamID, opts)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMembersForUserWithCursor", success, elapsed)
 	}
 	return result, err
 }
