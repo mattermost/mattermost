@@ -177,22 +177,8 @@ func (m StringMap) Value() (driver.Value, error) {
 	return string(buf), nil
 }
 
-func (StringMap) ImplementsGraphQLType(name string) bool {
-	return name == "StringMap"
-}
-
 func (m StringMap) MarshalJSON() ([]byte, error) {
 	return json.Marshal((map[string]string)(m))
-}
-
-func (m *StringMap) UnmarshalGraphQL(input any) error {
-	json, ok := input.(map[string]string)
-	if !ok {
-		return errors.New("wrong type")
-	}
-
-	*m = json
-	return nil
 }
 
 func (si *StringInterface) Scan(value any) error {
@@ -228,22 +214,8 @@ func (si StringInterface) Value() (driver.Value, error) {
 	return string(j), err
 }
 
-func (StringInterface) ImplementsGraphQLType(name string) bool {
-	return name == "StringInterface"
-}
-
 func (si StringInterface) MarshalJSON() ([]byte, error) {
 	return json.Marshal((map[string]any)(si))
-}
-
-func (si *StringInterface) UnmarshalGraphQL(input any) error {
-	json, ok := input.(map[string]any)
-	if !ok {
-		return errors.New("wrong type")
-	}
-
-	*si = json
-	return nil
 }
 
 var translateFunc i18n.TranslateFunc
