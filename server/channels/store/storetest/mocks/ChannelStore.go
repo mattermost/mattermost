@@ -10,6 +10,8 @@ import (
 	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
+	request "github.com/mattermost/mattermost/server/public/shared/request"
+
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -270,25 +272,25 @@ func (_m *ChannelStore) CreateDirectChannel(userID *model.User, otherUserID *mod
 	return r0, r1
 }
 
-// CreateInitialSidebarCategories provides a mock function with given fields: userID, opts
-func (_m *ChannelStore) CreateInitialSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(userID, opts)
+// CreateInitialSidebarCategories provides a mock function with given fields: c, userID, opts
+func (_m *ChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(c, userID, opts)
 
 	var r0 *model.OrderedSidebarCategories
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)); ok {
-		return rf(userID, opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)); ok {
+		return rf(c, userID, opts)
 	}
-	if rf, ok := ret.Get(0).(func(string, *store.SidebarCategorySearchOpts) *model.OrderedSidebarCategories); ok {
-		r0 = rf(userID, opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *store.SidebarCategorySearchOpts) *model.OrderedSidebarCategories); ok {
+		r0 = rf(c, userID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, *store.SidebarCategorySearchOpts) error); ok {
-		r1 = rf(userID, opts)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, *store.SidebarCategorySearchOpts) error); ok {
+		r1 = rf(c, userID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

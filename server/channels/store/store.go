@@ -138,12 +138,12 @@ type TeamStore interface {
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
-	GetMember(ctx context.Context, teamID string, userID string) (*model.TeamMember, error)
+	GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error)
 	GetMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
 	GetMembersByIds(teamID string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetActiveMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
-	GetTeamsForUser(ctx context.Context, userID, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error)
+	GetTeamsForUser(c request.CTX, userID, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error)
 	GetTeamsForUserWithPagination(userID string, page, perPage int) ([]*model.TeamMember, error)
 	GetChannelUnreadsForAllTeams(excludeTeamID, userID string) ([]*model.ChannelUnread, error)
 	GetChannelUnreadsForTeam(teamID, userID string) ([]*model.ChannelUnread, error)
@@ -276,7 +276,7 @@ type ChannelStore interface {
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
-	CreateInitialSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
+	CreateInitialSidebarCategories(c request.CTX, userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategoriesForTeamForUser(userID, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)
@@ -486,9 +486,9 @@ type BotStore interface {
 }
 
 type SessionStore interface {
-	Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error)
-	Save(session *model.Session) (*model.Session, error)
-	GetSessions(userID string) ([]*model.Session, error)
+	Get(c request.CTX, sessionIDOrToken string) (*model.Session, error)
+	Save(c request.CTX, session *model.Session) (*model.Session, error)
+	GetSessions(c *request.Context, userID string) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
@@ -535,7 +535,7 @@ type ComplianceStore interface {
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
 	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
-	MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
+	MessageExport(c request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
 }
 
 type OAuthStore interface {
@@ -640,7 +640,7 @@ type PreferenceStore interface {
 
 type LicenseStore interface {
 	Save(license *model.LicenseRecord) error
-	Get(ctx context.Context, id string) (*model.LicenseRecord, error)
+	Get(c request.CTX, id string) (*model.LicenseRecord, error)
 	GetAll() ([]*model.LicenseRecord, error)
 }
 
@@ -663,9 +663,9 @@ type DesktopTokensStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
-	Get(ctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error)
-	GetByName(ctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error)
-	GetMultipleByName(ctx request.CTX, names []string) ([]*model.Emoji, error)
+	Get(c request.CTX, id string, allowFromCache bool) (*model.Emoji, error)
+	GetByName(c request.CTX, name string, allowFromCache bool) (*model.Emoji, error)
+	GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
@@ -710,7 +710,7 @@ type FileInfoStore interface {
 type UploadSessionStore interface {
 	Save(session *model.UploadSession) (*model.UploadSession, error)
 	Update(session *model.UploadSession) error
-	Get(ctx context.Context, id string) (*model.UploadSession, error)
+	Get(c request.CTX, id string) (*model.UploadSession, error)
 	GetForUser(userID string) ([]*model.UploadSession, error)
 	Delete(id string) error
 }

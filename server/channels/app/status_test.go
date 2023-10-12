@@ -43,7 +43,6 @@ func TestCustomStatus(t *testing.T) {
 }
 
 func TestCustomStatusErrors(t *testing.T) {
-
 	fakeUserID := "foobar"
 	mockErr := store.NewErrNotFound("User", fakeUserID)
 	mockUser := &model.User{Id: fakeUserID}

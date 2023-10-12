@@ -82,13 +82,11 @@ func (sa StringArray) Contains(input string) bool {
 	return false
 }
 func (sa StringArray) Equals(input StringArray) bool {
-
 	if len(sa) != len(input) {
 		return false
 	}
 
 	for index := range sa {
-
 		if sa[index] != input[index] {
 			return false
 		}
@@ -558,7 +556,6 @@ func GetServerIPAddress(iface string) string {
 	}
 
 	for _, addr := range addrs {
-
 		if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() && !ip.IP.IsLinkLocalUnicast() && !ip.IP.IsLinkLocalMulticast() {
 			if ip.IP.To4() != nil {
 				return ip.IP.String()
@@ -636,7 +633,6 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 }
 
 func Etag(parts ...any) string {
-
 	etag := CurrentVersion
 
 	for _, part := range parts {

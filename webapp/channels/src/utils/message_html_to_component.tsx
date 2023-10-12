@@ -15,6 +15,34 @@ import MarkdownImage from 'components/markdown_image';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
+export type Options = Partial<{
+    postId: string;
+    editedAt: number;
+    hasPluginTooltips: boolean;
+    mentions: boolean;
+    mentionHighlight: boolean;
+    disableGroupHighlight: boolean;
+    markdown: boolean;
+    latex: boolean;
+    inlinelatex: boolean;
+    postType: string;
+    imageProps: {[key: string]: any};
+    atSumOfMembersMentions: boolean;
+    userIds: string[];
+    imagesMetadata: any;
+    emoji: boolean;
+    messageMetadata: any;
+    images: boolean;
+    atPlanMentions: boolean;
+    channelId: string;
+}>
+
+type ProcessingInstruction = {
+    replaceChildren: boolean;
+    shouldProcessNode: (node: any) => boolean;
+    processNode: (node: any, children?: any, index?: number) => any;
+}
+
 /*
  * Converts HTML to React components using html-to-react.
  * The following options can be specified:
@@ -29,25 +57,25 @@ import PostEditedIndicator from 'components/post_view/post_edited_indicator';
  * - hasPluginTooltips - If specified, the LinkTooltip component is placed inside links. Defaults to false.
  * - channelId = If specified, to be passed along to ProfilePopover via AtMention
  */
-export function messageHtmlToComponent(html, options = {}) {
+export function messageHtmlToComponent(html: string, options: Options = {}) {
     if (!html) {
         return null;
     }
 
-    const parser = new Parser();
-    const processNodeDefinitions = new ProcessNodeDefinitions(React);
+    const parser = new (Parser as any)();
+    const processNodeDefinitions = new (ProcessNodeDefinitions as any)();
 
     function isValidNode() {
         return true;
     }
 
-    const processingInstructions = [
+    const processingInstructions: ProcessingInstruction[] = [
 
         // Workaround to fix MM-14931
         {
             replaceChildren: false,
-            shouldProcessNode: (node) => node.type === 'tag' && node.name === 'input' && node.attribs.type === 'checkbox',
-            processNode: (node) => {
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'input' && node.attribs.type === 'checkbox',
+            processNode: (node: any) => {
                 const attribs = node.attribs || {};
                 node.attribs.checked = Boolean(attribs.checked);
 
@@ -56,9 +84,9 @@ export function messageHtmlToComponent(html, options = {}) {
         },
         {
             replaceChildren: false,
-            shouldProcessNode: (node) => node.type === 'tag' && node.name === 'span' && node.attribs['data-edited-post-id'] && node.attribs['data-edited-post-id'] === options.postId,
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'span' && node.attribs['data-edited-post-id'] && node.attribs['data-edited-post-id'] === options.postId,
             processNode: () => {
-                return options.postId && options.editedAt > 0 ? (
+                return options.postId && options.editedAt && options.editedAt > 0 ? (
                     <React.Fragment key={`edited-${options.postId}`}>
                         {' '}
                         <PostEditedIndicator
@@ -75,8 +103,8 @@ export function messageHtmlToComponent(html, options = {}) {
         const hrefAttrib = 'href';
         processingInstructions.push({
             replaceChildren: true,
-            shouldProcessNode: (node) => node.type === 'tag' && node.name === 'a' && node.attribs[hrefAttrib],
-            processNode: (node, children) => {
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs[hrefAttrib],
+            processNode: (node: any, children: any) => {
                 return (
                     <LinkTooltip
                         href={node.attribs[hrefAttrib]}
@@ -96,7 +124,7 @@ export function messageHtmlToComponent(html, options = {}) {
         processingInstructions.push({
             replaceChildren: true,
             shouldProcessNode: (node) => node.attribs && node.attribs[mentionAttrib],
-            processNode: (node, children) => {
+            processNode: (node: any, children: any) => {
                 const mentionName = node.attribs[mentionAttrib];
                 const callAtMention = (
                     <AtMention
@@ -118,13 +146,13 @@ export function messageHtmlToComponent(html, options = {}) {
         const mentionAttrib = 'data-sum-of-members-mention';
         processingInstructions.push({
             replaceChildren: true,
-            shouldProcessNode: (node) => node.attribs && node.attribs[mentionAttrib],
-            processNode: (node) => {
+            shouldProcessNode: (node: any) => node.attribs && node.attribs[mentionAttrib],
+            processNode: (node: any) => {
                 const mentionName = node.attribs[mentionAttrib];
                 const sumOfMembersMention = (
                     <AtSumOfMembersMention
-                        postId={options.postId}
-                        userIds={options.userIds}
+                        postId={options.postId || ''}
+                        userIds={options.userIds || []}
                         messageMetadata={options.messageMetadata}
                         text={mentionName}
                     />);
@@ -137,8 +165,8 @@ export function messageHtmlToComponent(html, options = {}) {
         const mentionAttrib = 'data-plan-mention';
         processingInstructions.push({
             replaceChildren: true,
-            shouldProcessNode: (node) => node.attribs && node.attribs[mentionAttrib],
-            processNode: (node) => {
+            shouldProcessNode: (node: any) => node.attribs && node.attribs[mentionAttrib],
+            processNode: (node: any) => {
                 const mentionName = node.attribs[mentionAttrib];
                 const sumOfMembersMention = (
                     <AtPlanMention
@@ -153,8 +181,8 @@ export function messageHtmlToComponent(html, options = {}) {
         const emojiAttrib = 'data-emoticon';
         processingInstructions.push({
             replaceChildren: true,
-            shouldProcessNode: (node) => node.attribs && node.attribs[emojiAttrib],
-            processNode: (node) => {
+            shouldProcessNode: (node: any) => node.attribs && node.attribs[emojiAttrib],
+            processNode: (node: any) => {
                 const emojiName = node.attribs[emojiAttrib];
 
                 return <PostEmoji name={emojiName}/>;
@@ -164,14 +192,15 @@ export function messageHtmlToComponent(html, options = {}) {
 
     if (!('images' in options) || options.images) {
         processingInstructions.push({
-            shouldProcessNode: (node) => node.type === 'tag' && node.name === 'img',
-            processNode: (node) => {
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'img',
+            processNode: (node: any) => {
                 const {
                     class: className,
                     ...attribs
                 } = node.attribs;
 
-                const imageIsLink = (parentNode) => {
+                const imageIsLink = (parentNode: any) => {
                     if (parentNode &&
                         parentNode.type === 'tag' &&
                         parentNode.name === 'a'
@@ -198,8 +227,9 @@ export function messageHtmlToComponent(html, options = {}) {
 
     if (!('latex' in options) || options.latex) {
         processingInstructions.push({
-            shouldProcessNode: (node) => node.attribs && node.attribs['data-latex'],
-            processNode: (node) => {
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => node.attribs && node.attribs['data-latex'],
+            processNode: (node: any) => {
                 return (
                     <LatexBlock
                         key={node.attribs['data-latex']}
@@ -212,8 +242,9 @@ export function messageHtmlToComponent(html, options = {}) {
 
     if (!('inlinelatex' in options) || options.inlinelatex) {
         processingInstructions.push({
+            replaceChildren: false,
             shouldProcessNode: (node) => node.attribs && node.attribs['data-inline-latex'],
-            processNode: (node) => {
+            processNode: (node: any) => {
                 return (
                     <LatexInline content={node.attribs['data-inline-latex']}/>
                 );
@@ -223,8 +254,9 @@ export function messageHtmlToComponent(html, options = {}) {
 
     if (!('markdown' in options) || options.markdown) {
         processingInstructions.push({
+            replaceChildren: false,
             shouldProcessNode: (node) => node.attribs && node.attribs['data-codeblock-code'],
-            processNode: (node) => {
+            processNode: (node: any) => {
                 return (
                     <CodeBlock
                         key={node.attribs['data-codeblock-code']}
@@ -238,8 +270,9 @@ export function messageHtmlToComponent(html, options = {}) {
     }
 
     processingInstructions.push({
+        replaceChildren: false,
         shouldProcessNode: () => true,
-        processNode: processNodeDefinitions.processDefaultNode,
+        processNode: processNodeDefinitions.processDefaultNode as (node: any, children?: any, index?: number) => any,
     });
 
     return parser.parseWithInstructions(html, isValidNode, processingInstructions);
