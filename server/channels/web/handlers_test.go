@@ -882,3 +882,71 @@ func TestCheckCSRFToken(t *testing.T) {
 		assert.Nil(t, c.Err)
 	})
 }
+
+func TestOriginDevice(t *testing.T) {
+	testCases := []struct {
+		name           string
+		userAgent      string
+		mobilev2       bool
+		expectedDevice OriginDevice
+	}{
+		{
+			name:           "No user agent - unknown device",
+			userAgent:      "",
+			expectedDevice: OriginDeviceUnknown,
+		},
+		{
+			name:           "Mozilla user agent",
+			userAgent:      "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0",
+			expectedDevice: OriginDeviceWeb,
+		},
+		{
+			name:           "Chrome user agent",
+			userAgent:      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+			expectedDevice: OriginDeviceWeb,
+		},
+		{
+			name:           "Mobile post v2",
+			userAgent:      "someother-agent/3.2.4",
+			mobilev2:       true,
+			expectedDevice: OriginDeviceMobile,
+		},
+		{
+			name:           "Mobile Android",
+			userAgent:      "rnbeta/2.0.0.441 someother-agent/3.2.4",
+			expectedDevice: OriginDeviceMobile,
+		},
+		{
+			name:           "Mobile iOS",
+			userAgent:      "Mattermost/2.0.0.441 someother-agent/3.2.4",
+			expectedDevice: OriginDeviceMobile,
+		},
+		{
+			name:           "Desktop user agent",
+			userAgent:      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.177 Electron/23.1.2 Safari/537.36 Mattermost/5.3.1",
+			expectedDevice: OriginDeviceDesktop,
+		},
+	}
+
+	for _, tc := range testCases {
+		req, err := http.NewRequest(http.MethodGet, "example.com", nil)
+		require.NoError(t, err)
+
+		// Set User-Agent header, if any
+		if tc.userAgent != "" {
+			req.Header.Set("User-Agent", tc.userAgent)
+		}
+
+		// Set mobilev2 query if needed
+		if tc.mobilev2 {
+			q := req.URL.Query()
+			q.Add("mobilev2", "true")
+			req.URL.RawQuery = q.Encode()
+		}
+
+		// Compute origin device
+		actualDevice := originDevice(req)
+
+		require.Equal(t, tc.expectedDevice, actualDevice)
+	}
+}
