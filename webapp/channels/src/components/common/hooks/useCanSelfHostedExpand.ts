@@ -7,13 +7,13 @@ import {useSelector} from 'react-redux';
 import {Client4} from 'mattermost-redux/client';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {BillingSchemes, SelfHostedProducts} from 'utils/constants';
 import {findSelfHostedProductBySku} from 'utils/hosted_customer';
 import {isCloudLicense} from 'utils/license_utils';
 
 import useGetSelfHostedProducts from './useGetSelfHostedProducts';
-import { isCurrentUserSystemAdmin } from 'mattermost-redux/selectors/entities/users';
 
 export default function useCanSelfHostedExpand() {
     const [expansionAvailable, setExpansionAvailable] = useState(false);
