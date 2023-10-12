@@ -171,7 +171,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	}
 	session.GenerateCSRF()
 	th.App.SetSessionExpireInHours(session, 24)
-	session, err := th.App.CreateSession(session)
+	session, err := th.App.CreateSession(th.Context, session)
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}
@@ -451,7 +451,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, 200, response.Code)
 		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
 	})
-
 }
 
 func TestGenerateDevCSP(t *testing.T) {

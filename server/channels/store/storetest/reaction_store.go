@@ -382,7 +382,6 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 		for _, r := range returned {
 			assert.Zero(t, r.DeleteAt, "should not have returned deleted reaction")
 		}
-
 	})
 
 	t.Run("reactions since, incl deleted", func(t *testing.T) {
@@ -397,7 +396,6 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 			}
 		}
 		assert.Equal(t, 1, count, "should not have returned 1 deleted reaction")
-
 	})
 
 	t.Run("reactions since, filter remoteId", func(t *testing.T) {
@@ -561,7 +559,6 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 	postList, err = ss.Post().Get(context.Background(), post3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
-
 }
 
 func testPermanentDeleteByUser(t *testing.T, ss store.Store) {
@@ -805,7 +802,6 @@ func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
 	}
 
 	require.False(t, post4IdFound, "Wrong reaction returned")
-
 }
 
 // testReactionDeadlock is a best-case attempt to recreate the deadlock scenario.
