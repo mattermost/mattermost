@@ -68,7 +68,7 @@ func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 	}
 }
 
-func (rp *RemoteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (rp *RemoteProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PermissionManageSecureConnections) {
 		return responsef(args.T("api.command_remote.permission_required", map[string]any{"Permission": "manage_secure_connections"}))
 	}
