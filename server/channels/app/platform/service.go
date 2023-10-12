@@ -370,7 +370,6 @@ func (ps *PlatformService) Start() error {
 		ps.Go(func() {
 			ps.Publish(message)
 		})
-
 	})
 	return nil
 }

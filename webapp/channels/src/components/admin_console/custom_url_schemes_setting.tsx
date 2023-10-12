@@ -1,14 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent} from 'react';
-
-import LocalizedInput from 'components/localized_input/localized_input';
-
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
+import {injectIntl, type IntlShape} from 'react-intl';
 
 import Setting from './setting';
 
@@ -18,24 +13,15 @@ type Props = {
     onChange: (id: string, valueAsArray: string[]) => void;
     disabled: boolean;
     setByEnv: boolean;
+    intl: IntlShape;
 }
 
 type State = {
     value: string;
 }
 
-export default class CustomURLSchemesSetting extends
+class CustomURLSchemesSetting extends
     PureComponent<Props, State> {
-    static get propTypes() {
-        return {
-            id: PropTypes.string.isRequired,
-            value: PropTypes.array.isRequired,
-            onChange: PropTypes.func.isRequired,
-            disabled: PropTypes.bool,
-            setByEnv: PropTypes.bool.isRequired,
-        };
-    }
-
     constructor(props: Props) {
         super(props);
 
@@ -63,24 +49,24 @@ export default class CustomURLSchemesSetting extends
     };
 
     render() {
-        const label = Utils.localizeMessage('admin.customization.customUrlSchemes', 'Custom URL Schemes:');
-        const helpText = Utils.localizeMessage(
-            'admin.customization.customUrlSchemesDesc',
-            'Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".',
-        );
-
         return (
             <Setting
-                label={label}
-                helpText={helpText}
+                label={this.props.intl.formatMessage({
+                    id: 'admin.customization.customUrlSchemes',
+                    defaultMessage: 'Custom URL Schemes:',
+                })}
+                helpText={this.props.intl.formatMessage({
+                    id: 'admin.customization.customUrlSchemesDesc',
+                    defaultMessage: 'Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".',
+                })}
                 inputId={this.props.id}
                 setByEnv={this.props.setByEnv}
             >
-                <LocalizedInput
+                <input
                     id={this.props.id}
                     className='form-control'
                     type='text'
-                    placeholder={{id: t('admin.customization.customUrlSchemesPlaceholder'), defaultMessage: 'E.g.: "git,smtp"'}}
+                    placeholder={this.props.intl.formatMessage({id: 'admin.customization.customUrlSchemesPlaceholder', defaultMessage: 'E.g.: "git,smtp"'})}
                     value={this.state.value}
                     onChange={this.handleChange}
                     disabled={this.props.disabled || this.props.setByEnv}
@@ -89,3 +75,5 @@ export default class CustomURLSchemesSetting extends
         );
     }
 }
+
+export default injectIntl(CustomURLSchemesSetting);

@@ -33,7 +33,7 @@ func (a *App) createDefaultChannelMemberships(c request.CTX, params model.Create
 			return err
 		}
 
-		tmem, err := a.GetTeamMember(channel.TeamId, userChannel.UserID)
+		tmem, err := a.GetTeamMember(c, channel.TeamId, userChannel.UserID)
 		if err != nil && err.Id != "app.team.get_member.missing.app_error" {
 			return err
 		}

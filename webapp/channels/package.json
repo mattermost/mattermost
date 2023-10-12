@@ -178,7 +178,8 @@
     "stylelint-scss": "3.19.0",
     "webpack-bundle-analyzer": "4.7.0",
     "webpack-pwa-manifest": "4.3.0",
-    "yargs": "16.2.0"
+    "yargs": "16.2.0",
+    "yup": "0.32.11"
   },
   "scripts": {
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",

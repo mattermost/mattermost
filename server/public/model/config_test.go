@@ -50,7 +50,6 @@ func TestConfigDefaults(t *testing.T) {
 				if assert.False(t, v.IsNil(), "%s should be non-nil after SetDefaults()", name) {
 					recursivelyUninitialize(config, fmt.Sprintf("(*%s)", name), v.Elem())
 				}
-
 			} else if v.Type().Kind() == reflect.Struct {
 				for i := 0; i < v.NumField(); i++ {
 					recursivelyUninitialize(config, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), v.Field(i))
@@ -728,7 +727,6 @@ func TestDisplaySettingsIsValidCustomURLSchemes(t *testing.T) {
 }
 
 func TestListenAddressIsValidated(t *testing.T) {
-
 	testValues := map[string]bool{
 		":8065":                true,
 		":9917":                true,
@@ -766,7 +764,6 @@ func TestListenAddressIsValidated(t *testing.T) {
 			require.Equal(t, "model.config.is_valid.listen_address.app_error", appErr.Message)
 		}
 	}
-
 }
 
 func TestImageProxySettingsSetDefaults(t *testing.T) {
@@ -1332,7 +1329,6 @@ func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
 	cfg.SetDefaults()
 	require.NotNil(t, cfg.FeatureFlags)
 	require.Equal(t, "somevalue", cfg.FeatureFlags.TestFeature)
-
 }
 
 func TestConfigImportSettingsDefaults(t *testing.T) {

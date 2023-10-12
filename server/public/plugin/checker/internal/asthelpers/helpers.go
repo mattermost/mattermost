@@ -65,7 +65,6 @@ func FindMethodsCalledOnType(info *types.Info, typ types.Type, caller *ast.FuncD
 
 	ast.Inspect(caller, func(n ast.Node) bool {
 		if s, ok := n.(*ast.SelectorExpr); ok {
-
 			var receiver *ast.Ident
 			switch r := s.X.(type) {
 			case *ast.Ident:
@@ -90,7 +89,6 @@ func FindMethodsCalledOnType(info *types.Info, typ types.Type, caller *ast.FuncD
 				}
 				return false
 			}
-
 		}
 		return true
 	})

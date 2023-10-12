@@ -720,7 +720,6 @@ func (t *UploadFileTask) init(a *App) {
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
-
 	t := &UploadFileTask{
 		ChannelId:   filepath.Base(channelID),
 		Name:        filepath.Base(name),
