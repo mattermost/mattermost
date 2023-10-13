@@ -49,9 +49,9 @@ jobs:
       - name: Run mmctl Tests
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
-            export TESTFLAGS="-timeout 30m -race"
+            export TESTFLAGS="-timeout 90m -race"
           else
-            export TESTFLAGS="-timeout 30m"
+            export TESTFLAGS="-timeout 90m -race"
           fi
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
