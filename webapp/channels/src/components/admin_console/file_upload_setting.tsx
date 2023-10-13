@@ -9,14 +9,14 @@ import * as Utils from 'utils/utils';
 import Setting from './setting';
 
 type Props = {
-    id: string
-    label: React.ReactNode
-    helpText?: React.ReactNode,
-    uploadingText?: React.ReactNode,
-    onSubmit: (id: string, file: File, errorCallback: (error: string) => void) => void
-    disabled: boolean,
-    fileType: string,
-    error?: string,
+    id: string;
+    label: React.ReactNode;
+    helpText?: React.ReactNode;
+    uploadingText?: React.ReactNode;
+    onSubmit: (id: string, file: File, errorCallback: (error: string) => void) => void;
+    disabled: boolean;
+    fileType: string;
+    error?: string;
 }
 
 type State = {
@@ -27,7 +27,7 @@ type State = {
 }
 
 export default class FileUploadSetting extends React.PureComponent<Props, State> {
-    fileInputRef = React.createRef<HTMLInputElement>()
+    fileInputRef = React.createRef<HTMLInputElement>();
 
     constructor(props: Props) {
         super(props);
