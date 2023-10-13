@@ -3,24 +3,38 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import {DocLinks, JobTypes, exportFormats} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
 
+import type {AdminConfig} from '@mattermost/types/config';
+import type {Job} from '@mattermost/types/jobs';
+
+import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
+import type {BaseProps, BaseState} from './admin_settings';
 import AdminSettings from './admin_settings';
-import BooleanSetting from './boolean_setting';
+import BooleanSetting from './boolean_setting';``
 import DropdownSetting from './dropdown_setting';
 import JobsTable from './jobs';
 import RadioSetting from './radio_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-export default class MessageExportSettings extends AdminSettings {
-    getConfigFromState = (config) => {
+interface State extends BaseState {
+    enableComplianceExport: AdminConfig['MessageExportSettings']['EnableExport'];
+    exportFormat: AdminConfig['MessageExportSettings']['ExportFormat'];
+    exportJobStartTime: AdminConfig['MessageExportSettings']['DailyRunTime'];
+    globalRelayCustomerType: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['CustomerType'];
+    globalRelaySMTPUsername: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPUsername'];
+    globalRelaySMTPPassword: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPPassword'];
+    globalRelayEmailAddress: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['EmailAddress'];
+    globalRelaySMTPServerTimeout: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPServerTimeout'];
+}
+
+class MessageExportSettings extends AdminSettings<BaseProps, State> {
+    getConfigFromState = (config: AdminConfig) => {
         config.MessageExportSettings.EnableExport = this.state.enableComplianceExport;
         config.MessageExportSettings.ExportFormat = this.state.exportFormat;
         config.MessageExportSettings.DailyRunTime = this.state.exportJobStartTime;
@@ -31,18 +45,26 @@ export default class MessageExportSettings extends AdminSettings {
                 SMTPUsername: this.state.globalRelaySMTPUsername,
                 SMTPPassword: this.state.globalRelaySMTPPassword,
                 EmailAddress: this.state.globalRelayEmailAddress,
-
+                SMTPServerTimeout: this.state.globalRelaySMTPServerTimeout,
             };
         }
         return config;
     };
 
-    getStateFromConfig(config) {
-        const state = {
+    getStateFromConfig(config: AdminConfig) {
+        const state: State = {
             enableComplianceExport: config.MessageExportSettings.EnableExport,
             exportFormat: config.MessageExportSettings.ExportFormat,
             exportJobStartTime: config.MessageExportSettings.DailyRunTime,
-            canRunJob: config.MessageExportSettings.EnableExport,
+            globalRelayCustomerType: '',
+            globalRelaySMTPUsername: '',
+            globalRelaySMTPPassword: '',
+            globalRelayEmailAddress: '',
+            globalRelaySMTPServerTimeout: 0,
+            saveNeeded: false,
+            saving: false,
+            serverError: null,
+            errorTooltip: false,
         };
         if (config.MessageExportSettings.GlobalRelaySettings) {
             state.globalRelayCustomerType = config.MessageExportSettings.GlobalRelaySettings.CustomerType;
@@ -53,7 +75,7 @@ export default class MessageExportSettings extends AdminSettings {
         return state;
     }
 
-    getJobDetails = (job) => {
+    getJobDetails = (job: Job) => {
         if (job.data) {
             const message = [];
             if (job.data.messages_exported) {
@@ -246,7 +268,7 @@ export default class MessageExportSettings extends AdminSettings {
                             id='admin.service.complianceExportDesc'
                             defaultMessage='When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more.'
                             values={{
-                                link: (msg) => (
+                                link: (msg: React.ReactNode) => (
                                     <ExternalLink
                                         href={DocLinks.COMPILANCE_EXPORT}
                                         location='message_export_settings'
@@ -317,9 +339,11 @@ export default class MessageExportSettings extends AdminSettings {
                         />
                     }
                     getExtraInfoText={this.getJobDetails}
-                    disabled={this.props.isDisabled || !this.state.canRunJob}
+                    disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             </SettingsGroup>
         );
     };
 }
+
+export default MessageExportSettings;
