@@ -15,17 +15,17 @@ const broadcastTest = "test_broadcast_hook"
 
 type testBroadcastHook struct{}
 
-func (h *testBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) bool {
-	return args["makes_changes"].(bool)
+func (h *testBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) (bool, error) {
+	return args["makes_changes"].(bool), nil
 }
 
-func (h *testBroadcastHook) Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) *model.WebSocketEvent {
+func (h *testBroadcastHook) Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) (*model.WebSocketEvent, error) {
 	if args["makes_changes"].(bool) {
 		changesMade, _ := msg.GetData()["changes_made"].(int)
 		msg.Add("changes_made", changesMade+1)
 	}
 
-	return msg
+	return msg, nil
 }
 
 func TestRunBroadcastHooks(t *testing.T) {

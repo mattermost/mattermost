@@ -4,15 +4,16 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 )
 
 const (
 	broadcastAddMentions  = "add_mentions"
-	broadcastAddFollowers = "addfollowers"
+	broadcastAddFollowers = "add_followers"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -24,26 +25,24 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 
 type addMentionsBroadcastHook struct{}
 
-func (h *addMentionsBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) bool {
+func (h *addMentionsBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (bool, error) {
 	if msg.EventType() != model.WebsocketEventPosted {
-		return false
+		return false, nil
 	}
 
 	mentions, ok := args["mentions"].(model.StringArray)
 	if !ok {
-		mlog.Warn("Invalid mentions value passed to addMentionsBroadcastHook", mlog.Any("mentions", args["mentions"]))
-		return false
+		return false, fmt.Errorf("Invalid mentions value passed to addMentionsBroadcastHook: %v", args["mentions"])
 	}
 
 	// This hook will only modify the event if the current user is mentioned by the post
-	return pUtils.Contains[string](mentions, webConn.UserId)
+	return pUtils.Contains[string](mentions, webConn.UserId), nil
 }
 
-func (h *addMentionsBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) *model.WebSocketEvent {
+func (h *addMentionsBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (*model.WebSocketEvent, error) {
 	mentions, ok := args["mentions"].(model.StringArray)
 	if !ok {
-		mlog.Warn("Invalid mentions value passed to addMentionsBroadcastHook", mlog.Any("mentions", args["mentions"]))
-		return msg
+		return msg, fmt.Errorf("Invalid mentions value passed to addMentionsBroadcastHook: %v", args["mentions"])
 	}
 
 	hasMention := false
@@ -56,7 +55,7 @@ func (h *addMentionsBroadcastHook) Process(msg *model.WebSocketEvent, webConn *p
 		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
 	}
 
-	return msg
+	return msg, nil
 }
 
 func UseAddMentionsHook(message *model.WebSocketEvent, mentionedUsers model.StringArray) {
@@ -67,26 +66,24 @@ func UseAddMentionsHook(message *model.WebSocketEvent, mentionedUsers model.Stri
 
 type addFollowersBroadcastHook struct{}
 
-func (h *addFollowersBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) bool {
+func (h *addFollowersBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (bool, error) {
 	if msg.EventType() != model.WebsocketEventPosted {
-		return false
+		return false, nil
 	}
 
 	followers, ok := args["followers"].(model.StringArray)
 	if !ok {
-		mlog.Warn("Invalid followers value passed to addFollowersBroadcastHook", mlog.Any("followers", args["followers"]))
-		return false
+		return false, fmt.Errorf("Invalid followers value passed to addFollowersBroadcastHook: %v", args["followers"])
 	}
 
 	// This hook will only modify the event if the current user is following the post
-	return pUtils.Contains[string](followers, webConn.UserId)
+	return pUtils.Contains[string](followers, webConn.UserId), nil
 }
 
-func (h *addFollowersBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) *model.WebSocketEvent {
+func (h *addFollowersBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (*model.WebSocketEvent, error) {
 	followers, ok := args["followers"].(model.StringArray)
 	if !ok {
-		mlog.Warn("Invalid followers value passed to addFollowersBroadcastHook", mlog.Any("followers", args["followers"]))
-		return msg
+		return msg, fmt.Errorf("Invalid followers value passed to addFollowersBroadcastHook: %v", args["followers"])
 	}
 
 	isFollower := false
@@ -99,7 +96,7 @@ func (h *addFollowersBroadcastHook) Process(msg *model.WebSocketEvent, webConn *
 		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
 	}
 
-	return msg
+	return msg, nil
 }
 
 func UseAddFollowersHook(message *model.WebSocketEvent, followers model.StringArray) {

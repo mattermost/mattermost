@@ -3,14 +3,17 @@
 
 package platform
 
-import "github.com/mattermost/mattermost/server/public/model"
+import (
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
 
 type BroadcastHook interface {
 	// ShouldProcess returns true if the BroadcastHook wants to make changes to the WebSocketEvent.
-	ShouldProcess(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) bool
+	ShouldProcess(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) (bool, error)
 
 	// Process takes a WebSocketEvent and modifies it in some way. It is passed a deep copy of the WebSocketEvent.
-	Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) *model.WebSocketEvent
+	Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) (*model.WebSocketEvent, error)
 }
 
 func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hookIDs []string, hookArgs []map[string]any) *model.WebSocketEvent {
@@ -25,10 +28,16 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 		hook := h.broadcastHooks[hookID]
 		args := hookArgs[i]
 		if hook == nil {
+			mlog.Error("runBroadcastHooks: Unable to find broadcast hook", mlog.String("hook_id", hookID))
 			continue
 		}
 
-		if hook.ShouldProcess(msg, webConn, args) {
+		hookHasChanges, err := hook.ShouldProcess(msg, webConn, args)
+		if err != nil {
+			mlog.Error("runBroadcastHooks: Encountered error running ShouldProcess for broadcast hook", mlog.Err(err))
+		}
+
+		if hookHasChanges {
 			hasChanges = true
 			break
 		}
@@ -48,7 +57,10 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 			continue
 		}
 
-		hook.Process(msg, webConn, args)
+		_, err := hook.Process(msg, webConn, args)
+		if err != nil {
+			mlog.Error("Encountered error running Process for broadcast hook", mlog.Err(err))
+		}
 	}
 
 	return msg

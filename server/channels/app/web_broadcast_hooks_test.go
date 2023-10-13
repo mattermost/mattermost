@@ -28,7 +28,9 @@ func TestAddMentionsHook_ShouldProcess(t *testing.T) {
 			"mentions": model.StringArray{userID, otherUserID},
 		}
 
-		assert.Equal(t, true, hook.ShouldProcess(msg, webConn, args))
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, true, result)
 	})
 
 	t.Run("should not make changes to a new post event only mentioning another user", func(t *testing.T) {
@@ -36,7 +38,9 @@ func TestAddMentionsHook_ShouldProcess(t *testing.T) {
 			"mentions": model.StringArray{otherUserID},
 		}
 
-		assert.Equal(t, false, hook.ShouldProcess(msg, webConn, args))
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, false, result)
 	})
 
 	t.Run("should not make changes other types of events", func(t *testing.T) {
@@ -44,9 +48,17 @@ func TestAddMentionsHook_ShouldProcess(t *testing.T) {
 			"followers": model.StringArray{otherUserID, userID},
 		}
 
-		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", "", nil, ""), webConn, args))
-		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", "", nil, ""), webConn, args))
-		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventDeleteTeam, "", "", "", nil, ""), webConn, args))
+		result, err := hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", "", nil, ""), webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, false, result)
+
+		result, err = hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", "", nil, ""), webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, false, result)
+
+		result, err = hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventDeleteTeam, "", "", "", nil, ""), webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, false, result)
 	})
 }
 
@@ -102,7 +114,9 @@ func TestAddFollowersHook_ShouldProcess(t *testing.T) {
 			"followers": model.StringArray{otherUserID, userID},
 		}
 
-		assert.Equal(t, true, hook.ShouldProcess(msg, webConn, args))
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, true, result)
 	})
 
 	t.Run("should not make changes to a new post event only followed by another user", func(t *testing.T) {
@@ -110,7 +124,9 @@ func TestAddFollowersHook_ShouldProcess(t *testing.T) {
 			"followers": model.StringArray{otherUserID},
 		}
 
-		assert.Equal(t, false, hook.ShouldProcess(msg, webConn, args))
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, false, result)
 	})
 
 	t.Run("should not make changes other types of events", func(t *testing.T) {
@@ -118,9 +134,17 @@ func TestAddFollowersHook_ShouldProcess(t *testing.T) {
 			"followers": model.StringArray{otherUserID, userID},
 		}
 
-		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", "", nil, ""), webConn, args))
-		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", "", nil, ""), webConn, args))
-		assert.Equal(t, false, hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventDeleteTeam, "", "", "", nil, ""), webConn, args))
+		result, err := hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", "", nil, ""), webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, false, result)
+
+		result, err = hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", "", nil, ""), webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, false, result)
+
+		result, err = hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventDeleteTeam, "", "", "", nil, ""), webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, false, result)
 	})
 }
 
