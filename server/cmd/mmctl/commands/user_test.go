@@ -379,7 +379,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
-		s.Require().NotNil(err) 
+		s.Require().NotNil(err)
 		s.Require().Equal("1 error occurred:\n\t* could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell\n\n", err.Error())
 	})
 
