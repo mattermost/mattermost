@@ -84,21 +84,6 @@ func TestAddMentionsHook_Process(t *testing.T) {
 
 		assert.Nil(t, msg.GetData()["mentions"])
 	})
-
-	t.Run("should not mutate the data of the provided event", func(t *testing.T) {
-		msg := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
-
-		originalData := msg.GetData()
-
-		require.Nil(t, originalData["mentions"])
-
-		hook.Process(msg, webConn, map[string]any{
-			"mentions": model.StringArray{userID},
-		})
-
-		assert.Nil(t, originalData["mentions"])
-		assert.Equal(t, `["`+userID+`"]`, msg.GetData()["mentions"])
-	})
 }
 
 func TestAddFollowersHook_ShouldProcess(t *testing.T) {
@@ -172,21 +157,6 @@ func TestAddFollowersHook_Process(t *testing.T) {
 
 		assert.Nil(t, msg.GetData()["followers"])
 	})
-
-	t.Run("should not mutate the data of the provided event", func(t *testing.T) {
-		msg := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
-
-		originalData := msg.GetData()
-
-		require.Nil(t, originalData["followers"])
-
-		hook.Process(msg, webConn, map[string]any{
-			"followers": model.StringArray{userID},
-		})
-
-		assert.Nil(t, originalData["followers"])
-		assert.Equal(t, `["`+userID+`"]`, msg.GetData()["followers"])
-	})
 }
 
 func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
@@ -216,10 +186,5 @@ func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 	t.Run("should be able to add both mentions and followers to a single event", func(t *testing.T) {
 		assert.Equal(t, `["`+userID+`"]`, msg.GetData()["followers"])
 		assert.Equal(t, `["`+userID+`"]`, msg.GetData()["mentions"])
-	})
-
-	t.Run("should not mutate the data of the provided event", func(t *testing.T) {
-		assert.Nil(t, originalData["mentions"])
-		assert.Nil(t, originalData["followers"])
 	})
 }

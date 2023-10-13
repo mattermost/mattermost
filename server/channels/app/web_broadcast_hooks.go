@@ -53,7 +53,7 @@ func (h *addMentionsBroadcastHook) Process(msg *model.WebSocketEvent, webConn *p
 
 	if hasMention {
 		// Note that the client expects this field to be stringified
-		msg.AddWithCopy("mentions", model.ArrayToJSON([]string{webConn.UserId}))
+		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
 	}
 
 	return msg
@@ -96,7 +96,7 @@ func (h *addFollowersBroadcastHook) Process(msg *model.WebSocketEvent, webConn *
 
 	if isFollower {
 		// Note that the client expects this field to be stringified
-		msg.AddWithCopy("followers", model.ArrayToJSON([]string{webConn.UserId}))
+		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
 	}
 
 	return msg

@@ -9,8 +9,7 @@ type BroadcastHook interface {
 	// ShouldProcess returns true if the BroadcastHook wants to make changes to the WebSocketEvent.
 	ShouldProcess(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) bool
 
-	// Process takes a WebSocketEvent and modifies it in some way. It is passed a shallow copy of the WebSocketEvent,
-	// so if any nested fields such as data are modified, those need to be done using methods such as AddWithCopy.
+	// Process takes a WebSocketEvent and modifies it in some way. It is passed a deep copy of the WebSocketEvent.
 	Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) *model.WebSocketEvent
 }
 
@@ -39,8 +38,8 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 		return msg
 	}
 
-	// Shallowly copy the event and remove any precomputed JSON since one or more hooks wants to make changes to it
-	msg = msg.RemovePrecomputedJSON()
+	// Copy the event and remove any precomputed JSON since one or more hooks wants to make changes to it
+	msg = msg.DeepCopy().RemovePrecomputedJSON()
 
 	for i, hookID := range hookIDs {
 		hook := h.broadcastHooks[hookID]

@@ -22,7 +22,7 @@ func (h *testBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *We
 func (h *testBroadcastHook) Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) *model.WebSocketEvent {
 	if args["makes_changes"].(bool) {
 		changesMade, _ := msg.GetData()["changes_made"].(int)
-		msg.AddWithCopy("changes_made", changesMade+1)
+		msg.Add("changes_made", changesMade+1)
 	}
 
 	return msg
