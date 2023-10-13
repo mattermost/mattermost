@@ -1051,7 +1051,6 @@ func getExplicitMentions(post *model.Post, keywords map[string][]string, groups 
 	buf := ""
 	mentionsEnabledFields := getMentionsEnabledFields(post)
 	for _, message := range mentionsEnabledFields {
-
 		// Parse the text as Markdown, combining adjacent Text nodes into a single string for processing
 		markdown.Inspect(message, func(node any) bool {
 			text, ok := node.(*markdown.Text)
