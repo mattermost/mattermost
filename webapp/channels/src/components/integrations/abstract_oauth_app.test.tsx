@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React from 'react';
+import React, {type ChangeEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import AbstractOAuthApp from 'components/integrations/abstract_oauth_app.jsx';
+import AbstractOAuthApp from 'components/integrations/abstract_oauth_app';
+
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/AbstractOAuthApp', () => {
-    const team = {name: 'test'};
     const header = {id: 'Header', defaultMessage: 'Header'};
     const footer = {id: 'Footer', defaultMessage: 'Footer'};
     const loading = {id: 'Loading', defaultMessage: 'Loading'};
@@ -25,19 +26,23 @@ describe('components/integrations/AbstractOAuthApp', () => {
         update_at: 1501365458934,
         callback_urls: ['https://test.com/callback', 'https://test.com/callback2'],
     };
+
     const action = jest.fn().mockImplementation(
         () => {
-            return new Promise((resolve) => {
+            return new Promise<void>((resolve) => {
                 process.nextTick(() => resolve());
             });
         },
     );
+
+    const team = TestHelper.getTeamMock({name: 'test', id: initialApp.id});
+
     const baseProps = {
         team,
         header,
         footer,
         loading,
-        renderExtra: 'renderExtra',
+        renderExtra: <div>{'renderExtra'}</div>,
         serverError: '',
         initialApp,
         action: jest.fn(),
@@ -82,81 +87,89 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     test('should have correct state when updateName is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
-
-        wrapper.instance().updateName({target: {value: 'new name'}});
+        const evt = {preventDefault: jest.fn(), target: {value: 'new name'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateName(evt);
         expect(wrapper.state('name')).toEqual('new name');
-
-        wrapper.instance().updateName({target: {value: 'other name'}});
-        expect(wrapper.state('name')).toEqual('other name');
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'another name'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateName(evt2);
+        expect(wrapper.state('name')).toEqual('another name');
     });
 
     test('should have correct state when updateTrusted is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
-        wrapper.instance().updateTrusted({target: {value: 'false'}});
+        const evt = {preventDefault: jest.fn(), target: {value: 'false'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateTrusted(evt);
         expect(wrapper.state('is_trusted')).toEqual(false);
 
-        wrapper.instance().updateTrusted({target: {value: 'true'}});
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'true'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateTrusted(evt2);
         expect(wrapper.state('is_trusted')).toEqual(true);
     });
 
     test('should have correct state when updateDescription is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
-        wrapper.instance().updateDescription({target: {value: 'new description'}});
+        const evt = {preventDefault: jest.fn(), target: {value: 'new description'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateDescription(evt);
         expect(wrapper.state('description')).toEqual('new description');
 
-        wrapper.instance().updateDescription({target: {value: 'another description'}});
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'another description'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateDescription(evt2);
         expect(wrapper.state('description')).toEqual('another description');
     });
 
     test('should have correct state when updateHomepage is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
-        wrapper.instance().updateHomepage({target: {value: 'new homepage'}});
+        const evt = {preventDefault: jest.fn(), target: {value: 'new homepage'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateHomepage(evt);
         expect(wrapper.state('homepage')).toEqual('new homepage');
 
-        wrapper.instance().updateHomepage({target: {value: 'another homepage'}});
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'another homepage'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateHomepage(evt2);
         expect(wrapper.state('homepage')).toEqual('another homepage');
     });
 
     test('should have correct state when updateIconUrl is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
         wrapper.setState({has_icon: true});
-        wrapper.instance().updateIconUrl({target: {value: 'https://test.com/new_icon_url'}});
+        const evt = {preventDefault: jest.fn(), target: {value: 'https://test.com/new_icon_url'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateIconUrl(evt);
         expect(wrapper.state('icon_url')).toEqual('https://test.com/new_icon_url');
         expect(wrapper.state('has_icon')).toEqual(false);
 
         wrapper.setState({has_icon: true});
-        wrapper.instance().updateIconUrl({target: {value: 'https://test.com/another_icon_url'}});
+        const evt2 = {preventDefault: jest.fn(), target: {value: 'https://test.com/another_icon_url'}} as unknown as ChangeEvent<HTMLInputElement>;
+        wrapper.instance().updateIconUrl(evt2);
         expect(wrapper.state('icon_url')).toEqual('https://test.com/another_icon_url');
         expect(wrapper.state('has_icon')).toEqual(false);
     });
 
     test('should have correct state when handleSubmit is called', () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        const wrapper = shallow<AbstractOAuthApp>(
             <AbstractOAuthApp {...props}/>,
         );
 
         const newState = {saving: false, name: 'name', description: 'description', homepage: 'homepage'};
-        const evt = {preventDefault: jest.fn()};
+        const evt = {preventDefault: jest.fn()} as any;
         wrapper.setState({saving: true});
         wrapper.instance().handleSubmit(evt);
         expect(evt.preventDefault).toHaveBeenCalled();
