@@ -36,7 +36,7 @@ esac
 AUTOMATION_DASHBOARD_URL="http://${AUTOMATION_DASHBOARD_IP}:4000/api"
 
 mme2e_log "Generating a signed JWT token for accessing the dashboard"
-${MME2E_DC_DASHBOARD} exec -T dashboard npm i
+${MME2E_DC_DASHBOARD} exec -T dashboard bash -c "rm -rf node_modules && npm install --cache /tmp/empty-cache"
 # shellcheck disable=SC2034
 AUTOMATION_DASHBOARD_TOKEN=$(${MME2E_DC_DASHBOARD} exec -T dashboard node script/sign.js | awk '{ print $2; }') # The token secret is specified in the dashboard.override.yml file
 
