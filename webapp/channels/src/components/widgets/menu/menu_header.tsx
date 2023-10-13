@@ -10,6 +10,10 @@ type Props = {
     onClick?: () => void;
 }
 
+/**
+ * @deprecated Use the "webapp/channels/src/components/menu" instead.
+ */
+
 const MenuHeader = ({children, onClick}: Props) => {
     return (
         <li
@@ -20,9 +24,5 @@ const MenuHeader = ({children, onClick}: Props) => {
         </li>
     );
 };
-
-/**
- * @deprecated Use the "webapp/channels/src/components/menu" instead.
- */
 
 export default React.memo(MenuHeader);
