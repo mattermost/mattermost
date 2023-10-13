@@ -203,7 +203,7 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
             id="interactive_dialog.cancel"
           />
         </button>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           autoFocus={false}
           className="btn btn-primary save-button"
           id="appsModalSubmit"
@@ -216,7 +216,7 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
             defaultMessage="Submit"
             id="interactive_dialog.submit"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </ModalFooter>
   </form>
