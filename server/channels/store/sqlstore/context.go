@@ -35,8 +35,8 @@ func RequestContextWithMaster(c request.CTX) request.CTX {
 	return c
 }
 
-// hasMaster is a helper function to check whether master DB should be selected or not.
-func hasMaster(ctx context.Context) bool {
+// HasMaster is a helper function to check whether master DB should be selected or not.
+func HasMaster(ctx context.Context) bool {
 	if v := ctx.Value(storeContextKey(useMaster)); v != nil {
 		if res, ok := v.(bool); ok && res {
 			return true
@@ -47,7 +47,7 @@ func hasMaster(ctx context.Context) bool {
 
 // DBXFromContext is a helper utility that returns the sqlx DB handle from a given context.
 func (ss *SqlStore) DBXFromContext(ctx context.Context) *sqlxDBWrapper {
-	if hasMaster(ctx) {
+	if HasMaster(ctx) {
 		return ss.GetMasterX()
 	}
 	return ss.GetReplicaX()

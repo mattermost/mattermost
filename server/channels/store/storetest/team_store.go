@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -1299,6 +1300,8 @@ func testGetMembers(t *testing.T, ss store.Store) {
 }
 
 func testTeamMembers(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	teamId1 := model.NewId()
 	teamId2 := model.NewId()
 
@@ -1318,8 +1321,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Len(t, ms, 1)
 	require.Equal(t, m3.UserId, ms[0].UserId)
 
-	ctx := context.Background()
-	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId, "", true)
+	ms, err = ss.Team().GetTeamsForUser(c, m1.UserId, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -1348,11 +1350,11 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.NoError(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", true)
+	ms, err = ss.Team().GetTeamsForUser(c, uid, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 2)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid, teamId2, true)
+	ms, err = ss.Team().GetTeamsForUser(c, uid, teamId2, true)
 	require.NoError(t, err)
 	require.Len(t, ms, 1)
 
@@ -1360,18 +1362,18 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, err = ss.Team().UpdateMember(m4)
 	require.NoError(t, err)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", true)
+	ms, err = ss.Team().GetTeamsForUser(c, uid, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 2)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", false)
+	ms, err = ss.Team().GetTeamsForUser(c, uid, "", false)
 	require.NoError(t, err)
 	require.Len(t, ms, 1)
 
 	nErr = ss.Team().RemoveAllMembersByUser(uid)
 	require.NoError(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId, "", true)
+	ms, err = ss.Team().GetTeamsForUser(c, m1.UserId, "", true)
 	require.NoError(t, err)
 	require.Empty(t, ms)
 }
@@ -2974,6 +2976,8 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 }
 
 func testGetTeamMember(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	teamId1 := model.NewId()
 
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
@@ -2981,17 +2985,17 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	var rm1 *model.TeamMember
-	rm1, err := ss.Team().GetMember(context.Background(), m1.TeamId, m1.UserId)
+	rm1, err := ss.Team().GetMember(c, m1.TeamId, m1.UserId)
 	require.NoError(t, err)
 
 	require.Equal(t, rm1.TeamId, m1.TeamId, "bad team id")
 
 	require.Equal(t, rm1.UserId, m1.UserId, "bad user id")
 
-	_, err = ss.Team().GetMember(context.Background(), m1.TeamId, "")
+	_, err = ss.Team().GetMember(c, m1.TeamId, "")
 	require.Error(t, err, "empty user id - should have failed")
 
-	_, err = ss.Team().GetMember(context.Background(), "", m1.UserId)
+	_, err = ss.Team().GetMember(c, "", m1.UserId)
 	require.Error(t, err, "empty team id - should have failed")
 
 	// Test with a custom team scheme.
@@ -3021,7 +3025,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(m2, -1)
 	require.NoError(t, nErr)
 
-	m3, err := ss.Team().GetMember(context.Background(), m2.TeamId, m2.UserId)
+	m3, err := ss.Team().GetMember(c, m2.TeamId, m2.UserId)
 	require.NoError(t, err)
 	t.Log(m3)
 
@@ -3031,7 +3035,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(m4, -1)
 	require.NoError(t, nErr)
 
-	m5, err := ss.Team().GetMember(context.Background(), m4.TeamId, m4.UserId)
+	m5, err := ss.Team().GetMember(c, m4.TeamId, m4.UserId)
 	require.NoError(t, err)
 
 	assert.Equal(t, s2.DefaultTeamGuestRole, m5.Roles)
@@ -3198,7 +3202,6 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 }
 
 func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
-
 	// team icon initially updated a second ago
 	lastTeamIconUpdateInitial := model.GetMillis() - 1000
 
@@ -3293,6 +3296,8 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 }
 
 func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	s1 := model.NewId()
 	t1 := &model.Team{
 		DisplayName: "Name",
@@ -3342,19 +3347,19 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 		}
 	}
 
-	tm1b, err := ss.Team().GetMember(context.Background(), tm1.TeamId, tm1.UserId)
+	tm1b, err := ss.Team().GetMember(c, tm1.TeamId, tm1.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "", tm1b.ExplicitRoles)
 	assert.True(t, tm1b.SchemeUser)
 	assert.True(t, tm1b.SchemeAdmin)
 
-	tm2b, err := ss.Team().GetMember(context.Background(), tm2.TeamId, tm2.UserId)
+	tm2b, err := ss.Team().GetMember(c, tm2.TeamId, tm2.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "", tm2b.ExplicitRoles)
 	assert.True(t, tm2b.SchemeUser)
 	assert.False(t, tm2b.SchemeAdmin)
 
-	tm3b, err := ss.Team().GetMember(context.Background(), tm3.TeamId, tm3.UserId)
+	tm3b, err := ss.Team().GetMember(c, tm3.TeamId, tm3.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "something_else", tm3b.ExplicitRoles)
 	assert.False(t, tm3b.SchemeUser)
@@ -3409,6 +3414,8 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 }
 
 func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	m1 := &model.TeamMember{
 		TeamId:        model.NewId(),
 		UserId:        model.NewId(),
@@ -3435,19 +3442,19 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 
 	require.NoError(t, (ss.Team().ClearAllCustomRoleAssignments()))
 
-	r1, err := ss.Team().GetMember(context.Background(), m1.TeamId, m1.UserId)
+	r1, err := ss.Team().GetMember(c, m1.TeamId, m1.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, m1.ExplicitRoles, r1.Roles)
 
-	r2, err := ss.Team().GetMember(context.Background(), m2.TeamId, m2.UserId)
+	r2, err := ss.Team().GetMember(c, m2.TeamId, m2.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, "team_user team_admin", r2.Roles)
 
-	r3, err := ss.Team().GetMember(context.Background(), m3.TeamId, m3.UserId)
+	r3, err := ss.Team().GetMember(c, m3.TeamId, m3.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, m3.ExplicitRoles, r3.Roles)
 
-	r4, err := ss.Team().GetMember(context.Background(), m4.TeamId, m4.UserId)
+	r4, err := ss.Team().GetMember(c, m4.TeamId, m4.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, "", r4.Roles)
 }
