@@ -537,6 +537,15 @@
     }
 }
 
+.post-body__info {
+    display: flex;
+    align-items: center;
+
+    .info-icon__container {
+        padding: 5px 5px 0 0;
+    }
+}
+
 .post-body__footer {
     display: inline-flex;
     align-items: center;

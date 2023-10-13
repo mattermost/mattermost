@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
+import {EmoticonPlusOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
@@ -512,6 +512,15 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             <div className='post-body__actions'>
                 {emojiPicker}
             </div>
+            {
+                editText.includes('@') && (
+                <div className='post-body__info'>
+                    <span className='info-icon__container'>
+                        <InformationOutlineIcon size={18} color='currentColor' />
+                    </span>
+                    <span>Editing this message with an '@mention' will not notify the recipient.</span>
+                </div>)
+            }
             <EditPostFooter
                 onSave={handleEdit}
                 onCancel={handleAutomatedRefocusAndExit}
