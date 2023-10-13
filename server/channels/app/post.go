@@ -1753,7 +1753,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 	}
 
 	keywords := addMentionKeywordsForUser(
-		map[string][]string{},
+		MentionKeywords{},
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
@@ -1836,7 +1836,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 	}
 
 	keywords := addMentionKeywordsForUser(
-		map[string][]string{},
+		MentionKeywords{},
 		user,
 		channelMember.NotifyProps,
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
@@ -1961,7 +1961,7 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	return mentioned
 }
 
-func isPostMention(user *model.User, post *model.Post, keywords map[string][]string, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
+func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
 	// Prevent the user from mentioning themselves
 	if post.UserId == user.Id && post.GetProp("from_webhook") != "true" {
 		return false

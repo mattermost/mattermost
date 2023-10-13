@@ -15,13 +15,13 @@ import (
 var _ MentionParser = &StandardMentionParser{}
 
 type StandardMentionParser struct {
-	keywords map[string][]string
+	keywords MentionKeywords
 	groups   map[string]*model.Group
 
 	results *MentionResults
 }
 
-func makeStandardMentionParser(keywords map[string][]string, groups map[string]*model.Group) *StandardMentionParser {
+func makeStandardMentionParser(keywords MentionKeywords, groups map[string]*model.Group) *StandardMentionParser {
 	return &StandardMentionParser{
 		keywords: keywords,
 		groups:   groups,
@@ -134,9 +134,13 @@ func (p *StandardMentionParser) checkForMention(word string) bool {
 	return false
 }
 
-func (p *StandardMentionParser) addMentions(ids []string, mentionType MentionType) {
+func (p *StandardMentionParser) addMentions(ids []MentionableID, mentionType MentionType) {
 	for _, id := range ids {
-		p.results.addMention(id, mentionType)
+		if userID, ok := id.AsUserID(); ok {
+			p.results.addMention(userID, mentionType)
+		} else if groupID, ok := id.AsGroupID(); ok {
+			p.results.GroupMentions[groupID] = &model.Group{}
+		}
 	}
 }
 
@@ -169,8 +173,8 @@ func checkForGroupMention(m *MentionResults, word string, groups map[string]*mod
 }
 
 // isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword
-func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bool) {
-	ids := []string{}
+func isKeywordMultibyte(keywords MentionKeywords, word string) ([]MentionableID, bool) {
+	ids := []MentionableID{}
 	match := false
 	var multibyteKeywords []string
 	for keyword := range keywords {

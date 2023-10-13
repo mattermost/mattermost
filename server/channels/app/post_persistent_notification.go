@@ -197,10 +197,10 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 	return nil
 }
 
-func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model.Channel, teamsMap map[string]*model.Team) (map[string]map[string]*model.Group, map[string]model.UserMap, map[string]map[string][]string, map[string]map[string]model.StringMap, error) {
+func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model.Channel, teamsMap map[string]*model.Team) (map[string]map[string]*model.Group, map[string]model.UserMap, map[string]MentionKeywords, map[string]map[string]model.StringMap, error) {
 	channelGroupMap := make(map[string]map[string]*model.Group, len(channelsMap))
 	channelProfileMap := make(map[string]model.UserMap, len(channelsMap))
-	channelKeywords := make(map[string]map[string][]string, len(channelsMap))
+	channelKeywords := make(map[string]MentionKeywords, len(channelsMap))
 	channelNotifyProps := make(map[string]map[string]model.StringMap, len(channelsMap))
 	for _, c := range channelsMap {
 		// In DM, notifications can't be send to any 3rd person.
@@ -225,14 +225,14 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 			return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
 		}
 
-		channelKeywords[c.Id] = make(map[string][]string, len(profileMap))
+		channelKeywords[c.Id] = make(MentionKeywords, len(profileMap))
 		validProfileMap := make(map[string]*model.User, len(profileMap))
-		for k, v := range profileMap {
-			if v.IsBot {
+		for userID, user := range profileMap {
+			if user.IsBot {
 				continue
 			}
-			validProfileMap[k] = v
-			channelKeywords[c.Id]["@"+v.Username] = []string{k}
+			validProfileMap[userID] = user
+			channelKeywords[c.Id].AddUser(userID, "@"+user.Username)
 		}
 		channelProfileMap[c.Id] = validProfileMap
 	}

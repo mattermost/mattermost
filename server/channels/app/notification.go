@@ -750,10 +750,10 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 	return nil
 }
 
-func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*MentionResults, map[string][]string) {
+func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*MentionResults, MentionKeywords) {
 	mentions := &MentionResults{}
 	var allowChannelMentions bool
-	var keywords map[string][]string
+	var keywords MentionKeywords
 
 	if channel.Type == model.ChannelTypeDirect {
 		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
@@ -1045,7 +1045,7 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(post *model.Post, keywords map[string][]string, groups map[string]*model.Group) *MentionResults {
+func getExplicitMentions(post *model.Post, keywords MentionKeywords, groups map[string]*model.Group) *MentionResults {
 	parser := makeStandardMentionParser(keywords, groups)
 
 	buf := ""
@@ -1168,8 +1168,8 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
-	keywords := make(map[string][]string)
+func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) MentionKeywords {
+	keywords := make(MentionKeywords)
 
 	for _, profile := range profiles {
 		addMentionKeywordsForUser(
@@ -1228,9 +1228,11 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 }
 
 // addMentionKeywordsForUser adds the mention keywords for a given user to the given keyword map. Returns the provided keyword map.
-func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User, channelNotifyProps map[string]string, status *model.Status, allowChannelMentions bool) map[string][]string {
+func addMentionKeywordsForUser(keywords MentionKeywords, profile *model.User, channelNotifyProps map[string]string, status *model.Status, allowChannelMentions bool) MentionKeywords {
+	mentionableID := MentionableUserID(profile.Id)
+
 	userMention := "@" + strings.ToLower(profile.Username)
-	keywords[userMention] = append(keywords[userMention], profile.Id)
+	keywords[userMention] = append(keywords[userMention], mentionableID)
 
 	// Add all the user's mention keys
 	for _, k := range profile.GetMentionKeys() {
@@ -1238,13 +1240,13 @@ func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User
 		key := strings.ToLower(k)
 
 		if key != "" {
-			keywords[key] = append(keywords[key], profile.Id)
+			keywords[key] = append(keywords[key], mentionableID)
 		}
 	}
 
 	// If turned on, add the user's case sensitive first name
 	if profile.NotifyProps[model.FirstNameNotifyProp] == "true" && profile.FirstName != "" {
-		keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
+		keywords[profile.FirstName] = append(keywords[profile.FirstName], mentionableID)
 	}
 
 	// Add @channel and @all to keywords if user has them turned on and the server allows them
@@ -1253,11 +1255,11 @@ func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User
 		ignoreChannelMentions := channelNotifyProps[model.IgnoreChannelMentionsNotifyProp] == model.IgnoreChannelMentionsOn || (channelNotifyProps[model.MarkUnreadNotifyProp] == model.UserNotifyMention && channelNotifyProps[model.IgnoreChannelMentionsNotifyProp] == model.IgnoreChannelMentionsDefault)
 
 		if profile.NotifyProps[model.ChannelMentionsNotifyProp] == "true" && !ignoreChannelMentions {
-			keywords["@channel"] = append(keywords["@channel"], profile.Id)
-			keywords["@all"] = append(keywords["@all"], profile.Id)
+			keywords["@channel"] = append(keywords["@channel"], mentionableID)
+			keywords["@all"] = append(keywords["@all"], mentionableID)
 
 			if status != nil && status.Status == model.StatusOnline {
-				keywords["@here"] = append(keywords["@here"], profile.Id)
+				keywords["@here"] = append(keywords["@here"], mentionableID)
 			}
 		}
 	}
