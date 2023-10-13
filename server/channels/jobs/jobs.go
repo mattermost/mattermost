@@ -297,7 +297,7 @@ func GenerateNextStartDateTime(now time.Time, nextStartTime time.Time) *time.Tim
 	nextTime := time.Date(now.Year(), now.Month(), now.Day(), nextStartTime.Hour(), nextStartTime.Minute(), 0, 0, time.Local)
 
 	if !now.Before(nextTime) {
-		nextTime = nextTime.AddDate(0, 1, 1)
+		nextTime = nextTime.AddDate(0, 0, 1)
 	}
 
 	return &nextTime
