@@ -216,6 +216,14 @@ export default class Client4 {
         this.defaultHeaders['Accept-Language'] = locale;
     }
 
+    setHeader(header: string, value: string) {
+        this.defaultHeaders[header] = value;
+    }
+
+    removeHeader(header: string) {
+        delete this.defaultHeaders[header];
+    }
+
     setEnableLogging(enable: boolean) {
         this.enableLogging = enable;
     }
