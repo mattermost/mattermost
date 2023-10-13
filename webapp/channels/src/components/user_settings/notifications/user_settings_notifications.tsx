@@ -19,6 +19,7 @@ import ExternalLink from 'components/external_link';
 import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
+import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import Constants, {NotificationLevels} from 'utils/constants';
 import {t} from 'utils/i18n';
@@ -31,6 +32,8 @@ import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
 
 import type {PropsFromRedux} from './index';
 import './user_settings_notifications.scss';
+
+const isHighlightWithoutNotificationDisabled = true;
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;
@@ -1008,6 +1011,29 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             collapsedDescription = this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.none', defaultMessage: 'None'});
         }
 
+        const collapsedEditButtonWhenDisabled = (
+            <RestrictedIndicator
+                feature='keysWithHighlight'
+                blocked={true}
+                useModal={true}
+                ctaExtraContent={
+                    <FormattedMessage
+                        id='user.settings.notifications.keywordsWithHighlight.professioal'
+                        defaultMessage='Professional'
+                    />
+                }
+                tooltipTitle={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipTitle',
+                    defaultMessage: 'Professional feature',
+                })}
+                tooltipMessageBlocked={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipTitle',
+                    defaultMessage:
+                    'This feature is available on the professional plan',
+                })}
+            />
+        );
+
         return (
             <SettingItem
                 title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (without notifications)'})}
@@ -1017,7 +1043,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 describe={collapsedDescription}
                 updateSection={this.handleUpdateSection}
                 max={expandedSection}
-                isDisabled={true}
+                isDisabled={isHighlightWithoutNotificationDisabled}
+                collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
             />);
     };
 
@@ -1267,52 +1294,68 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     </div>
                     <div className='divider-dark first'/>
                     <DesktopNotificationSettings
+                        active={this.props.activeSection === 'desktop'}
+                        updateSection={this.handleUpdateSection}
+                        onSubmit={this.handleSubmit}
+                        onCancel={this.handleCancel}
+                        saving={this.state.isSaving}
+                        error={this.state.serverError}
+                        setParentState={this.setStateValue}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
                         activity={this.state.desktopActivity}
                         threads={this.state.desktopThreads}
                         sound={this.state.desktopSound}
                         callsSound={this.state.callsDesktopSound}
-                        updateSection={this.handleUpdateSection}
-                        setParentState={this.setStateValue}
-                        submit={this.handleSubmit}
-                        saving={this.state.isSaving}
-                        cancel={this.handleCancel}
-                        error={this.state.serverError}
-                        active={this.props.activeSection === 'desktop'}
                         selectedSound={this.state.desktopNotificationSound || 'default'}
                         callsSelectedSound={this.state.callsNotificationSound || 'default'}
-                        isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
-                        areAllSectionsInactive={this.props.activeSection === ''}
                         isCallsRingingEnabled={this.props.isCallsRingingEnabled}
                     />
                     <div className='divider-light'/>
                     <EmailNotificationSetting
-                        activeSection={this.props.activeSection}
+                        active={this.props.activeSection === 'email'}
                         updateSection={this.handleUpdateSection}
-                        enableEmail={this.state.enableEmail === 'true'}
                         onSubmit={this.handleSubmit}
                         onCancel={this.handleCancel}
-                        onChange={this.handleEmailRadio}
                         saving={this.state.isSaving}
-                        serverError={this.state.serverError}
-                        isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
+                        error={this.state.serverError}
                         setParentState={this.setStateValue}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
+                        enableEmail={this.state.enableEmail === 'true'}
+                        onChange={this.handleEmailRadio}
                         threads={this.state.emailThreads || ''}
                     />
                     <div className='divider-light'/>
                     {pushNotificationSection}
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
-                    <div className='divider-light'/>
-                    {keywordsWithHighlightSection}
+                    {!isHighlightWithoutNotificationDisabled && (
+                        <>
+                            <div className='divider-light'/>
+                            {keywordsWithHighlightSection}
+                        </>
+                    )}
                     <div className='divider-light'/>
                     {!this.props.isCollapsedThreadsEnabled && (
                         <>
-                            {commentsSection}
                             <div className='divider-light'/>
+                            {commentsSection}
                         </>
                     )}
                     {this.props.enableAutoResponder && (
-                        autoResponderSection
+                        <>
+                            <div className='divider-light'/>
+                            {autoResponderSection}
+                        </>
+                    )}
+
+                    {/*  We placed the disabled items in the last */}
+                    {isHighlightWithoutNotificationDisabled && (
+                        <>
+                            <div className='divider-light'/>
+                            {keywordsWithHighlightSection}
+                        </>
                     )}
                     <div className='divider-dark'/>
                 </div>

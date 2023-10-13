@@ -5459,6 +5459,7 @@
   "user.settings.notifications.keywordsWithHighlight.extraInfo": "These keywords will be shown to you with a highlight when anyone sends a message that includes them.",
   "user.settings.notifications.keywordsWithHighlight.inputTitle": "Enter non case-sensitive keywords, press Tab or use commas to separate them:",
   "user.settings.notifications.keywordsWithHighlight.none": "None",
+  "user.settings.notifications.keywordsWithHighlight.professioal": "Professional",
   "user.settings.notifications.keywordsWithHighlight.title": "Keywords That Get Highlighted (without notifications)",
   "user.settings.notifications.keywordsWithNotification.extraInfo": "Notifications are triggered when someone sends a message that includes your username (\"@{username}\") or any of the options selected above.",
   "user.settings.notifications.keywordsWithNotification.title": "Keywords that trigger Notifications",

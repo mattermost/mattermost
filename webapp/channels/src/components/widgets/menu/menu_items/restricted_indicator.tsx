@@ -36,7 +36,7 @@ type Props = {
 }
 
 function capitalizeFirstLetter(s: string) {
-    return s.charAt(0).toUpperCase() + s.slice(1);
+    return s?.charAt(0)?.toUpperCase() + s?.slice(1);
 }
 
 const RestrictedIndicator = ({
@@ -108,7 +108,7 @@ const RestrictedIndicator = ({
             >
                 {useModal && blocked ? (
                     <ToggleModalButton
-                        id={`${feature}-restricted-indicator`.replaceAll('.', '_')}
+                        id={`${feature}-restricted-indicator`?.replaceAll('.', '_')}
                         className='RestrictedIndicator__button'
                         modalId={ModalIdentifiers.FEATURE_RESTRICTED_MODAL}
                         dialogType={FeatureRestrictedModal}

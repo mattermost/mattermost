@@ -11,6 +11,7 @@ import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {a11yFocus} from 'utils/utils';
 
@@ -30,7 +31,7 @@ type State = {
 }
 
 export default class ShowUnreadsCategory extends React.PureComponent<Props, State> {
-    minRef: RefObject<HTMLButtonElement>;
+    minRef: RefObject<SettingItemMinComponent>;
 
     constructor(props: Props) {
         super(props);

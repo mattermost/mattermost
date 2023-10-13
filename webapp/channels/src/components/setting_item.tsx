@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef, type ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode, RefObject} from 'react';
 
 import SettingItemMin from 'components/setting_item_min';
-
-import {a11yFocus} from 'utils/utils';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
 type Props = {
 
@@ -34,52 +34,44 @@ type Props = {
     title?: ReactNode;
     isDisabled?: boolean;
     describe?: ReactNode;
-};
 
-function SettingItem({
-    section = '',
-    title,
-    updateSection,
-    describe,
-    isDisabled,
-    active,
-    areAllSectionsInactive,
-    max,
-}: Props) {
-    const editButtonRef = useRef<HTMLButtonElement>(null);
-    const previouslyActive = useRef<boolean>(active);
-
-    useEffect(() => {
-        // console.log('SettingItem: useEffect: active: ', active, editButtonRef.current);
-
-        // We want to bring back focus to the edit button when the section is closed and all sections are closed
-        // since we need to know if the section was previously active, we are using a ref to store the previous value
-        if (previouslyActive.current && !active && areAllSectionsInactive) {
-            editButtonRef.current?.focus();
-            a11yFocus(editButtonRef.current);
-        }
-
-        previouslyActive.current = active;
-    }, [active, areAllSectionsInactive]);
-
-    if (active) {
-        return (
-            <>
-                {max}
-            </>
-        );
-    }
-
-    return (
-        <SettingItemMin
-            ref={editButtonRef}
-            title={title}
-            updateSection={updateSection}
-            describe={describe}
-            section={section}
-            isDisabled={isDisabled}
-        />
-    );
+    /**
+     * Replacement in place of edit button when the setting (in collapsed mode) is disabled
+     */
+    collapsedEditButtonWhenDisabled?: ReactNode;
 }
 
-export default SettingItem;
+export default class SettingItem extends React.PureComponent<Props> {
+    minRef: RefObject<SettingItemMinComponent>;
+
+    constructor(props: Props) {
+        super(props);
+
+        this.minRef = React.createRef();
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        // We want to bring back focus to the edit button when the section is opened and then closed along with all sections are closed
+        if (!this.props.active && prevProps.active && this.props.areAllSectionsInactive) {
+            this.minRef.current?.focus();
+        }
+    }
+
+    render() {
+        if (this.props.active) {
+            return this.props.max;
+        }
+
+        return (
+            <SettingItemMin
+                ref={this.minRef}
+                title={this.props.title}
+                updateSection={this.props.updateSection}
+                describe={this.props.describe}
+                section={this.props.section}
+                isDisabled={this.props.isDisabled}
+                collapsedEditButtonWhenDisabled={this.props.collapsedEditButtonWhenDisabled}
+            />
+        );
+    }
+}
