@@ -15,7 +15,7 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import type {BaseProps, BaseState} from './admin_settings';
 import AdminSettings from './admin_settings';
-import BooleanSetting from './boolean_setting';``
+import BooleanSetting from './boolean_setting';
 import DropdownSetting from './dropdown_setting';
 import JobsTable from './jobs';
 import RadioSetting from './radio_setting';
