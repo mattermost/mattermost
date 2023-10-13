@@ -205,7 +205,6 @@
 
         .suggestion-list__main {
             display: flex;
-            width: 100%;
             color: rgba(var(--center-channel-color-rgb), 1);
             white-space: nowrap;
 
@@ -213,6 +212,12 @@
                 margin-left: 8px;
                 color: rgba(var(--center-channel-color-rgb), 0.56);
             }
+        }
+
+        > span:nth-child(2) {
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     }
 
