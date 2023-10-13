@@ -18,6 +18,8 @@ type ApplyMarkdownReturnValue = {
 
 type ApplySpecificMarkdownOptions = ApplyMarkdownReturnValue & {
     delimiter?: string;
+    delimiterStart?: string;
+    delimiterEnd?: string;
 }
 
 export type ApplyLinkMarkdownOptions = ApplySpecificMarkdownOptions & {
@@ -270,8 +272,12 @@ const applyMarkdownToSelection = ({
     selectionStart,
     message,
     delimiter,
+    delimiterStart,
+    delimiterEnd,
 }: ApplySpecificMarkdownOptions) => {
-    if (!delimiter) {
+    const openingDelimiter = delimiterStart ?? delimiter;
+    const closingDelimiter = delimiterEnd ?? delimiter;
+    if (!openingDelimiter || !closingDelimiter) {
         /**
          * in case no delimiter is set return the values without changing anything
          */
@@ -292,7 +298,7 @@ const applyMarkdownToSelection = ({
     let suffix = message.slice(selectionEnd);
 
     // Does the selection have current hotkey's markdown?
-    const hasCurrentMarkdown = prefix.endsWith(delimiter) && suffix.startsWith(delimiter);
+    const hasCurrentMarkdown = prefix.endsWith(openingDelimiter) && suffix.startsWith(closingDelimiter);
 
     let newValue: string;
     let newStart = selectionStart;
@@ -312,14 +318,14 @@ const applyMarkdownToSelection = ({
 
     if (hasCurrentMarkdown) {
         // selection already has the markdown, so we remove it here
-        newValue = prefix.slice(0, prefix.length - delimiter.length) + selection + suffix.slice(delimiter.length);
-        newStart -= delimiter.length;
-        newEnd -= delimiter.length;
+        newValue = prefix.slice(0, prefix.length - openingDelimiter.length) + selection + suffix.slice(closingDelimiter.length);
+        newStart -= openingDelimiter.length;
+        newEnd -= closingDelimiter.length;
     } else {
         // add markdown to the selection
-        newValue = prefix + delimiter + selection + delimiter + suffix;
-        newStart += delimiter.length;
-        newEnd += delimiter.length;
+        newValue = prefix + openingDelimiter + selection + closingDelimiter + suffix;
+        newStart += openingDelimiter.length;
+        newEnd += closingDelimiter.length;
     }
 
     return {
@@ -493,65 +499,10 @@ export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = 
 
 function applyCodeMarkdown({selectionEnd, selectionStart, message}: ApplySpecificMarkdownOptions) {
     if (isSelectionMultiline(message, selectionStart, selectionEnd)) {
-        return applyCodeBlockToSelection({selectionEnd, selectionStart, message});
+        return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiterStart: '```\n', delimiterEnd: '\n```'});
     }
     return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter: '`'});
 }
-
-const applyCodeBlockToSelection = ({
-    selectionEnd,
-    selectionStart,
-    message,
-}: ApplySpecificMarkdownOptions) => {
-    // the part of the message that comes before the selection
-    let prefix = message.slice(0, selectionStart);
-
-    // the selected part of the message where the markdown needs to be added/removed
-    let selection = message.slice(selectionStart, selectionEnd);
-
-    // the part of the message that comes after the selection
-    let suffix = message.slice(selectionEnd);
-
-    const delimiterStart = '```\n';
-    const delimiterEnd = '\n```';
-
-    // Does the selection have current hotkey's markdown?
-    const hasCurrentMarkdown = prefix.endsWith(delimiterStart) && suffix.startsWith(delimiterEnd);
-
-    let newValue: string;
-    let newStart = selectionStart;
-    let newEnd = selectionEnd;
-
-    if (selection.endsWith(' ')) {
-        selection = selection.slice(0, -1);
-        suffix = ` ${suffix}`;
-        newEnd -= 1;
-    }
-
-    if (selection.startsWith(' ')) {
-        selection = selection.slice(1);
-        prefix = `${prefix} `;
-        newStart += 1;
-    }
-
-    if (hasCurrentMarkdown) {
-        // selection already has the markdown, so we remove it here
-        newValue = prefix.slice(0, prefix.length - delimiterStart.length) + selection + suffix.slice(delimiterEnd.length);
-        newStart -= delimiterStart.length;
-        newEnd -= delimiterEnd.length;
-    } else {
-        // add markdown to the selection
-        newValue = prefix + delimiterStart + selection + delimiterEnd + suffix;
-        newStart += delimiterStart.length;
-        newEnd += delimiterEnd.length;
-    }
-
-    return {
-        message: newValue,
-        selectionStart: newStart,
-        selectionEnd: newEnd,
-    };
-};
 
 function findWordEnd(text: string, start: number) {
     const wordEnd = text.indexOf(' ', start);
