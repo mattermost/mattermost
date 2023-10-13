@@ -51,7 +51,7 @@ import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import DataRetentionSettings from './data_retention_settings';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
-import DatabaseSettings from './database_settings.jsx';
+import DatabaseSettings from './database_settings';
 import ElasticSearchSettings from './elasticsearch_settings';
 import {
     LDAPFeatureDiscovery,
