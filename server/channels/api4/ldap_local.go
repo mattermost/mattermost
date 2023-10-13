@@ -12,5 +12,4 @@ func (api *API) InitLdapLocal() {
 	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APILocal(addLdapPrivateCertificate)).Methods("POST")
 	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APILocal(removeLdapPublicCertificate)).Methods("DELETE")
 	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APILocal(removeLdapPrivateCertificate)).Methods("DELETE")
-
 }

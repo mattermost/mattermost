@@ -95,7 +95,6 @@ func collectBatches(t *testing.T, info *[]testBatch, pchan chan testTelemetryPay
 }
 
 func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*TelemetryService, chan testTelemetryPayload, *model.Config, func()) {
-
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	serverIfaceMock, storeMock, deferredAssertions, cleanUp := initializeMocks(cfg, cloudLicense)

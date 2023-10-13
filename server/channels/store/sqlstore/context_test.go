@@ -14,5 +14,5 @@ func TestContextMaster(t *testing.T) {
 	ctx := context.Background()
 
 	m := WithMaster(ctx)
-	assert.True(t, hasMaster(m))
+	assert.True(t, HasMaster(m))
 }
