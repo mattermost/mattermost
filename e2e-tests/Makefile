@@ -69,7 +69,7 @@ prettier:
 	npx prettier ./.ci "!./.ci/dashboard" --write --cache
 fmt-ci: prettier
 ifeq ($(HAVE_SHFMT),yes)
-	shfmt -w -s -i 2 ./.ci
+	shfmt -w -s -i 2 ./.ci/*.sh
 endif
 ifeq ($(HAVE_SHELLCHECK),yes)
 	shellcheck ./.ci/*.sh ./.ci/.e2erc*
