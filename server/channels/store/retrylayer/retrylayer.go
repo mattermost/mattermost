@@ -1480,27 +1480,6 @@ func (s *RetryLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (ma
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetChannelsWithCursor(teamId, userId, opts, afterChannelID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 
 	tries := 0
@@ -1827,27 +1806,6 @@ func (s *RetryLayerChannelStore) GetMembersForUser(teamID string, userID string)
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetMembersForUser(teamID, userID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelStore) GetMembersForUserWithCursor(userID string, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetMembersForUserWithCursor(userID, teamID, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -3766,6 +3724,27 @@ func (s *RetryLayerDraftStore) Delete(userID string, channelID string, rootID st
 
 }
 
+func (s *RetryLayerDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
+
+	tries := 0
+	for {
+		err := s.DraftStore.DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerDraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
 
 	tries := 0
@@ -3802,6 +3781,27 @@ func (s *RetryLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userId string) (int64, string, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.DraftStore.GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
