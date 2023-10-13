@@ -570,7 +570,6 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 		if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
 			c.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
-
 	} else {
 		var appErr *model.AppError
 		if hasUserChanged {
@@ -805,7 +804,7 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.U
 		isAdminByTeamId          = map[string]bool{}
 	)
 
-	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(context.Background(), user.Id, "", true)
+	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(c, user.Id, "", true)
 	if nErr != nil {
 		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -917,12 +916,12 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.U
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
-			if _, err = a.UpdateTeamMemberRoles(member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
+			if _, err = a.UpdateTeamMemberRoles(c, member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
 				return err
 			}
 		}
 
-		a.UpdateTeamMemberSchemeRoles(member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
+		a.UpdateTeamMemberSchemeRoles(c, member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
 	}
 
 	for _, team := range allTeams {

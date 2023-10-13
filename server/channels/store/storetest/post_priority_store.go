@@ -20,7 +20,6 @@ func TestPostPriorityStore(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func testPostPriorityStoreGetForPost(t *testing.T, ss store.Store) {
-
 	t.Run("Save post priority when in post's metadata", func(t *testing.T) {
 		p1 := model.Post{}
 		p1.ChannelId = model.NewId()
