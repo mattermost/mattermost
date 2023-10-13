@@ -485,14 +485,6 @@ describe('applyMarkdown', () => {
             selectionEnd: 21,
             markdownMode: 'code',
         });
-
-        console.log(result);
-        console.log({
-            message: '```\nJalebi\nFafda\nSambharo\n```',
-            selectionStart: 4,
-            selectionEnd: 25,
-        });
-        return;
         expect(result).toEqual({
             message: '```\nJalebi\nFafda\nSambharo\n```',
             selectionStart: 4,
