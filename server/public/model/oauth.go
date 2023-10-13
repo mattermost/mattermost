@@ -51,7 +51,6 @@ func (a *OAuthApp) Auditable() map[string]interface{} {
 // IsValid validates the app and returns an error if it isn't configured
 // correctly.
 func (a *OAuthApp) IsValid() *AppError {
-
 	if !IsValidId(a.Id) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.app_id.app_error", nil, "", http.StatusBadRequest)
 	}

@@ -167,7 +167,6 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 	}
 
 	return elapsedTimeSinceSchedule, DurationInMillis
-
 }
 
 func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, job *model.Job) {
