@@ -225,6 +225,7 @@ var SystemEmojis = map[string]string{
 	"pray":                              "1f64f",
 	"thanks":                            "1f64f",
 	"thank you":                         "1f64f",
+	"thank_you":                         "1f64f",
 	"writing_hand":                      "270d-fe0f",
 	"nail_care":                         "1f485",
 	"selfie":                            "1f933",
