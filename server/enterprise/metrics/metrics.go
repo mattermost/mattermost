@@ -1121,8 +1121,8 @@ func (mi *MetricsInterfaceImpl) ObserveStoreMethodDuration(method string, succes
 	mi.StoreTimesHistograms.With(prometheus.Labels{"method": method, "success": success}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveAPIEndpointDuration(handler, method, statusCode string, elapsed float64) {
-	mi.APITimesHistograms.With(prometheus.Labels{"handler": handler, "method": method, "status_code": statusCode}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveAPIEndpointDuration(handler, method, statusCode, originClient string, elapsed float64) {
+	mi.APITimesHistograms.With(prometheus.Labels{"handler": handler, "method": method, "status_code": statusCode, "origin_client": originClient}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) IncrementClusterEventType(eventType model.ClusterEvent) {
