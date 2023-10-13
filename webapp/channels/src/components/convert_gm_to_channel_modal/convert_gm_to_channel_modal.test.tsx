@@ -44,8 +44,8 @@ describe('component/ConvertGmToChannelModal', () => {
         entities: {
             teams: {
                 teams: {
-                    team_id_1: {id: 'team_id_1', display_name: 'Team 1'} as Team,
-                    team_id_2: {id: 'team_id_2', display_name: 'Team 2'} as Team,
+                    team_id_1: {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'} as Team,
+                    team_id_2: {id: 'team_id_2', display_name: 'Team 2', name: 'team_2'} as Team,
                 },
                 currentTeamId: 'team_id_1',
             },
@@ -57,8 +57,8 @@ describe('component/ConvertGmToChannelModal', () => {
         nock(Client4.getBaseRoute()).
             get('/channels/channel_id_1/common_teams').
             reply(200, [
-                {id: 'team_id_1', display_name: 'Team 1'},
-                {id: 'team_id_2', display_name: 'Team 2'},
+                {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'},
+                {id: 'team_id_2', display_name: 'Team 2', name: 'team_2'},
             ]);
 
         renderWithFullContext(
@@ -76,6 +76,7 @@ describe('component/ConvertGmToChannelModal', () => {
         expect(screen.queryByText('Select Team')).toBeInTheDocument();
         expect(screen.queryByPlaceholderText('Channel name')).toBeInTheDocument();
         expect(screen.queryByText('Edit')).toBeInTheDocument();
+        expect(screen.queryByText('URL: http://localhost:8065/team_1/channels/')).toBeInTheDocument();
     });
 
     test('members part of single common teams', async () => {
@@ -83,7 +84,7 @@ describe('component/ConvertGmToChannelModal', () => {
         nock(Client4.getBaseRoute()).
             get('/channels/channel_id_1/common_teams').
             reply(200, [
-                {id: 'team_id_1', display_name: 'Team 1'},
+                {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'},
             ]);
 
         renderWithFullContext(
@@ -131,8 +132,8 @@ describe('component/ConvertGmToChannelModal', () => {
         nock(Client4.getBaseRoute()).
             get('/channels/channel_id_1/common_teams').
             reply(200, [
-                {id: 'team_id_1', display_name: 'Team 1'},
-                {id: 'team_id_2', display_name: 'Team 2'},
+                {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'},
+                {id: 'team_id_2', display_name: 'Team 2', name: 'team_2'},
             ]);
 
         baseProps.actions.convertGroupMessageToPrivateChannel.mockResolvedValueOnce({});
@@ -173,5 +174,44 @@ describe('component/ConvertGmToChannelModal', () => {
         await act(async () => {
             fireEvent.click(confirmButton!);
         });
+    });
+
+    test('duplicate channel names should npt be allowed', async () => {
+        TestHelper.initBasic(Client4);
+
+        nock(Client4.getBaseRoute()).
+            get('/channels/channel_id_1/common_teams').
+            reply(200, [
+                {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'},
+            ]);
+
+        baseProps.actions.convertGroupMessageToPrivateChannel.mockResolvedValueOnce({
+            error: {
+                server_error_id: 'store.sql_channel.save_channel.exists.app_error',
+            },
+        });
+
+        renderWithFullContext(
+            <ConvertGmToChannelModal {...baseProps}/>,
+            baseState,
+        );
+
+        await waitFor(
+            () => expect(screen.queryByText('Conversation history will be visible to any channel members')).toBeInTheDocument(),
+            {timeout: 1500},
+        );
+
+        const channelNameInput = screen.queryByPlaceholderText('Channel name');
+        expect(channelNameInput).toBeInTheDocument();
+        fireEvent.change(channelNameInput!, {target: {value: 'Channel'}});
+
+        const confirmButton = screen.queryByText('Convert to private channel');
+        expect(channelNameInput).toBeInTheDocument();
+
+        await act(async () => {
+            fireEvent.click(confirmButton!);
+        });
+
+        expect(screen.queryByText('A channel with that URL already exists')).toBeInTheDocument();
     });
 });
