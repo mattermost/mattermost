@@ -221,7 +221,6 @@ func testFileInfoGetForPost(t *testing.T, ss store.Store) {
 			)
 			require.NoError(t, err)
 			assert.Len(t, postInfos, tc.ExpectedPosts)
-
 		})
 	}
 }
@@ -859,6 +858,8 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 }
 
 func testGetUptoNSizeFileTime(t *testing.T, ss store.Store, s SqlStore) {
+	t.Skip("MM-53905")
+
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)

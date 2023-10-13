@@ -20,6 +20,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
@@ -126,19 +127,26 @@ func initStores() {
 			panic(err)
 		}
 	}()
-	var wg sync.WaitGroup
+
+	var eg errgroup.Group
 	for _, st := range storeTypes {
 		st := st
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			st.SqlStore = New(*st.SqlSettings, nil)
+		eg.Go(func() error {
+			var err error
+			st.SqlStore, err = New(*st.SqlSettings, nil)
+			if err != nil {
+				return err
+			}
 			st.Store = st.SqlStore
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
-		}()
+
+			return nil
+		})
 	}
-	wg.Wait()
+	if err := eg.Wait(); err != nil {
+		panic(err)
+	}
 }
 
 var tearDownStoresOnce sync.Once
@@ -175,7 +183,8 @@ func TestStoreLicenseRace(t *testing.T) {
 		t.Skip(err)
 	}
 
-	store := New(*settings, nil)
+	store, err := New(*settings, nil)
+	require.NoError(t, err)
 	defer func() {
 		store.Close()
 		storetest.CleanupSqlSettings(settings)
@@ -275,7 +284,8 @@ func TestGetReplica(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store := New(*settings, nil)
+			store, err := New(*settings, nil)
+			require.NoError(t, err)
 			defer func() {
 				store.Close()
 				storetest.CleanupSqlSettings(settings)
@@ -300,7 +310,6 @@ func TestGetReplica(t *testing.T) {
 				for replica := range replicas {
 					assert.NotSame(t, store.GetMasterX(), replica)
 				}
-
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
@@ -348,7 +357,8 @@ func TestGetReplica(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store := New(*settings, nil)
+			store, err := New(*settings, nil)
+			require.NoError(t, err)
 			defer func() {
 				store.Close()
 				storetest.CleanupSqlSettings(settings)
@@ -371,7 +381,6 @@ func TestGetReplica(t *testing.T) {
 				for replica := range replicas {
 					assert.Same(t, store.GetMasterX(), replica)
 				}
-
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
@@ -386,7 +395,6 @@ func TestGetReplica(t *testing.T) {
 				for searchReplica := range searchReplicas {
 					assert.Same(t, store.GetMasterX(), searchReplica)
 				}
-
 			} else if testCase.DataSourceReplicaNum > 0 {
 				assert.Equal(t, len(replicas), len(searchReplicas))
 				for k := range replicas {
@@ -417,7 +425,8 @@ func TestGetDbVersion(t *testing.T) {
 				t.Skip(err)
 			}
 
-			store := New(*settings, nil)
+			store, err := New(*settings, nil)
+			require.NoError(t, err)
 
 			version, err := store.GetDbVersion(false)
 			require.NoError(t, err)
@@ -555,7 +564,6 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, tests[i].expected, ok)
 	}
-
 }
 
 func TestGetAllConns(t *testing.T) {
@@ -641,7 +649,8 @@ func TestGetAllConns(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store := New(*settings, nil)
+			store, err := New(*settings, nil)
+			require.NoError(t, err)
 			defer func() {
 				store.Close()
 				storetest.CleanupSqlSettings(settings)
@@ -853,7 +862,8 @@ func TestGetDBSchemaVersion(t *testing.T) {
 			if err != nil {
 				t.Skip(err)
 			}
-			store := New(*settings, nil)
+			store, err := New(*settings, nil)
+			require.NoError(t, err)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
 			require.NoError(t, err)
@@ -875,6 +885,32 @@ func TestGetDBSchemaVersion(t *testing.T) {
 	}
 }
 
+func TestGetLocalSchemaVersion(t *testing.T) {
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+
+	for _, d := range testDrivers {
+		driver := d
+		t.Run(driver, func(t *testing.T) {
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
+			store, err := New(*settings, nil)
+			require.NoError(t, err)
+
+			ver, err := store.GetLocalSchemaVersion()
+			require.NoError(t, err)
+
+			dbVer, err := store.GetDBSchemaVersion()
+			require.NoError(t, err)
+			require.Equal(t, ver, dbVer)
+		})
+	}
+}
+
 func TestGetAppliedMigrations(t *testing.T) {
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
@@ -891,7 +927,8 @@ func TestGetAppliedMigrations(t *testing.T) {
 			if err != nil {
 				t.Skip(err)
 			}
-			store := New(*settings, nil)
+			store, err := New(*settings, nil)
+			require.NoError(t, err)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
 			require.NoError(t, err)

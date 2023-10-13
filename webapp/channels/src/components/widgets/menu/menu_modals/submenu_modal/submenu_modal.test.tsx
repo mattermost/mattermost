@@ -1,11 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow, mount} from 'enzyme';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
 
-import SubMenuModal from 'components/widgets/menu/menu_modals/submenu_modal/submenu_modal';
+import SubMenuModal from './submenu_modal';
+
+jest.mock('../../is_mobile_view_hack', () => ({
+    isMobile: jest.fn(() => false),
+}));
 
 (global as any).MutationObserver = class {
     public disconnect() {}

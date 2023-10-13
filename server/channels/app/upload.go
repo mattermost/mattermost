@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -156,7 +156,7 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 }
 
 func (a *App) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
-	us, err := a.Srv().Store().UploadSession().Get(c.Context(), uploadId)
+	us, err := a.Srv().Store().UploadSession().Get(c, uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

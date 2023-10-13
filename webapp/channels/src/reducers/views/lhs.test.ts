@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {TeamTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import lhsReducer from 'reducers/views/lhs';
+
 import {ActionTypes} from 'utils/constants';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 describe('Reducers.LHS', () => {
     const initialState = {
         isOpen: false,
         currentStaticPageId: '',
+        size: 'medium',
     };
 
     test('initial state', () => {
@@ -18,6 +20,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: false,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {} as GenericAction,
         );
@@ -30,6 +33,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: true,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {
                 type: ActionTypes.TOGGLE_LHS,
@@ -47,6 +51,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: false,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {
                 type: ActionTypes.TOGGLE_LHS,
@@ -64,6 +69,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: false,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {
                 type: ActionTypes.OPEN_LHS,
@@ -81,6 +87,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: true,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {
                 type: ActionTypes.CLOSE_LHS,
@@ -104,6 +111,7 @@ describe('Reducers.LHS', () => {
                     {
                         isOpen: true,
                         currentStaticPageId: '',
+                        size: 'medium',
                     },
                     {
                         type: action,

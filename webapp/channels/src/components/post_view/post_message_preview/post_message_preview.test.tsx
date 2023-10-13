@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-
 import React from 'react';
 
-import {ChannelType} from '@mattermost/types/channels';
-import {Post, PostEmbed} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
+import type {ChannelType} from '@mattermost/types/channels';
+import type {Post, PostEmbed} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
 
-import PostMessagePreview, {Props} from './post_message_preview';
+import PostMessagePreview from './post_message_preview';
+import type {Props} from './post_message_preview';
 
 describe('PostMessagePreview', () => {
     const previewPost = {

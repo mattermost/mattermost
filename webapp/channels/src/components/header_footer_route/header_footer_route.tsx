@@ -6,7 +6,7 @@ import {Route} from 'react-router-dom';
 
 import AnnouncementBar from 'components/announcement_bar';
 
-import {HeaderProps} from './header';
+import type {HeaderProps} from './header';
 
 import './header_footer_route.scss';
 

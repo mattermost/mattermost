@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -74,6 +75,12 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !hasPermission {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
+	}
+	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
+		if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
+			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
+			return
+		}
 	}
 
 	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -651,7 +658,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	fromPost := r.URL.Query().Get("fromPost")
 	// Either only fromCreateAt must be set, or both fromPost and fromCreateAt must be set
 	if fromPost != "" && fromCreateAt == 0 {
-		c.SetInvalidParam("if fromPost is set, then fromCreatAt must also be set")
+		c.SetInvalidParam("if fromPost is set, then fromCreateAt must also be set")
+		return
 	}
 
 	direction := ""
@@ -826,6 +834,13 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
+		if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
+			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
+			return
+		}
+	}
+
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionEditPost) {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -886,6 +901,13 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "id", c.Params.PostId)
 	audit.AddEventParameterAuditable(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+
+	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
+		if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
+			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
+			return
+		}
+	}
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = nil
