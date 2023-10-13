@@ -7,8 +7,6 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
-
-	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // Have the compiler confirm *StandardMentionParser implements MentionParser
@@ -16,15 +14,13 @@ var _ MentionParser = &StandardMentionParser{}
 
 type StandardMentionParser struct {
 	keywords MentionKeywords
-	groups   map[string]*model.Group
 
 	results *MentionResults
 }
 
-func makeStandardMentionParser(keywords MentionKeywords, groups map[string]*model.Group) *StandardMentionParser {
+func makeStandardMentionParser(keywords MentionKeywords) *StandardMentionParser {
 	return &StandardMentionParser{
 		keywords: keywords,
-		groups:   groups,
 
 		results: &MentionResults{},
 	}
@@ -118,8 +114,6 @@ func (p *StandardMentionParser) checkForMention(word string) bool {
 		mentionType = KeywordMention
 	}
 
-	checkForGroupMention(p.results, word, p.groups)
-
 	if ids, match := p.keywords[strings.ToLower(word)]; match {
 		p.addMentions(ids, mentionType)
 		return true
@@ -139,37 +133,9 @@ func (p *StandardMentionParser) addMentions(ids []MentionableID, mentionType Men
 		if userID, ok := id.AsUserID(); ok {
 			p.results.addMention(userID, mentionType)
 		} else if groupID, ok := id.AsGroupID(); ok {
-			p.results.GroupMentions[groupID] = &model.Group{}
+			p.results.addGroupMention(groupID)
 		}
 	}
-}
-
-func checkForGroupMention(m *MentionResults, word string, groups map[string]*model.Group) bool {
-	if strings.HasPrefix(word, "@") {
-		word = word[1:]
-	} else {
-		// Only allow group mentions when mentioned directly with @group-name
-		return false
-	}
-
-	group, groupFound := groups[word]
-	if !groupFound {
-		group = groups[strings.ToLower(word)]
-	}
-
-	if group == nil {
-		return false
-	}
-
-	if m.GroupMentions == nil {
-		m.GroupMentions = make(map[string]*model.Group)
-	}
-
-	if group.Name != nil {
-		m.GroupMentions[*group.Name] = group
-	}
-
-	return true
 }
 
 // isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword
