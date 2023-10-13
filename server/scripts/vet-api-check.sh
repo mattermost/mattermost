@@ -13,7 +13,6 @@ echo "All output, some ignored"
 echo "========================"
 echo "$OUTPUT"
 
-
 OUTPUT_EXCLUDING_IGNORED=$(echo "$OUTPUT" | grep -Fv \
     -e 'github.com/mattermost/mattermost/server/v8/channels/api4' \
     -e 'Cannot find /api/v4/channels/members/{user_id}/mark_read method: POST in OpenAPI 3 spec.' \
