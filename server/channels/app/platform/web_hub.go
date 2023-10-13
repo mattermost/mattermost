@@ -497,7 +497,7 @@ func (h *Hub) Start() {
 				}
 
 				// Remove the broadcast hook information before precomputing the JSON so that those aren't included in it
-				msg, broadcastHooks, broadcastHookArgs := msg.RemoveBroadcastHooks()
+				msg, broadcastHooks, broadcastHookArgs := msg.WithoutBroadcastHooks()
 
 				msg = msg.PrecomputeJSON()
 

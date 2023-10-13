@@ -214,11 +214,16 @@ func (ev *WebSocketEvent) RemovePrecomputedJSON() *WebSocketEvent {
 	return evCopy
 }
 
-// RemoveHooks removes the broadcast hook information from the WebsocketBroadcast and returns it. It's intended
-// to be called before the WebSocketEvent is sent to the client.
-func (ev *WebSocketEvent) RemoveBroadcastHooks() (*WebSocketEvent, []string, []map[string]any) {
+// WithoutBroadcastHooks gets the broadcast hook information from a WebSocketEvent and returns the event without that.
+// If the event has broadcast hooks, a copy of the event is returned. Otherwise, the original event is returned. This
+// is intended to be called before the event is sent to the client.
+func (ev *WebSocketEvent) WithoutBroadcastHooks() (*WebSocketEvent, []string, []map[string]any) {
 	hooks := ev.broadcast.BroadcastHooks
 	hookArgs := ev.broadcast.BroadcastHookArgs
+
+	if len(hooks) == 0 && len(hookArgs) == 0 {
+		return ev, hooks, hookArgs
+	}
 
 	evCopy := ev.Copy()
 	evCopy.broadcast = ev.broadcast.copy()
