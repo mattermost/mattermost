@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {FormEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import AbstractCommand from 'components/integrations/abstract_command';
 
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/AbstractCommand', () => {
@@ -56,14 +56,14 @@ describe('components/integrations/AbstractCommand', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallowWithIntl(
             <AbstractCommand {...baseProps}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot when header/footer/loading is a string', () => {
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallowWithIntl(
             <AbstractCommand
                 {...baseProps}
                 header='Header as string'
@@ -77,7 +77,7 @@ describe('components/integrations/AbstractCommand', () => {
     test('should match snapshot, displays client error', () => {
         const newSeverError = 'server error';
         const props = {...baseProps, serverError: newSeverError};
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallowWithIntl(
             <AbstractCommand {...props}/>,
         );
 
@@ -89,7 +89,7 @@ describe('components/integrations/AbstractCommand', () => {
     });
 
     test('should call action function', () => {
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallowWithIntl(
             <AbstractCommand {...baseProps}/>,
         );
 
@@ -100,7 +100,7 @@ describe('components/integrations/AbstractCommand', () => {
     });
 
     test('should match object returned by getStateFromCommand', () => {
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallowWithIntl(
             <AbstractCommand {...baseProps}/>,
         );
 
@@ -123,7 +123,7 @@ describe('components/integrations/AbstractCommand', () => {
     });
 
     test('should match state when method is called', () => {
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallowWithIntl(
             <AbstractCommand {...baseProps}/>,
         );
         const displayName = 'new display_name';
@@ -188,7 +188,7 @@ describe('components/integrations/AbstractCommand', () => {
             },
         );
         const props = {...baseProps, action: newAction};
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallowWithIntl(
             <AbstractCommand {...props}/>,
         );
         expect(newAction).toHaveBeenCalledTimes(0);

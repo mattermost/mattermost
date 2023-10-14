@@ -3,8 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent} from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, type MessageDescriptor, injectIntl, type IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Command} from '@mattermost/types/integrations';
@@ -81,7 +80,7 @@ type State= {
     autocompleteDescription: string;
 }
 
-class AbstractCommand extends React.PureComponent<Props, State> {
+export class AbstractCommand extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
