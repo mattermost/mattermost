@@ -164,10 +164,10 @@ export default class DialogElement extends React.PureComponent<Props, State> {
             }
 
             let assertedValue;
-            if (value === 0 || value) {
-                assertedValue = value as string;
+            if (subtype === 'number' && typeof value === 'number') {
+                assertedValue = value as number;
             } else {
-                assertedValue = '';
+                assertedValue = value as string || '';
             }
 
             return (
