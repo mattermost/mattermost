@@ -651,13 +651,23 @@
     }
 
     .section-min__edit {
-        visibility: hidden;
         white-space: nowrap;
+
+        button {
+            opacity: 0;
+
+            &.a11y--focused {
+                opacity: 1;
+            }
+        }
     }
 
     &:hover .section-min__edit {
         text-decoration: underline;
-        visibility: visible;
+
+        button {
+            opacity: 1;
+        }
     }
 
     .d-flex {

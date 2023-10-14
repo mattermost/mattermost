@@ -2,6 +2,10 @@
 
 .app__body {
     .settings-modal {
+        h3 {
+            font-size: 18px;
+        }
+
         // Tabs
         .nav-pills {
             > li {
@@ -39,9 +43,13 @@
         .settings-table {
             .settings-links {
                 width: 232px;
-                padding: 24px;
+                padding: 16px;
                 border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
                 background: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            .nav {
+                width: 200px;
             }
 
             .settings-content {

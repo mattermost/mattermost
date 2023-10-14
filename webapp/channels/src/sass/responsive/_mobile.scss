@@ -198,7 +198,10 @@
                                 top: 0;
                                 right: 0;
                                 text-align: left;
-                                visibility: visible;
+
+                                button {
+                                    opacity: 1;
+                                }
                             }
 
                             .appearance-section {
