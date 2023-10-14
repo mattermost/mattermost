@@ -33,7 +33,6 @@ describe('components/ToggleModalButton', () => {
                 role='menuitem'
                 modalId={ModalIdentifiers.DELETE_CHANNEL}
                 dialogType={TestModal}
-                actions={{openModal: () => true}}
             >
                 <FormattedMessage
                     id='channel_header.delete'

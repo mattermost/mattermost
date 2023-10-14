@@ -670,6 +670,25 @@
         &:hover {
             background: inherit;
         }
+
+        .RestrictedIndicator__icon-tooltip-container {
+            padding: 0;
+            align-self: flex-start;
+            flex: unset;
+
+            button {
+                padding: 0px 6px;
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+                border-radius: 12px;
+                color: var(--button-bg);
+                font-size: 12px;
+                font-weight: 600;
+
+                i {
+                    font-size: 12px;
+                }
+            }
+        }
     }
 }
 

@@ -21,7 +21,8 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import Constants, {NotificationLevels} from 'utils/constants';
+import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
+import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
@@ -32,8 +33,6 @@ import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
 
 import type {PropsFromRedux} from './index';
 import './user_settings_notifications.scss';
-
-const isHighlightWithoutNotificationDisabled = true;
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;
@@ -1013,15 +1012,9 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         const collapsedEditButtonWhenDisabled = (
             <RestrictedIndicator
-                feature='keysWithHighlight'
-                blocked={true}
-                useModal={true}
-                ctaExtraContent={
-                    <FormattedMessage
-                        id='user.settings.notifications.keywordsWithHighlight.professioal'
-                        defaultMessage='Professional'
-                    />
-                }
+                blocked={this.props.isStarterFree}
+                feature={MattermostFeatures.HIGHLIGHT_WITHOUT_NOTIFICATION}
+                minimumPlanRequiredForFeature={LicenseSkus.Professional}
                 tooltipTitle={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipTitle',
                     defaultMessage: 'Professional feature',
@@ -1031,6 +1024,37 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     defaultMessage:
                     'This feature is available on the professional plan',
                 })}
+                ctaExtraContent={
+                    <FormattedMessage
+                        id='user.settings.notifications.keywordsWithHighlight.professioal'
+                        defaultMessage='Professional'
+                    />
+                }
+                titleAdminPreTrial={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleAdminPreTrial',
+                    defaultMessage: 'Try unlimited keywords with highlight with a free trial',
+                })}
+                messageAdminPreTrial={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.messageAdminPreTrial',
+                    defaultMessage: 'Create unlimited keywords with highlight with one of our paid plans. Get the full experience of Enterprise when you start a free, {trialLength} day trial.',
+                },
+                {
+                    trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS,
+                },
+                )}
+                titleEndUser={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleEndUser',
+                    defaultMessage: 'Highlight keywords without notifications with Mattermost Professional',
+                })}
+                messageEndUser={this.props.intl.formatMessage(
+                    {
+                        id: 'user.settings.notifications.keywordsWithHighlight.userModal.messageEndUser',
+                        defaultMessage: 'Get the ability to passively highlight keywords that you care about.{br}{br}Request your admin to upgrade to Mattermost Professional to access this feature.',
+                    },
+                    {
+                        br: <br/>,
+                    },
+                )}
             />
         );
 
@@ -1043,7 +1067,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 describe={collapsedDescription}
                 updateSection={this.handleUpdateSection}
                 max={expandedSection}
-                isDisabled={isHighlightWithoutNotificationDisabled}
+                isDisabled={this.props.isStarterFree}
                 collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
             />);
     };
@@ -1330,7 +1354,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     {pushNotificationSection}
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
-                    {!isHighlightWithoutNotificationDisabled && (
+                    {!this.props.isStarterFree && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}
@@ -1351,7 +1375,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     )}
 
                     {/*  We placed the disabled items in the last */}
-                    {isHighlightWithoutNotificationDisabled && (
+                    {this.props.isStarterFree && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}
