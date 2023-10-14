@@ -25,18 +25,15 @@ type Props = {
     children: React.ReactNode;
 };
 
-export default class SystemPermissionGate extends React.PureComponent<Props> {
-    public static defaultProps = {
-        invert: false,
-    };
-
-    render() {
-        if (this.props.hasPermission && !this.props.invert) {
-            return this.props.children;
-        }
-        if (!this.props.hasPermission && this.props.invert) {
-            return this.props.children;
-        }
-        return null;
+export default function SystemPermissionGate(props: Props) {
+    if (props.hasPermission && !props.invert) {
+        return props.children;
     }
+    if (!props.hasPermission && props.invert) {
+        return props.children;
+    }
+    return null;
 }
+SystemPermissionGate.defaultProps = {
+    invert: false,
+};
