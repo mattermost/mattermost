@@ -1,7 +1,7 @@
+# shellcheck disable=SC2148,SC2155
+
 # Utility variables
 # NB: these assume you `source` them from the directory this file is in
-export MME2E_DC_SERVER="docker compose -p mmserver -f $(readlink -f ../../server/build/gitlab-dc.postgres.yml) -f $(readlink -f ./server.override.yml)"
-export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f $(readlink -f ./dashboard/docker/docker-compose.yml) -f $(readlink -f ./dashboard.override.yml)"
 export MME2E_UID=$(id -u)
 export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
 export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
@@ -34,17 +34,18 @@ mme2e_get_current_shopt_arg () {
   esac
 }
 mme2e_load_env_file () {
-  # This loads the ./env file. Variables are automatically exported
-  [ -f ./env ] || return 0
+  # This loads the ./.env file. Variables are automatically exported
+  [ -f ./.env ] || return 0
   MME2E_PREVIOUS_ALLEXPORT=$(mme2e_get_current_shopt_arg allexport)
   set -o allexport
-  mme2e_log "Loading env file"
-  . ./env
+  mme2e_log "Loading .env file"
+  . ./.env
+  # shellcheck disable=SC2086
   set ${MME2E_PREVIOUS_ALLEXPORT}
 }
 mme2e_generate_envfile_from_var_names () {
   # Read var names from stdin, one per line
-  while read VARIABLE; do
+  while read -r VARIABLE; do
     [ -z "${!VARIABLE:-}" ] || echo "${VARIABLE}=${!VARIABLE}";
   done
 }
@@ -59,8 +60,9 @@ mme2e_wait_command_success () {
     RETRIES_LEFT=$((RETRIES_LEFT - 1))
     [ "$RETRIES_LEFT" -le "0" ] && break
     mme2e_log "${RETRY_MESSAGE} ($RETRIES_LEFT retries left, sleeping $RETRIES_INTERVAL seconds)"
-    sleep $RETRIES_INTERVAL
+    sleep "$RETRIES_INTERVAL"
   done
+  # shellcheck disable=SC2086
   set ${MME2E_PREVIOUS_PIPEFAIL}
   if [ "$RETRIES_LEFT" = "0" ]; then
     exit 1
@@ -91,11 +93,6 @@ mme2e_legacy_setup () {
   esac
   docker network inspect ${COMPOSE_PROJECT_NAME} >/dev/null 2>&1 || docker network create --driver=${DOCKER_NETWORK_DRIVER} ${COMPOSE_PROJECT_NAME}
 }
-
-# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
-# NB: this won't work in the script
-alias docker-compose-mmserver="${MME2E_DC_SERVER}"
-alias docker-compose-mmdashboard="${MME2E_DC_DASHBOARD}"
 
 # Call prerequisite utility functions
 mme2e_load_env_file
