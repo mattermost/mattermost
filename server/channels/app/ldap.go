@@ -19,7 +19,6 @@ import (
 // be re-added; otherwise, they will not be re-added.
 func (a *App) SyncLdap(c *request.Context, includeRemovedMembers bool) {
 	a.Srv().Go(func() {
-
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
 			if !*a.Config().LdapSettings.EnableSync {
 				c.Logger().Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
@@ -103,7 +102,7 @@ func (a *App) SwitchEmailToLdap(c *request.Context, email, password, code, ldapL
 		return "", err
 	}
 
-	if err := a.RevokeAllSessions(user.Id); err != nil {
+	if err := a.RevokeAllSessions(c, user.Id); err != nil {
 		return "", err
 	}
 
@@ -156,7 +155,7 @@ func (a *App) SwitchLdapToEmail(c *request.Context, ldapPassword, code, email, n
 		return "", err
 	}
 
-	if err := a.RevokeAllSessions(user.Id); err != nil {
+	if err := a.RevokeAllSessions(c, user.Id); err != nil {
 		return "", err
 	}
 

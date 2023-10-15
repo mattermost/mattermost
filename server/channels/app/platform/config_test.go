@@ -189,5 +189,4 @@ func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
 			wg.Wait()
 		})
 	}
-
 }
