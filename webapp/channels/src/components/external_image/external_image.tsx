@@ -15,15 +15,13 @@ interface Props {
     src: string;
 }
 
-function ExternalImage({ 
+const ExternalImage = ({ 
     enableSVGs, 
     children, 
     hasImageProxy, 
     imageMetadata = undefined, 
     src 
-}: Props){
-
-  
+}: Props) => {
 
   const shouldRenderImage = () => enableSVGs || !isSVGImage(imageMetadata, src)
 
