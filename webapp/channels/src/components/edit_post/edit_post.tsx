@@ -17,6 +17,7 @@ import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
+import {allAtMentions} from 'utils/text_formatting';
 import * as Keyboard from 'utils/keyboard';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
@@ -102,7 +103,9 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const [errorClass, setErrorClass] = useState<string>('');
     const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
     const [renderScrollbar, setRenderScrollbar] = useState<boolean>(false);
+    const [showMentionHelper, setShowMentionHelper] = useState<boolean>(false);
 
+    const originalText = useRef(draft.message || editingPost?.post?.message_source || editingPost?.post?.message || '');
     const textboxRef = useRef<TextboxClass>(null);
     const emojiButtonRef = useRef<HTMLButtonElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -126,6 +129,15 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
     }, [actions, draftStorageId, editingPost.postId]);
 
+    const editedTextHasMentions = () => {
+        const editedMentions = allAtMentions(editText);
+        const originalMentions = allAtMentions(originalText.current);
+
+        const doesAlreadyContainMentions = originalMentions.length > 0;
+
+        return doesAlreadyContainMentions && editedMentions.length > originalMentions.length;
+    };
+
     useEffect(() => saveDraft, [saveDraft]);
 
     useEffect(() => {
@@ -136,6 +148,8 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         saveDraftFrame.current = window.setTimeout(() => {
             actions.setDraft(draftStorageId, draftRef.current);
         }, Constants.SAVE_DRAFT_TIMEOUT);
+
+        setShowMentionHelper(editedTextHasMentions());
     }, [actions, draftStorageId, editText]);
 
     useEffect(() => {
@@ -513,7 +527,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 {emojiPicker}
             </div>
             {
-                editText.includes('@') && (
+                showMentionHelper && (
                 <div className='post-body__info'>
                     <span className='info-icon__container'>
                         <InformationOutlineIcon size={18} color='currentColor' />
