@@ -1,43 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-
-import React from 'react';
+import { ReactElement, memo } from 'react';
 
 import type {PostImage} from '@mattermost/types/posts';
 
 import {getImageSrc} from 'utils/post_utils';
+import { isSVGImage } from './external_image_isSVGImage';
 
 interface Props {
-    children: (src: string) => React.ReactNode;
+    children: (src: string) => ReactElement | null
     enableSVGs: boolean;
     hasImageProxy: boolean;
     imageMetadata?: PostImage;
     src: string;
 }
 
-export default class ExternalImage extends React.PureComponent<Props> {
-    isSVGImage = () => {
-        if (!this.props.imageMetadata) {
-            // Just check if the string contains an svg extension instead of if it ends with one because it avoids
-            // having to deal with query strings and proxied image URLs
-            return this.props.src.indexOf('.svg') !== -1;
-        }
+function ExternalImage({ 
+    enableSVGs, 
+    children, 
+    hasImageProxy, 
+    imageMetadata = undefined, 
+    src 
+}: Props){
 
-        return this.props.imageMetadata.format === 'svg';
-    };
+  
 
-    shouldRenderImage = () => {
-        // Return true unless the image is an SVG and we have SVG rendering disabled
-        return this.props.enableSVGs || !this.isSVGImage();
-    };
+  const shouldRenderImage = () => enableSVGs || !isSVGImage(imageMetadata, src)
 
-    render() {
-        let src = getImageSrc(this.props.src, this.props.hasImageProxy);
+  let srcStr = !shouldRenderImage()
+    ? ''
+    : getImageSrc(src, hasImageProxy);
 
-        if (!this.shouldRenderImage()) {
-            src = '';
-        }
-
-        return this.props.children(src);
-    }
+  return children(srcStr)
 }
+
+export default memo(ExternalImage)
