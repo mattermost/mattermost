@@ -7687,10 +7687,6 @@
     "translation": "Nem lehet bejegyzést frissíteni egy törölt csatornában."
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "A rendszer adminisztrátor letiltotta a hivatkozások előnézetét."
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "one": "{{.Count}} kép elküldve: {{.Filenames}}",
@@ -8295,10 +8291,6 @@
   {
     "id": "api.command_invite.hint",
     "translation": "@[felhasználó] ~[csatorna]"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Ezt a csatornát csoportok kezelik. Ez a felhasználó nem része annak a csoportnak, amelyet ezzel a csatornával szinkronizáltak."
   },
   {
     "id": "api.command_invite.fail.app_error",
