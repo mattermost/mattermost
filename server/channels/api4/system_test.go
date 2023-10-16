@@ -438,7 +438,6 @@ func TestPostLog(t *testing.T) {
 	logMessage, _, err := th.SystemAdminClient.PostLog(context.Background(), message)
 	require.NoError(t, err)
 	require.NotEmpty(t, logMessage, "should return the log message")
-
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
@@ -966,7 +965,6 @@ func TestCompleteOnboarding(t *testing.T) {
 		case <-time.After(15 * time.Second):
 			require.Fail(t, "timed out waiting testplugin2 to be installed and enabled ")
 		}
-
 	})
 
 	t.Run("as a system admin when plugins are disabled", func(t *testing.T) {

@@ -109,7 +109,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -686,7 +686,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1061,7 +1061,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Since = since
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1073,7 +1073,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	)
 
 	if opts.FilterHasMember != "" {
-		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, opts.FilterHasMember)
+		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, opts.FilterHasMember)
 		if appErr != nil {
 			c.Err = appErr
 			return

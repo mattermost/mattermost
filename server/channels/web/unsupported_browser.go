@@ -45,7 +45,6 @@ type SystemBrowser struct {
 }
 
 func renderUnsupportedBrowser(ctx *request.Context, r *http.Request) templates.Data {
-
 	data := templates.Data{
 		Props: map[string]any{
 			"DownloadAppOrUpgradeBrowserString": ctx.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),
@@ -89,7 +88,6 @@ func renderUnsupportedBrowser(ctx *request.Context, r *http.Request) templates.D
 	}
 
 	return data
-
 }
 
 func renderMattermostAppMac(ctx *request.Context) MattermostApp {

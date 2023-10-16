@@ -4,13 +4,15 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {AdminConfig} from '@mattermost/types/config';
+
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
 import SaveButton from 'components/save_button';
 
 jest.mock('actions/admin_actions.jsx', () => {
     return {
         elasticsearchPurgeIndexes: jest.fn(),
-        elasticsearchTest: (config, success) => success(),
+        elasticsearchTest: (config: AdminConfig, success: () => void) => success(),
     };
 });
 
@@ -33,7 +35,7 @@ describe('components/ElasticSearchSettings', () => {
         };
         const wrapper = shallow(
             <ElasticSearchSettings
-                config={config}
+                config={config as AdminConfig}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -57,7 +59,7 @@ describe('components/ElasticSearchSettings', () => {
         };
         const wrapper = shallow(
             <ElasticSearchSettings
-                config={config}
+                config={config as AdminConfig}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -76,19 +78,20 @@ describe('components/ElasticSearchSettings', () => {
                 EnableAutocomplete: false,
             },
         };
-        const wrapper = shallow(
+        const wrapper = shallow<ElasticSearchSettings>(
             <ElasticSearchSettings
-                config={config}
+                config={config as AdminConfig}
             />,
         );
         expect(wrapper.find(SaveButton).prop('disabled')).toBe(true);
         wrapper.instance().handleSettingChanged('enableIndexing', true);
         expect(wrapper.find(SaveButton).prop('disabled')).toBe(true);
         const instance = wrapper.instance();
-        instance.doSubmit = jest.fn();
         const success = jest.fn();
-        instance.doTestConfig(success);
+        const error = jest.fn();
+        instance.doTestConfig(success, error);
         expect(success).toBeCalled();
+        expect(error).not.toBeCalled();
         expect(wrapper.find(SaveButton).prop('disabled')).toBe(false);
     });
 });

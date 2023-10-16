@@ -36,6 +36,7 @@ const (
 	JobTypeHostedPurchaseScreening      = "hosted_purchase_screening"
 	JobTypeS3PathMigration              = "s3_path_migration"
 	JobTypeCleanupDesktopTokens         = "cleanup_desktop_tokens"
+	JobTypeDeleteEmptyDraftsMigration   = "delete_empty_drafts_migration"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
