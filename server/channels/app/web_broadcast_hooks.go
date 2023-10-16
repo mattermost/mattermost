@@ -4,11 +4,13 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -30,9 +32,9 @@ func (h *addMentionsBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webC
 		return false, nil
 	}
 
-	mentions, ok := args["mentions"].(model.StringArray)
-	if !ok {
-		return false, fmt.Errorf("Invalid mentions value passed to addMentionsBroadcastHook: %v", args["mentions"])
+	mentions, err := getTypedArg[model.StringArray](args, "mentions")
+	if err != nil {
+		return false, errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
 	}
 
 	// This hook will only modify the event if the current user is mentioned by the post
@@ -40,9 +42,9 @@ func (h *addMentionsBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webC
 }
 
 func (h *addMentionsBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (*model.WebSocketEvent, error) {
-	mentions, ok := args["mentions"].(model.StringArray)
-	if !ok {
-		return msg, fmt.Errorf("Invalid mentions value passed to addMentionsBroadcastHook: %v", args["mentions"])
+	mentions, err := getTypedArg[model.StringArray](args, "mentions")
+	if err != nil {
+		return msg, errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
 	}
 
 	hasMention := false
@@ -71,9 +73,9 @@ func (h *addFollowersBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, web
 		return false, nil
 	}
 
-	followers, ok := args["followers"].(model.StringArray)
-	if !ok {
-		return false, fmt.Errorf("Invalid followers value passed to addFollowersBroadcastHook: %v", args["followers"])
+	followers, err := getTypedArg[model.StringArray](args, "followers")
+	if err != nil {
+		return false, errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
 	}
 
 	// This hook will only modify the event if the current user is following the post
@@ -81,9 +83,9 @@ func (h *addFollowersBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, web
 }
 
 func (h *addFollowersBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (*model.WebSocketEvent, error) {
-	followers, ok := args["followers"].(model.StringArray)
-	if !ok {
-		return msg, fmt.Errorf("Invalid followers value passed to addFollowersBroadcastHook: %v", args["followers"])
+	followers, err := getTypedArg[model.StringArray](args, "followers")
+	if err != nil {
+		return msg, errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
 	}
 
 	isFollower := false
@@ -103,4 +105,30 @@ func UseAddFollowersHook(message *model.WebSocketEvent, followers model.StringAr
 	message.GetBroadcast().AddHook(broadcastAddFollowers, map[string]any{
 		"followers": followers,
 	})
+}
+
+// getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding
+// if necessary. This is needed because broadcast hook args are JSON encoded in a multi-server environment, and any
+// type information is lost because those types aren't known at decode time.
+func getTypedArg[T any](args map[string]any, key string) (T, error) {
+	var value T
+
+	untyped, ok := args[key]
+	if !ok {
+		return value, fmt.Errorf("No argument found with key: %s", key)
+	}
+
+	// If the value is already correct, just return it
+	if typed, ok := untyped.(T); ok {
+		return typed, nil
+	}
+
+	// Marshal and unmarshal the data with the correct typing information
+	buf, err := json.Marshal(untyped)
+	if err != nil {
+		return value, err
+	}
+
+	err = json.Unmarshal(buf, &value)
+	return value, err
 }

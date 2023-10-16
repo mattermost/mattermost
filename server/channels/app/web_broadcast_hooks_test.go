@@ -60,6 +60,52 @@ func TestAddMentionsHook_ShouldProcess(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, false, result)
 	})
+
+	t.Run("should work when given correctly typed args", func(t *testing.T) {
+		args := map[string]any{
+			"mentions": model.StringArray{userID},
+		}
+
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, true, result)
+	})
+
+	t.Run("should work when given compatible untyped args", func(t *testing.T) {
+		args := map[string]any{
+			"mentions": []any{userID},
+		}
+
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, true, result)
+	})
+
+	t.Run("should return error when given incompatible typed args", func(t *testing.T) {
+		args := map[string]any{
+			"mentions": map[string]*model.User{
+				userID:      {Id: userID},
+				otherUserID: {Id: otherUserID},
+			},
+		}
+
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		assert.Error(t, err)
+		assert.Equal(t, false, result)
+	})
+
+	t.Run("should return error when given incompatible untyped args", func(t *testing.T) {
+		args := map[string]any{
+			"mentions": map[string]any{
+				userID:      map[string]any{"Id": userID},
+				otherUserID: map[string]any{"Id": otherUserID},
+			},
+		}
+
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		assert.Error(t, err)
+		assert.Equal(t, false, result)
+	})
 }
 
 func TestAddMentionsHook_Process(t *testing.T) {
@@ -144,6 +190,52 @@ func TestAddFollowersHook_ShouldProcess(t *testing.T) {
 
 		result, err = hook.ShouldProcess(model.NewWebSocketEvent(model.WebsocketEventDeleteTeam, "", "", "", nil, ""), webConn, args)
 		require.NoError(t, err)
+		assert.Equal(t, false, result)
+	})
+
+	t.Run("should work when given correctly typed args", func(t *testing.T) {
+		args := map[string]any{
+			"followers": model.StringArray{userID},
+		}
+
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, true, result)
+	})
+
+	t.Run("should work when given compatible untyped args", func(t *testing.T) {
+		args := map[string]any{
+			"followers": []any{userID},
+		}
+
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		require.NoError(t, err)
+		assert.Equal(t, true, result)
+	})
+
+	t.Run("should return error when given incompatible typed args", func(t *testing.T) {
+		args := map[string]any{
+			"followers": map[string]*model.User{
+				userID:      {Id: userID},
+				otherUserID: {Id: otherUserID},
+			},
+		}
+
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		assert.Error(t, err)
+		assert.Equal(t, false, result)
+	})
+
+	t.Run("should return error when given incompatible untyped args", func(t *testing.T) {
+		args := map[string]any{
+			"followers": map[string]any{
+				userID:      map[string]any{"Id": userID},
+				otherUserID: map[string]any{"Id": otherUserID},
+			},
+		}
+
+		result, err := hook.ShouldProcess(msg, webConn, args)
+		assert.Error(t, err)
 		assert.Equal(t, false, result)
 	})
 }
