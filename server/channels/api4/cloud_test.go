@@ -329,7 +329,6 @@ func Test_requestTrial(t *testing.T) {
 }
 
 func Test_validateBusinessEmail(t *testing.T) {
-
 	t.Run("Returns forbidden for invalid business email", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

@@ -429,6 +429,50 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestHookMessageHasBeenDeleted(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "message").Return(nil).Times(1)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+			p.API.LogDebug(post.Message)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+	_, err = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+}
+
 func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -1429,14 +1473,14 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			var userSessions []userSession
 			for i := 0; i < 3; i++ {
 				u := th.CreateUser()
-				sess, err := th.App.CreateSession(&model.Session{
+				sess, err := th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,
 					DeviceId:  "deviceID" + u.Id,
 					ExpiresAt: model.GetMillis() + 100000,
 				})
 				require.Nil(t, err)
 				// We don't need to track the 2nd session.
-				_, err = th.App.CreateSession(&model.Session{
+				_, err = th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,
 					DeviceId:  "deviceID" + u.Id,
 					ExpiresAt: model.GetMillis() + 100000,

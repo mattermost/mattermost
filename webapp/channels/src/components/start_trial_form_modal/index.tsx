@@ -22,11 +22,11 @@ import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityC
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import DropdownInput from 'components/dropdown_input';
 import ExternalLink from 'components/external_link';
+import CountrySelector from 'components/payment_form/country_selector';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
 import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {COUNTRIES} from 'utils/countries';
 import {t} from 'utils/i18n';
 
 import type {GlobalState} from 'types/store';
@@ -312,24 +312,9 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     name='company_size_dropdown'
                 />
                 <div className='countries-section'>
-                    <DropdownInput
+                    <CountrySelector
                         onChange={(e) => setCountry(e.value)}
-                        value={
-                            country ? {value: country, label: country} : undefined
-                        }
-                        options={COUNTRIES.map((country) => ({
-                            value: country.name,
-                            label: country.name,
-                        }))}
-                        legend={formatMessage({
-                            id: 'payment_form.country',
-                            defaultMessage: 'Country',
-                        })}
-                        placeholder={formatMessage({
-                            id: 'payment_form.country',
-                            defaultMessage: 'Country',
-                        })}
-                        name={'country_dropdown'}
+                        value={country}
                     />
                 </div>
                 <div className='disclaimer'>

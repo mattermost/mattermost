@@ -126,7 +126,6 @@ func TestClient4RequestCancellation(t *testing.T) {
 	})
 
 	t.Run("cancel after making the reqeust", func(t *testing.T) {
-
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(100 * time.Millisecond)
 			t.Fatal("request should not hit the server")
@@ -144,7 +143,6 @@ func TestClient4RequestCancellation(t *testing.T) {
 			assert.Nil(t, resp)
 
 			done <- struct{}{}
-
 		}()
 		cancel()
 
