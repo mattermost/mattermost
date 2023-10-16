@@ -768,18 +768,20 @@ endif
 
 vet: ## Run mattermost go vet specific checks
 	$(GO) install github.com/mattermost/mattermost-govet/v2@new
-	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions"; \
-	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
-		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
-	else \
-		echo "MM_VET_OPENSPEC_PATH not set or spec yaml path in it is incorrect. Skipping API check"; \
-	fi; \
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet $$VET_CMD ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
+
+vet-api: export GO := $(GO)
+vet-api: export GOBIN := $(GOBIN)
+vet-api: export ROOT := $(ROOT)
+vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
+	$(GO) install github.com/mattermost/mattermost-govet/v2@new
+	make -C ../api build
+	./scripts/vet-api-check.sh
 
 gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
 gen-serialized: ## Generates serialization methods for hot structs
