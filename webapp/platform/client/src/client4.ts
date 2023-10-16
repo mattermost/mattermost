@@ -217,6 +217,14 @@ export default class Client4 {
         this.defaultHeaders['Accept-Language'] = locale;
     }
 
+    setHeader(header: string, value: string) {
+        this.defaultHeaders[header] = value;
+    }
+
+    removeHeader(header: string) {
+        delete this.defaultHeaders[header];
+    }
+
     setEnableLogging(enable: boolean) {
         this.enableLogging = enable;
     }
@@ -411,10 +419,6 @@ export default class Client4 {
 
     getSchemesRoute() {
         return `${this.getBaseRoute()}/schemes`;
-    }
-
-    getRedirectLocationRoute() {
-        return `${this.getBaseRoute()}/redirect_location`;
     }
 
     getBotsRoute() {
@@ -3675,17 +3679,6 @@ export default class Client4 {
             {method: 'post'},
         );
     }
-
-    // Redirect Location
-    getRedirectLocation = (urlParam: string) => {
-        if (!urlParam.length) {
-            return Promise.resolve();
-        }
-        const url = `${this.getRedirectLocationRoute()}${buildQueryString({url: urlParam})}`;
-        return this.doFetch<{
-            location: string;
-        }>(url, {method: 'get'});
-    };
 
     // Bot Routes
 

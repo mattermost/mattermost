@@ -9,3 +9,6 @@
 
 # node
 *.lock
+
+# dev/ci
+.ci/docker-compose.server.override.yml

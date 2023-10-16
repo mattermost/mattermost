@@ -73,7 +73,6 @@ describe('getRecentEmojisData', () => {
             {name: 'flag-au', usageCount: 1},
             {name: 'kappa', usageCount: 1},
             {name: 'gitlab', usageCount: 1},
-            {name: 'thanks', usageCount: 1},
         ];
         const state = mergeObjects(baseState, {
             entities: {
@@ -99,7 +98,7 @@ describe('getRecentEmojisData', () => {
             {name: 'flag-au', usageCount: 1},
             {name: 'kappa', usageCount: 1},
             {name: 'gitlab', usageCount: 1},
-            {name: 'thanks', usageCount: 1},
+            {name: 'smile', usageCount: 1},
         ];
         const state = mergeObjects(baseState, {
             entities: {

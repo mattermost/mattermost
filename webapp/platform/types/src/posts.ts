@@ -148,7 +148,6 @@ export type PostsState = {
     postEditHistory: Post[];
     currentFocusedPostId: string;
     messagesHistory: MessageHistory;
-    expandedURLs: Record<string, string>;
     limitedViews: {
         channels: Record<Channel['id'], number>;
         threads: Record<Post['root_id'], number>;
