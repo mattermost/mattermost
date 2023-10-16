@@ -767,7 +767,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: ## Run mattermost go vet specific checks
-	$(GO) install github.com/mattermost/mattermost-govet/v2@5fd47765f8f278ddebe8034b233efa1bf9cc4103
+	$(GO) install github.com/mattermost/mattermost-govet/v2@new
 	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
