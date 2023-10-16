@@ -652,22 +652,10 @@
 
     .section-min__edit {
         white-space: nowrap;
-
-        button {
-            opacity: 0;
-
-            &.a11y--focused {
-                opacity: 1;
-            }
-        }
     }
 
     &:hover .section-min__edit {
         text-decoration: underline;
-
-        button {
-            opacity: 1;
-        }
     }
 
     .d-flex {
