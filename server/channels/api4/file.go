@@ -42,7 +42,6 @@ func (api *API) InitFile() {
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFiles)).Methods("POST")
 
 	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET")
-
 }
 
 func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
@@ -179,7 +178,6 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 // entire message recursively calling itself in stream mode. In case of (b) it
 // calls to uploadFileMultipartLegacy for legacy support
 func uploadFileMultipart(c *Context, r *http.Request, asStream io.Reader, timestamp time.Time) *model.FileUploadResponse {
-
 	expectClientIds := true
 	var clientIds []string
 	resp := model.FileUploadResponse{
@@ -356,7 +354,6 @@ NextPart:
 // *model.FileUploadResponse filled in with the individual model.FileInfo's.
 func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	timestamp time.Time) *model.FileUploadResponse {
-
 	// Parse the entire form.
 	form, err := mr.ReadForm(*c.App.Config().FileSettings.MaxFileSize)
 	if err != nil {
