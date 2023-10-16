@@ -236,37 +236,6 @@
                                 background: #1c58d9;
                                 border-radius: 4px;
                                 gap: 10px;
-
-                                .Content {
-                                    display: inline-flex;
-                                    align-items: flex-start;
-                                    justify-content: flex-start;
-                                    gap: 6px;
-
-                                    .Icon {
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: flex-start;
-                                        gap: 10px;
-                                    }
-
-                                    .TextFrame {
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: flex-start;
-                                        padding-top: 1px;
-                                        padding-bottom: 1px;
-
-                                        .Label {
-                                            color: white;
-                                            font-family: 'Open Sans';
-                                            font-size: 12px;
-                                            font-weight: 600;
-                                            line-height: 9.5px;
-                                            word-wrap: break-word;
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
