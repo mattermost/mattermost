@@ -19,21 +19,21 @@ jest.mock('utils/notification_sounds', () => {
 
 describe('components/user_settings/notifications/DesktopNotificationSettings', () => {
     const baseProps: ComponentProps<typeof DesktopNotificationSettings> = {
-        activity: NotificationLevels.MENTION,
-        sound: 'false',
-        updateSection: jest.fn(),
-        setParentState: jest.fn(),
-        submit: jest.fn(),
-        cancel: jest.fn(),
-        error: '',
         active: true,
-        areAllSectionsInactive: false,
+        updateSection: jest.fn(),
+        onSubmit: jest.fn(),
+        onCancel: jest.fn(),
         saving: false,
-        selectedSound: 'Bing',
+        error: '',
+        setParentState: jest.fn(),
+        areAllSectionsInactive: false,
         isCollapsedThreadsEnabled: false,
+        activity: NotificationLevels.MENTION,
         threads: NotificationLevels.ALL,
-        callsSelectedSound: 'Dynamic',
+        sound: 'false',
         callsSound: 'false',
+        selectedSound: 'Bing',
+        callsSelectedSound: 'Dynamic',
         isCallsRingingEnabled: false,
     };
 

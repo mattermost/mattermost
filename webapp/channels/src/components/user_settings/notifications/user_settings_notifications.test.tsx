@@ -22,6 +22,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         enableAutoResponder: false,
         isCallsRingingEnabled: true,
         intl: {} as IntlShape,
+        isStarterFree: false,
     };
 
     test('should match snapshot', () => {

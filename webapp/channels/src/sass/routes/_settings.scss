@@ -663,21 +663,20 @@
     }
 
     &.isDisabled {
-        cursor: default;
-
         background: rgba(var(--center-channel-color-rgb), 0.08);
+        cursor: default;
 
         &:hover {
             background: inherit;
         }
 
         .RestrictedIndicator__icon-tooltip-container {
-            padding: 0;
-            align-self: flex-start;
             flex: unset;
+            align-self: flex-start;
+            padding: 0;
 
             button {
-                padding: 0px 6px;
+                padding: 0 6px;
                 background-color: rgba(var(--button-bg-rgb), 0.08);
                 border-radius: 12px;
                 color: var(--button-bg);
@@ -700,7 +699,7 @@
     line-height: 20px;
 
     &.isDisabled {
-        color: rgba(var(--center-channel-color-rgb), 0.64)
+        color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 }
 
@@ -717,6 +716,6 @@
     white-space: pre;
 
     &.isDisabled {
-        color: rgba(var(--center-channel-color-rgb), 0.40)
+        color: rgba(var(--center-channel-color-rgb), 0.4);
     }
 }
