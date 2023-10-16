@@ -647,7 +647,6 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 		mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
 		mockSystemStore.AssertCalled(t, "PermanentDeleteByName", mock.Anything)
-
 	})
 }
 

@@ -127,7 +127,6 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 }
 
 func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) string {
-
 	asMain := pluginID != "test_db_driver"
 	return setupMultiPluginAPITest(t,
 		[]string{pluginCode}, []string{pluginManifest}, []string{pluginID},
@@ -1835,7 +1834,7 @@ func (*MockSlashCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model
 	}
 }
 
-func (mscp *MockSlashCommandProvider) DoCommand(a *App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (mscp *MockSlashCommandProvider) DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	mscp.Args = args
 	mscp.Message = message
 	return &model.CommandResponse{
@@ -2227,14 +2226,14 @@ func TestSendPushNotification(t *testing.T) {
 	var userSessions []userSession
 	for i := 0; i < 3; i++ {
 		u := th.CreateUser()
-		sess, err := th.App.CreateSession(&model.Session{
+		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
 		// We don't need to track the 2nd session.
-		_, err = th.App.CreateSession(&model.Session{
+		_, err = th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,

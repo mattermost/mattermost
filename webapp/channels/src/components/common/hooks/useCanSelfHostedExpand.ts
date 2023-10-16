@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import {Client4} from 'mattermost-redux/client';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {BillingSchemes, SelfHostedProducts} from 'utils/constants';
 import {findSelfHostedProductBySku} from 'utils/hosted_customer';
@@ -23,12 +24,13 @@ export default function useCanSelfHostedExpand() {
     const isCloud = isCloudLicense(license);
     const [products] = useGetSelfHostedProducts();
     const currentProduct = findSelfHostedProductBySku(products, license.SkuShortName);
+    const isAdmin = useSelector(isCurrentUserSystemAdmin);
 
     // Self Hosted Products never contains a product for starter, additional check is done out of caution.
     const isSelfHostedStarter = currentProduct === null || currentProduct?.sku === SelfHostedProducts.STARTER;
 
     useEffect(() => {
-        if (!isEnterpriseReady) {
+        if (!isEnterpriseReady || !isAdmin) {
             return;
         }
         Client4.getLicenseSelfServeStatus().
@@ -38,7 +40,7 @@ export default function useCanSelfHostedExpand() {
             catch(() => {
                 setExpansionAvailable(false);
             });
-    }, [isEnterpriseReady]);
+    }, [isEnterpriseReady, isAdmin]);
 
     return !isCloud && !isSelfHostedStarter && !isSalesServeOnly && expansionAvailable;
 }

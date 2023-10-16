@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -257,11 +258,12 @@ func TestNormalizeEmail(t *testing.T) {
 }
 
 func TestCleanUsername(t *testing.T) {
-	assert.Equal(t, CleanUsername("Spin-punch"), "spin-punch", "didn't clean name properly")
-	assert.Equal(t, CleanUsername("PUNCH"), "punch", "didn't clean name properly")
-	assert.Equal(t, CleanUsername("spin'punch"), "spin-punch", "didn't clean name properly")
-	assert.Equal(t, CleanUsername("spin"), "spin", "didn't clean name properly")
-	assert.Len(t, CleanUsername("all"), 27, "didn't clean name properly")
+	logger := mlog.CreateConsoleTestLogger(t)
+	assert.Equal(t, CleanUsername(logger, "Spin-punch"), "spin-punch", "didn't clean name properly")
+	assert.Equal(t, CleanUsername(logger, "PUNCH"), "punch", "didn't clean name properly")
+	assert.Equal(t, CleanUsername(logger, "spin'punch"), "spin-punch", "didn't clean name properly")
+	assert.Equal(t, CleanUsername(logger, "spin"), "spin", "didn't clean name properly")
+	assert.Len(t, CleanUsername(logger, "all"), 27, "didn't clean name properly")
 }
 
 func TestRoles(t *testing.T) {

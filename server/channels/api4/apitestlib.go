@@ -4,9 +4,7 @@
 package api4
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -21,7 +19,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	graphql "github.com/graph-gophers/graphql-go"
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
@@ -47,7 +44,6 @@ type TestHelper struct {
 
 	Context              *request.Context
 	Client               *model.Client4
-	GraphQLClient        *graphQLClient
 	BasicUser            *model.User
 	BasicUser2           *model.User
 	TeamAdminUser        *model.User
@@ -196,7 +192,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th.Client = th.CreateClient()
-	th.GraphQLClient = newGraphQLClient(fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port))
 	th.SystemAdminClient = th.CreateClient()
 	th.SystemManagerClient = th.CreateClient()
 
@@ -811,16 +806,10 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 
 func (th *TestHelper) LoginBasic() {
 	th.LoginBasicWithClient(th.Client)
-	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
-		th.LoginBasicWithGraphQL()
-	}
 }
 
 func (th *TestHelper) LoginBasic2() {
 	th.LoginBasic2WithClient(th.Client)
-	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
-		th.LoginBasicWithGraphQL()
-	}
 }
 
 func (th *TestHelper) LoginTeamAdmin() {
@@ -837,13 +826,6 @@ func (th *TestHelper) LoginSystemManager() {
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	_, _, err := client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (th *TestHelper) LoginBasicWithGraphQL() {
-	_, _, err := th.GraphQLClient.login(th.BasicUser.Email, th.BasicUser.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -1175,7 +1157,7 @@ func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 }
 
 func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
@@ -1186,7 +1168,7 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 }
 
 func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
 		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
@@ -1300,23 +1282,4 @@ func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
 		panic(err)
 	}
 	return scheme
-}
-
-func (th *TestHelper) MakeGraphQLRequest(input *graphQLInput) (*graphql.Response, error) {
-	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffixV5 + "/graphql"
-
-	buf, err := json.Marshal(input)
-	if err != nil {
-		panic(err)
-	}
-
-	resp, err := th.GraphQLClient.doAPIRequest("POST", url, bytes.NewReader(buf), map[string]string{})
-	if err != nil {
-		panic(err)
-	}
-	defer closeBody(resp)
-
-	var gqlResp *graphql.Response
-	err = json.NewDecoder(resp.Body).Decode(&gqlResp)
-	return gqlResp, err
 }

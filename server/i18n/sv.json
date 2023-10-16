@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 112+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6696,7 +6696,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} är inte medlem i teamet."
+    "translation": "Du kan lägga till {{.Users}} till kanalen när de är medlemmar i teamet **{{.Team}}**."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
@@ -6729,10 +6729,6 @@
   {
     "id": "api.command_invite.hint",
     "translation": "@[username]... ~[channel]..."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Den här kanalen hanteras av grupper.    Den här användaren tillhör inte en grupp synkad till den här kanalen."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -7248,10 +7244,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Går ej att uppdatera ett meddelande i en raderad kanal."
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Länköversikten har avaktiverats av systemadministratören."
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -9675,13 +9667,6 @@
     "translation": "Kunde inte rensa oauth-information."
   },
   {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "Du har {{.Count}} tilldelad uppgift:",
-      "other": "Du har {{.Count}} tilldelade uppgifter:"
-    }
-  },
-  {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Felaktigt värde för bytes licensen laddas upp."
   },
@@ -9876,5 +9861,13 @@
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
     "translation": "Endast rot-meddelanden tillåts ha prioritering."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Det är inte tillåtet för en användare att konvertera gruppmeddelanden till en privat kanal"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} skapade kanalen från en gruppkonversation med {{.GMMembers}}."
   }
 ]
