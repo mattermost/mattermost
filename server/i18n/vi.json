@@ -3743,7 +3743,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Không thể thêm tùy chọn kênh trực tiếp cho người dùng user_id = {{. UserId}}, team_id = {{. TeamId}}, err = {{. Error}}"
+    "translation": "Không thể thêm tùy chọn kênh trực tiếp cho người dùng user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
