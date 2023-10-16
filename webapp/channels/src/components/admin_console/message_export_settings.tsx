@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
@@ -34,7 +35,7 @@ interface State extends BaseState {
     globalRelaySMTPServerTimeout: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPServerTimeout'];
 }
 
-class MessageExportSettings extends AdminSettings<BaseProps, State> {
+export default class MessageExportSettings extends AdminSettings<BaseProps, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.MessageExportSettings.EnableExport = this.state.enableComplianceExport;
         config.MessageExportSettings.ExportFormat = this.state.exportFormat;
@@ -269,7 +270,7 @@ class MessageExportSettings extends AdminSettings<BaseProps, State> {
                             id='admin.service.complianceExportDesc'
                             defaultMessage='When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more.'
                             values={{
-                                link: (msg: React.ReactNode) => (
+                                link: (msg: ReactNode) => (
                                     <ExternalLink
                                         href={DocLinks.COMPILANCE_EXPORT}
                                         location='message_export_settings'
@@ -346,5 +347,3 @@ class MessageExportSettings extends AdminSettings<BaseProps, State> {
         );
     };
 }
-
-export default MessageExportSettings;
