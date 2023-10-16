@@ -420,10 +420,6 @@ export default class Client4 {
         return `${this.getBaseRoute()}/schemes`;
     }
 
-    getRedirectLocationRoute() {
-        return `${this.getBaseRoute()}/redirect_location`;
-    }
-
     getBotsRoute() {
         return `${this.getBaseRoute()}/bots`;
     }
@@ -3695,17 +3691,6 @@ export default class Client4 {
             {method: 'post'},
         );
     }
-
-    // Redirect Location
-    getRedirectLocation = (urlParam: string) => {
-        if (!urlParam.length) {
-            return Promise.resolve();
-        }
-        const url = `${this.getRedirectLocationRoute()}${buildQueryString({url: urlParam})}`;
-        return this.doFetch<{
-            location: string;
-        }>(url, {method: 'get'});
-    };
 
     // Bot Routes
 
