@@ -3236,6 +3236,7 @@ const AdminDefinition = {
             title: t('admin.sidebar.ip_filtering'),
             title_default: 'IP Filtering',
             isHidden: it.configIsFalse('FeatureFlags', 'CloudIPFiltering'),
+            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
             searchableStrings: [
                 'admin.sidebar.ip_filtering',
             ],
@@ -3243,7 +3244,6 @@ const AdminDefinition = {
                 id: 'IPFiltering',
                 component: IPFiltering,
             },
-            isDisabled: false,
         },
     },
     authentication: {

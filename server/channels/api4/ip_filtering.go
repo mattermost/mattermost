@@ -31,7 +31,11 @@ func getIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !ensured {
 		return
 	}
-	// TODO: Permissions
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadIPFilters) {
+		c.SetPermissionError(model.PermissionSysconsoleReadIPFilters)
+		return
+	}
 
 	ipFiltering := c.App.IPFiltering()
 
@@ -56,7 +60,10 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Permissions
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteIPFilters) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteIPFilters)
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("applyIPFilters", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
