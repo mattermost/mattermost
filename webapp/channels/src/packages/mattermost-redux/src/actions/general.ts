@@ -7,9 +7,7 @@ import {LogLevel} from '@mattermost/types/client4';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -91,29 +89,6 @@ export function setUrl(url: string) {
     return true;
 }
 
-export function getRedirectLocation(url: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let pendingData: Promise<any>;
-        if (isMinimumServerVersion(getServerVersion(getState()), 5, 3)) {
-            pendingData = Client4.getRedirectLocation(url);
-        } else {
-            pendingData = Promise.resolve({location: url});
-        }
-
-        let data;
-        try {
-            data = await pendingData;
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: GeneralTypes.REDIRECT_LOCATION_FAILURE, data: {error, url}});
-            return {error};
-        }
-
-        dispatch({type: GeneralTypes.REDIRECT_LOCATION_SUCCESS, data: {...data, url}});
-        return {data};
-    };
-}
-
 export function getWarnMetricsStatus(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data;
@@ -182,7 +157,6 @@ export default {
     logClientError,
     setServerVersion,
     setUrl,
-    getRedirectLocation,
     getWarnMetricsStatus,
     getFirstAdminVisitMarketplaceStatus,
 };
