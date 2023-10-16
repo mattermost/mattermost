@@ -123,7 +123,7 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
         </Link>
         <Memo(SpinnerButton)
           className="btn btn-primary"
-          id="save-button"
+          data-testid="save-button"
           onClick={[Function]}
           spinning={false}
           spinningText="Saving..."
@@ -299,7 +299,7 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
         </Link>
         <Memo(SpinnerButton)
           className="btn btn-primary"
-          id="save-button"
+          data-testid="save-button"
           onClick={[Function]}
           spinning={false}
           spinningText="Saving..."
@@ -439,7 +439,7 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
         </Link>
         <Memo(SpinnerButton)
           className="btn btn-primary"
-          id="save-button"
+          data-testid="save-button"
           onClick={[Function]}
           spinning={false}
           spinningText="Saving..."

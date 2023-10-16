@@ -385,7 +385,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 />
                             </Link>
                             <SpinnerButton
-                                id='save-button'
+                                data-testid='save-button'
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
