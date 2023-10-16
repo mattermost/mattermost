@@ -9,9 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func TestTrueUpReviewStatusStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -21,7 +21,6 @@ func TestTrueUpReviewStatusStore(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func testCreateTrueUpReviewStatus(t *testing.T, ss store.Store) {
-
 	now := time.Date(time.Now().Year(), time.January, 1, 0, 0, 0, 0, time.Local)
 
 	reviewStatus := model.TrueUpReviewStatus{
@@ -39,7 +38,6 @@ func testCreateTrueUpReviewStatus(t *testing.T, ss store.Store) {
 }
 
 func testGetTrueUpReviewStatus(t *testing.T, ss store.Store) {
-
 	now := time.Date(time.Now().Year(), time.August, 1, 0, 0, 0, 0, time.Local)
 	dueDate := utils.GetNextTrueUpReviewDueDate(now).UnixMilli()
 
@@ -61,7 +59,6 @@ func testGetTrueUpReviewStatus(t *testing.T, ss store.Store) {
 }
 
 func testUpdateTrueUpReviewStatus(t *testing.T, ss store.Store) {
-
 	now := time.Date(time.Now().Year(), time.April, 1, 0, 0, 0, 0, time.Local)
 
 	reviewStatus := model.TrueUpReviewStatus{

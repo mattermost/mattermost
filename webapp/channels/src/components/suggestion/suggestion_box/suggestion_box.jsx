@@ -4,10 +4,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
-
 import QuickInput from 'components/quick_input';
+
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -96,18 +96,12 @@ export default class SuggestionBox extends React.PureComponent {
         onKeyPress: PropTypes.func,
         onComposition: PropTypes.func,
 
-        onSelect: PropTypes.func,
         onSearchTypeSelected: PropTypes.func,
 
         /**
          * Function called when an item is selected
          */
         onItemSelected: PropTypes.func,
-
-        /**
-         * Flags if the suggestion_box is for the RHS (Reply).
-         */
-        isRHS: PropTypes.bool,
 
         /**
          * The number of characters required to show the suggestion list, defaults to 1
@@ -141,11 +135,6 @@ export default class SuggestionBox extends React.PureComponent {
         contextId: PropTypes.string,
 
         /**
-         * If true, listen for clicks on a mention and populate the input with said mention, defaults to false
-         */
-        listenForMentionKeyClick: PropTypes.bool,
-
-        /**
          * Allows parent to access received suggestions
          */
         onSuggestionsReceived: PropTypes.func,
@@ -172,12 +161,10 @@ export default class SuggestionBox extends React.PureComponent {
         renderNoResults: false,
         shouldSearchCompleteText: false,
         completeOnTab: true,
-        isRHS: false,
         requiredCharacters: 1,
         openOnFocus: false,
         openWhenEmpty: false,
         replaceAllInputOnSelect: false,
-        listenForMentionKeyClick: false,
         forceSuggestionsWhenBlur: false,
         alignWithTextbox: false,
     };
@@ -221,14 +208,7 @@ export default class SuggestionBox extends React.PureComponent {
     }
 
     componentDidMount() {
-        if (this.props.listenForMentionKeyClick) {
-            EventEmitter.addListener('mention_key_click', this.handleMentionKeyClick);
-        }
         this.handlePretextChanged(this.pretext);
-    }
-
-    componentWillUnmount() {
-        EventEmitter.removeListener('mention_key_click', this.handleMentionKeyClick);
     }
 
     componentDidUpdate(prevProps) {
@@ -247,21 +227,6 @@ export default class SuggestionBox extends React.PureComponent {
             this.handlePretextChanged(pretext);
         }
     }
-
-    handleMentionKeyClick = (mentionKey, isRHS) => {
-        if (this.props.isRHS !== isRHS) {
-            return;
-        }
-
-        let insertText = '@' + mentionKey;
-
-        // if the current text does not end with a whitespace, then insert a space
-        if (this.props.value && (/[^\s]$/).test(this.props.value)) {
-            insertText = ' ' + insertText;
-        }
-
-        this.addTextAtCaret(insertText, '');
-    };
 
     getTextbox = () => {
         if (!this.inputRef.current) {
@@ -497,7 +462,7 @@ export default class SuggestionBox extends React.PureComponent {
 
         if (finish && this.props.onKeyPress) {
             let ke = e;
-            if (!e || Utils.isKeyPressed(e, Constants.KeyCodes.TAB)) {
+            if (!e || Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
                 ke = new KeyboardEvent('keydown', {
                     bubbles: true, cancelable: true, keyCode: 13,
                 });
@@ -582,13 +547,13 @@ export default class SuggestionBox extends React.PureComponent {
     handleKeyDown = (e) => {
         if ((this.props.openWhenEmpty || this.props.value) && this.hasSuggestions()) {
             const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-            if (Utils.isKeyPressed(e, KeyCodes.UP)) {
+            if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                 this.selectPrevious();
                 e.preventDefault();
-            } else if (Utils.isKeyPressed(e, KeyCodes.DOWN)) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
                 this.selectNext();
                 e.preventDefault();
-            } else if ((Utils.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Utils.isKeyPressed(e, KeyCodes.TAB))) {
+            } else if ((Keyboard.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Keyboard.isKeyPressed(e, KeyCodes.TAB))) {
                 let matchedPretext = '';
                 for (let i = 0; i < this.state.terms.length; i++) {
                     if (this.state.terms[i] === this.state.selection) {
@@ -611,7 +576,7 @@ export default class SuggestionBox extends React.PureComponent {
                     this.props.onKeyDown(e);
                 }
                 e.preventDefault();
-            } else if (Utils.isKeyPressed(e, KeyCodes.ESCAPE)) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
                 this.clear();
                 this.setState({presentationType: 'text'});
                 e.preventDefault();
@@ -620,12 +585,6 @@ export default class SuggestionBox extends React.PureComponent {
             }
         } else if (this.props.onKeyDown) {
             this.props.onKeyDown(e);
-        }
-    };
-
-    handleSelect = (e) => {
-        if (this.props.onSelect) {
-            this.props.onSelect(e);
         }
     };
 
@@ -798,7 +757,6 @@ export default class SuggestionBox extends React.PureComponent {
         Reflect.deleteProperty(props, 'onComposition');
         Reflect.deleteProperty(props, 'onItemSelected');
         Reflect.deleteProperty(props, 'completeOnTab');
-        Reflect.deleteProperty(props, 'isRHS');
         Reflect.deleteProperty(props, 'requiredCharacters');
         Reflect.deleteProperty(props, 'openOnFocus');
         Reflect.deleteProperty(props, 'openWhenEmpty');
@@ -808,7 +766,6 @@ export default class SuggestionBox extends React.PureComponent {
         Reflect.deleteProperty(props, 'replaceAllInputOnSelect');
         Reflect.deleteProperty(props, 'renderDividers');
         Reflect.deleteProperty(props, 'contextId');
-        Reflect.deleteProperty(props, 'listenForMentionKeyClick');
         Reflect.deleteProperty(props, 'forceSuggestionsWhenBlur');
         Reflect.deleteProperty(props, 'onSuggestionsReceived');
         Reflect.deleteProperty(props, 'actions');
@@ -839,7 +796,6 @@ export default class SuggestionBox extends React.PureComponent {
                     onCompositionUpdate={this.handleCompositionUpdate}
                     onCompositionEnd={this.handleCompositionEnd}
                     onKeyDown={this.handleKeyDown}
-                    onSelect={this.handleSelect}
                 />
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'text' && (
                     <SuggestionListComponent

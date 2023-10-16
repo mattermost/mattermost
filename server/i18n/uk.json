@@ -1364,10 +1364,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Громадські посилання відключені системним адміністратором "
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
@@ -3140,10 +3136,6 @@
     "translation": "Не вдається розшифрувати результати пошуку"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Еластичний пошук не запускається"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Не вдалося створити масовий процесор Elasticsearch"
   },
@@ -4046,10 +4038,6 @@
   {
     "id": "model.emoji.user_id.app_error",
     "translation": "Неприпустимий ідентифікатор автора"
-  },
-  {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Чи не вдалося декодувати gif."
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
@@ -5698,10 +5686,6 @@
   {
     "id": "api.command_invite.user_not_in_team.app_error",
     "translation": "{{.Username}} не є учасником цього каналу."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {
     "id": "api.command.execute_command.format.app_error",

@@ -19,6 +19,6 @@ npm run build
 or from the root of the webapp with
 
 ```bash
-npm run build --workspace=packages/mattermost
+npm run build --workspace=platform/components
 ```
 

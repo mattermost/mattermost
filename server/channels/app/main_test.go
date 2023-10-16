@@ -7,7 +7,7 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 var mainHelper *testlib.MainHelper

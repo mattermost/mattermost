@@ -6,11 +6,11 @@ package slashcommands
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 type RemoveProvider struct {
@@ -57,15 +57,15 @@ func (*KickProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*RemoveProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*RemoveProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return doCommand(a, c, args, message)
 }
 
-func (*KickProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*KickProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return doCommand(a, c, args, message)
 }
 
-func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(c, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{

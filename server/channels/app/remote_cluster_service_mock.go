@@ -6,8 +6,8 @@ package app
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/remotecluster"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
 // MockOptionRemoteClusterService a mock of the remote cluster service

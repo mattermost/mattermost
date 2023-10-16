@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {SearchShortcut} from 'components/search_shortcut';
 
@@ -13,12 +13,6 @@ describe('components/SearchShortcut', () => {
             return {
                 ...original,
                 isDesktopApp: jest.fn(() => false),
-            };
-        });
-        jest.mock('utils/utils', () => {
-            const original = jest.requireActual('utils/utils');
-            return {
-                ...original,
                 isMac: jest.fn(() => false),
             };
         });
@@ -33,12 +27,6 @@ describe('components/SearchShortcut', () => {
             return {
                 ...original,
                 isDesktopApp: jest.fn(() => false),
-            };
-        });
-        jest.mock('utils/utils', () => {
-            const original = jest.requireActual('utils/utils');
-            return {
-                ...original,
                 isMac: jest.fn(() => true),
             };
         });
@@ -53,13 +41,7 @@ describe('components/SearchShortcut', () => {
             return {
                 ...original,
                 isDesktopApp: jest.fn(() => true),
-            };
-        });
-        jest.mock('utils/utils', () => {
-            const original = jest.requireActual('utils/utils');
-            return {
-                ...original,
-                isMac: jest.fn(() => false),
+                isMac: jest.fn(() => true),
             };
         });
 
@@ -73,12 +55,6 @@ describe('components/SearchShortcut', () => {
             return {
                 ...original,
                 isDesktopApp: jest.fn(() => true),
-            };
-        });
-        jest.mock('utils/utils', () => {
-            const original = jest.requireActual('utils/utils');
-            return {
-                ...original,
                 isMac: jest.fn(() => true),
             };
         });

@@ -3,25 +3,17 @@
 
 import React from 'react';
 
-import {screen} from '@testing-library/react';
+import {renderWithFullContext, screen} from 'tests/react_testing_utils';
 
 import {MenuItemBlockableLinkImpl} from './menu_item_blockable_link';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import {Provider} from 'react-redux';
-import store from 'stores/redux_store';
-import {BrowserRouter} from 'react-router-dom';
 
 describe('components/MenuItemBlockableLink', () => {
     test('should render my link', () => {
-        renderWithIntl(
-            <BrowserRouter>
-                <Provider store={store}>
-                    <MenuItemBlockableLinkImpl
-                        to='/wherever'
-                        text='Whatever'
-                    />
-                </Provider>
-            </BrowserRouter>,
+        renderWithFullContext(
+            <MenuItemBlockableLinkImpl
+                to='/wherever'
+                text='Whatever'
+            />,
         );
 
         screen.getByText('Whatever');

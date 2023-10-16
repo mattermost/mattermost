@@ -7,12 +7,12 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost-server/v6/model"
+	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
 	sql "database/sql"
 
-	store "github.com/mattermost/mattermost-server/v6/server/channels/store"
+	store "github.com/mattermost/mattermost/server/v8/channels/store"
 
 	time "time"
 )
@@ -187,6 +187,22 @@ func (_m *Store) Context() context.Context {
 	return r0
 }
 
+// DesktopTokens provides a mock function with given fields:
+func (_m *Store) DesktopTokens() store.DesktopTokensStore {
+	ret := _m.Called()
+
+	var r0 store.DesktopTokensStore
+	if rf, ok := ret.Get(0).(func() store.DesktopTokensStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.DesktopTokensStore)
+		}
+	}
+
+	return r0
+}
+
 // Draft provides a mock function with given fields:
 func (_m *Store) Draft() store.DraftStore {
 	ret := _m.Called()
@@ -346,20 +362,28 @@ func (_m *Store) GetInternalReplicaDB() *sql.DB {
 	return r0
 }
 
-// GetInternalReplicaDBs provides a mock function with given fields:
-func (_m *Store) GetInternalReplicaDBs() []*sql.DB {
+// GetLocalSchemaVersion provides a mock function with given fields:
+func (_m *Store) GetLocalSchemaVersion() (int, error) {
 	ret := _m.Called()
 
-	var r0 []*sql.DB
-	if rf, ok := ret.Get(0).(func() []*sql.DB); ok {
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (int, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() int); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*sql.DB)
-		}
+		r0 = ret.Get(0).(int)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Group provides a mock function with given fields:
@@ -510,6 +534,22 @@ func (_m *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.PostAcknowledgementStore)
+		}
+	}
+
+	return r0
+}
+
+// PostPersistentNotification provides a mock function with given fields:
+func (_m *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
+	ret := _m.Called()
+
+	var r0 store.PostPersistentNotificationStore
+	if rf, ok := ret.Get(0).(func() store.PostPersistentNotificationStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostPersistentNotificationStore)
 		}
 	}
 

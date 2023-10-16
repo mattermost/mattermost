@@ -4,6 +4,7 @@
 import React, {memo} from 'react';
 
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
 import type {Draft} from 'selectors/drafts';
 
 import ChannelDraft from './channel_draft';
@@ -14,9 +15,10 @@ type Props = {
     status: UserStatus['status'];
     displayName: string;
     draft: Draft;
+    isRemote?: boolean;
 }
 
-function DraftRow({draft, user, status, displayName}: Props) {
+function DraftRow({draft, user, status, displayName, isRemote}: Props) {
     switch (draft.type) {
     case 'channel':
         return (
@@ -26,6 +28,7 @@ function DraftRow({draft, user, status, displayName}: Props) {
                 user={user}
                 status={status}
                 displayName={displayName}
+                isRemote={isRemote}
             />
         );
     case 'thread':
@@ -37,6 +40,7 @@ function DraftRow({draft, user, status, displayName}: Props) {
                 user={user}
                 status={status}
                 displayName={displayName}
+                isRemote={isRemote}
             />
         );
     default:

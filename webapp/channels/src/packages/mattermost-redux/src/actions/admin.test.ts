@@ -5,14 +5,15 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import type {CreateDataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+
 import * as Actions from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {RequestStatus, Stats} from '../constants';
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {CreateDataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import {RequestStatus, Stats} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
 const NO_GROUPS_RESPONSE = {count: 0, groups: []};
@@ -35,6 +36,27 @@ describe('Actions.Admin', () => {
 
     afterAll(() => {
         TestHelper.tearDown();
+    });
+
+    it('getPlainLogs', async () => {
+        nock(Client4.getBaseRoute()).
+            get('/logs').
+            query(true).
+            reply(200, [
+                '[2017/04/04 14:56:19 EDT] [INFO] Starting Server...',
+                '[2017/04/04 14:56:19 EDT] [INFO] Server is listening on :8065',
+                '[2017/04/04 15:01:48 EDT] [INFO] Stopping Server...',
+                '[2017/04/04 15:01:48 EDT] [INFO] Closing SqlStore',
+            ]);
+
+        await Actions.getPlainLogs()(store.dispatch, store.getState);
+
+        const state = store.getState();
+
+        const logs = state.entities.admin.plainLogs;
+
+        expect(logs).toBeTruthy();
+        expect(Object.keys(logs).length > 0).toBeTruthy();
     });
 
     it('getAudits', async () => {

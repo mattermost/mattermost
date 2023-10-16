@@ -2,8 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
+
+import type {ChannelWithTeamData} from '@mattermost/types/channels';
+import {
+    SyncableType,
+} from '@mattermost/types/groups';
+import type {
+    Group,
+    GroupChannel,
+    GroupPatch,
+    GroupTeam,
+    SyncablePatch} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import {GroupProfileAndSettings} from 'components/admin_console/group_settings/group_details/group_profile_and_settings';
@@ -13,21 +27,10 @@ import SaveChangesPanel from 'components/admin_console/team_channel_settings/sav
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import FormError from 'components/form_error';
 import TeamSelectorModal from 'components/team_selector_modal';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {ChannelWithTeamData} from '@mattermost/types/channels';
-import {
-    Group,
-    GroupChannel,
-    GroupPatch,
-    GroupTeam,
-    SyncablePatch,
-    SyncableType,
-} from '@mattermost/types/groups';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 
 import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
@@ -508,12 +511,8 @@ export default class GroupDetails extends React.PureComponent<Props, State> {
                 allowReference,
                 groupMentionName: lcGroupMentionName,
                 serverError,
-                hasAllowReferenceChanged: result.error ?
-                    hasAllowReferenceChanged :
-                    false,
-                hasGroupMentionNameChanged: result.error ?
-                    hasGroupMentionNameChanged :
-                    false,
+                hasAllowReferenceChanged: result.error ? hasAllowReferenceChanged : false,
+                hasGroupMentionNameChanged: result.error ? hasGroupMentionNameChanged : false,
             });
         }
 
@@ -646,7 +645,7 @@ export default class GroupDetails extends React.PureComponent<Props, State> {
 
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/groups'
@@ -657,7 +656,7 @@ export default class GroupDetails extends React.PureComponent<Props, State> {
                             defaultMessage='Group Configuration'
                         />
                     </div>
-                </div>
+                </AdminHeader>
 
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>

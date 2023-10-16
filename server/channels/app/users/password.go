@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func CheckUserPassword(user *model.User, password string) error {
@@ -39,7 +39,6 @@ func ComparePassword(hash string, password string) error {
 }
 
 func (us *UserService) isPasswordValid(password string) error {
-
 	return IsPasswordValidWithSettings(password, &us.config().PasswordSettings)
 }
 

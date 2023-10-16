@@ -15,15 +15,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/cache"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const (
@@ -98,11 +98,12 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	// the post does NOT have from_webhook prop set (e.g. Zapier app), and
 	// the post does NOT have from_bot set (e.g. from discovering the user is a bot within CreatePost), and
 	// the post is NOT a reply post with CRT enabled
-	_, fromWebhook := post.GetProps()["from_webhook"]
-	_, fromBot := post.GetProps()["from_bot"]
-	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(c, post.UserId)
+	_, fromWebhook := post.GetProps()[model.PostPropsFromWebhook]
+	_, fromBot := post.GetProps()[model.PostPropsFromBot]
+	isCRTEnabled := a.IsCRTEnabledForUser(c, post.UserId)
+	isCRTReply := post.RootId != "" && isCRTEnabled
 	if !fromWebhook && !fromBot && !isCRTReply {
-		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
+		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true, isCRTEnabled); err != nil {
 			c.Logger().Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
@@ -196,6 +197,21 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL)
 	}()
 
+	// Validate recipients counts in case it's not DM
+	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
+		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			if maxRecipients := *a.Config().ServiceSettings.PersistentNotificationMaxRecipients; len(mentions.Mentions) > maxRecipients {
+				return model.NewAppError("CreatePost", "api.post.post_priority.max_recipients_persistent_notification_post.request_error", map[string]any{"MaxRecipients": maxRecipients}, "", http.StatusBadRequest)
+			} else if len(mentions.Mentions) == 0 {
+				return model.NewAppError("CreatePost", "api.post.post_priority.min_recipients_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, model.NewAppError("CreatePost", "api.post.post_priority.persistent_notification_validation_error.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
 	post.SanitizeProps()
 
 	var pchan chan store.StoreResult
@@ -220,11 +236,11 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	if user.IsBot {
-		post.AddProp("from_bot", "true")
+		post.AddProp(model.PostPropsFromBot, "true")
 	}
 
 	if c.Session().IsOAuth {
-		post.AddProp("from_oauth_app", "true")
+		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
 	var ephemeralPost *model.Post
@@ -277,10 +293,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		if err != nil {
 			c.Logger().Warn("Could not convert post attachments to map interface.", mlog.Err(err))
 		}
-	}
-
-	if !a.isPostPriorityEnabled() && post.GetPriority() != nil {
-		post.Metadata.Priority = nil
 	}
 
 	var metadata *model.PostMetadata
@@ -344,16 +356,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// might be duplicating requests.
 	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL)
 
-	// We make a copy of the post for the plugin hook to avoid a race condition,
-	// and to remove the non-GOB-encodable Metadata from it.
-	pluginPost := rpost.ForPlugin()
-	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.MessageHasBeenPosted(pluginContext, pluginPost)
-			return true
-		}, plugin.MessageHasBeenPostedID)
-	})
-
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
 	}
@@ -368,6 +370,16 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 	}
 
+	// We make a copy of the post for the plugin hook to avoid a race condition,
+	// and to remove the non-GOB-encodable Metadata from it.
+	pluginPost := rpost.ForPlugin()
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.MessageHasBeenPosted(pluginContext, pluginPost)
+			return true
+		}, plugin.MessageHasBeenPostedID)
+	})
+
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
 	// PS: we don't want to include PostPriority from the db to avoid the replica lag,
@@ -375,6 +387,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	rpost = a.PreparePostForClient(c, rpost, true, false, false)
 
 	a.applyPostWillBeConsumedHook(&rpost)
+
+	if rpost.RootId != "" {
+		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
+			return nil, appErr
+		}
+	}
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -609,10 +627,10 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
-	post.SanitizeProps()
+func (a *App) UpdatePost(c *request.Context, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+	receivedUpdatedPost.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -625,21 +643,21 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 			return nil, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
-	oldPost := postLists.Posts[post.Id]
+	oldPost := postLists.Posts[receivedUpdatedPost.Id]
 
 	var err *model.AppError
 	if oldPost == nil {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.DeleteAt != 0 {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": post.Id}, "", http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": receivedUpdatedPost.Id}, "", http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.IsSystemMessage() {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -654,17 +672,17 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 
 	newPost := oldPost.Clone()
 
-	if newPost.Message != post.Message {
-		newPost.Message = post.Message
+	if newPost.Message != receivedUpdatedPost.Message {
+		newPost.Message = receivedUpdatedPost.Message
 		newPost.EditAt = model.GetMillis()
-		newPost.Hashtags, _ = model.ParseHashtags(post.Message)
+		newPost.Hashtags, _ = model.ParseHashtags(receivedUpdatedPost.Message)
 	}
 
 	if !safeUpdate {
-		newPost.IsPinned = post.IsPinned
-		newPost.HasReactions = post.HasReactions
-		newPost.FileIds = post.FileIds
-		newPost.SetProps(post.GetProps())
+		newPost.IsPinned = receivedUpdatedPost.IsPinned
+		newPost.HasReactions = receivedUpdatedPost.HasReactions
+		newPost.FileIds = receivedUpdatedPost.FileIds
+		newPost.SetProps(receivedUpdatedPost.GetProps())
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
@@ -672,19 +690,19 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err = a.FillInPostProps(c, post, nil); err != nil {
+	if err = a.FillInPostProps(c, newPost, nil); err != nil {
 		return nil, err
 	}
 
-	if post.IsRemote() {
-		oldPost.RemoteId = model.NewString(*post.RemoteId)
+	if receivedUpdatedPost.IsRemote() {
+		oldPost.RemoteId = model.NewString(*receivedUpdatedPost.RemoteId)
 	}
 
 	var rejectionReason string
 	pluginContext := pluginContext(c)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
-		return post != nil
+		return receivedUpdatedPost != nil
 	}, plugin.MessageWillBeUpdatedID)
 	if newPost == nil {
 		return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
@@ -855,6 +873,7 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 	}
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
+
 	return postList, nil
 }
 
@@ -875,6 +894,7 @@ func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList
 	}
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
+
 	return postList, nil
 }
 
@@ -893,6 +913,7 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 	}
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
+
 	return postList, nil
 }
 
@@ -949,6 +970,7 @@ func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID st
 	}
 
 	a.applyPostsWillBeConsumedHook(posts.Posts)
+
 	return posts, nil
 }
 
@@ -963,6 +985,7 @@ func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.Post
 	}
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
+
 	return postList, nil
 }
 
@@ -977,6 +1000,7 @@ func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit in
 	}
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
+
 	return postList, nil
 }
 
@@ -991,6 +1015,7 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 	}
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
+
 	return postList, nil
 }
 
@@ -1137,6 +1162,7 @@ func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bo
 	}
 
 	a.applyPostWillBeConsumedHook(&post)
+
 	return post, nil
 }
 
@@ -1308,6 +1334,12 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	}
 
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	postJSON, err := json.Marshal(post)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1333,6 +1365,21 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	}
 	a.Srv().Go(func() {
 		a.deleteFlaggedPosts(post.Id)
+	})
+
+	pluginPost := post.ForPlugin()
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
+			return true
+		}, plugin.MessageHasBeenDeletedID)
+	})
+
+	a.Srv().Go(func() {
+		if err = a.RemoveNotifications(c, post, channel); err != nil {
+			a.Log().Error("DeletePost failed to delete notification", mlog.Err(err))
+		}
 	})
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
@@ -1561,7 +1608,7 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
@@ -1573,7 +1620,6 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 	finalParamsList := []*model.SearchParams{}
 
 	for _, params := range paramsList {
-		params.Modifier = modifier
 		params.OrTerms = isOrSearch
 		params.IncludeDeletedChannels = includeDeleted
 		// Don't allow users to search for "*"
@@ -1616,17 +1662,7 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 	return postSearchResults, nil
 }
 
-func (a *App) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, *model.AppError) {
-	searchParams, err := a.Srv().Store().Post().GetRecentSearchesForUser(userID)
-	if err != nil {
-		return nil, model.NewAppError("GetRecentSearchesForUser", "app.recent_searches.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return searchParams, nil
-}
-
 func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
@@ -1812,7 +1848,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		}
 
 		var urgentCount int
-		if a.isPostPriorityEnabled() {
+		if a.IsPostPriorityEnabled() {
 			urgentCount, nErr = a.Srv().Store().Channel().CountUrgentPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_urgent_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1852,7 +1888,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
-			if a.isPostPriorityEnabled() {
+			if a.IsPostPriorityEnabled() {
 				priority, err := a.GetPriorityForPost(post.Id)
 				if err != nil {
 					return 0, 0, 0, err
@@ -1888,7 +1924,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 			}
 		}
 
-		if a.isPostPriorityEnabled() {
+		if a.IsPostPriorityEnabled() {
 			priorityList, nErr := a.Srv().Store().PostPriority().GetForPosts(mentionPostIds)
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.get_priority_for_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1919,6 +1955,12 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	if mentioned, ok := mentionedByThread[post.RootId]; ok {
 		// We've already figured out if the user was mentioned by this thread
 		return mentioned
+	}
+
+	if _, ok := otherPosts[post.RootId]; !ok {
+		mlog.Warn("Can't determine the comment mentions as the rootPost is past the cloud plan's limit", mlog.String("rootPostID", post.RootId), mlog.String("commentID", post.Id))
+
+		return false
 	}
 
 	// Whether or not the user was mentioned because they started the thread
@@ -1989,13 +2031,13 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		return nil, err
 	}
 
-	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannel) {
+	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
 		if channel.Type == model.ChannelTypeOpen {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
 				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
 			}
 		} else {
-			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannel})
+			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent})
 		}
 	}
 
@@ -2037,49 +2079,6 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 	}
 
 	return posts, nil
-}
-
-func (a *App) GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topThreads, err := a.Srv().Store().Thread().GetTopThreadsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreadsWithEmbedAndImage, nil
-}
-
-func (a *App) GetTopThreadsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topThreads, err := a.Srv().Store().Thread().GetTopThreadsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.post.get_top_threads_for_user_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreadsWithEmbedAndImage, nil
-}
-
-func (a *App) GetTopDMsForUserSince(userID string, opts *model.InsightsOpts) (*model.TopDMList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopDMsForUserSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-	topDMs, err := a.Srv().Store().Post().GetTopDMsForUserSince(userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopDMsForUserSince", "app.post.get_top_dms_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return topDMs, nil
 }
 
 func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.AppError {
@@ -2209,7 +2208,6 @@ func (a *App) CheckPostReminders() {
 			}
 		}
 	}
-
 }
 
 func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model.AppError) {
@@ -2235,9 +2233,9 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		}
 
 		if team.Type == model.TeamOpen {
-			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPublicTeams)
+			hasPermissionToAccessTeam = a.HasPermissionToTeam(c, userID, team.Id, model.PermissionJoinPublicTeams)
 		} else if team.Type == model.TeamInvite {
-			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPrivateTeams)
+			hasPermissionToAccessTeam = a.HasPermissionToTeam(c, userID, team.Id, model.PermissionJoinPrivateTeams)
 		}
 	} else {
 		// This happens in case of DMs and GMs.
@@ -2254,7 +2252,7 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 	} else if channel.Type == model.ChannelTypePrivate {
 		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
 	} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel)
+		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
 	}
 
 	if !hasPermissionToAccessChannel {
@@ -2270,7 +2268,7 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		HasJoinedChannel:   channelMemberErr == nil,
 	}
 	if team != nil {
-		_, teamMemberErr := a.GetTeamMember(team.Id, userID)
+		_, teamMemberErr := a.GetTeamMember(c, team.Id, userID)
 
 		info.TeamId = team.Id
 		info.TeamType = team.Type
@@ -2278,22 +2276,6 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		info.HasJoinedTeam = teamMemberErr == nil
 	}
 	return &info, nil
-}
-
-func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {
-	for _, topThread := range topThreadList.Items {
-		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(c, topThread.Post, false, false, true)
-		sanitizedPost, err := a.SanitizePostMetadataForUser(c, topThread.Post, userID)
-		if err != nil {
-			return nil, err
-		}
-		topThread.Post = sanitizedPost
-	}
-	return topThreadList, nil
-}
-
-func (a *App) isPostPriorityEnabled() bool {
-	return a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
 }
 
 func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {

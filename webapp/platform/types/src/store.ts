@@ -29,9 +29,6 @@ import {ThreadsState} from './threads';
 import {Typing} from './typing';
 import {UsersState} from './users';
 import {AppsState} from './apps';
-import {InsightsState} from './insights';
-import {GifsState} from './gifs';
-import {WorkTemplatesState} from './work_templates';
 
 export type GlobalState = {
     entities: {
@@ -63,15 +60,12 @@ export type GlobalState = {
             pending: Set<string>;
         };
         schemes: SchemesState;
-        gifs: GifsState;
         groups: GroupsState;
         channelCategories: ChannelCategoriesState;
         apps: AppsState;
         cloud: CloudState;
         hostedCustomer: HostedCustomerState;
         usage: CloudUsage;
-        insights: InsightsState;
-        worktemplates: WorkTemplatesState;
     };
     errors: any[];
     requests: {

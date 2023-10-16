@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable mattermost/use-external-link */
+/* eslint-disable @mattermost/use-external-link */
 
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 type ExternalLinkQueryParams = {
     utm_source?: string;
@@ -52,7 +53,11 @@ export default function ExternalLink(props: Props) {
             // If the href already has query params, remove them before adding them back with the addition of the new ones
             href = href?.split('?')[0];
         }
-        href = `${href}?${queryString}`;
+        const anchor = new URL(href).hash;
+        if (anchor) {
+            href = href.replace(anchor, '');
+        }
+        href = `${href}?${queryString}${anchor ?? ''}`;
     }
 
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {

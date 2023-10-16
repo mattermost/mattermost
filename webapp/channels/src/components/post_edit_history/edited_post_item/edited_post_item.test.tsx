@@ -1,15 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
-import {TestHelper} from 'utils/test_helper';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
 import {ModalIdentifiers} from 'utils/constants';
-
-import RestorePostModal from '../restore_post_modal';
+import {TestHelper} from 'utils/test_helper';
 
 import EditedPostItem from './edited_post_item';
+
+import RestorePostModal from '../restore_post_modal';
 
 describe('components/post_edit_history/edited_post_item', () => {
     const baseProps: ComponentProps<typeof EditedPostItem> = {
@@ -18,6 +21,7 @@ describe('components/post_edit_history/edited_post_item', () => {
             message: 'post message',
         }),
         isCurrent: false,
+        theme: {} as Theme,
         postCurrentVersion: TestHelper.getPostMock({
             id: 'post_current_version_id',
             message: 'post current version message',

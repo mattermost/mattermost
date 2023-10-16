@@ -1,10 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import classNames from 'classnames';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import ExternalLink from 'components/external_link';
+
+import {HostedCustomerLinks} from 'utils/constants';
+
+import BlankCardImage from './blank_card_image.svg';
 import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
 
@@ -38,7 +46,7 @@ type CardProps = {
     topColor: string;
     planLabel?: JSX.Element;
     plan: string;
-    planSummary?: string;
+    planSummary?: ReactNode;
     price?: string;
     rate?: ReactNode;
     planExtraInformation?: JSX.Element;
@@ -48,6 +56,8 @@ type CardProps = {
     briefing: PlanBriefing;
     planAddonsInfo?: PlanAddonsInfo;
     planTrialDisclaimer?: JSX.Element;
+    isCloud: boolean;
+    cloudFreeDeprecated: boolean;
 }
 
 type StyledProps = {
@@ -58,28 +68,101 @@ const StyledDiv = styled.div<StyledProps>`
 background-color: ${(props) => props.bgColor};
 `;
 
+export function BlankCard() {
+    const {formatMessage} = useIntl();
+    const [, contactSalesLink] = useOpenSalesLink();
+
+    return (
+        <div className='BlankCard'>
+            <div className='image'>
+                <BlankCardImage/>
+            </div>
+
+            <div className='description'>
+                <div className='title'>
+                    <span className='questions'>
+                        {formatMessage({id: 'pricing_modal.questions', defaultMessage: 'Questions?'})}
+                    </span>
+                    <span className='contact'>
+                        <ExternalLink
+                            location='cloud_pricing_modal'
+                            href={contactSalesLink}
+                        >
+                            {formatMessage({id: 'pricing_modal.contact_us', defaultMessage: 'Contact us'})}
+                        </ExternalLink>
+                    </span>
+                </div>
+                <div className='content'>
+                    {formatMessage({id: 'pricing_modal.reach_out', defaultMessage: 'Reach out to us and we’ll help you decide which plan is right for you and your organization.'})}
+                </div>
+            </div>
+            <hr/>
+            <div className='self-hosted-interest'>
+                <span className='interested'>
+                    {formatMessage({id: 'pricing_modal.interested_self_hosting', defaultMessage: 'Interested in self-hosting?'})}
+                </span>
+                <span className='learn'>
+                    <ExternalLink
+                        location='cloud_pricing_modal'
+                        href={HostedCustomerLinks.DOWNLOAD}
+                    >
+                        {formatMessage({id: 'pricing_modal.learn_more', defaultMessage: 'Learn more'})}
+                    </ExternalLink>
+                </span>
+            </div>
+        </div>
+    );
+}
+
 function Card(props: CardProps) {
     const {formatMessage} = useIntl();
+    const bottomClassName = classNames('bottom', {
+        bottom__round: props.cloudFreeDeprecated && props.isCloud,
+    });
+
+    const contactSalesCTAClassName = classNames('contact_sales_cta', {
+        contact_sales_cta__reduced: props.cloudFreeDeprecated && props.isCloud,
+    });
+
+    const planBriefingContentClassName = classNames('plan_briefing_content', {
+        plan_briefing_content__reduced: props.cloudFreeDeprecated,
+    });
+
+    const planPriceRateSectionClassName = classNames('plan_price_rate_section', {
+        plan_price_rate_section__expanded: props.cloudFreeDeprecated,
+    });
+
+    const planLimitsCtaClassName = classNames('plan_limits_cta', {
+        plan_limits_cta__expanded: props.cloudFreeDeprecated,
+    });
+
+    const buildingImgClassName = classNames('building_img', {
+        building_img__expanded: props.cloudFreeDeprecated,
+    });
+
     return (
         <div
             id={props.id}
             className='PlanCard'
         >
             {props.planLabel}
-            <StyledDiv
-                className='top'
-                bgColor={props.topColor}
-            />
-            <div className='bottom'>
+            {(!props.cloudFreeDeprecated || !props.isCloud) && (
+                <StyledDiv
+                    className='top'
+                    bgColor={props.topColor}
+                />
+            )}
+
+            <div className={bottomClassName}>
                 <div className='bottom_container'>
-                    <div className='plan_price_rate_section'>
+                    <div className={planPriceRateSectionClassName}>
                         <h3>{props.plan}</h3>
                         <p>{props.planSummary}</p>
-                        {props.price ? <h1>{props.price}</h1> : <BuildingSvg/>}
-                        <span>{props.rate}</span>
+                        {props.price ? <h1>{props.price}</h1> : <div className={buildingImgClassName}><BuildingSvg/></div>}
+                        {props.cloudFreeDeprecated ? (<span className='plan_rate'>{props.rate}</span>) : (<span>{props.rate}</span>)}
                     </div>
 
-                    <div className='plan_limits_cta'>
+                    <div className={planLimitsCtaClassName}>
                         {props.planExtraInformation}
                     </div>
 
@@ -96,7 +179,7 @@ function Card(props: CardProps) {
                         )}
                     </div>
 
-                    <div className='contact_sales_cta'>
+                    <div className={contactSalesCTAClassName}>
                         {props.contactSalesCTA && (
                             <div>
                                 <p>{formatMessage({id: 'pricing_modal.or', defaultMessage: 'or'})}</p>
@@ -105,9 +188,9 @@ function Card(props: CardProps) {
                     </div>
 
                     <div className='plan_briefing'>
-                        <hr/>
+                        {!props.cloudFreeDeprecated && <hr/>}
                         {props.planTrialDisclaimer}
-                        <div className='plan_briefing_content'>
+                        <div className={planBriefingContentClassName}>
                             <span className='title'>{props.briefing.title}</span>
                             {props.briefing.items?.map((i) => {
                                 return (

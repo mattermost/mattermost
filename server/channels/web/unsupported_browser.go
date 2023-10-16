@@ -8,8 +8,8 @@ import (
 
 	"github.com/avct/uasurfer"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/templates"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
 // MattermostApp describes downloads for the Mattermost App
@@ -45,7 +45,6 @@ type SystemBrowser struct {
 }
 
 func renderUnsupportedBrowser(ctx *request.Context, r *http.Request) templates.Data {
-
 	data := templates.Data{
 		Props: map[string]any{
 			"DownloadAppOrUpgradeBrowserString": ctx.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),
@@ -89,7 +88,6 @@ func renderUnsupportedBrowser(ctx *request.Context, r *http.Request) templates.D
 	}
 
 	return data
-
 }
 
 func renderMattermostAppMac(ctx *request.Context) MattermostApp {
@@ -98,7 +96,7 @@ func renderMattermostAppMac(ctx *request.Context) MattermostApp {
 		ctx.T("web.error.unsupported_browser.download_the_app"),
 		ctx.T("web.error.unsupported_browser.min_os_version.mac"),
 		ctx.T("web.error.unsupported_browser.download"),
-		"https://mattermost.com/download/#mattermostApps",
+		"https://mattermost.com/pl/download-apps",
 		ctx.T("web.error.unsupported_browser.install_guide.mac"),
 		"https://docs.mattermost.com/install/desktop.html#mac-os-x-10-9",
 	}
@@ -110,7 +108,7 @@ func renderMattermostAppWindows(ctx *request.Context) MattermostApp {
 		ctx.T("web.error.unsupported_browser.download_the_app"),
 		ctx.T("web.error.unsupported_browser.min_os_version.windows"),
 		ctx.T("web.error.unsupported_browser.download"),
-		"https://mattermost.com/download/#mattermostApps",
+		"https://mattermost.com/pl/download-apps",
 		ctx.T("web.error.unsupported_browser.install_guide.windows"),
 		"https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7",
 	}

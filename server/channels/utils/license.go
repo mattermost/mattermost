@@ -17,9 +17,9 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 var LicenseValidator LicenseValidatorIface
@@ -74,6 +74,13 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 	plaintext := decoded[:len(decoded)-256]
 	signature := decoded[len(decoded)-256:]
 
+	var publicKey []byte
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentProduction:
+		publicKey = productionPublicKey
+	case model.ServiceEnvironmentTest, model.ServiceEnvironmentDev:
+		publicKey = testPublicKey
+	}
 	block, _ := pem.Decode(publicKey)
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
@@ -210,7 +217,6 @@ func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	delete(sanitizedLicense, "StartsAt")
 	delete(sanitizedLicense, "ExpiresAt")
 	delete(sanitizedLicense, "SkuName")
-	delete(sanitizedLicense, "SkuShortName")
 
 	return sanitizedLicense
 }

@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (api *API) InitDrafts() {
@@ -21,7 +21,6 @@ func (api *API) InitDrafts() {
 }
 
 func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	if !*c.App.Config().ServiceSettings.AllowSyncedDrafts {
 		c.Err = model.NewAppError("upsertDraft", "api.drafts.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return

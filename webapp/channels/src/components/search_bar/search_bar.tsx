@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, CSSProperties, FormEvent, useEffect, useRef} from 'react';
 import classNames from 'classnames';
+import React, {useEffect, useRef} from 'react';
+import type {ChangeEvent, CSSProperties, FormEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
-
-import SuggestionDate from 'components/suggestion/suggestion_date';
+import type Provider from 'components/suggestion/provider';
 import SearchSuggestionList from 'components/suggestion/search_suggestion_list';
 import SuggestionBox from 'components/suggestion/suggestion_box';
-import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import SuggestionDate from 'components/suggestion/suggestion_date';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import Provider from 'components/suggestion/provider';
+
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 
 const {KeyCodes} = Constants;
 
@@ -71,27 +72,27 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
     }, [searchTerms]);
 
     const handleKeyDown = (e: ChangeEvent<HTMLInputElement>): void => {
-        if (Utils.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
+        if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
             searchRef.current?.blur();
             e.stopPropagation();
             e.preventDefault();
         }
 
-        if (Utils.isKeyPressed(e as any, KeyCodes.DOWN)) {
+        if (Keyboard.isKeyPressed(e as any, KeyCodes.DOWN)) {
             e.preventDefault();
             props.updateHighlightedSearchHint(1, true);
         }
 
-        if (Utils.isKeyPressed(e as any, KeyCodes.UP)) {
+        if (Keyboard.isKeyPressed(e as any, KeyCodes.UP)) {
             e.preventDefault();
             props.updateHighlightedSearchHint(-1, true);
         }
 
-        if (Utils.isKeyPressed(e as any, KeyCodes.ENTER)) {
+        if (Keyboard.isKeyPressed(e as any, KeyCodes.ENTER)) {
             props.handleEnterKey(e);
         }
 
-        if (Utils.isKeyPressed(e as any, KeyCodes.BACKSPACE) && !searchTerms) {
+        if (Keyboard.isKeyPressed(e as any, KeyCodes.BACKSPACE) && !searchTerms) {
             if (props.clearSearchType) {
                 props.clearSearchType();
             }
@@ -111,7 +112,7 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
             className='search-form__container'
         >
             <form
-                role='application'
+                role='search'
                 className={classNames(['search__form', {'search__form--focused': isFocused}])}
                 onSubmit={props.handleSubmit}
                 style={style.searchForm}

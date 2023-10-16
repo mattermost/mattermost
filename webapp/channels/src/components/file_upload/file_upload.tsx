@@ -1,26 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, PureComponent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
-import {defineMessages, FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
+import React, {PureComponent} from 'react';
+import type {ChangeEvent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
 
-import {FilePreviewInfo} from '../file_preview/file_preview';
+import type {UploadFile} from 'actions/file_actions';
 
-import dragster from 'utils/dragster';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
-import {t} from 'utils/i18n';
+import dragster from 'utils/dragster';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {
     isIosChrome,
     isMobileApp,
 } from 'utils/user_agent';
-import {getTable} from 'utils/paste';
 import {
     clearFileInput,
-    cmdOrCtrlPressed,
-    isKeyPressed,
     generateId,
     isFileTransfer,
     isUriDrop,
@@ -28,46 +37,35 @@ import {
     isTextDroppableEvent,
 } from 'utils/utils';
 
-import {FileInfo, FileUploadResponse} from '@mattermost/types/files';
-import {ServerError} from '@mattermost/types/errors';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
-
-import {UploadFile} from 'actions/file_actions';
+import type {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
 
 const holders = defineMessages({
     limited: {
-        id: t('file_upload.limited'),
+        id: 'file_upload.limited',
         defaultMessage: 'Uploads limited to {count, number} files maximum. Please use additional posts for more files.',
     },
     filesAbove: {
-        id: t('file_upload.filesAbove'),
+        id: 'file_upload.filesAbove',
         defaultMessage: 'Files above {max}MB could not be uploaded: {filenames}',
     },
     fileAbove: {
-        id: t('file_upload.fileAbove'),
+        id: 'file_upload.fileAbove',
         defaultMessage: 'File above {max}MB could not be uploaded: {filename}',
     },
     zeroBytesFiles: {
-        id: t('file_upload.zeroBytesFiles'),
+        id: 'file_upload.zeroBytesFiles',
         defaultMessage: 'You are uploading empty files: {filenames}',
     },
     zeroBytesFile: {
-        id: t('file_upload.zeroBytesFile'),
+        id: 'file_upload.zeroBytesFile',
         defaultMessage: 'You are uploading an empty file: {filename}',
     },
     pasted: {
-        id: t('file_upload.pasted'),
+        id: 'file_upload.pasted',
         defaultMessage: 'Image Pasted at ',
     },
     uploadFile: {
-        id: t('file_upload.upload_files'),
+        id: 'file_upload.upload_files',
         defaultMessage: 'Upload files',
     },
 });
@@ -121,7 +119,7 @@ export type Props = {
     /**
      * Function to be called when upload fails
      */
-    onUploadError: (err: string | ServerError, clientId?: string, channelId?: string, currentRootId?: string) => void;
+    onUploadError: (err: string | ServerError | null, clientId?: string, channelId?: string, currentRootId?: string) => void;
 
     /**
      * Function to be called when file upload starts
@@ -223,13 +221,13 @@ export class FileUpload extends PureComponent<Props, State> {
 
     pluginUploadFiles = (files: File[]) => {
         // clear any existing errors
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
         this.uploadFiles(files);
     };
 
     checkPluginHooksAndUploadFiles = (files: FileList | File[]) => {
         // clear any existing errors
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         let sortedFiles = Array.from(files).sort((a, b) => a.name.localeCompare(b.name, this.props.locale, {numeric: true}));
 
@@ -336,7 +334,7 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         const items = e.dataTransfer.items || [];
         const droppedFiles = e.dataTransfer.files;
@@ -362,7 +360,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         if (files.length === 0) {
-            this.props.onUploadError(localizeMessage('file_upload.drag_folder', 'Folders cannot be uploaded. Please drag all files separately.'));
+            this.props.onUploadError(localizeMessage('file_upload.drag_folder', 'This attachment cannot be uploaded.'));
             return;
         }
 
@@ -452,7 +450,7 @@ export class FileUpload extends PureComponent<Props, State> {
     pasteUpload = (e: ClipboardEvent) => {
         const {formatMessage} = this.props.intl;
 
-        if (!e.clipboardData || !e.clipboardData.items || getTable(e.clipboardData)) {
+        if (!e.clipboardData || !e.clipboardData.items || e.clipboardData.getData('text/html')) {
             return;
         }
 
@@ -461,7 +459,7 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         const items = [];
         for (let i = 0; i < e.clipboardData.items.length; i++) {

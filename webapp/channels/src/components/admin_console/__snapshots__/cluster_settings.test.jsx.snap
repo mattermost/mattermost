@@ -15,10 +15,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         id="admin.advance.cluster"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <ClusterTableContainer />
       <div
         className="banner"
@@ -237,7 +234,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -291,10 +288,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         id="admin.advance.cluster"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <ClusterTableContainer />
       <div
         className="banner"
@@ -513,7 +507,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -567,10 +561,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         id="admin.advance.cluster"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <ClusterTableContainer />
       <div
         className="banner"
@@ -789,7 +780,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -843,10 +834,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         id="admin.advance.cluster"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <ClusterTableContainer />
       <div
         className="banner"
@@ -1065,7 +1053,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

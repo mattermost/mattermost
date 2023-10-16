@@ -1,48 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties, useCallback, useEffect, useRef, useState} from 'react';
 import classNames from 'classnames';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Channel} from '@mattermost/types/channels';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
 
-import {PostDraft} from 'types/store/draft';
-
+import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import FilePreview from 'components/file_preview';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
-import MsgTyping from 'components/msg_typing';
-import Textbox, {TextboxElement} from 'components/textbox';
-import TextboxClass from 'components/textbox/textbox';
-import MessageSubmitError from 'components/message_submit_error';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
-import {SendMessageTour} from 'components/tours/onboarding_tour';
-import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import OverlayTrigger from 'components/overlay_trigger';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import MessageSubmitError from 'components/message_submit_error';
+import MsgTyping from 'components/msg_typing';
+import OverlayTrigger from 'components/overlay_trigger';
+import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
+import Textbox from 'components/textbox';
+import type {TextboxElement} from 'components/textbox';
+import type TextboxClass from 'components/textbox/textbox';
+import Tooltip from 'components/tooltip';
+import {SendMessageTour} from 'components/tours/onboarding_tour';
 
-import * as Utils from 'utils/utils';
-import {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import Constants, {Locations} from 'utils/constants';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import * as Utils from 'utils/utils';
 
-import {Channel} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {FileInfo} from '@mattermost/types/files';
-import {Emoji} from '@mattermost/types/emojis';
-import AutoHeightSwitcher from '../common/auto_height_switcher';
-import RhsSuggestionList from '../suggestion/rhs_suggestion_list';
-import Tooltip from '../tooltip';
+import type {PostDraft} from 'types/store/draft';
 
-import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
-
-import TexteditorActions from './texteditor_actions';
 import FormattingBar from './formatting_bar';
-import ShowFormat from './show_formatting';
-import SendButton from './send_button';
+import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import {IconContainer} from './formatting_bar/formatting_icon';
+import SendButton from './send_button';
+import ShowFormat from './show_formatting';
+import TexteditorActions from './texteditor_actions';
+import ToggleFormattingBar from './toggle_formatting_bar';
 
 import './advanced_text_editor.scss';
-import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
 
 type Props = {
 
@@ -78,7 +78,6 @@ type Props = {
     handlePostError: (postError: React.ReactNode) => void;
     emitTypingEvent: () => void;
     handleMouseUpKeyUp: (e: React.MouseEvent<TextboxElement> | React.KeyboardEvent<TextboxElement>) => void;
-    handleSelect: (e: React.SyntheticEvent<TextboxElement>) => void;
     handleKeyDown: (e: React.KeyboardEvent<TextboxElement>) => void;
     postMsgKeyPress: (e: React.KeyboardEvent<TextboxElement>) => void;
     handleChange: (e: React.ChangeEvent<TextboxElement>) => void;
@@ -88,7 +87,7 @@ type Props = {
     hideEmojiPicker: () => void;
     toggleAdvanceTextEditor: () => void;
     handleUploadProgress: (filePreviewInfo: FilePreviewInfo) => void;
-    handleUploadError: (err: string | ServerError, clientId?: string, channelId?: string) => void;
+    handleUploadError: (err: string | ServerError | null, clientId?: string, channelId?: string) => void;
     handleFileUploadComplete: (fileInfos: FileInfo[], clientIds: string[], channelId: string, rootId?: string) => void;
     handleUploadStart: (clientIds: string[], channelId: string) => void;
     handleFileUploadChange: () => void;
@@ -101,6 +100,7 @@ type Props = {
     isThreadView?: boolean;
     additionalControls?: React.ReactNodeArray;
     labels?: React.ReactNode;
+    disableSend?: boolean;
 }
 
 const AdvanceTextEditor = ({
@@ -135,7 +135,6 @@ const AdvanceTextEditor = ({
     handlePostError,
     emitTypingEvent,
     handleMouseUpKeyUp,
-    handleSelect,
     handleKeyDown,
     postMsgKeyPress,
     handleChange,
@@ -156,6 +155,7 @@ const AdvanceTextEditor = ({
     isThreadView,
     additionalControls,
     labels,
+    disableSend = false,
 }: Props) => {
     const readOnlyChannel = !canPost;
     const {formatMessage} = useIntl();
@@ -167,7 +167,6 @@ const AdvanceTextEditor = ({
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
 
-    const [scrollbarWidth, setScrollbarWidth] = useState(0);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
@@ -176,13 +175,7 @@ const AdvanceTextEditor = ({
 
     const handleHeightChange = useCallback((height: number, maxHeight: number) => {
         setRenderScrollbar(height > maxHeight);
-
-        window.requestAnimationFrame(() => {
-            if (textboxRef.current) {
-                setScrollbarWidth(Utils.scrollbarWidth(textboxRef.current.getInputBox()));
-            }
-        });
-    }, [textboxRef]);
+    }, []);
 
     const handleShowFormat = useCallback(() => {
         setShowPreview(!shouldShowPreview);
@@ -196,17 +189,6 @@ const AdvanceTextEditor = ({
     const handleFocus = useCallback(() => {
         setKeepEditorInFocus(true);
     }, []);
-
-    let serverErrorJsx = null;
-    if (serverError) {
-        serverErrorJsx = (
-            <MessageSubmitError
-                error={serverError}
-                submittedMessage={serverError.submittedMessage}
-                handleSubmit={handleSubmit}
-            />
-        );
-    }
 
     let attachmentPreview = null;
     if (!readOnlyChannel && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
@@ -250,10 +232,6 @@ const AdvanceTextEditor = ({
     };
 
     let emojiPicker = null;
-    const emojiButtonAriaLabel = formatMessage({
-        id: 'emoji_picker.emojiPicker',
-        defaultMessage: 'Emoji Picker',
-    }).toLowerCase();
 
     if (enableEmojiPicker && !readOnlyChannel) {
         const emojiPickerTooltip = (
@@ -287,7 +265,7 @@ const AdvanceTextEditor = ({
                         ref={emojiPickerRef}
                         onClick={toggleEmojiPicker}
                         type='button'
-                        aria-label={emojiButtonAriaLabel}
+                        aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                         disabled={shouldShowPreview}
                         className={classNames({active: showEmojiPicker})}
                     >
@@ -301,7 +279,7 @@ const AdvanceTextEditor = ({
         );
     }
 
-    const disableSendButton = Boolean(readOnlyChannel || (!message.trim().length && !draft.fileInfos.length));
+    const disableSendButton = Boolean(readOnlyChannel || (!message.trim().length && !draft.fileInfos.length)) || disableSend;
     const sendButton = readOnlyChannel ? null : (
         <SendButton
             disabled={disableSendButton}
@@ -377,21 +355,13 @@ const AdvanceTextEditor = ({
 
         if (!message) {
             // if we do not have a message we can just render the default state
-            input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
             return;
         }
 
-        const inputPaddingLeft = parseInt(window.getComputedStyle(input, null).paddingLeft || '0', 10);
-        const inputPaddingRight = parseInt(window.getComputedStyle(input, null).paddingRight || '0', 10);
-        const inputPaddingX = inputPaddingLeft + inputPaddingRight;
-        const currentWidth = width + inputPaddingX;
-
-        if (currentWidth >= maxWidth) {
-            input.style.maxWidth = '100%';
+        if (width >= maxWidth) {
             setShowFormattingSpacer(true);
         } else {
-            input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
         }
     }, [message, input]);
@@ -401,22 +371,6 @@ const AdvanceTextEditor = ({
             handleWidthChange(0);
         }
     }, [handleWidthChange, message]);
-
-    useEffect(() => {
-        if (!input) {
-            return;
-        }
-
-        let padding = 16;
-        if (showFormattingBar) {
-            padding += 32;
-        }
-        if (renderScrollbar) {
-            padding += 8;
-        }
-
-        input.style.paddingRight = `${padding}px`;
-    }, [showFormattingBar, renderScrollbar, input]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -442,12 +396,8 @@ const AdvanceTextEditor = ({
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     scroll: renderScrollbar,
+                    'formatting-bar': showFormattingBar,
                 })}
-                style={
-                    renderScrollbar && scrollbarWidth ? ({
-                        '--detected-scrollbar-width': `${scrollbarWidth}px`,
-                    } as CSSProperties) : undefined
-                }
             >
                 <div
                     id={'speak-'}
@@ -482,7 +432,6 @@ const AdvanceTextEditor = ({
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
-                            onSelect={handleSelect}
                             onMouseUp={handleMouseUpKeyUp}
                             onKeyUp={handleMouseUpKeyUp}
                             onComposition={emitTypingEvent}
@@ -500,7 +449,6 @@ const AdvanceTextEditor = ({
                             characterLimit={maxPostSize}
                             preview={shouldShowPreview}
                             badConnection={badConnection}
-                            listenForMentionKeyClick={true}
                             useChannelMentions={useChannelMentions}
                             rootId={postId}
                             onWidthChange={handleWidthChange}
@@ -549,12 +497,20 @@ const AdvanceTextEditor = ({
             <div
                 id='postCreateFooter'
                 role='form'
-                className={classNames('AdvancedTextEditor__footer', {
-                    'AdvancedTextEditor__footer--has-error': postError || serverError,
-                })}
+                className={classNames('AdvancedTextEditor__footer', {'AdvancedTextEditor__footer--has-error': postError || serverError})}
             >
-                {postError && <label className={classNames('post-error', {errorClass})}>{postError}</label>}
-                {serverErrorJsx}
+                {postError && (
+                    <label className={classNames('post-error', {errorClass})}>
+                        {postError}
+                    </label>
+                )}
+                {serverError && (
+                    <MessageSubmitError
+                        error={serverError}
+                        submittedMessage={serverError.submittedMessage}
+                        handleSubmit={handleSubmit}
+                    />
+                )}
                 <MsgTyping
                     channelId={channelId}
                     postId={postId}

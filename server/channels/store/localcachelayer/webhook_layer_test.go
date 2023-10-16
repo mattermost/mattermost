@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestWebhookStore(t *testing.T) {
@@ -22,7 +22,7 @@ func TestWebhookStoreCache(t *testing.T) {
 	fakeWebhook := model.IncomingWebhook{Id: "123"}
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -38,7 +38,7 @@ func TestWebhookStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call not cached, second force not cached", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestWebhookStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)

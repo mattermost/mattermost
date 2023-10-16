@@ -4,10 +4,10 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 type MarketplaceProvider struct {
@@ -40,7 +40,7 @@ func (h *MarketplaceProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *mode
 	}
 }
 
-func (h *MarketplaceProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (h *MarketplaceProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
 		Text:         args.T("api.command_marketplace.unsupported.app_error"),

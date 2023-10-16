@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type testWriter struct {
@@ -89,7 +89,6 @@ func TestExportPermissions(t *testing.T) {
 			t.Errorf("Expected %v but got %v.", expected, actual)
 		}
 	}
-
 }
 
 func TestImportPermissions(t *testing.T) {
@@ -106,7 +105,6 @@ func TestImportPermissions(t *testing.T) {
 	var results []*model.Scheme
 	var beforeCount int
 	withMigrationMarkedComplete(th, func() {
-
 		var appErr *model.AppError
 		results, appErr = th.App.GetSchemes(scope, 0, 100)
 		if appErr != nil {
@@ -114,7 +112,7 @@ func TestImportPermissions(t *testing.T) {
 		}
 		beforeCount = len(results)
 
-		json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
+		json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
 		r := strings.NewReader(json)
 
 		err := th.App.ImportPermissions(r)
@@ -125,7 +123,6 @@ func TestImportPermissions(t *testing.T) {
 		if appErr != nil {
 			panic(appErr)
 		}
-
 	})
 
 	actual := len(results)
@@ -169,7 +166,6 @@ func TestImportPermissions(t *testing.T) {
 			t.Errorf("Expected %v but got %v.", expected, actual)
 		}
 	}
-
 }
 
 func TestImportPermissions_idempotentScheme(t *testing.T) {
@@ -183,7 +179,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 	roleName1 := model.NewId()
 	roleName2 := model.NewId()
 
-	json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
+	json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
 	jsonl := strings.Repeat(json+"\n", 4)
 	r := strings.NewReader(jsonl)
 
@@ -212,7 +208,6 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 	if expected != actual {
 		t.Errorf("Expected count to be %v but got %v", expected, actual)
 	}
-
 }
 
 func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
@@ -226,7 +221,7 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 	roleName1 := model.NewId()
 	roleName2 := model.NewId()
 
-	jsonl := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
+	jsonl := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
 	r := strings.NewReader(jsonl)
 
 	var results []*model.Scheme
@@ -254,7 +249,6 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 	if expected != actual {
 		t.Errorf("Expected count to be %v but got %v", expected, actual)
 	}
-
 }
 
 func TestMigration(t *testing.T) {

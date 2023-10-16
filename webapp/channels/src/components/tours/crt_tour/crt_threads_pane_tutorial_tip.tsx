@@ -2,14 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Constants, Preferences} from 'utils/constants';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-
 import {TourTip, useFollowElementDimensions, useMeasurePunchouts} from '@mattermost/components';
+
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+
+import {Constants, Preferences} from 'utils/constants';
 
 const translate = {x: 2, y: 25};
 
@@ -29,7 +31,7 @@ const CRTThreadsPaneTutorialTip = () => {
 
     const screen = (
         <p>
-            {formatMessage(
+            {formatMessage<ReactNode>(
                 {
                     id: 'tutorial_threads.threads_pane.description',
                     defaultMessage: 'Click the <b>Follow</b> button to be notified about replies and see it in your <b>Threads</b> view. Within a thread, the <b>New Messages</b> line shows you where you left off.',

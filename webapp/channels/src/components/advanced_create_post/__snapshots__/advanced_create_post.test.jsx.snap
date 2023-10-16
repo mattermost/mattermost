@@ -3,6 +3,7 @@
 exports[`components/advanced_create_post Show tutorial 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -20,6 +21,7 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -46,7 +48,6 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -81,6 +82,7 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
 exports[`components/advanced_create_post should match snapshot for center textbox 1`] = `
 <form
   className="center"
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -98,6 +100,7 @@ exports[`components/advanced_create_post should match snapshot for center textbo
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -124,7 +127,6 @@ exports[`components/advanced_create_post should match snapshot for center textbo
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -159,6 +161,7 @@ exports[`components/advanced_create_post should match snapshot for center textbo
 exports[`components/advanced_create_post should match snapshot when cannot post 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -176,6 +179,7 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -202,7 +206,6 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -237,6 +240,7 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
 exports[`components/advanced_create_post should match snapshot when file upload disabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -254,6 +258,7 @@ exports[`components/advanced_create_post should match snapshot when file upload 
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -280,7 +285,6 @@ exports[`components/advanced_create_post should match snapshot when file upload 
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -315,6 +319,7 @@ exports[`components/advanced_create_post should match snapshot when file upload 
 exports[`components/advanced_create_post should match snapshot, can post; preview disabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -332,6 +337,7 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -358,7 +364,6 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -393,6 +398,7 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
 exports[`components/advanced_create_post should match snapshot, can post; preview enabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -410,6 +416,7 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -436,7 +443,6 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -471,6 +477,7 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
 exports[`components/advanced_create_post should match snapshot, cannot post; preview disabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -488,6 +495,7 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -514,7 +522,6 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -549,6 +556,7 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
 exports[`components/advanced_create_post should match snapshot, cannot post; preview enabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -566,6 +574,7 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -592,7 +601,6 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -627,6 +635,7 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
 exports[`components/advanced_create_post should match snapshot, init 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -644,6 +653,7 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -670,7 +680,6 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -705,6 +714,7 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
 exports[`components/advanced_create_post should match snapshot, post priority disabled, with priority important 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
@@ -722,6 +732,7 @@ exports[`components/advanced_create_post should match snapshot, post priority di
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -753,7 +764,6 @@ exports[`components/advanced_create_post should match snapshot, post priority di
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -788,66 +798,18 @@ exports[`components/advanced_create_post should match snapshot, post priority di
 exports[`components/advanced_create_post should match snapshot, post priority enabled 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
   <AdvanceTextEditor
     additionalControls={
       Array [
-        <React.Fragment>
-          <Memo(PostPriorityPickerOverlay)
-            defaultHorizontalPosition="left"
-            onApply={[Function]}
-            onHide={[Function]}
-            show={false}
-            target={[Function]}
-          />
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            delayShow={400}
-            overlay={
-              <Tooltip
-                id="post-priority-picker-tooltip"
-              >
-                <Memo(KeyboardShortcutSequence)
-                  hoistDescription={true}
-                  isInsideTooltip={true}
-                  shortcut={
-                    Object {
-                      "default": Object {
-                        "defaultMessage": "Message priority",
-                        "id": "shortcuts.msgs.formatting_bar.post_priority",
-                      },
-                      "mac": Object {
-                        "defaultMessage": "Message priority",
-                        "id": "shortcuts.msgs.formatting_bar.post_priority",
-                      },
-                    }
-                  }
-                />
-              </Tooltip>
-            }
-            placement="top"
-            trigger={
-              Array [
-                "hover",
-                "focus",
-              ]
-            }
-          >
-            <IconContainer
-              className="control"
-              disabled={false}
-              onClick={[Function]}
-              type="button"
-            >
-              <AlertCircleOutlineIcon
-                color="currentColor"
-                size={18}
-              />
-            </IconContainer>
-          </OverlayTrigger>
-        </React.Fragment>,
+        <Memo(PostPriorityPickerOverlay)
+          disabled={false}
+          onApply={[Function]}
+          onClose={[Function]}
+        />,
       ]
     }
     applyMarkdown={[Function]}
@@ -862,6 +824,7 @@ exports[`components/advanced_create_post should match snapshot, post priority en
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -888,7 +851,6 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -923,71 +885,23 @@ exports[`components/advanced_create_post should match snapshot, post priority en
 exports[`components/advanced_create_post should match snapshot, post priority enabled, with priority important 1`] = `
 <form
   className=""
+  data-testid="create-post"
   id="create_post"
   onSubmit={[Function]}
 >
   <AdvanceTextEditor
     additionalControls={
       Array [
-        <React.Fragment>
-          <Memo(PostPriorityPickerOverlay)
-            defaultHorizontalPosition="left"
-            onApply={[Function]}
-            onHide={[Function]}
-            settings={
-              Object {
-                "priority": "important",
-              }
+        <Memo(PostPriorityPickerOverlay)
+          disabled={false}
+          onApply={[Function]}
+          onClose={[Function]}
+          settings={
+            Object {
+              "priority": "important",
             }
-            show={false}
-            target={[Function]}
-          />
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            delayShow={400}
-            overlay={
-              <Tooltip
-                id="post-priority-picker-tooltip"
-              >
-                <Memo(KeyboardShortcutSequence)
-                  hoistDescription={true}
-                  isInsideTooltip={true}
-                  shortcut={
-                    Object {
-                      "default": Object {
-                        "defaultMessage": "Message priority",
-                        "id": "shortcuts.msgs.formatting_bar.post_priority",
-                      },
-                      "mac": Object {
-                        "defaultMessage": "Message priority",
-                        "id": "shortcuts.msgs.formatting_bar.post_priority",
-                      },
-                    }
-                  }
-                />
-              </Tooltip>
-            }
-            placement="top"
-            trigger={
-              Array [
-                "hover",
-                "focus",
-              ]
-            }
-          >
-            <IconContainer
-              className="control"
-              disabled={false}
-              onClick={[Function]}
-              type="button"
-            >
-              <AlertCircleOutlineIcon
-                color="currentColor"
-                size={18}
-              />
-            </IconContainer>
-          </OverlayTrigger>
-        </React.Fragment>,
+          }
+        />,
       ]
     }
     applyMarkdown={[Function]}
@@ -1002,6 +916,7 @@ exports[`components/advanced_create_post should match snapshot, post priority en
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    disableSend={false}
     draft={
       Object {
         "fileInfos": Array [],
@@ -1033,7 +948,6 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
-    handleSelect={[Function]}
     handleSubmit={[Function]}
     handleUploadError={[Function]}
     handleUploadProgress={[Function]}
@@ -1041,65 +955,19 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
     labels={
-      <div
-        className="AdvancedTextEditor__priority"
-      >
-        <PriorityLabel
-          priority="important"
-          size="xs"
-        />
-        <OverlayTrigger
-          defaultOverlayShown={false}
-          delayShow={400}
-          overlay={
-            <Tooltip
-              id="post-priority-picker-tooltip"
-            >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove {priority}"
-                id="post_priority.remove"
-                values={
-                  Object {
-                    "priority": "important",
-                  }
-                }
-              />
-            </Tooltip>
+      <Memo(PriorityLabels)
+        canRemove={true}
+        hasError={false}
+        onRemove={[Function]}
+        priority="important"
+        specialMentions={
+          Object {
+            "all": false,
+            "channel": false,
+            "here": false,
           }
-          placement="top"
-          trigger={
-            Array [
-              "hover",
-              "focus",
-            ]
-          }
-        >
-          <button
-            className="close"
-            onClick={[Function]}
-            type="button"
-          >
-            <span
-              aria-hidden="true"
-            >
-              ×
-            </span>
-            <span
-              className="sr-only"
-            >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove {priority}"
-                id="post_priority.remove"
-                values={
-                  Object {
-                    "priority": "important",
-                  }
-                }
-              />
-            </span>
-          </button>
-        </OverlayTrigger>
-      </div>
+        }
+      />
     }
     location="CENTER"
     maxPostSize={4000}

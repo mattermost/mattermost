@@ -3,7 +3,7 @@
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import * as Timestamp from './timestamp';
 

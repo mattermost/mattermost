@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/preparing-workspace/invite_members_link should match snapshot 1`] = `
+<div>
+  <div
+    class="InviteMembersLink"
+  >
+    <button
+      class="InviteMembersLink__button--single"
+      data-testid="shareLinkInputButton"
+    >
+      <i
+        class="icon icon-content-copy"
+      />
+      <span>
+        Copy Link
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/preparing-workspace/invite_members_link should match snapshot when displayed including the input field 1`] = `
+<div>
+  <div
+    class="InviteMembersLink"
+  >
+    <input
+      aria-label="team invite link"
+      class="InviteMembersLink__input"
+      data-testid="shareLinkInput"
+      readonly=""
+      type="text"
+      value="https://invite-url.mattermost.com"
+    />
+    <button
+      class="InviteMembersLink__button"
+      data-testid="shareLinkInputButton"
+    >
+      <i
+        class="icon icon-link-variant"
+      />
+      <span>
+        Copy Link
+      </span>
+    </button>
+  </div>
+</div>
+`;

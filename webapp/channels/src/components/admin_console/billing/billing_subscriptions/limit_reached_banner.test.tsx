@@ -2,25 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen, fireEvent} from '@testing-library/react';
 
-import {Provider} from 'react-redux';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
 
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {Preferences} from 'mattermost-redux/constants';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import * as useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import * as useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import * as useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import * as useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import * as useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import * as useSaveBool from 'components/common/hooks/useSavePreferences';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
 
+import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
-
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile, UsersState} from '@mattermost/types/users';
 
 import LimitReachedBanner from './limit_reached_banner';
 
@@ -120,11 +116,11 @@ function makeSpies() {
 
 describe('limits_reached_banner', () => {
     test('does not render when product is enterprise', () => {
-        const store = mockStore(state);
         const spies = makeSpies();
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
 
-        renderWithIntl(<Provider store={store}><LimitReachedBanner product={enterprise}/></Provider>);
+        renderWithFullContext(<LimitReachedBanner product={enterprise}/>, state);
+
         expect(screen.queryByText(titleFree)).not.toBeInTheDocument();
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
     });
@@ -143,46 +139,55 @@ describe('limits_reached_banner', () => {
                 },
             },
         };
-        const store = mockStore(myState);
+
         const spies = makeSpies();
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
-        renderWithIntl(<Provider store={store}><LimitReachedBanner product={enterprise}/></Provider>);
+
+        renderWithFullContext(<LimitReachedBanner product={enterprise}/>, myState);
+
         expect(screen.queryByText(titleFree)).not.toBeInTheDocument();
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
     });
 
     test('does not render when no limit reached', () => {
-        const store = mockStore(state);
         const spies = makeSpies();
         spies.useGetUsageDeltas.mockReturnValue(noLimitReached);
-        renderWithIntl(<Provider store={store}><LimitReachedBanner product={free}/></Provider>);
+
+        renderWithFullContext(<LimitReachedBanner product={free}/>, state);
+
         expect(screen.queryByText(titleFree)).not.toBeInTheDocument();
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
     });
 
     test('renders free banner', () => {
-        const store = mockStore(state);
         const spies = makeSpies();
         const mockOpenPricingModal = jest.fn();
         spies.useOpenPricingModal.mockReturnValue(mockOpenPricingModal);
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
-        renderWithIntl(<Provider store={store}><LimitReachedBanner product={free}/></Provider>);
+
+        renderWithFullContext(<LimitReachedBanner product={free}/>, state);
+
         screen.getByText(titleFree);
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
+
         fireEvent.click(screen.getByText('View plans'));
+
         expect(mockOpenPricingModal).toHaveBeenCalled();
     });
 
     test('clicking Contact Sales opens sales link', () => {
-        const store = mockStore(state);
         const spies = makeSpies();
         const mockOpenSalesLink = jest.fn();
         spies.useOpenSalesLink.mockReturnValue([mockOpenSalesLink, '']);
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
-        renderWithIntl(<Provider store={store}><LimitReachedBanner product={free}/></Provider>);
+
+        renderWithFullContext(<LimitReachedBanner product={free}/>, state);
+
         screen.getByText(titleFree);
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
+
         fireEvent.click(screen.getByText('Contact sales'));
+
         expect(mockOpenSalesLink).toHaveBeenCalled();
     });
 });

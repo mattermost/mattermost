@@ -7,7 +7,7 @@ const chalk = require('chalk');
 const concurrently = require('concurrently');
 
 const {makeRunner} = require('./runner.js');
-const {getPlatformCommands} = require('./utils.js');
+const {getExitCode, getPlatformCommands} = require('./utils.js');
 
 async function watchAll(useRunner) {
     if (!useRunner) {
@@ -16,8 +16,6 @@ async function watchAll(useRunner) {
 
     const commands = [
         {command: 'npm:run --workspace=channels', name: 'webapp', prefixColor: 'cyan'},
-        {command: 'npm:start:product --workspace=boards', name: 'boards', prefixColor: 'blue'},
-        {command: 'npm:start:product --workspace=playbooks', name: 'playbooks', prefixColor: 'red'},
     ];
 
     commands.push(...getPlatformCommands('run'));
@@ -43,9 +41,18 @@ async function watchAll(useRunner) {
         }
     });
 
-    await result;
+    let exitCode = 0;
+    try {
+        await result;
+    } catch (closeEvents) {
+        exitCode = getExitCode(closeEvents, 0);
+    }
+    return exitCode;
 }
 
 const useRunner = process.argv[2] === '--runner' || process.env.MM_USE_WEBAPP_RUNNER;
 
-watchAll(useRunner);
+watchAll(useRunner).then((exitCode) => {
+    process.exit(exitCode);
+});
+

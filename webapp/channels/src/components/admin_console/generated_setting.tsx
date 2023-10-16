@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import crypto from 'crypto';
-
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -38,7 +37,11 @@ export default class GeneratedSetting extends React.PureComponent<Props> {
     private regenerate = (e: React.MouseEvent) => {
         e.preventDefault();
 
-        this.props.onChange(this.props.id, crypto.randomBytes(256).toString('base64').substring(0, 32));
+        // Pure base64 implementation can contain characters that are not URL safe without additional
+        // encoding. Adopt a URL/Filename safer alphabet as noted in https://datatracker.ietf.org/doc/html/rfc4648#section-5
+        // where: 62 - (minus) , 63 _ (underscore)
+        const value = crypto.randomBytes(256).toString('base64').substring(0, 32);
+        this.props.onChange(this.props.id, value.replaceAll('+', '-').replaceAll('/', '_'));
     };
 
     public render() {
@@ -89,7 +92,7 @@ export default class GeneratedSetting extends React.PureComponent<Props> {
                     <div className='help-text'>
                         <button
                             type='button'
-                            className='btn btn-default'
+                            className='btn btn-tertiary'
                             onClick={this.regenerate}
                             disabled={this.props.disabled || this.props.setByEnv}
                         >

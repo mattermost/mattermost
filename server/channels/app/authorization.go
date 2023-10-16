@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (a *App) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
@@ -212,7 +212,6 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
-
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -258,14 +257,16 @@ func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID stri
 	if session.IsUnrestricted() {
 		return true
 	}
-	if a.SessionHasPermissionToUser(session, userID) {
+
+	err := a.SessionHasPermissionToManageBot(session, userID)
+	if err == nil {
 		return true
 	}
-
-	if err := a.SessionHasPermissionToManageBot(session, userID); err == nil {
-		return true
+	if err.Id == "store.sql_bot.get.missing.app_error" && err.Where == "SqlBotStore.Get" {
+		if a.SessionHasPermissionToUser(session, userID) {
+			return true
+		}
 	}
-
 	return false
 }
 
@@ -280,11 +281,11 @@ func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission)
 	return a.RolesGrantPermission(roles, permission.Id)
 }
 
-func (a *App) HasPermissionToTeam(askingUserId string, teamID string, permission *model.Permission) bool {
+func (a *App) HasPermissionToTeam(c request.CTX, askingUserId string, teamID string, permission *model.Permission) bool {
 	if teamID == "" || askingUserId == "" {
 		return false
 	}
-	teamMember, _ := a.GetTeamMember(teamID, askingUserId)
+	teamMember, _ := a.GetTeamMember(c, teamID, askingUserId)
 	if teamMember != nil && teamMember.DeleteAt == 0 {
 		if a.RolesGrantPermission(teamMember.GetRoles(), permission.Id) {
 			return true
@@ -309,13 +310,13 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 	var channel *model.Channel
 	channel, err = a.GetChannel(c, channelID)
 	if err == nil {
-		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
+		return a.HasPermissionToTeam(c, askingUserId, channel.TeamId, permission)
 	}
 
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
+func (a *App) HasPermissionToChannelByPost(c request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
@@ -323,7 +324,7 @@ func (a *App) HasPermissionToChannelByPost(askingUserId string, postID string, p
 	}
 
 	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
-		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
+		return a.HasPermissionToTeam(c, askingUserId, channel.TeamId, permission)
 	}
 
 	return a.HasPermissionTo(askingUserId, permission)
@@ -383,7 +384,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 			if !a.SessionHasPermissionTo(session, model.PermissionReadBots) {
 				// If the user doesn't have permission to read bots, pretend as if
 				// the bot doesn't exist at all.
-				return model.MakeBotNotFoundError(botUserId)
+				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
 			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
 		}
@@ -392,7 +393,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 			if !a.SessionHasPermissionTo(session, model.PermissionReadOthersBots) {
 				// If the user doesn't have permission to read others' bots,
 				// pretend as if the bot doesn't exist at all.
-				return model.MakeBotNotFoundError(botUserId)
+				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
 			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageOthersBots})
 		}
@@ -402,5 +403,8 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 }
 
 func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
-	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
+	if !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0 {
+		return false
+	}
+	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(c, userID, channel.TeamId, model.PermissionReadPublicChannel))
 }

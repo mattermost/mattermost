@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 var searchFileInfoStoreTests = []searchTest{
@@ -1592,7 +1592,6 @@ func testFileInfoSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
 	})
-
 }
 
 func testFileInfoSlashShouldNotBeCharSeparator(t *testing.T, th *SearchTestHelper) {

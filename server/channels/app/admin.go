@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/cache"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
 var latestVersionCache = cache.NewLRU(cache.LRUOptions{
@@ -143,7 +143,6 @@ func (s *Server) InvalidateAllCaches() *model.AppError {
 
 func (s *Server) InvalidateAllCachesSkipSend() {
 	s.platform.InvalidateAllCachesSkipSend()
-
 }
 
 func (a *App) RecycleDatabaseConnection(c request.CTX) {

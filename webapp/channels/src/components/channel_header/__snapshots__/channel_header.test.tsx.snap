@@ -56,7 +56,6 @@ exports[`components/ChannelHeader should match snapshot with last active display
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -191,7 +190,6 @@ exports[`components/ChannelHeader should match snapshot with last active display
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -206,7 +204,6 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -284,6 +281,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -381,7 +379,6 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -496,7 +493,6 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -511,7 +507,6 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -589,6 +584,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -678,7 +674,6 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -801,7 +796,6 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -816,7 +810,6 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -893,6 +886,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -981,7 +975,6 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -1104,7 +1097,6 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -1119,7 +1111,6 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -1196,6 +1187,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -1284,7 +1276,6 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -1407,7 +1398,6 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -1422,7 +1412,6 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -1499,6 +1488,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -1587,7 +1577,6 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -1710,7 +1699,6 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -1725,7 +1713,6 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -1802,6 +1789,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -1893,7 +1881,6 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -1982,7 +1969,6 @@ exports[`components/ChannelHeader should render archived view 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -1997,7 +1983,6 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -2074,6 +2059,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -2162,7 +2148,6 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -2317,7 +2302,6 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -2332,7 +2316,6 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -2409,6 +2392,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -2497,7 +2481,6 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -2620,7 +2603,6 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -2635,7 +2617,6 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -2712,6 +2693,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -2808,7 +2790,6 @@ exports[`components/ChannelHeader should render properly when custom status is e
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -2943,7 +2924,6 @@ exports[`components/ChannelHeader should render properly when custom status is e
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -2958,7 +2938,6 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -3036,6 +3015,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -3133,7 +3113,6 @@ exports[`components/ChannelHeader should render properly when custom status is s
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -3288,7 +3267,6 @@ exports[`components/ChannelHeader should render properly when custom status is s
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -3303,7 +3281,6 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -3381,6 +3358,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -3470,7 +3448,6 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -3593,7 +3570,6 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -3608,7 +3584,6 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -3685,6 +3660,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -3773,7 +3749,6 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -3896,7 +3871,6 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -3911,7 +3885,6 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -3988,6 +3961,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -4076,7 +4050,6 @@ exports[`components/ChannelHeader should render properly when populated with cha
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -4203,7 +4176,6 @@ exports[`components/ChannelHeader should render properly when populated with cha
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -4218,7 +4190,6 @@ exports[`components/ChannelHeader should render properly when populated with cha
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -4310,6 +4281,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -4410,7 +4382,6 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -4533,7 +4504,6 @@ exports[`components/ChannelHeader should render shared view 1`] = `
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -4548,7 +4518,6 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -4626,6 +4595,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -4715,7 +4685,6 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                     </span>
                   </strong>
                   <span
-                    aria-label="dropdown icon"
                     className="icon icon-chevron-down header-dropdown-chevron-icon"
                     id="channelHeaderDropdownIcon"
                   />
@@ -4846,7 +4815,6 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
           >
             <Overlay
               animation={[Function]}
-              onEnter={[Function]}
               onHide={[Function]}
               placement="bottom"
               rootClose={true}
@@ -4861,7 +4829,6 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                 popoverStyle="info"
                 style={
                   Object {
-                    "maxWidth": "0px",
                     "transform": "translate(0px, 0px)",
                   }
                 }
@@ -4938,6 +4905,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",

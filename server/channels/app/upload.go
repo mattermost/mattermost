@@ -13,11 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
@@ -156,7 +156,7 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 }
 
 func (a *App) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
-	us, err := a.Srv().Store().UploadSession().Get(c.Context(), uploadId)
+	us, err := a.Srv().Store().UploadSession().Get(c, uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestNotifySessionsExpired(t *testing.T) {
@@ -55,7 +55,7 @@ func TestNotifySessionsExpired(t *testing.T) {
 		}
 
 		for _, d := range data {
-			_, err := th.App.CreateSession(&model.Session{
+			_, err := th.App.CreateSession(th.Context, &model.Session{
 				UserId:        th.BasicUser.Id,
 				DeviceId:      d.deviceID,
 				ExpiresAt:     d.expiresAt,

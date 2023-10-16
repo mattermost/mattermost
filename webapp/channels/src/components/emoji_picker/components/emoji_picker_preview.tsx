@@ -4,7 +4,8 @@
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Emoji} from '@mattermost/types/emojis';
+import type {Emoji} from '@mattermost/types/emojis';
+
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import imgTrans from 'images/img_trans.gif';
@@ -18,7 +19,7 @@ function EmojiPickerPreview({emoji}: Props) {
         return (
             <div className='emoji-picker__preview emoji-picker__preview-placeholder'>
                 <FormattedMessage
-                    id='emoji_picker.emojiPicker'
+                    id='emoji_picker.emojiPicker.previewPlaceholder'
                     defaultMessage='Select an Emoji'
                 />
             </div>

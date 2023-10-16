@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestPluginStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -1293,7 +1293,6 @@ func testPluginList(t *testing.T, ss store.Store) {
 			if i%10 == 0 {
 				// Expire keys 0, 10, 20, ...
 				expireAt = 1
-
 			} else if (i+5)%10 == 0 {
 				// Mark for future expiry keys 5, 15, 25, ...
 				expireAt = now + 5*60*1000

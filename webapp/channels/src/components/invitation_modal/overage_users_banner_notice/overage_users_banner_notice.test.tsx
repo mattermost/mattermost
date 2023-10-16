@@ -2,17 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {fireEvent, screen} from '@testing-library/react';
 
-import {DeepPartial} from '@mattermost/types/utilities';
-import {GlobalState} from 'types/store';
-import {General} from 'mattermost-redux/constants';
-import {LicenseLinks, OverActiveUserLimits, Preferences, StatTypes} from 'utils/constants';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {General} from 'mattermost-redux/constants';
+
 import {trackEvent} from 'actions/telemetry_actions';
+
+import {
+    act,
+    fireEvent,
+    renderWithIntlAndStore,
+    screen,
+} from 'tests/react_testing_utils';
+import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import OverageUsersBannerNotice from './index';
 
@@ -91,6 +99,19 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
                 subscriptionStats: {
                     is_expandable: false,
                     getRequestState: 'IDLE',
+                },
+            },
+            hostedCustomer: {
+                products: {
+                    productsLoaded: true,
+                    products: {
+                        prod_professional: TestHelper.getProductMock({
+                            id: 'prod_professional',
+                            name: 'Professional',
+                            sku: SelfHostedProducts.PROFESSIONAL,
+                            price_per_seat: 7.5,
+                        }),
+                    },
                 },
             },
         },
@@ -483,7 +504,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         });
     });
 
-    it('gov sku sees overage notice but not a call to do true up', () => {
+    it('gov sku sees overage notice but not a call to do true up', async () => {
         const store: GlobalState = JSON.parse(JSON.stringify(initialState));
 
         store.entities.admin = {
@@ -502,8 +523,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         };
         store.entities.general.license.IsGovSku = 'true';
 
-        renderComponent({
-            store,
+        await act(async () => {
+            renderComponent({
+                store,
+            });
         });
 
         screen.getByText(text10PercentageState);

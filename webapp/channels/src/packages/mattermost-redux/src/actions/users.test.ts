@@ -5,15 +5,17 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import type {UserProfile} from '@mattermost/types/users';
+
+import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {RequestStatus} from '../constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-import {UserTypes} from 'mattermost-redux/action_types';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
+import {RequestStatus} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
 
@@ -87,7 +89,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         nock(Client4.getBaseRoute()).
             post('/users/me/terms_of_service').
@@ -113,7 +115,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         nock(Client4.getBaseRoute()).
             post('/users/me/terms_of_service').
@@ -659,7 +661,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         nock(Client4.getBaseRoute()).
             post('/users/login').
@@ -715,7 +717,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         nock(Client4.getBaseRoute()).
             post('/users/login').
@@ -852,7 +854,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const state = store.getState();
         const currentUser = state.entities.users.profiles[state.entities.users.currentUserId];
@@ -903,7 +905,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const state = store.getState();
         const currentUserId = state.entities.users.currentUserId;
@@ -951,7 +953,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -972,7 +974,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -993,7 +995,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const beforeTime = new Date().getTime();
         const currentUserId = store.getState().entities.users.currentUserId;
@@ -1088,7 +1090,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const testImageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
 
@@ -1113,7 +1115,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -1180,7 +1182,7 @@ describe('Actions.Users', () => {
             store.dispatch({
                 type: UserTypes.LOGIN_SUCCESS,
             });
-            await Actions.loadMeREST()(store.dispatch, store.getState);
+            await Actions.loadMe()(store.dispatch, store.getState);
 
             const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -1211,7 +1213,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -1247,7 +1249,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -1284,7 +1286,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -1321,7 +1323,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -1369,7 +1371,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -1424,7 +1426,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 
@@ -1479,7 +1481,7 @@ describe('Actions.Users', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await Actions.loadMeREST()(store.dispatch, store.getState);
+        await Actions.loadMe()(store.dispatch, store.getState);
 
         const currentUserId = store.getState().entities.users.currentUserId;
 

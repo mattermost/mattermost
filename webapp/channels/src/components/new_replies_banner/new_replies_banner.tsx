@@ -4,10 +4,10 @@
 import React, {memo, useEffect, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/utils';
-
 import Toast from 'components/toast/toast';
+
+import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 
 import './new_replies_banner.scss';
 

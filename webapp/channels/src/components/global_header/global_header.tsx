@@ -2,16 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
+
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import {useCurrentProductId} from 'utils/products';
 
 import CenterControls from './center_controls/center_controls';
+import {useIsLoggedIn} from './hooks';
 import LeftControls from './left_controls/left_controls';
 import RightControls from './right_controls/right_controls';
-
-import {useIsLoggedIn} from './hooks';
 
 const GlobalHeaderContainer = styled.header`
     position: relative;
@@ -38,17 +41,20 @@ const GlobalHeaderContainer = styled.header`
 const GlobalHeader = (): JSX.Element | null => {
     const isLoggedIn = useIsLoggedIn();
     const currentProductID = useCurrentProductId();
+    const theme = useSelector(getTheme);
 
     if (!isLoggedIn) {
         return null;
     }
 
     return (
-        <GlobalHeaderContainer id='global-header'>
-            <LeftControls/>
-            <CenterControls productId={currentProductID}/>
-            <RightControls productId={currentProductID}/>
-        </GlobalHeaderContainer>
+        <CompassThemeProvider theme={theme}>
+            <GlobalHeaderContainer id='global-header'>
+                <LeftControls/>
+                <CenterControls productId={currentProductID}/>
+                <RightControls productId={currentProductID}/>
+            </GlobalHeaderContainer>
+        </CompassThemeProvider>
     );
 };
 

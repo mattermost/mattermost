@@ -13,8 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -94,7 +95,6 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
-	t.Run("GetFirstSystemAdminID", func(t *testing.T) { testUserStoreGetFirstSystemAdminID(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -1036,7 +1036,6 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -1115,7 +1114,6 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s Sq
 }
 
 func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -2554,7 +2552,6 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -3964,6 +3961,15 @@ func testCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(deletedUser.Id)) }()
 
+	// Remote User
+	remoteId := "remote-id"
+	remoteUser, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		RemoteId: &remoteId,
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(remoteUser.Id)) }()
+
 	// Bot
 	botUser, err := ss.User().Save(&model.User{
 		Email: MakeEmail(),
@@ -4062,6 +4068,71 @@ func testCount(t *testing.T, ss store.Store) {
 			"Include bot accounts and deleted accounts with existing team id and view restrictions not allowing current team",
 			model.UserCountOptions{
 				IncludeBotAccounts: true,
+				IncludeDeleted:     true,
+				TeamId:             teamId,
+				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
+			},
+			0,
+		},
+		{
+			"Include remote accounts no deleted accounts and no team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     false,
+				TeamId:             "",
+			},
+			5,
+		},
+		{
+			"Include delete accounts no remote accounts and no team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: false,
+				IncludeDeleted:     true,
+				TeamId:             "",
+			},
+			5,
+		},
+		{
+			"Include remote accounts and deleted accounts and no team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             "",
+			},
+			6,
+		},
+		{
+			"Include remote accounts and deleted accounts with existing team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             teamId,
+			},
+			4,
+		},
+		{
+			"Include remote accounts and deleted accounts with fake team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             model.NewId(),
+			},
+			0,
+		},
+		{
+			"Include remote accounts and deleted accounts with existing team id and view restrictions allowing team",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             teamId,
+				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{teamId}},
+			},
+			4,
+		},
+		{
+			"Include remote accounts and deleted accounts with existing team id and view restrictions not allowing current team",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
 				IncludeDeleted:     true,
 				TeamId:             teamId,
 				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
@@ -4194,32 +4265,7 @@ func testCount(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreGetFirstSystemAdminID(t *testing.T, ss store.Store) {
-	sysAdmin := &model.User{}
-	sysAdmin.Email = MakeEmail()
-	sysAdmin.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
-	sysAdmin, err := ss.User().Save(sysAdmin)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin.Id)) }()
-
-	// We need the second system admin to be created after the first one
-	// our granulirity is ms
-	time.Sleep(1 * time.Millisecond)
-
-	sysAdmin2 := &model.User{}
-	sysAdmin2.Email = MakeEmail()
-	sysAdmin2.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
-	sysAdmin2, err = ss.User().Save(sysAdmin2)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin2.Id)) }()
-
-	returnedId, err := ss.User().GetFirstSystemAdminID()
-	require.NoError(t, err)
-	require.Equal(t, sysAdmin.Id, returnedId)
-}
-
 func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	// Create 5 users statuses u0, u1, u2, u3, u4.
@@ -4304,7 +4350,6 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore)
 }
 
 func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	// Create 5 users statuses u0, u1, u2, u3, u4.
@@ -4433,7 +4478,6 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	result, err := ss.User().AnalyticsGetSystemAdminCount()
 	require.NoError(t, err)
 	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
-
 }
 
 func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
@@ -5201,6 +5245,8 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 }
 
 func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	// create users
 	t.Run("Must do nothing with regular user", func(t *testing.T) {
 		id := model.NewId()
@@ -5237,7 +5283,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_user", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5282,7 +5328,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user system_admin", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5338,7 +5384,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5378,7 +5424,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5423,7 +5469,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user custom_role", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5489,7 +5535,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId1, user1.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId1, user1.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5503,7 +5549,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId2, user2.Id)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(c, teamId2, user2.Id)
 		require.NoError(t, nErr)
 		require.True(t, notUpdatedTeamMember.SchemeGuest)
 		require.False(t, notUpdatedTeamMember.SchemeUser)
@@ -5516,6 +5562,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	// create users
 	t.Run("Must do nothing with guest", func(t *testing.T) {
 		id := model.NewId()
@@ -5550,7 +5598,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_guest", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, updatedUser.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, updatedUser.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5593,7 +5641,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5645,7 +5693,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5683,7 +5731,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5724,9 +5772,9 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
-		require.Equal(t, "system_guest custom_role", updatedUser.Roles)
+		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5790,7 +5838,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId1, user1.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId1, user1.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5804,7 +5852,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId2, user2.Id)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(c, teamId2, user2.Id)
 		require.NoError(t, nErr)
 		require.False(t, notUpdatedTeamMember.SchemeGuest)
 		require.True(t, notUpdatedTeamMember.SchemeUser)
@@ -5895,6 +5943,7 @@ func testDeactivateGuests(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
+	startTime := model.GetMillis()
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
@@ -5909,8 +5958,7 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 
-	assert.NotZero(t, user.LastPictureUpdate)
-	assert.NotZero(t, user.UpdateAt)
+	assert.GreaterOrEqual(t, user.LastPictureUpdate, startTime)
 
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond)
@@ -5923,8 +5971,8 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	user2, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 
-	assert.True(t, user2.UpdateAt > user.UpdateAt)
-	assert.Zero(t, user2.LastPictureUpdate)
+	assert.Greater(t, user2.UpdateAt, user.UpdateAt)
+	assert.Less(t, user2.LastPictureUpdate, -startTime)
 }
 
 func testGetKnownUsers(t *testing.T, ss store.Store) {

@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {fireEvent, screen} from '@testing-library/react';
 
-import {Channel} from '@mattermost/types/channels';
-import {renderWithIntl} from 'tests/react_testing_utils';
+import type {Channel} from '@mattermost/types/channels';
+
+import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 
 import Header from './header';
 

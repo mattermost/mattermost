@@ -1,33 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
-import Scrollbars from 'react-custom-scrollbars';
-import {DragDropContext, Droppable, DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
-import {Spring, SpringSystem} from 'rebound';
 import classNames from 'classnames';
-
 import debounce from 'lodash/debounce';
+import React from 'react';
+import type {CSSProperties} from 'react';
+import {DragDropContext, Droppable} from 'react-beautiful-dnd';
+import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
+import Scrollbars from 'react-custom-scrollbars';
+import {FormattedMessage} from 'react-intl';
+import {SpringSystem} from 'rebound';
+import type {Spring} from 'rebound';
 
-import * as ChannelUtils from 'utils/channel_utils';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {DraggingState} from 'types/store';
-import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {StaticPage} from 'types/store/lhs';
 
-import GlobalThreadsLink from 'components/threading/global_threads_link';
 import DraftsLink from 'components/drafts/drafts_link/drafts_link';
-import ActivityAndInsightsLink
-    from 'components/activity_and_insights/activity_and_insights_link/activity_and_insights_link';
+import GlobalThreadsLink from 'components/threading/global_threads_link';
 
-import {Team} from '@mattermost/types/teams';
-import {ChannelCategory} from '@mattermost/types/channel_categories';
-import {Channel} from '@mattermost/types/channels';
+import * as ChannelUtils from 'utils/channel_utils';
+import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import * as Utils from 'utils/utils';
+
+import type {DraggingState} from 'types/store';
+import type {StaticPage} from 'types/store/lhs';
 
 import SidebarCategory from '../sidebar_category';
 import UnreadChannelIndicator from '../unread_channel_indicator';
@@ -100,7 +102,6 @@ type Props = {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
-        multiSelectChannelAdd: (channelId: string) => void;
     };
 };
 
@@ -314,7 +315,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
     };
 
     navigateChannelShortcut = (e: KeyboardEvent) => {
-        if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (Utils.isKeyPressed(e, Constants.KeyCodes.UP) || Utils.isKeyPressed(e, Constants.KeyCodes.DOWN))) {
+        if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (Keyboard.isKeyPressed(e, Constants.KeyCodes.UP) || Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN))) {
             e.preventDefault();
 
             const staticPageIds = this.getDisplayedStaticPageIds();
@@ -324,7 +325,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             const curIndex = allIds.indexOf(curSelectedId);
 
             let nextIndex;
-            if (Utils.isKeyPressed(e, Constants.KeyCodes.DOWN)) {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN)) {
                 nextIndex = curIndex + 1;
             } else {
                 nextIndex = curIndex - 1;
@@ -335,13 +336,13 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             if (nextIndex >= staticPageIds.length) {
                 this.scrollToChannel(nextId);
             }
-        } else if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.K)) {
+        } else if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.K)) {
             this.props.handleOpenMoreDirectChannelsModal(e);
         }
     };
 
     navigateUnreadChannelShortcut = (e: KeyboardEvent) => {
-        if (e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && (Utils.isKeyPressed(e, Constants.KeyCodes.UP) || Utils.isKeyPressed(e, Constants.KeyCodes.DOWN))) {
+        if (e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && (Keyboard.isKeyPressed(e, Constants.KeyCodes.UP) || Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN))) {
             e.preventDefault();
 
             const allChannelIds = this.getDisplayedChannelIds();
@@ -356,7 +357,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             }
 
             let direction = 0;
-            if (Utils.isKeyPressed(e, Constants.KeyCodes.UP)) {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.UP)) {
                 direction = -1;
             } else {
                 direction = 1;
@@ -534,7 +535,6 @@ export default class SidebarList extends React.PureComponent<Props, State> {
 
             // NOTE: id attribute added to temporarily support the desktop app's at-mention DOM scraping of the old sidebar
             <>
-                <ActivityAndInsightsLink/>
                 <GlobalThreadsLink/>
                 <DraftsLink/>
                 <div

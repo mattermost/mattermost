@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
@@ -33,7 +33,7 @@ func (a *App) createDefaultChannelMemberships(c request.CTX, params model.Create
 			return err
 		}
 
-		tmem, err := a.GetTeamMember(channel.TeamId, userChannel.UserID)
+		tmem, err := a.GetTeamMember(c, channel.TeamId, userChannel.UserID)
 		if err != nil && err.Id != "app.team.get_member.missing.app_error" {
 			return err
 		}

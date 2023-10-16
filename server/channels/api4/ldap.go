@@ -8,9 +8,9 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 type mixedUnlinkedGroup struct {
@@ -66,7 +66,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SyncLdap(opts.IncludeRemovedMembers)
+	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -306,7 +306,7 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.MigrateIdLDAP(toAttribute); err != nil {
+	if err := c.App.MigrateIdLDAP(c.AppContext, toAttribute); err != nil {
 		c.Err = err
 		return
 	}

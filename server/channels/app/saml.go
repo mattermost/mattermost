@@ -13,7 +13,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const (
@@ -22,13 +23,13 @@ const (
 	SamlIdpCertificateName    = "saml-idp.crt"
 )
 
-func (a *App) GetSamlMetadata() (string, *model.AppError) {
+func (a *App) GetSamlMetadata(c *request.Context) (string, *model.AppError) {
 	if a.Saml() == nil {
 		err := model.NewAppError("GetSamlMetadata", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return "", err
 	}
 
-	result, err := a.Saml().GetMetadata()
+	result, err := a.Saml().GetMetadata(c)
 	if err != nil {
 		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, err.StatusCode)
 	}

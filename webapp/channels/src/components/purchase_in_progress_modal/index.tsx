@@ -2,24 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
-import {GenericModal, GenericModalProps} from '@mattermost/components';
+import type {GenericModalProps} from '@mattermost/components';
+import {GenericModal} from '@mattermost/components';
+import type {GlobalState} from '@mattermost/types/store';
 
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getUserByEmail} from 'mattermost-redux/selectors/entities/users';
-import {Client4} from 'mattermost-redux/client';
 
-import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 import {useControlPurchaseInProgressModal} from 'components/common/hooks/useControlModal';
-import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchase_modal/constants';
+import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 
 import './index.scss';
-import {GlobalState} from '@mattermost/types/store';
 
 interface Props {
     purchaserEmail: string;
+    storageKey: string;
 }
 
 export default function PurchaseInProgressModal(props: Props) {
@@ -64,7 +65,7 @@ export default function PurchaseInProgressModal(props: Props) {
         );
 
         genericModalProps.handleConfirm = () => {
-            localStorage.removeItem(STORAGE_KEY_PURCHASE_IN_PROGRESS);
+            localStorage.removeItem(props.storageKey);
             Client4.bootstrapSelfHostedSignup(true);
             close();
         };

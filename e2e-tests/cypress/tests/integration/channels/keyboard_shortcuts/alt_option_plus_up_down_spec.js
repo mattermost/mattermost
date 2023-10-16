@@ -20,8 +20,6 @@ describe('Keyboard Shortcuts', () => {
     let testTeam;
     let publicChannel;
     let privateChannel;
-    const insights = 'Insights';
-    const insightsSidebar = {name: insights};
 
     before(() => {
         cy.apiGetMe().then(({user: adminUser}) => {
@@ -63,11 +61,8 @@ describe('Keyboard Shortcuts', () => {
         verifyChannelSwitch(testTeam.name, offTopic, privateChannel, '{uparrow}');
         verifyChannelSwitch(testTeam.name, publicChannel, offTopic, '{uparrow}');
 
-        // * Should switch to Insights
-        verifyChannelSwitch(testTeam.name, insightsSidebar, publicChannel, '{uparrow}');
-
         // * Should switch to bottom of channel list when current channel is at the very top
-        verifyChannelSwitch(testTeam.name, dmWithSysadmin, insightsSidebar, '{uparrow}');
+        verifyChannelSwitch(testTeam.name, dmWithSysadmin, publicChannel, '{uparrow}');
     });
 
     it('MM-T1230 Alt/Option + Down', () => {
@@ -81,10 +76,6 @@ describe('Keyboard Shortcuts', () => {
         verifyChannelSwitch(testTeam.name, privateChannel, offTopic, '{downarrow}');
         verifyChannelSwitch(testTeam.name, townSquare, privateChannel, '{downarrow}');
         verifyChannelSwitch(testTeam.name, dmWithSysadmin, townSquare, '{downarrow}');
-
-        // * Should switch to top (Insights) when current channel is at the very bottom
-        verifyChannelSwitch(testTeam.name, insightsSidebar, dmWithSysadmin, '{downarrow}');
-        verifyChannelSwitch(testTeam.name, publicChannel, insightsSidebar, '{downarrow}');
     });
 
     function verifyChannelSwitch(teamName, toChannel, fromChannel, arrowKey) {
@@ -94,8 +85,6 @@ describe('Keyboard Shortcuts', () => {
         // * Verify that it redirects into expected URL
         if (toChannel.type === 'D') {
             cy.url().should('include', `/${teamName}/messages/@${toChannel.name}`);
-        } else if (toChannel.name === insights) {
-            cy.url().should('include', `/${teamName}/activity-and-insights`);
         } else {
             cy.url().should('include', `/${teamName}/channels/${toChannel.name}`);
         }
@@ -109,21 +98,16 @@ describe('Keyboard Shortcuts', () => {
         });
 
         function verifyClass(channel, assertion) {
-            if (channel.type) {
-                let label;
-                if (channel.type === 'O') {
-                    label = channel.display_name.toLowerCase() + ' public channel';
-                } else if (channel.type === 'P') {
-                    label = channel.display_name.toLowerCase() + ' private channel';
-                } else if (channel.type === 'D') {
-                    label = channel.display_name.toLowerCase();
-                }
-
-                cy.findByLabelText(label).parent().should(assertion, 'active');
-            } else {
-                // For Insights
-                cy.findByText(channel.name).parent().parent().parent().should(assertion, 'active');
+            let label;
+            if (channel.type === 'O') {
+                label = channel.display_name.toLowerCase() + ' public channel';
+            } else if (channel.type === 'P') {
+                label = channel.display_name.toLowerCase() + ' private channel';
+            } else if (channel.type === 'D') {
+                label = channel.display_name.toLowerCase();
             }
+
+            cy.findByLabelText(label).parent().should(assertion, 'active');
         }
     }
 });

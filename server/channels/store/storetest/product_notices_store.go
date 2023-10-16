@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestProductNoticesStore(t *testing.T, ss store.Store) {
@@ -76,5 +76,4 @@ func testClearOld(t *testing.T, ss store.Store) {
 	res, err := ss.ProductNotices().GetViews("testuser")
 	require.NoError(t, err)
 	require.Len(t, res, 1)
-
 }

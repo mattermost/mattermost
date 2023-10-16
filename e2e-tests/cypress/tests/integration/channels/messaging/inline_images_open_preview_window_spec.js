@@ -21,7 +21,7 @@ describe('Messaging', () => {
 
     it('MM-T187 Inline markdown images open preview window', () => {
         // # Post the image link to the channel
-        cy.postMessage('Hello ![test image](https://raw.githubusercontent.com/furqanmlk/furqanmlk.github.io/main/images/image-small-height.png)');
+        cy.postMessage('Hello ![test image](https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/image-small-height.png)');
 
         // * Confirm the image container is visible
         cy.uiWaitUntilMessagePostedIncludes('Hello');

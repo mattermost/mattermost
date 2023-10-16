@@ -15,11 +15,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/templates"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
 	"github.com/microcosm-cc/bluemonday"
 )
@@ -894,7 +894,7 @@ func (es *Service) InvalidateVerifyEmailTokensForUser(userID string) *model.AppE
 		return model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var appErr *model.AppError = nil
+	var appErr *model.AppError
 	for _, token := range tokens {
 		tokenExtra := struct {
 			UserId string

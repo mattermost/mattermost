@@ -4,8 +4,8 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -17,7 +17,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
         id="admin.team_settings.team_detail.group_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -110,8 +110,8 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -123,7 +123,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
         id="admin.team_settings.team_detail.group_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

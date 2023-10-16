@@ -1,31 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import classNames from 'classnames';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {Post} from '@mattermost/types/posts';
-import {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import DeletePostModal from 'components/delete_post_modal';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import Textbox from 'components/textbox';
+import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {applyMarkdown} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     formatGithubCodePaste,
     formatMarkdownMessage,
-    getTable,
+    getHtmlTable,
     hasHtmlLink,
     isGitHubCodeBlock,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
-import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import * as Utils from 'utils/utils';
 
-import DeletePostModal from 'components/delete_post_modal';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import Textbox, {TextboxClass, TextboxElement} from 'components/textbox';
-import {ModalData} from 'types/actions';
-import {PostDraft} from '../../types/store/draft';
+import type {ModalData} from 'types/actions';
+import type {PostDraft} from 'types/store/draft';
 
 import EditPostFooter from './edit_post_footer';
 
@@ -41,7 +47,7 @@ export type Actions = {
     unsetEditingPost: () => void;
     openModal: (input: ModalData<DialogProps>) => void;
     scrollPostListToBottom: () => void;
-    getPostEditHistory: (postId: string) => void;
+    runMessageWillBeUpdatedHooks: (newPost: Partial<Post>, oldPost: Post) => Promise<ActionResult>;
 }
 
 export type Props = {
@@ -162,7 +168,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         const hasLinks = hasHtmlLink(clipboardData);
-        const table = getTable(clipboardData);
+        const table = getHtmlTable(clipboardData);
         if (!table && !hasLinks) {
             return;
         }
@@ -177,7 +183,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             message = formattedMessage;
             newCaretPosition = selectionRange.start + formattedCodeBlock.length;
         } else {
-            message = formatMarkdownMessage(clipboardData, editText.trim(), newCaretPosition);
+            message = formatMarkdownMessage(clipboardData, editText.trim(), newCaretPosition).formattedMessage;
             newCaretPosition = message.length - (editText.length - newCaretPosition);
         }
 
@@ -220,18 +226,32 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         actions.unsetEditingPost();
     };
 
-    const handleAutomatedRefocusAndExit = () => handleRefocusAndExit(editingPost.refocusId || null);
+    const handleAutomatedRefocusAndExit = () => {
+        draftRef.current = {
+            ...draftRef.current,
+            message: '',
+        };
+        handleRefocusAndExit(editingPost.refocusId || null);
+    };
 
     const handleEdit = async () => {
         if (!editingPost.post || isSaveDisabled()) {
             return;
         }
 
-        const updatedPost = {
+        let updatedPost = {
             message: editText,
             id: editingPost.postId,
             channel_id: editingPost.post.channel_id,
         };
+
+        const hookResult = await actions.runMessageWillBeUpdatedHooks(updatedPost, editingPost.post);
+        if (hookResult.error && hookResult.error.message) {
+            setPostError(<>{hookResult.error.message}</>);
+            return;
+        }
+
+        updatedPost = hookResult.data;
 
         if (postError) {
             setErrorClass('animation--highlight');
@@ -264,9 +284,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         await actions.editPost(updatedPost as Post);
-        if (rest.isRHSOpened && rest.isEditHistoryShowing) {
-            actions.getPostEditHistory(editingPost.postId || '');
-        }
 
         handleAutomatedRefocusAndExit();
     };
@@ -302,13 +319,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         const {ctrlSend, codeBlockOnCtrlEnter} = rest;
 
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-        const ctrlKeyCombo = Utils.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
-        const ctrlAltCombo = Utils.cmdOrCtrlPressed(e, true) && e.altKey;
+        const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
+        const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
         const ctrlEnterKeyCombo =
             (ctrlSend || codeBlockOnCtrlEnter) &&
-            Utils.isKeyPressed(e, KeyCodes.ENTER) &&
+            Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
             ctrlOrMetaKeyPressed;
-        const markdownLinkKey = Utils.isKeyPressed(e, KeyCodes.K);
+        const markdownLinkKey = Keyboard.isKeyPressed(e, KeyCodes.K);
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
@@ -316,7 +333,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             setEditText(Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>));
         } else if (ctrlEnterKeyCombo) {
             handleEdit();
-        } else if (Utils.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
+        } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
             handleAutomatedRefocusAndExit();
         } else if (ctrlAltCombo && markdownLinkKey) {
             applyHotkeyMarkdown({
@@ -325,26 +342,20 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
-        } else if (ctrlKeyCombo && Utils.isKeyPressed(e, KeyCodes.B)) {
+        } else if (ctrlKeyCombo && Keyboard.isKeyPressed(e, KeyCodes.B)) {
             applyHotkeyMarkdown({
                 markdownMode: 'bold',
                 selectionStart: e.currentTarget.selectionStart,
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
-        } else if (ctrlKeyCombo && Utils.isKeyPressed(e, KeyCodes.I)) {
+        } else if (ctrlKeyCombo && Keyboard.isKeyPressed(e, KeyCodes.I)) {
             applyHotkeyMarkdown({
                 markdownMode: 'italic',
                 selectionStart: e.currentTarget.selectionStart,
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
-        }
-    };
-
-    const handleSelect = (e: React.SyntheticEvent<TextboxElement>) => {
-        if (textboxRef.current) {
-            Utils.adjustSelection(textboxRef.current.getInputBox(), e);
         }
     };
 
@@ -435,10 +446,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const getEmojiTargetRef = useCallback(() => emojiButtonRef.current, [emojiButtonRef]);
 
     let emojiPicker = null;
-    const emojiButtonAriaLabel = formatMessage({
-        id: 'emoji_picker.emojiPicker',
-        defaultMessage: 'Emoji Picker',
-    }).toLowerCase();
 
     if (config.EnableEmojiPicker === 'true') {
         emojiPicker = (
@@ -455,7 +462,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                     rightOffset={RIGHT_OFFSET}
                 />
                 <button
-                    aria-label={emojiButtonAriaLabel}
+                    aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                     id='editPostEmoji'
                     ref={emojiButtonRef}
                     className='style--none post-action'
@@ -470,6 +477,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         );
     }
 
+    let rootId = '';
+    if (editingPost.post) {
+        rootId = editingPost.post.root_id || editingPost.post.id;
+    }
+
     return (
         <div
             className={classNames('post--editing__wrapper', {
@@ -479,11 +491,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         >
             <Textbox
                 tabIndex={0}
-                rootId={editingPost.post ? Utils.getRootId(editingPost.post) : ''}
+                rootId={rootId}
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}
-                onSelect={handleSelect}
                 onHeightChange={handleHeightChange}
                 handlePostError={handlePostError}
                 onPaste={handlePaste}

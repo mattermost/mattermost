@@ -2,32 +2,31 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import {EmbargoedEntityTrialError} from 'components/admin_console/license_settings/trial_banner/trial_banner';
-import AlertBanner from 'components/alert_banner';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
-import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import PurchaseModal from 'components/purchase_modal';
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
-import ExternalLink from 'components/external_link';
-
-import {ModalIdentifiers, TELEMETRY_CATEGORIES, AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
-import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import * as Utils from 'utils/utils';
-import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
+import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {CloudCustomer} from '@mattermost/types/cloud';
+import type {ClientLicense} from '@mattermost/types/config';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {ModalData} from 'types/actions';
+import {EmbargoedEntityTrialError} from 'components/admin_console/license_settings/trial_banner/trial_banner';
+import AlertBanner from 'components/alert_banner';
+import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
+import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
+import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
+import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
+import PurchaseModal from 'components/purchase_modal';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {ClientLicense} from '@mattermost/types/config';
-import {AnalyticsRow} from '@mattermost/types/admin';
-import {CloudCustomer} from '@mattermost/types/cloud';
+import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES, AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
+import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
+import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import './feature_discovery.scss';
 
@@ -59,6 +58,7 @@ type Props = {
     isSubscriptionLoaded: boolean;
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
+    cloudFreeDeprecated: boolean;
 }
 
 type State = {
@@ -195,16 +195,28 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         // if all conditions are set for being able to request a cloud trial, then show the cta start cloud trial button
             if (canRequestCloudFreeTrial) {
                 ctaPrimaryButton = (
-                    <CloudStartTrialButton
-                        message={Utils.localizeAndFormatMessage(
-                            'admin.ldap_feature_discovery.call_to_action.primary.cloudFree',
-                            'Try free for {trialLength} days',
-                            {trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS},
-                        )}
+                    <FeatureDiscoveryCloudStartTrialButton
                         telemetryId={`start_cloud_trial_from_${this.props.featureName}`}
                         extraClass='btn btn-primary'
                     />
                 );
+                if (this.props.cloudFreeDeprecated) {
+                    ctaPrimaryButton = (
+                        <button
+                            className='btn btn-primary'
+                            data-testid='featureDiscovery_primaryCallToAction'
+                            onClick={() => {
+                                trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
+                                this.contactSalesFunc();
+                            }}
+                        >
+                            <FormattedMessage
+                                id='admin.ldap_feature_discovery_cloud.call_to_action.primary_sales'
+                                defaultMessage='Contact sales'
+                            />
+                        </button>
+                    );
+                }
             } else if (hadPrevCloudTrial) {
                 // if it is cloud, but this account already had a free trial, then the cta button must be Upgrade now
                 ctaPrimaryButton = (
@@ -259,7 +271,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                     />
                 </ExternalLink>
                 {gettingTrialError}
-                {(!this.props.isCloud || canRequestCloudFreeTrial) && <p className='trial-legal-terms'>
+                {((!this.props.isCloud || canRequestCloudFreeTrial) && !this.props.cloudFreeDeprecated) && <p className='trial-legal-terms'>
                     {canRequestCloudFreeTrial ? (
                         <FormattedMessage
                             id='admin.feature_discovery.trial-request.accept-terms.cloudFree'
@@ -421,4 +433,23 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             </div>
         );
     }
+}
+
+function FeatureDiscoveryCloudStartTrialButton(props: Omit<React.ComponentProps<typeof CloudStartTrialButton>, 'message'>) {
+    const message = useIntl().formatMessage(
+        {
+            id: 'admin.ldap_feature_discovery.call_to_action.primary.cloudFree',
+            defaultMessage: 'Try free for {trialLength} days',
+        },
+        {
+            trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS,
+        },
+    );
+
+    return (
+        <CloudStartTrialButton
+            {...props}
+            message={message}
+        />
+    );
 }

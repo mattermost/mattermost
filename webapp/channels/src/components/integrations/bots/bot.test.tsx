@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import Markdown from 'components/markdown';
-import {TestHelper as UtilsTestHelper} from 'utils/test_helper';
 import {generateId} from 'mattermost-redux/utils/helpers';
+
+import Markdown from 'components/markdown';
+
+import {TestHelper as UtilsTestHelper} from 'utils/test_helper';
 
 import Bot from './bot';
 

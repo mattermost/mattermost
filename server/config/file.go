@@ -11,9 +11,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 var (
@@ -130,7 +130,6 @@ func (fs *FileStore) Load() ([]byte, error) {
 	f, err := os.Open(fs.path)
 	if os.IsNotExist(err) {
 		return nil, nil
-
 	} else if err != nil {
 		return nil, errors.Wrapf(err, "failed to open %s for reading", fs.path)
 	}

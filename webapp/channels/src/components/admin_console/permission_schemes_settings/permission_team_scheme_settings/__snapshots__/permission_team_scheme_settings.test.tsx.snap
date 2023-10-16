@@ -30,8 +30,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -43,7 +43,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         id="admin.permissions.teamScheme"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -280,7 +280,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -360,8 +360,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -373,7 +373,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         id="admin.permissions.teamScheme"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -633,7 +633,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -713,8 +713,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -726,7 +726,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         id="admin.permissions.teamScheme"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -988,7 +988,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -1134,8 +1134,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -1147,7 +1147,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         id="admin.permissions.teamScheme"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1409,7 +1409,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"

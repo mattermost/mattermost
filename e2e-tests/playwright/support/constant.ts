@@ -2,7 +2,5 @@
 // See LICENSE.txt for license information.
 
 export const appsPluginId = 'com.mattermost.apps';
-export const boardsPluginId = 'focalboard';
-export const boardsProductId = 'boards';
 export const callsPluginId = 'com.mattermost.calls';
 export const playbooksPluginId = 'playbooks';

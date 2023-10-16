@@ -2,23 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {CSSTransition} from 'react-transition-group';
-import styled from 'styled-components';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
+import {CSSTransition} from 'react-transition-group';
+import styled from 'styled-components';
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
-
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
+import ExternalLink from 'components/external_link';
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 import completedImg from 'images/completed.svg';
-import ExternalLink from 'components/external_link';
+import {AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
 
 const CompletedWrapper = styled.div`
     display: flex;
@@ -49,7 +48,7 @@ const CompletedWrapper = styled.div`
     &.fade-exit-done {
         transform: scale(1);
     }
-    .start-trial-btn {
+    .start-trial-btn, .got-it-button {
         padding: 13px 20px;
         background: var(--button-bg);
         border-radius: 4px;
@@ -223,7 +222,10 @@ const Completed = (props: Props): JSX.Element => {
                         </>
 
                     ) : (
-                        <button onClick={dismissAction}>
+                        <button
+                            onClick={dismissAction}
+                            className='got-it-button'
+                        >
                             <FormattedMessage
                                 id={'collapsed_reply_threads_modal.confirm'}
                                 defaultMessage='Got it'
@@ -239,7 +241,7 @@ const Completed = (props: Props): JSX.Element => {
                                     link: (msg: React.ReactNode) => (
                                         <ExternalLink
                                             location='onboarding_tasklist_completed'
-                                            href='https://mattermost.com/download/#desktop'
+                                            href='https://mattermost.com/download#desktop'
                                         >
                                             {msg}
                                         </ExternalLink>

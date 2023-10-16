@@ -3,14 +3,17 @@
 
 import React, {useCallback} from 'react';
 
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {UserProfile} from '@mattermost/types/users';
+import {GroupSource} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
-import Avatar from 'components/widgets/users/avatar';
-import * as Utils from 'utils/utils';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import LocalizedIcon from 'components/localized_icon';
+import Avatar from 'components/widgets/users/avatar';
+
 import {t} from 'utils/i18n';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import * as Utils from 'utils/utils';
 
 export type Props = {
     groupId: string;
@@ -63,7 +66,7 @@ const ViewUserGroupListItem = (props: Props) => {
                 (group.source.toLowerCase() !== GroupSource.Ldap && props.permissionToLeaveGroup) &&
                 <button
                     type='button'
-                    className='remove-group-member btn-icon'
+                    className='remove-group-member btn btn-icon btn-xs'
                     aria-label='Close'
                     onClick={removeUserFromGroup}
                 >

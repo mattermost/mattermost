@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type SearchTestHelper struct {
@@ -301,7 +301,7 @@ func (th *SearchTestHelper) createDirectChannel(teamID, name, displayName string
 }
 
 func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users []*model.User) (*model.Channel, error) {
-	userIDS := make([]string, len(users))
+	userIDS := make([]string, 0, len(users))
 	for _, user := range users {
 		userIDS = append(userIDS, user.Id)
 	}
@@ -326,7 +326,6 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 	}
 
 	return channel, nil
-
 }
 
 func (th *SearchTestHelper) deleteChannel(channel *model.Channel) error {
@@ -464,7 +463,7 @@ func (th *SearchTestHelper) assertUsersMatchInAnyOrder(t *testing.T, expected, a
 
 func (th *SearchTestHelper) checkPostInSearchResults(t *testing.T, postID string, searchResults map[string]*model.Post) {
 	t.Helper()
-	postIDS := make([]string, len(searchResults))
+	postIDS := make([]string, 0, len(searchResults))
 	for ID := range searchResults {
 		postIDS = append(postIDS, ID)
 	}
@@ -473,7 +472,7 @@ func (th *SearchTestHelper) checkPostInSearchResults(t *testing.T, postID string
 
 func (th *SearchTestHelper) checkFileInfoInSearchResults(t *testing.T, fileID string, searchResults map[string]*model.FileInfo) {
 	t.Helper()
-	fileIDS := make([]string, len(searchResults))
+	fileIDS := make([]string, 0, len(searchResults))
 	for ID := range searchResults {
 		fileIDS = append(fileIDS, ID)
 	}

@@ -21,11 +21,15 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, DESKTOP on expanded view 1`] = `
 <ExpandView
   globalNotifyLevel="default"
+  isGM={false}
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}
+  onChangeDesktopSound={[Function]}
+  onChangeNotificationSound={[Function]}
   onChangeThreads={[Function]}
   onCollapseSection={[Function]}
+  onReset={[Function]}
   onSubmit={[Function]}
   section="desktop"
   serverError=""
@@ -44,11 +48,15 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, MARK_UNREAD on expanded view 1`] = `
 <ExpandView
   globalNotifyLevel={null}
+  isGM={false}
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}
+  onChangeDesktopSound={[Function]}
+  onChangeNotificationSound={[Function]}
   onChangeThreads={[Function]}
   onCollapseSection={[Function]}
+  onReset={[Function]}
   onSubmit={[Function]}
   section="markUnread"
   serverError=""
@@ -67,11 +75,15 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, PUSH on expanded view 1`] = `
 <ExpandView
   globalNotifyLevel="default"
+  isGM={false}
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}
+  onChangeDesktopSound={[Function]}
+  onChangeNotificationSound={[Function]}
   onChangeThreads={[Function]}
   onCollapseSection={[Function]}
+  onReset={[Function]}
   onSubmit={[Function]}
   section="push"
   serverError=""

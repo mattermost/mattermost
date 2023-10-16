@@ -9,25 +9,22 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type Context struct {
-	App        app.AppIface
-	AppContext *request.Context
-	Logger     *mlog.Logger
-	Params     *Params
-	Err        *model.AppError
-	// This is used to track the graphQL query that's being executed,
-	// so that we can monitor the timings in Grafana.
-	GraphQLOperationName string
-	siteURLHeader        string
+	App           app.AppIface
+	AppContext    *request.Context
+	Logger        *mlog.Logger
+	Params        *Params
+	Err           *model.AppError
+	siteURLHeader string
 }
 
 // LogAuditRec logs an audit record using default LevelAPI.
@@ -59,10 +56,11 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 		EventName: event,
 		Status:    initialStatus,
 		Actor: audit.EventActor{
-			UserId:    c.AppContext.Session().UserId,
-			SessionId: c.AppContext.Session().Id,
-			Client:    c.AppContext.UserAgent(),
-			IpAddress: c.AppContext.IPAddress(),
+			UserId:        c.AppContext.Session().UserId,
+			SessionId:     c.AppContext.Session().Id,
+			Client:        c.AppContext.UserAgent(),
+			IpAddress:     c.AppContext.IPAddress(),
+			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
 		Meta: map[string]interface{}{
 			audit.KeyAPIPath:   c.AppContext.Path(),
@@ -126,7 +124,6 @@ func (c *Context) SessionRequired() {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
 		c.AppContext.Session().Props[model.SessionPropType] == model.SessionTypeUserAccessToken &&
 		c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
-
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}
@@ -221,6 +218,10 @@ func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
 }
 
+func (c *Context) SetInvalidParamWithDetails(parameter string, details string) {
+	c.Err = NewInvalidParamDetailedError(parameter, details)
+}
+
 func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
 	c.Err = NewInvalidParamError(parameter).Wrap(err)
 }
@@ -269,6 +270,10 @@ func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWrite
 	return false
 }
 
+func NewInvalidParamDetailedError(parameter string, details string) *model.AppError {
+	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, details, http.StatusBadRequest)
+	return err
+}
 func NewInvalidParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err

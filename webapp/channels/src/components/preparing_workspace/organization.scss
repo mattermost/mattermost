@@ -1,0 +1,63 @@
+@import 'utils/variables';
+@import 'utils/mixins';
+@import './mixins';
+
+.Organization-body {
+    display: flex;
+}
+
+.Organization-form-wrapper {
+    position: relative;
+}
+
+.Organization-left-col {
+    width: 210px;
+    min-width: 210px;
+}
+
+.Organization-right-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.Organization {
+    &__input {
+        @include input;
+    }
+
+    &__status {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+
+        &--error {
+            margin-top: 8px;
+            color: var(--dnd-indicator);
+        }
+    }
+
+    &__progress-path {
+        position: absolute;
+        top: -25px;
+        left: -55px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        text-align: center;
+    }
+
+    &__content {
+        margin-left: 200px;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .Organization-left-col {
+        display: none;
+    }
+}
+
+@include simple-in-and-out("Organization");

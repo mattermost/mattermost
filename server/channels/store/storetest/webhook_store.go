@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestWebhookStore(t *testing.T, ss store.Store) {
@@ -53,7 +53,6 @@ func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
-
 	var err error
 
 	o1 := buildIncomingWebhook()

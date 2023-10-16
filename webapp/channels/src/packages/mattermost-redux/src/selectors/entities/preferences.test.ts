@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {PreferencesType} from '@mattermost/types/preferences';
+import type {PreferencesType} from '@mattermost/types/preferences';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Preferences} from 'mattermost-redux/constants';
-
 import * as Selectors from 'mattermost-redux/selectors/entities/preferences';
-
-import mergeObjects from '../../../test/merge_objects';
-
-import * as ThemeUtils from 'mattermost-redux/utils/theme_utils';
-
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import * as ThemeUtils from 'mattermost-redux/utils/theme_utils';
+
+import mergeObjects from '../../../test/merge_objects';
 
 describe('Selectors.Preferences', () => {
     const category1 = 'testcategory1';
@@ -730,43 +727,5 @@ describe('shouldShowUnreadsCategory', () => {
         } as GlobalState;
 
         expect(Selectors.shouldShowUnreadsCategory(state)).toBe(true);
-    });
-});
-
-describe('get feature flags', () => {
-    test('should check the value of feature flag AppsSidebarCategory', () => {
-        let state = {
-            entities: {
-                general: {
-                    config: {},
-                },
-            },
-        } as GlobalState;
-
-        expect(Selectors.appsSidebarCategoryEnabled(state)).toBe(false);
-
-        state = {
-            entities: {
-                general: {
-                    config: {
-                        FeatureFlagAppsSidebarCategory: 'false',
-                    },
-                },
-            },
-        } as GlobalState;
-
-        expect(Selectors.appsSidebarCategoryEnabled(state)).toBe(false);
-
-        state = {
-            entities: {
-                general: {
-                    config: {
-                        FeatureFlagAppsSidebarCategory: 'true',
-                    },
-                },
-            },
-        } as GlobalState;
-
-        expect(Selectors.appsSidebarCategoryEnabled(state)).toBe(true);
     });
 });

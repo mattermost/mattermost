@@ -23,6 +23,7 @@ export default class LoadingSpinner extends React.PureComponent<Props> {
                 id='loadingSpinner'
                 className={'LoadingSpinner' + (this.props.text ? ' with-text' : '')}
                 style={this.props.style}
+                data-testid='loadingSpinner'
             >
                 <LocalizedIcon
                     className='fa fa-spinner fa-fw fa-pulse spinner'

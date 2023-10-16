@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
+import type {RecentEmojiData} from '@mattermost/types/emojis';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {Preferences} from 'utils/constants';
-import EmojiMap from 'utils/emoji_map';
 import {EmojiIndicesByAlias, Emojis} from 'utils/emoji';
-
-import {GlobalState} from 'types/store';
-import {RecentEmojiData} from '@mattermost/types/emojis';
+import EmojiMap from 'utils/emoji_map';
 import {convertEmojiSkinTone} from 'utils/emoji_utils';
+
+import type {GlobalState} from 'types/store';
 
 export const getEmojiMap = createSelector(
     'getEmojiMap',

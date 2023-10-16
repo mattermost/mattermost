@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {mount, shallow} from 'enzyme';
-import 'jest-styled-components';
+import React from 'react';
 
-import {AppBinding} from '@mattermost/types/apps';
-
-import {PluginComponent} from 'types/store/plugins';
-import {GlobalState} from 'types/store';
+import type {AppBinding} from '@mattermost/types/apps';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 
+import type {GlobalState} from 'types/store';
+import type {PluginComponent} from 'types/store/plugins';
+
 import AppBar from './app_bar';
+
+import 'jest-styled-components';
 
 const mockDispatch = jest.fn();
 let mockState: GlobalState;
@@ -59,7 +60,7 @@ describe('components/app_bar/app_bar', () => {
                 },
                 general: {
                     config: {
-                        EnableAppBar: 'true',
+                        DisableAppBar: 'false',
                         FeatureFlagAppsEnabled: 'true',
                     } as any,
                 },
@@ -142,7 +143,7 @@ describe('components/app_bar/app_bar', () => {
     });
 
     test('should match snapshot on mount when App Bar is disabled', async () => {
-        mockState.entities.general.config.EnableAppBar = 'false';
+        mockState.entities.general.config.DisableAppBar = 'false';
 
         const wrapper = mount(
             <AppBar/>,
@@ -154,7 +155,7 @@ describe('components/app_bar/app_bar', () => {
     test('should not show marketplace if disabled or user does not have SYSCONSOLE_WRITE_PLUGINS permission', async () => {
         mockState.entities.general = {
             config: {
-                EnableAppBar: 'true',
+                DisableAppBar: 'true',
                 FeatureFlagAppsEnabled: 'true',
                 EnableMarketplace: 'true',
                 PluginsEnabled: 'true',
@@ -171,7 +172,7 @@ describe('components/app_bar/app_bar', () => {
     test('should show marketplace if enabled and user has SYSCONSOLE_WRITE_PLUGINS permission', async () => {
         mockState.entities.general = {
             config: {
-                EnableAppBar: 'true',
+                DisableAppBar: 'false',
                 FeatureFlagAppsEnabled: 'true',
                 EnableMarketplace: 'true',
                 PluginsEnabled: 'true',

@@ -11,15 +11,17 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
-	"github.com/mattermost/mattermost-server/v6/server/config"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type TestHelper struct {
+	Context *request.Context
 	Service *PlatformService
 	Suite   SuiteIFace
 
@@ -52,7 +54,7 @@ func (ms *mockSuite) GetSession(token string) (*model.Session, *model.AppError) 
 	return &model.Session{}, nil
 }
 func (ms *mockSuite) RolesGrantPermission(roleNames []string, permissionId string) bool { return true }
-func (ms *mockSuite) UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError) {
+func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	return true, nil
 }
 
@@ -99,6 +101,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 
 func SetupWithStoreMock(tb testing.TB, options ...Option) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
+	options = append(options, StoreOverride(mockStore))
 	th := setupTestHelper(mockStore, false, false, tb, options...)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
@@ -136,6 +139,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	configStore := config.NewTestMemoryStore()
 
 	memoryConfig := configStore.Get()
+	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -156,6 +160,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th := &TestHelper{
+		Context: request.TestContext(tb),
 		Service: ps,
 		Suite:   &mockSuite{},
 	}

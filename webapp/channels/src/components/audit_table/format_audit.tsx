@@ -2,17 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {useIntl} from 'react-intl';
 
-import {Audit} from '@mattermost/types/audits';
+import type {Audit} from '@mattermost/types/audits';
 
 import {toTitleCase} from 'utils/utils';
 
-import ChannelRow from './channel_row/channel_row';
-import UserRow from './user_row/user_row';
-import holders from './holders';
 import AuditRow from './audit_row/audit_row';
+import ChannelRow from './channel_row/channel_row';
+import holders from './holders';
+import UserRow from './user_row/user_row';
 
 export type Props = {
     audit: Audit;

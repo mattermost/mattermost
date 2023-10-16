@@ -2,15 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {Provider} from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import * as teams from 'mattermost-redux/selectors/entities/teams';
 
 import InviteMembersButton from 'components/sidebar/invite_members_button';
 
-import * as teams from 'mattermost-redux/selectors/entities/teams';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import mockStore from 'tests/test_store';
 
 describe('components/sidebar/invite_members_button', () => {
     // required state to mount using the provider
@@ -53,8 +52,6 @@ describe('components/sidebar/invite_members_button', () => {
     };
 
     const props = {
-        onClick: jest.fn(),
-        touchedInviteMembersButton: false,
         isAdmin: false,
     };
 
@@ -90,60 +87,5 @@ describe('components/sidebar/invite_members_button', () => {
             </Provider>,
         );
         expect(wrapper.find('i').exists()).toBeFalsy();
-    });
-
-    test('should fire onClick prop on click', () => {
-        const mock = jest.fn();
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteMembersButton {...{...props, onClick: mock}}/>
-            </Provider>,
-        );
-        expect(mock).not.toHaveBeenCalled();
-        wrapper.find('i').simulate('click');
-        expect(mock).toHaveBeenCalled();
-    });
-
-    test('should not be highlighted when button has been touched/clicked', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteMembersButton {...{...props, touchedInviteMembersButton: true}}/>
-            </Provider>,
-        );
-        expect(wrapper.find('li').prop('className')).not.toContain('untouched');
-    });
-
-    test('should be highlighted when component has not been touched/clicked and has less than 10 users', () => {
-        const lessThan10Users = {
-            ...state.entities.users,
-            stats: {
-                total_users_count: 9,
-            },
-        };
-        const lessThan10UsersState = {...state, entities: {...state.entities, users: lessThan10Users}};
-        const store = mockStore(lessThan10UsersState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteMembersButton {...props}/>
-            </Provider>,
-        );
-        expect(wrapper.find('li').prop('className')).toContain('untouched');
-    });
-
-    test('should not be highlighted when component has not been touched/clicked but the workspace has more than 10 users', () => {
-        const moreThan10Users = {
-            ...state.entities.users,
-            stats: {
-                total_users_count: 11,
-            },
-        };
-        const moreThan10UsersState = {...state, entities: {...state.entities, users: moreThan10Users}};
-        const store = mockStore(moreThan10UsersState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteMembersButton {...props}/>
-            </Provider>,
-        );
-        expect(wrapper.find('li').prop('className')).not.toContain('untouched');
     });
 });

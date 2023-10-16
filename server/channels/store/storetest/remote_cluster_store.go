@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,7 +26,6 @@ func TestRemoteClusterStore(t *testing.T, ss store.Store) {
 }
 
 func testRemoteClusterSave(t *testing.T, ss store.Store) {
-
 	t.Run("Save", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "some_remote",

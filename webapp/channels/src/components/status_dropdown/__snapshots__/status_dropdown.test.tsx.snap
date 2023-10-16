@@ -93,9 +93,8 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
         id="status-menu-away"
         onClick={[Function]}
         rightDecorator={
-          <Icon
-            color="success"
-            glyph="check"
+          <CheckIcon
+            color="var(--semantic-color-success)"
             size={16}
           />
         }
@@ -208,8 +207,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
           }
         }
         icon={
-          <Icon
-            glyph="account-outline"
+          <AccountOutlineIcon
             size={16}
           />
         }
@@ -222,8 +220,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
     <MenuGroup>
       <MenuItemAction
         icon={
-          <Icon
-            glyph="exit-to-app"
+          <ExitToAppIcon
             size={16}
           />
         }
@@ -411,9 +408,8 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
         id="status-menu-away"
         onClick={[Function]}
         rightDecorator={
-          <Icon
-            color="success"
-            glyph="check"
+          <CheckIcon
+            color="var(--semantic-color-success)"
             size={16}
           />
         }
@@ -526,8 +522,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
           }
         }
         icon={
-          <Icon
-            glyph="account-outline"
+          <AccountOutlineIcon
             size={16}
           />
         }
@@ -540,8 +535,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
     <MenuGroup>
       <MenuItemAction
         icon={
-          <Icon
-            glyph="exit-to-app"
+          <ExitToAppIcon
             size={16}
           />
         }
@@ -681,9 +675,8 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
         id="status-menu-away"
         onClick={[Function]}
         rightDecorator={
-          <Icon
-            color="success"
-            glyph="check"
+          <CheckIcon
+            color="var(--semantic-color-success)"
             size={16}
           />
         }
@@ -796,8 +789,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
           }
         }
         icon={
-          <Icon
-            glyph="account-outline"
+          <AccountOutlineIcon
             size={16}
           />
         }
@@ -810,8 +802,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
     <MenuGroup>
       <MenuItemAction
         icon={
-          <Icon
-            glyph="exit-to-app"
+          <ExitToAppIcon
             size={16}
           />
         }
@@ -951,9 +942,8 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
         id="status-menu-away"
         onClick={[Function]}
         rightDecorator={
-          <Icon
-            color="success"
-            glyph="check"
+          <CheckIcon
+            color="var(--semantic-color-success)"
             size={16}
           />
         }
@@ -1066,8 +1056,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
           }
         }
         icon={
-          <Icon
-            glyph="account-outline"
+          <AccountOutlineIcon
             size={16}
           />
         }
@@ -1080,8 +1069,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
     <MenuGroup>
       <MenuItemAction
         icon={
-          <Icon
-            glyph="exit-to-app"
+          <ExitToAppIcon
             size={16}
           />
         }
@@ -1222,9 +1210,8 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
         id="status-menu-away"
         onClick={[Function]}
         rightDecorator={
-          <Icon
-            color="success"
-            glyph="check"
+          <CheckIcon
+            color="var(--semantic-color-success)"
             size={16}
           />
         }
@@ -1337,8 +1324,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
           }
         }
         icon={
-          <Icon
-            glyph="account-outline"
+          <AccountOutlineIcon
             size={16}
           />
         }
@@ -1351,8 +1337,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
     <MenuGroup>
       <MenuItemAction
         icon={
-          <Icon
-            glyph="exit-to-app"
+          <ExitToAppIcon
             size={16}
           />
         }
@@ -1467,9 +1452,8 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
         id="status-menu-away"
         onClick={[Function]}
         rightDecorator={
-          <Icon
-            color="success"
-            glyph="check"
+          <CheckIcon
+            color="var(--semantic-color-success)"
             size={16}
           />
         }
@@ -1582,8 +1566,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
           }
         }
         icon={
-          <Icon
-            glyph="account-outline"
+          <AccountOutlineIcon
             size={16}
           />
         }
@@ -1596,8 +1579,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
     <MenuGroup>
       <MenuItemAction
         icon={
-          <Icon
-            glyph="exit-to-app"
+          <ExitToAppIcon
             size={16}
           />
         }
@@ -1704,9 +1686,8 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
         id="status-menu-away"
         onClick={[Function]}
         rightDecorator={
-          <Icon
-            color="success"
-            glyph="check"
+          <CheckIcon
+            color="var(--semantic-color-success)"
             size={16}
           />
         }
@@ -1819,8 +1800,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
           }
         }
         icon={
-          <Icon
-            glyph="account-outline"
+          <AccountOutlineIcon
             size={16}
           />
         }
@@ -1833,8 +1813,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
     <MenuGroup>
       <MenuItemAction
         icon={
-          <Icon
-            glyph="exit-to-app"
+          <ExitToAppIcon
             size={16}
           />
         }
@@ -1974,9 +1953,8 @@ exports[`components/StatusDropdown should not show clear status button when cust
         id="status-menu-away"
         onClick={[Function]}
         rightDecorator={
-          <Icon
-            color="success"
-            glyph="check"
+          <CheckIcon
+            color="var(--semantic-color-success)"
             size={16}
           />
         }
@@ -2089,8 +2067,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
           }
         }
         icon={
-          <Icon
-            glyph="account-outline"
+          <AccountOutlineIcon
             size={16}
           />
         }
@@ -2103,8 +2080,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
     <MenuGroup>
       <MenuItemAction
         icon={
-          <Icon
-            glyph="exit-to-app"
+          <ExitToAppIcon
             size={16}
           />
         }
@@ -2292,9 +2268,8 @@ exports[`components/StatusDropdown should show clear status button when custom s
         id="status-menu-away"
         onClick={[Function]}
         rightDecorator={
-          <Icon
-            color="success"
-            glyph="check"
+          <CheckIcon
+            color="var(--semantic-color-success)"
             size={16}
           />
         }
@@ -2407,8 +2382,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
           }
         }
         icon={
-          <Icon
-            glyph="account-outline"
+          <AccountOutlineIcon
             size={16}
           />
         }
@@ -2421,8 +2395,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
     <MenuGroup>
       <MenuItemAction
         icon={
-          <Icon
-            glyph="exit-to-app"
+          <ExitToAppIcon
             size={16}
           />
         }

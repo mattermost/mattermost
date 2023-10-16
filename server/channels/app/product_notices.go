@@ -15,12 +15,12 @@ import (
 	"github.com/pkg/errors"
 	date_constraints "github.com/reflog/dateconstraints"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 const MaxRepeatViewings = 3
@@ -123,7 +123,6 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		if !cnd.Audience.Matches(isSystemAdmin, isTeamAdmin) {
 			return false, nil
 		}
-
 	}
 
 	// check user count condition against previously calculated total user count

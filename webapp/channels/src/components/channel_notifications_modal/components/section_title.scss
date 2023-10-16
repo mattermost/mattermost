@@ -1,0 +1,15 @@
+@import 'sass/utils/mixins';
+
+.SectionTitle {
+    &__wrapper {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    &__resetButton {
+        @include button-style--none;
+
+        display: flex;
+        align-items: center;
+    }
+}

@@ -4,15 +4,17 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {OAuthApp} from '@mattermost/types/integrations';
-
-import {localizeMessage} from 'utils/utils';
+import type {OAuthApp} from '@mattermost/types/integrations';
 
 import BackstageList from 'components/backstage/components/backstage_list';
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
+import {DeveloperLinks} from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
+
 import InstalledOAuthApp from '../installed_oauth_app';
 import {matchesFilter} from '../installed_oauth_app/installed_oauth_app';
-import ExternalLink from 'components/external_link';
 
 type Props = {
 
@@ -134,7 +136,7 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
             <BackstageList
                 header={
                     <FormattedMessage
-                        id='installed_oauth_apps.header'
+                        id='installed_oauth2_apps.header'
                         defaultMessage='OAuth 2.0 Applications'
                     />
                 }
@@ -145,7 +147,7 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
                         values={{
                             oauthApplications: (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/'
+                                    href={DeveloperLinks.SETUP_OAUTH2}
                                     location='installed_oauth_apps'
                                 >
                                     <FormattedMessage

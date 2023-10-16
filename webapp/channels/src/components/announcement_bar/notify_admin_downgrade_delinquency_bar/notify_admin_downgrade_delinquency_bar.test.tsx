@@ -1,16 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
-import {fireEvent, screen, waitFor} from '@testing-library/react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 import * as reactRedux from 'react-redux';
 
-import configureStore from 'store';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import {CloudProducts, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
+
 import {trackEvent} from 'actions/telemetry_actions';
+import configureStore from 'store';
+
+import {
+    fireEvent,
+    renderWithIntl,
+    screen,
+    waitFor,
+} from 'tests/react_testing_utils';
+import {CloudProducts, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import NotifyAdminDowngradeDeliquencyBar, {BannerPreferenceName} from './index';

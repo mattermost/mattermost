@@ -2,24 +2,26 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useState} from 'react';
-
 import {Modal} from 'react-bootstrap';
-
 import {FormattedMessage} from 'react-intl';
 
+import type {CustomGroupPatch, Group} from '@mattermost/types/groups';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import LocalizedIcon from 'components/localized_icon';
+import SaveButton from 'components/save_button';
+import Input from 'components/widgets/inputs/input/input';
+
+import Constants, {ItemStatus} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
-import {CustomGroupPatch, Group} from '@mattermost/types/groups';
+
+import type {ModalData} from 'types/actions';
 
 import 'components/user_groups_modal/user_groups_modal.scss';
 import './update_user_group_modal.scss';
-import {ModalData} from 'types/actions';
-import Input from 'components/widgets/inputs/input/input';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import LocalizedIcon from 'components/localized_icon';
-import {t} from 'utils/i18n';
-
-import SaveButton from 'components/save_button';
-import Constants, {ItemStatus} from 'utils/constants';
 
 export type Props = {
     onExited: () => void;
@@ -52,7 +54,7 @@ const UpdateUserGroupModal = (props: Props) => {
     }, [name, mention, hasUpdated, saving]);
 
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (Utils.isKeyPressed(e, Constants.KeyCodes.ENTER) && isSaveEnabled()) {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && isSaveEnabled()) {
             patchGroup();
         }
     }, [name, mention, hasUpdated, saving]);
@@ -156,7 +158,7 @@ const UpdateUserGroupModal = (props: Props) => {
             <Modal.Header closeButton={true}>
                 <button
                     type='button'
-                    className='modal-header-back-button btn-icon'
+                    className='modal-header-back-button btn btn-icon'
                     aria-label='Close'
                     onClick={goBack}
                 >
@@ -216,7 +218,7 @@ const UpdateUserGroupModal = (props: Props) => {
                                 e.preventDefault();
                                 goBack();
                             }}
-                            className='btn update-group-back'
+                            className='btn btn-tertiary'
                         >
                             {Utils.localizeMessage('multiselect.backButton', 'Back')}
                         </button>

@@ -6,37 +6,37 @@ import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {CloudLinks, ModalIdentifiers, SelfHostedProducts, LicenseSkus, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
-import {findSelfHostedProductBySku} from 'utils/hosted_customer';
+import type {GlobalState} from '@mattermost/types/store';
+
+import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {Client4} from 'mattermost-redux/client';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
-import {GlobalState} from '@mattermost/types/store';
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {Client4} from 'mattermost-redux/client';
-
-import useFetchAdminConfig from 'components/common/hooks/useFetchAdminConfig';
-import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
-import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
-import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
-import PlanLabel from 'components/common/plan_label';
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-import ExternalLink from 'components/external_link';
 
 import useCanSelfHostedSignup from 'components/common/hooks/useCanSelfHostedSignup';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-
 import {
     useControlAirGappedSelfHostedPurchaseModal,
     useControlScreeningInProgressModal,
 } from 'components/common/hooks/useControlModal';
+import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
+import useFetchAdminConfig from 'components/common/hooks/useFetchAdminConfig';
+import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import PlanLabel from 'components/common/plan_label';
+import ExternalLink from 'components/external_link';
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
+import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
 
+import {CloudLinks, ModalIdentifiers, SelfHostedProducts, LicenseSkus, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
+import {findSelfHostedProductBySku} from 'utils/hosted_customer';
+
+import Card, {ButtonCustomiserClasses} from './card';
 import ContactSalesCTA from './contact_sales_cta';
 import StartTrialCaution from './start_trial_caution';
-import Card, {ButtonCustomiserClasses} from './card';
 
 import './content.scss';
 
@@ -186,6 +186,8 @@ function SelfHostedContent(props: ContentProps) {
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
                         price='$0'
                         rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
+                        isCloud={false}
+                        cloudFreeDeprecated={false}
                         planLabel={
                             isStarter ? (
                                 <PlanLabel
@@ -209,16 +211,20 @@ function SelfHostedContent(props: ContentProps) {
                         id='professional'
                         topColor='var(--denim-button-bg)'
                         plan='Professional'
-                        planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions for growing teams'})}
+                        planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions {br} for growing teams'}, {
+                            br: <br/>,
+                        })}
                         price={professionalPrice}
                         rate={formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                             br: <br/>,
                             b: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                <span style={{fontSize: '14px'}}>
+                                <span className='billed_annually'>
                                     <b>{chunks}</b>
                                 </span>
                             ),
                         })}
+                        isCloud={false}
+                        cloudFreeDeprecated={false}
                         planLabel={
                             isProfessional ? (
                                 <PlanLabel
@@ -277,6 +283,8 @@ function SelfHostedContent(props: ContentProps) {
                         topColor='#E07315'
                         plan='Enterprise'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.enterprise', defaultMessage: 'Administration, security, and compliance for large teams'})}
+                        isCloud={false}
+                        cloudFreeDeprecated={false}
                         planLabel={
                             isEnterprise ? (
                                 <PlanLabel

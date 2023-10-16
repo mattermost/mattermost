@@ -16,9 +16,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestCheckIfRolesGrantPermission(t *testing.T) {
@@ -33,17 +33,18 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 		{[]string{model.SystemAdminRoleId}, model.PermissionManageSystem.Id, true},
 		{[]string{model.SystemAdminRoleId}, "non-existent-permission", false},
 		{[]string{model.ChannelUserRoleId}, model.PermissionReadChannel.Id, true},
+		{[]string{model.ChannelUserRoleId}, model.PermissionReadChannelContent.Id, true},
 		{[]string{model.ChannelUserRoleId}, model.PermissionManageSystem.Id, false},
 		{[]string{model.SystemAdminRoleId, model.ChannelUserRoleId}, model.PermissionManageSystem.Id, true},
 		{[]string{model.ChannelUserRoleId, model.SystemAdminRoleId}, model.PermissionManageSystem.Id, true},
 		{[]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionManageSlashCommands.Id, true},
 		{[]string{model.TeamAdminRoleId, model.TeamUserRoleId}, model.PermissionManageSlashCommands.Id, true},
+		{[]string{model.ChannelGuestRoleId}, model.PermissionReadChannelContent.Id, true},
 	}
 
 	for _, testcase := range cases {
 		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
 	}
-
 }
 
 func TestChannelRolesGrantPermission(t *testing.T) {
@@ -56,17 +57,17 @@ func TestHasPermissionToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	assert.True(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.BasicUser, th.BasicTeam)
-	assert.False(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.False(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 }
 
 func TestSessionHasPermissionToChannel(t *testing.T) {
@@ -85,6 +86,12 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		// Regression test for MM-29812
 		// Mock the channel store so getting the channel returns with an error, as per the bug report.
 		mockStore := mocks.Store{}
+
+		// Playbooks DB job requires a plugin mock
+		pluginStore := mocks.PluginStore{}
+		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		mockStore.On("Plugin").Return(&pluginStore)
+
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("Get", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("arbitrary error"))
 		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store().Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
@@ -107,10 +114,225 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 	})
 }
 
+func TestHasPermissionToUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	assert.True(t, th.App.HasPermissionToUser(th.SystemAdminUser.Id, th.BasicUser.Id))
+	assert.True(t, th.App.HasPermissionToUser(th.BasicUser.Id, th.BasicUser.Id))
+	assert.False(t, th.App.HasPermissionToUser(th.BasicUser.Id, th.BasicUser2.Id))
+}
+
+func TestSessionHasPermissionToManageBot(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+	assert.NotNil(t, bot)
+
+	t.Run("test my bot", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.NoError(t, err.Unwrap())
+
+		th.AddPermissionToRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.NotNil(t, err)
+		assert.Equal(t, "api.context.permissions.app_error", err.Id)
+		assert.NoError(t, err.Unwrap())
+
+		th.AddPermissionToRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
+	})
+
+	t.Run("test others bot", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.NoError(t, err.Unwrap())
+
+		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.NotNil(t, err)
+		assert.Equal(t, "api.context.permissions.app_error", err.Id)
+		assert.NoError(t, err.Unwrap())
+
+		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+	})
+
+	t.Run("test user manager access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserManagerRoleId,
+		}
+
+		// test non bot, contains wrapped error
+		err = th.App.SessionHasPermissionToManageBot(session, "12345")
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.Error(t, err.Unwrap())
+
+		// test existing bot, without PermissionManageOthersBots - no wrapped error
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.NoError(t, err.Unwrap())
+
+		// test with correct permissions
+		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+	})
+
+	t.Run("test sysadmin role", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemAdminRoleId,
+		}
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.Nil(t, err)
+	})
+
+	t.Run("test non bot ", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+		err = th.App.SessionHasPermissionToManageBot(session, "12345")
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.Error(t, err.Unwrap())
+	})
+}
+
+func TestSessionHasPermissionToUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("test my user access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser.Id))
+		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+	})
+
+	t.Run("test user manager access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserManagerRoleId,
+		}
+		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+
+		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser2.Id,
+		})
+		require.Nil(t, err)
+		assert.NotNil(t, bot)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		assert.False(t, th.App.SessionHasPermissionToUser(session, bot.UserId))
+	})
+
+	t.Run("test admin user access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemAdminRoleId,
+		}
+		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+	})
+}
+
+func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	t.Run("test basic user access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser2.Id))
+	})
+
+	t.Run("test user manager access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserManagerRoleId,
+		}
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser2.Id))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
+
+		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
+		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+
+		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
+		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+	})
+
+	t.Run("test system admin access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemAdminRoleId,
+		}
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
+	})
+}
+
 func TestHasPermissionToCategory(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 
 	categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
@@ -196,7 +418,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 			th.RemovePermissionFromRole(permission.Id, groupRole.Name)
 		}
 
-		session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
 		require.Nil(t, err)
 
 		result := th.App.SessionHasPermissionToGroup(*session, group.Id, permission)

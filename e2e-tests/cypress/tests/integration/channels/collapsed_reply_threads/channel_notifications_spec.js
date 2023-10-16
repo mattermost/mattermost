@@ -93,6 +93,9 @@ describe('CRT Desktop notifications', () => {
                 expect(args.body, `Notification body: "${args.body}" should match: "${message}"`).to.equal(`@${sender.username}: ${message}`);
                 return true;
             });
+
+            // # Cleanup
+            cy.apiDeletePost(postId);
         });
     });
 
@@ -147,6 +150,85 @@ describe('CRT Desktop notifications', () => {
                 expect(args.body, `Notification body: "${args.body}" should match: "${message}"`).to.equal(`@${sender.username}: ${message}`);
                 return true;
             });
+
+            // # Cleanup
+            cy.apiDeletePost(postId);
+        });
+    });
+
+    it('When a reply is deleted in open channel, the notification should be cleared', () => {
+        // # Visit channel
+        cy.visit(testChannelUrl);
+
+        // # Post a root message as other user
+        cy.postMessageAs({sender, message: 'a thread', channelId: testChannelId, rootId: ''});
+
+        // # Get post id of message
+        cy.getLastPostId().then((postId) => {
+            // # Post a reply to the thread, which will trigger a follow
+            cy.postMessageAs({sender: receiver, message: 'following the thread', channelId: testChannelId, rootId: postId});
+
+            // # Post a reply to the thread
+            cy.postMessageAs({sender, message: 'a reply', channelId: testChannelId, rootId: postId}).as('reply');
+
+            // # Post a mention reply to the thread
+            cy.postMessageAs({sender, message: `@${receiver.username} mention reply`, channelId: testChannelId, rootId: postId}).
+                as('replyMention');
+
+            // * Verify there is a notification
+            cy.get('#sidebarItem_threads #unreadMentions').should('exist').and('have.text', '1');
+
+            // # Delete the replies
+            cy.wrap(['@reply', '@replyMention']).each((reply) => {
+                cy.get(reply).then(({id}) => {
+                    cy.apiDeletePost(id);
+                });
+            });
+
+            // * Verify there is no notification
+            cy.get('#sidebarItem_threads #unreadMentions').should('not.exist');
+
+            // # Cleanup
+            cy.apiDeletePost(postId);
+        });
+    });
+
+    it('When a reply is deleted in DM channel, the notification should be cleared', () => {
+        cy.apiCreateDirectChannel([receiver.id, sender.id]).then(({channel: dmChannel}) => {
+            // # Visit channel
+            cy.visit(`/${testTeam.name}/messages/@${sender.username}`);
+
+            // # Post a root message as other user
+            cy.postMessageAs({sender, message: 'a thread', channelId: dmChannel.id, rootId: ''}).as('rootPost');
+
+            // # Get post id of message
+            cy.get('@rootPost').then(({id: rootId}) => {
+                // # Post a reply to the thread, which will trigger a follow
+                cy.postMessageAs({sender: receiver, message: 'following the thread', channelId: dmChannel.id, rootId});
+
+                // # Post a reply to the thread
+                cy.postMessageAs({sender, message: 'a reply', channelId: dmChannel.id, rootId}).as('reply');
+
+                // # Post a mention reply to the thread
+                cy.postMessageAs({sender, message: `@${receiver.username} mention reply`, channelId: dmChannel.id, rootId}).
+                    as('replyMention');
+
+                // * Verify there is a notification
+                cy.get('#sidebarItem_threads #unreadMentions').should('exist');
+
+                // # Delete the replies
+                cy.wrap(['@reply', '@replyMention']).each((reply) => {
+                    cy.get(reply).then(({id}) => {
+                        cy.apiDeletePost(id);
+                    });
+                });
+
+                // * Verify there is no notification
+                cy.get('#sidebarItem_threads #unreadMentions').should('not.exist');
+
+                // # Cleanup
+                cy.apiDeletePost(rootId);
+            });
         });
     });
 });
@@ -163,7 +245,7 @@ function setCRTDesktopNotification(type) {
     cy.get('#desktopTitle').
         scrollIntoView().
         should('be.visible').
-        and('contain', 'Send desktop notifications').click();
+        and('contain', 'Desktop notifications').click();
 
     // # Select mentions category for messages.
     cy.get('#channelNotificationMentions').scrollIntoView().check();

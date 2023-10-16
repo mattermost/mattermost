@@ -3,8 +3,8 @@
 
 import React from 'react';
 
-import {Post} from '@mattermost/types/posts';
-import {Reaction as ReactionType} from '@mattermost/types/reactions';
+import type {Post} from '@mattermost/types/posts';
+import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -12,6 +12,7 @@ import Tooltip from 'components/tooltip';
 import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
+
 import './reaction.scss';
 
 type State = {

@@ -4,9 +4,10 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import Tag, {TagSize} from 'components/widgets/tag/tag';
-
 import {PostPriority} from '@mattermost/types/posts';
+
+import Tag from 'components/widgets/tag/tag';
+import type {TagSize} from 'components/widgets/tag/tag';
 
 type Props = {
     priority?: PostPriority|'';
@@ -26,7 +27,7 @@ export default function PriorityLabel({
                 {...rest}
                 variant='danger'
                 icon={'alert-outline'}
-                text={formatMessage({id: 'post_priority.priority.urgent', defaultMessage: 'URGENT'})}
+                text={formatMessage({id: 'post_priority.priority.urgent', defaultMessage: 'Urgent'})}
                 uppercase={true}
             />
         );
@@ -38,7 +39,7 @@ export default function PriorityLabel({
                 {...rest}
                 variant='info'
                 icon={'alert-circle-outline'}
-                text={formatMessage({id: 'post_priority.priority.important', defaultMessage: 'IMPORTANT'})}
+                text={formatMessage({id: 'post_priority.priority.important', defaultMessage: 'Important'})}
                 uppercase={true}
             />
         );

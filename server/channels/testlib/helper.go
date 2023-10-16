@@ -13,13 +13,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 type MainHelper struct {
@@ -41,6 +41,11 @@ type HelperOptions struct {
 }
 
 func NewMainHelper() *MainHelper {
+	// Ignore any globally defined datasource if a test dsn defined
+	if os.Getenv("TEST_DATABASE_MYSQL_DSN") != "" || os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
+		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
+	}
+
 	return NewMainHelperWithOptions(&HelperOptions{
 		EnableStore:     true,
 		EnableResources: true,
@@ -48,6 +53,16 @@ func NewMainHelper() *MainHelper {
 }
 
 func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
+	// Ignore any globally defined datasource if a test dsn defined
+	if os.Getenv("TEST_DATABASE_MYSQL_DSN") != "" || os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
+		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
+	}
+
+	// Unset environment variables commonly set for development that interfere with tests.
+	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
+	os.Unsetenv("MM_SERVICESETTINGS_ENABLEDEVELOPER")
+
 	var mainHelper MainHelper
 	flag.Parse()
 
@@ -103,7 +118,12 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 
 	h.SearchEngine = searchengine.NewBroker(config)
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, nil)
+	if err != nil {
+		panic(err)
+	}
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLStore,
 	}, h.SearchEngine, config)
@@ -115,7 +135,12 @@ func (h *MainHelper) ToggleReplicasOff() {
 	}
 	h.Settings.DataSourceReplicas = []string{}
 	lic := h.SQLStore.GetLicense()
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, nil)
+	if err != nil {
+		panic(err)
+	}
 	h.SQLStore.UpdateLicense(lic)
 }
 
@@ -125,7 +150,13 @@ func (h *MainHelper) ToggleReplicasOn() {
 	}
 	h.Settings.DataSourceReplicas = h.replicas
 	lic := h.SQLStore.GetLicense()
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, nil)
+	if err != nil {
+		panic(err)
+	}
+
 	h.SQLStore.UpdateLicense(lic)
 }
 
@@ -153,9 +184,15 @@ func (h *MainHelper) setupResources() {
 func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
 	var err error
+
 	basePath := os.Getenv("MM_SERVER_PATH")
 	if basePath == "" {
-		basePath = "mattermost-server/server"
+		_, errFile := os.Stat("mattermost-server/server")
+		if os.IsNotExist(errFile) {
+			basePath = "mattermost/server"
+		} else {
+			basePath = "mattermost-server/server"
+		}
 	}
 	relPath := "channels/testlib/testdata"
 	switch *h.Settings.DriverName {
@@ -264,7 +301,7 @@ func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
 
 func (h *MainHelper) execOnEachReplica(query string, args ...any) error {
 	for _, replica := range h.SQLStore.ReplicaXs {
-		_, err := replica.Exec(query, args...)
+		_, err := replica.Load().Exec(query, args...)
 		if err != nil {
 			return err
 		}

@@ -14,15 +14,9 @@ exports[`components/post_view/CommentedOn should match snapshot 1`] = `
           "name": <a
             className="theme user_name"
           >
-            <UserProfile
-              colorize={false}
+            <Memo(Connect(UserProfile))
               disablePopover={false}
-              displayUsername={false}
               hasMention={true}
-              hideStatus={false}
-              isRHS={false}
-              overwriteImage=""
-              overwriteName=""
               userId=""
             />
           </a>,
@@ -53,15 +47,9 @@ exports[`components/post_view/CommentedOn should match snapshot 2`] = `
           "name": <a
             className="theme user_name"
           >
-            <UserProfile
-              colorize={false}
+            <Memo(Connect(UserProfile))
               disablePopover={false}
-              displayUsername={false}
               hasMention={true}
-              hideStatus={false}
-              isRHS={false}
-              overwriteImage=""
-              overwriteName=""
               userId=""
             />
           </a>,
@@ -92,15 +80,9 @@ exports[`components/post_view/CommentedOn should match snapshot 3`] = `
           "name": <a
             className="theme user_name"
           >
-            <UserProfile
-              colorize={false}
+            <Memo(Connect(UserProfile))
               disablePopover={false}
-              displayUsername={false}
               hasMention={true}
-              hideStatus={false}
-              isRHS={false}
-              overwriteImage=""
-              overwriteName=""
               userId=""
             />
           </a>,
@@ -133,15 +115,9 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
           "name": <a
             className="theme user_name"
           >
-            <UserProfile
-              colorize={false}
+            <Memo(Connect(UserProfile))
               disablePopover={false}
-              displayUsername={false}
               hasMention={true}
-              hideStatus={false}
-              isRHS={false}
-              overwriteImage=""
-              overwriteName=""
               userId=""
             />
           </a>,
@@ -172,15 +148,9 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
           "name": <a
             className="theme user_name"
           >
-            <UserProfile
-              colorize={false}
+            <Memo(Connect(UserProfile))
               disablePopover={false}
-              displayUsername={false}
               hasMention={true}
-              hideStatus={false}
-              isRHS={false}
-              overwriteImage=""
-              overwriteName=""
               userId=""
             />
           </a>,
@@ -211,15 +181,9 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
           "name": <a
             className="theme user_name"
           >
-            <UserProfile
-              colorize={false}
+            <Memo(Connect(UserProfile))
               disablePopover={false}
-              displayUsername={false}
               hasMention={true}
-              hideStatus={false}
-              isRHS={false}
-              overwriteImage=""
-              overwriteName=""
               userId=""
             />
           </a>,
@@ -250,15 +214,9 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
           "name": <a
             className="theme user_name"
           >
-            <UserProfile
-              colorize={false}
+            <Memo(Connect(UserProfile))
               disablePopover={false}
-              displayUsername={false}
               hasMention={true}
-              hideStatus={false}
-              isRHS={false}
-              overwriteImage=""
-              overwriteName=""
               userId=""
             />
           </a>,

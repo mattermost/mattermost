@@ -2,23 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import {screen} from '@testing-library/react';
-
 import * as redux from 'react-redux';
 import {Provider} from 'react-redux';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import type {Subscription} from '@mattermost/types/cloud';
+import type {GlobalState} from '@mattermost/types/store';
+
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
+import {Constants} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
-import {Constants} from 'utils/constants';
-
-import {GlobalState} from '@mattermost/types/store';
-
-import {Subscription} from '@mattermost/types/cloud';
-
-import CloudUsageModal, {Props} from './index';
+import CloudUsageModal from './index';
+import type {Props} from './index';
 
 const freeLimits = {
     messages: {

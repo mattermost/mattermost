@@ -90,7 +90,7 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
+        "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s\u0026maxAllowedPacket=4194304",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
@@ -115,7 +115,8 @@
         "Lowercase": false,
         "Number": false,
         "Uppercase": false,
-        "Symbol": false
+        "Symbol": false,
+        "EnableForgotLink": true
     },
     "FileSettings": {
         "EnableFileAttachments": true,
@@ -182,11 +183,12 @@
         "ShowFullName": true
     },
     "SupportSettings": {
-        "TermsOfServiceLink": "https://mattermost.com/terms-of-use/",
-        "PrivacyPolicyLink": "https://mattermost.com/privacy-policy/",
+        "TermsOfServiceLink": "https://mattermost.com/pl/terms-of-use/",
+        "PrivacyPolicyLink": "https://mattermost.com/pl/privacy-policy/",
         "AboutLink": "https://mattermost.com/default-about/",
-        "HelpLink": "https://mattermost.com/default-help/",
-        "ReportAProblemLink": "https://mattermost.com/default-report-a-problem/",
+        "HelpLink": "https://mattermost.com/pl/help/",
+        "ReportAProblemLink": "https://mattermost.com/pl/report-a-bug",
+        "ForgotPasswordLink": "",
         "SupportEmail": "feedback@mattermost.com"
     },
     "AnnouncementSettings": {
@@ -295,8 +297,8 @@
     },
     "NativeAppSettings": {
         "AppDownloadLink": "https://mattermost.com/download/",
-        "AndroidAppDownloadLink": "https://mattermost.com/mattermost-android-app/",
-        "IosAppDownloadLink": "https://mattermost.com/mattermost-ios-app/"
+        "AndroidAppDownloadLink": "https://mattermost.com/pl/android-app/",
+        "IosAppDownloadLink": "https://mattermost.com/pl/ios-app/"
     },
     "ClusterSettings": {
         "Enable": false,

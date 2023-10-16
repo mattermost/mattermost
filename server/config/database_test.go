@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func getDsn(driver string, source string) string {
@@ -640,7 +640,6 @@ func TestDatabaseStoreSet(t *testing.T) {
 		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
 		assertDatabaseEqualsConfig(t, minimalConfig)
 	})
-
 }
 
 func TestDatabaseStoreLoad(t *testing.T) {

@@ -7,8 +7,8 @@ import styled from 'styled-components';
 import {CheckIcon} from '@mattermost/compass-icons/components';
 
 import Toggle from 'components/toggle';
-import menuItem from 'components/widgets/menu/menu_items/menu_item';
 import MenuGroup from 'components/widgets/menu/menu_group';
+import menuItem from 'components/widgets/menu/menu_items/menu_item';
 
 type ItemProps = {
     ariaLabel: string;
@@ -33,7 +33,7 @@ const ItemButton = styled.button`
 `;
 
 const Wrapper = styled.div`
-    cursor: pointer;
+    cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
 
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.1);
@@ -113,7 +113,8 @@ function ToggleItem({
 }: ToggleProps) {
     return (
         <Wrapper
-            onClick={onClick}
+            onClick={disabled ? undefined : onClick}
+            disabled={disabled}
             role='button'
         >
             <ToggleMain>

@@ -1,32 +1,56 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import semver from 'semver';
-
 import {logError} from 'mattermost-redux/actions/errors';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getTeammateNameDisplaySetting,
+    isCollapsedThreadsEnabled,
+} from 'mattermost-redux/selectors/entities/preferences';
+import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
+import {getChannelURL, getPermalinkURL} from 'selectors/urls';
 import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
+import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
+import MentionableRenderer from 'utils/markdown/mentionable_renderer';
+import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
+import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
 import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-import {stripMarkdown} from 'utils/markdown';
+
+import {runDesktopNotificationHooks} from './hooks';
 
 const NOTIFY_TEXT_MAX_LENGTH = 50;
 
 // windows notification length is based windows chrome which supports 128 characters and is the lowest length of windows browsers
 const WINDOWS_NOTIFY_TEXT_MAX_LENGTH = 120;
+
+const getSoundFromChannelMemberAndUser = (member, user) => {
+    if (member?.notify_props?.desktop_sound) {
+        return member.notify_props.desktop_sound === 'on';
+    }
+
+    return !user.notify_props || user.notify_props.desktop_sound === 'true';
+};
+
+const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
+    if (member?.notify_props?.desktop_notification_sound) {
+        return member.notify_props.desktop_notification_sound;
+    }
+
+    return user.notify_props?.desktop_notification_sound ? user.notify_props.desktop_notification_sound : 'Bing';
+};
 
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
@@ -72,14 +96,94 @@ export function sendDesktopNotification(post, msgProps) {
             return;
         }
 
-        let notifyLevel = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
+        const channelNotifyProp = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
+        let notifyLevel = channelNotifyProp;
 
         if (notifyLevel === NotificationLevels.DEFAULT) {
             notifyLevel = user?.notify_props?.desktop || NotificationLevels.ALL;
         }
 
+        if (channel.type === 'G' && channelNotifyProp === NotificationLevels.DEFAULT && user?.notify_props?.desktop === NotificationLevels.MENTION) {
+            notifyLevel = NotificationLevels.ALL;
+        }
+
         if (notifyLevel === NotificationLevels.NONE) {
             return;
+        } else if (channel.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
+            // Compose the whole text in the message, including interactive messages.
+            let text = post.message;
+
+            // We do this on a try catch block to avoid errors from malformed props
+            try {
+                if (post.props && post.props.attachments) {
+                    const attachments = post.props.attachments;
+                    function appendText(toAppend) {
+                        if (toAppend) {
+                            text += `\n${toAppend}`;
+                        }
+                    }
+                    for (const attachment of attachments) {
+                        appendText(attachment.pretext);
+                        appendText(attachment.title);
+                        appendText(attachment.text);
+                        appendText(attachment.footer);
+                        if (attachment.fields) {
+                            for (const field of attachment.fields) {
+                                appendText(field.title);
+                                appendText(field.value);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.log('Could not process the whole attachment for mentions', e);
+            }
+
+            const allMentions = getAllUserMentionKeys(state);
+
+            const ignoreChannelMentionProp = member?.notify_props?.ignore_channel_mentions || IgnoreChannelMentions.DEFAULT;
+            let ignoreChannelMention = ignoreChannelMentionProp === IgnoreChannelMentions.ON;
+            if (ignoreChannelMentionProp === IgnoreChannelMentions.DEFAULT) {
+                ignoreChannelMention = user?.notify_props?.channel === 'false';
+            }
+
+            const mentionableText = formatWithRenderer(text, new MentionableRenderer());
+            let isExplicitlyMentioned = false;
+            for (const mention of allMentions) {
+                if (!mention || !mention.key) {
+                    continue;
+                }
+
+                if (ignoreChannelMention && ['@all', '@here', '@channel'].includes(mention.key)) {
+                    continue;
+                }
+
+                let flags = 'g';
+                if (!mention.caseSensitive) {
+                    flags += 'i';
+                }
+
+                let pattern;
+                if (cjkrPattern.test(mention.key)) {
+                    // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
+                    pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
+                } else {
+                    pattern = new RegExp(
+                        `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
+                        flags,
+                    );
+                }
+
+                if (pattern.test(mentionableText)) {
+                    isExplicitlyMentioned = true;
+                    break;
+                }
+            }
+
+            if (!isExplicitlyMentioned) {
+                return;
+            }
         } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
             return;
         } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1) {
@@ -159,7 +263,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         //Play a sound if explicitly set in settings
-        const sound = !user.notify_props || user.notify_props.desktop_sound === 'true';
+        const sound = getSoundFromChannelMemberAndUser(member, user);
 
         // Notify if you're not looking in the right channel or when
         // the window itself is not active
@@ -174,29 +278,40 @@ export function sendDesktopNotification(post, msgProps) {
         }
         notify = notify || !state.views.browser.focused;
 
-        const soundName = user.notify_props !== undefined && user.notify_props.desktop_notification_sound !== undefined ? user.notify_props.desktop_notification_sound : 'Bing';
+        let soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
+
+        const updatedState = getState();
+        let url = getChannelURL(updatedState, channel, teamId);
+
+        if (isCrtReply) {
+            url = getPermalinkURL(updatedState, teamId, post.id);
+        }
+
+        // Allow plugins to change the notification, or re-enable a notification
+        const args = {title, body, silent: !sound, soundName, url, notify};
+        const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+        if (hookResult.error) {
+            dispatch(logError(hookResult.error));
+            return;
+        }
+
+        let silent = false;
+        ({title, body, silent, soundName, url, notify} = hookResult.args);
 
         if (notify) {
-            const updatedState = getState();
-            let url = Utils.getChannelURL(updatedState, channel, teamId);
-
-            if (isCrtReply) {
-                url = Utils.getPermalinkURL(updatedState, teamId, post.id);
-            }
-
-            dispatch(notifyMe(title, body, channel, teamId, !sound, soundName, url));
+            dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
 
             //Don't add extra sounds on native desktop clients
             if (sound && !isDesktopApp() && !isMobileApp()) {
-                Utils.ding(soundName);
+                NotificationSounds.ding(soundName);
             }
         }
     };
 }
 
-const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
-    // handle notifications in desktop app >= 4.3.0
-    if (isDesktopApp() && window.desktop && semver.gte(window.desktop.version, '4.3.0')) {
+export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
+    // handle notifications in desktop app
+    if (isDesktopApp()) {
         const msg = {
             title,
             body,
@@ -204,16 +319,8 @@ const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (disp
             teamId,
             silent,
         };
-
-        if (isDesktopApp() && window.desktop) {
-            if (semver.gte(window.desktop.version, '4.6.0')) {
-                msg.data = {soundName};
-            }
-
-            if (semver.gte(window.desktop.version, '4.7.2')) {
-                msg.url = url;
-            }
-        }
+        msg.data = {soundName};
+        msg.url = url;
 
         // get the desktop app to trigger the notification
         window.postMessage(

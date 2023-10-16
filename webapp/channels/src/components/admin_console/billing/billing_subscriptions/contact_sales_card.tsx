@@ -6,12 +6,13 @@ import {FormattedMessage} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {CloudLinks, CloudProducts} from 'utils/constants';
-import PrivateCloudSvg from 'components/common/svg_images_components/private_cloud_svg';
-import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
-import {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
+import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
+import PrivateCloudSvg from 'components/common/svg_images_components/private_cloud_svg';
 import ExternalLink from 'components/external_link';
+
+import {CloudLinks, CloudProducts} from 'utils/constants';
 
 type Props = {
     isFreeTrial: boolean;
@@ -59,13 +60,13 @@ const ContactSalesCard = (props: Props) => {
         title = (
             <FormattedMessage
                 id='admin.billing.subscription.privateCloudCard.cloudEnterprise.title'
-                defaultMessage='Looking for an annual discount? '
+                defaultMessage='Looking to rollout Mattermost for your entire organization? '
             />
         );
         description = (
             <FormattedMessage
                 id='admin.billing.subscription.privateCloudCard.cloudEnterprise.description'
-                defaultMessage='At Mattermost, we work with you and your team to meet your needs throughout the product. If you are looking for an annual discount, please reach out to our sales team.'
+                defaultMessage='At Mattermost, we work with you and your organization to meet your needs throughout the product. If you’re considering a wider rollout, talk to us.'
             />
         );
     } else {
@@ -103,13 +104,13 @@ const ContactSalesCard = (props: Props) => {
             title = (
                 <FormattedMessage
                     id='admin.billing.subscription.privateCloudCard.cloudEnterprise.title'
-                    defaultMessage='Looking for an annual discount? '
+                    defaultMessage='Looking to rollout Mattermost for your entire organization? '
                 />
             );
             description = (
                 <FormattedMessage
                     id='admin.billing.subscription.privateCloudCard.cloudEnterprise.description'
-                    defaultMessage='At Mattermost, we work with you and your team to meet your needs throughout the product. If you are looking for an annual discount, please reach out to our sales team.'
+                    defaultMessage='At Mattermost, we work with you and your organization to meet your needs throughout the product. If you’re considering a wider rollout, talk to us.'
                 />
             );
             break;

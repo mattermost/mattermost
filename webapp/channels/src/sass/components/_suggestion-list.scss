@@ -204,6 +204,7 @@
         white-space: nowrap;
 
         .suggestion-list__main {
+            display: flex;
             overflow: hidden;
             width: 100%;
             color: rgba(var(--center-channel-color-rgb), 1);
@@ -225,7 +226,11 @@
 
         .suggestion-list__main {
             width: unset;
-            max-width: 70%;
+
+            > span:first-child {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
         }
 
         .badge {

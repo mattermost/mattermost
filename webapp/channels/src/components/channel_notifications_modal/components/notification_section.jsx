@@ -27,6 +27,10 @@ export default class NotificationSection extends React.PureComponent {
          */
         memberNotificationLevel: PropTypes.string.isRequired,
 
+        memberDesktopSound: PropTypes.string,
+
+        memberDesktopNotificationSound: PropTypes.string,
+
         /**
          * Member's desktop_threads notification level
          */
@@ -38,9 +42,19 @@ export default class NotificationSection extends React.PureComponent {
         ignoreChannelMentions: PropTypes.string,
 
         /**
+         * Auto-follow all new threads in this channel
+         */
+        channelAutoFollowThreads: PropTypes.string,
+
+        /**
          * User's global notification level
          */
         globalNotificationLevel: PropTypes.string,
+
+        /**
+         * User's global notification sound
+         */
+        globalNotificationSound: PropTypes.string,
 
         /**
          * onChange handles update of desktop notification level
@@ -51,6 +65,14 @@ export default class NotificationSection extends React.PureComponent {
          * onChangeThreads handles update of desktop_threads notification level
          */
         onChangeThreads: PropTypes.func,
+
+        onChangeDesktopSound: PropTypes.func,
+
+        onChangeNotificationSound: PropTypes.func,
+
+        onReset: PropTypes.func,
+
+        isNotificationsSettingSameAsGlobal: PropTypes.bool,
 
         /**
          * Submit function to save notification level
@@ -66,6 +88,11 @@ export default class NotificationSection extends React.PureComponent {
          * Error string from the server
          */
         serverError: PropTypes.string,
+
+        /**
+         * Whether the preferences are those of a GM
+         */
+        isGM: PropTypes.bool,
     };
 
     handleOnChange = (e) => {
@@ -76,6 +103,16 @@ export default class NotificationSection extends React.PureComponent {
         const value = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
 
         this.props.onChangeThreads(value);
+    };
+
+    handleOnChangeDesktopSound = (e) => {
+        this.props.onChangeDesktopSound(e.target.value);
+    };
+
+    handleOnChangeNotificationSound = (selectedOption) => {
+        if (selectedOption && 'value' in selectedOption) {
+            this.props.onChangeNotificationSound(selectedOption.value);
+        }
     };
 
     handleExpandSection = () => {
@@ -90,12 +127,19 @@ export default class NotificationSection extends React.PureComponent {
         const {
             expand,
             globalNotificationLevel,
+            globalNotificationSound,
             memberNotificationLevel,
             memberThreadsNotificationLevel,
+            memberDesktopSound,
+            memberDesktopNotificationSound,
             ignoreChannelMentions,
+            isNotificationsSettingSameAsGlobal,
+            channelAutoFollowThreads,
             onSubmit,
+            onReset,
             section,
             serverError,
+            isGM,
         } = this.props;
 
         if (expand) {
@@ -104,13 +148,22 @@ export default class NotificationSection extends React.PureComponent {
                     section={section}
                     memberNotifyLevel={memberNotificationLevel}
                     memberThreadsNotifyLevel={memberThreadsNotificationLevel}
+                    memberDesktopSound={memberDesktopSound}
+                    memberDesktopNotificationSound={memberDesktopNotificationSound}
                     globalNotifyLevel={globalNotificationLevel}
+                    globalNotificationSound={globalNotificationSound}
                     ignoreChannelMentions={ignoreChannelMentions}
+                    isNotificationsSettingSameAsGlobal={isNotificationsSettingSameAsGlobal}
+                    channelAutoFollowThreads={channelAutoFollowThreads}
                     onChange={this.handleOnChange}
+                    onReset={onReset}
                     onChangeThreads={this.handleOnChangeThreads}
+                    onChangeDesktopSound={this.handleOnChangeDesktopSound}
+                    onChangeNotificationSound={this.handleOnChangeNotificationSound}
                     onSubmit={onSubmit}
                     serverError={serverError}
                     onCollapseSection={this.handleCollapseSection}
+                    isGM={isGM}
                 />
             );
         }
@@ -122,6 +175,7 @@ export default class NotificationSection extends React.PureComponent {
                 memberNotifyLevel={memberNotificationLevel}
                 globalNotifyLevel={globalNotificationLevel}
                 ignoreChannelMentions={ignoreChannelMentions}
+                channelAutoFollowThreads={channelAutoFollowThreads}
             />
         );
     }

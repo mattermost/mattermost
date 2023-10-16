@@ -4,25 +4,32 @@
 import {getRandomId} from '@e2e-support/util';
 import {Channel, ChannelType} from '@mattermost/types/channels';
 
-export function createRandomChannel(
-    teamId: string,
-    name: string,
-    displayName: string,
-    type: ChannelType = 'O',
-    purpose = '',
-    header = '',
-    unique = true
-): Channel {
-    const randomSuffix = getRandomId();
+type ChannelInput = {
+    teamId: string;
+    name: string;
+    displayName: string;
+    type?: ChannelType;
+    purpose?: string;
+    header?: string;
+    unique?: boolean;
+};
 
+export function createRandomChannel(channelInput: ChannelInput): Channel {
     const channel = {
-        team_id: teamId,
-        name: unique ? `${name}-${randomSuffix}` : name,
-        display_name: unique ? `${displayName} ${randomSuffix}` : displayName,
-        type,
-        purpose,
-        header,
+        team_id: channelInput.teamId,
+        name: channelInput.name,
+        display_name: channelInput.displayName,
+        type: channelInput.type || 'O',
+        purpose: channelInput.type || '',
+        header: channelInput.type || '',
     };
+
+    if (channelInput.unique) {
+        const randomSuffix = getRandomId();
+
+        channel.name = `${channelInput.name}-${randomSuffix}`;
+        channel.display_name = `${channelInput.displayName} ${randomSuffix}`;
+    }
 
     return channel as Channel;
 }

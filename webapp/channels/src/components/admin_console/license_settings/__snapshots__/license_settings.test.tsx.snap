@@ -4,11 +4,12 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -64,7 +65,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -72,7 +73,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -108,11 +109,12 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -168,7 +170,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -176,7 +178,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -212,11 +214,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -286,7 +289,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -294,7 +297,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -329,7 +332,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ExternalLink
-              href="https://mattermost.com/pricing/"
+              href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
@@ -347,11 +350,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -421,7 +425,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -429,7 +433,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -470,11 +474,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -544,7 +549,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -552,7 +557,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -593,11 +598,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -667,7 +673,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -675,7 +681,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -716,11 +722,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -790,7 +797,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -798,7 +805,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -839,11 +846,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -913,7 +921,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -921,7 +929,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -962,11 +970,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1044,7 +1053,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ExternalLink
-              href="https://mattermost.com/pricing/"
+              href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1062,11 +1071,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1126,7 +1136,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1134,7 +1144,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1155,7 +1165,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ExternalLink
-              href="https://mattermost.com/pricing/"
+              href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1173,11 +1183,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1237,7 +1248,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1245,7 +1256,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1266,7 +1277,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ExternalLink
-              href="https://mattermost.com/pricing/"
+              href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1284,11 +1295,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1344,7 +1356,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1352,7 +1364,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1388,11 +1400,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1445,7 +1458,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1453,7 +1466,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1483,7 +1496,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ExternalLink
-              href="https://mattermost.com/pricing/"
+              href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1501,11 +1514,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1550,7 +1564,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1558,7 +1572,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1579,7 +1593,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             Curious about upgrading? 
             <ExternalLink
-              href="https://mattermost.com/pricing/"
+              href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1597,11 +1611,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1654,7 +1669,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1662,7 +1677,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1704,11 +1719,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="Edition and License"
-    id="admin.license.title"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1778,7 +1794,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           >
             See also 
             <ExternalLink
-              href="https://mattermost.com/terms-of-use/"
+              href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
@@ -1786,7 +1802,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             </ExternalLink>
              and 
             <ExternalLink
-              href="https://mattermost.com/privacy-policy/"
+              href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >

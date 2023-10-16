@@ -32,12 +32,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func (a *App) DoPostAction(c *request.Context, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
@@ -45,7 +45,6 @@ func (a *App) DoPostAction(c *request.Context, postID, actionId, userID, selecte
 }
 
 func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
-
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
 	// IsPinned and HasReaction attributes, and preserve its entire
@@ -332,7 +331,7 @@ func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*
 	var httpClient *http.Client
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
-	if (inURL.Hostname() == "localhost" || inURL.Hostname() == "127.0.0.1" || inURL.Hostname() == siteURL.Hostname()) && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
+	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
 		req.Header.Set(model.HeaderAuth, "Bearer "+c.Session().Token)
 		httpClient = a.HTTPService().MakeClient(true)
 	} else {
@@ -473,7 +472,7 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 	}
 
 	isE0Edition := (model.BuildEnterpriseReady == "true") // license == nil was already validated upstream
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, i18n.T, isE0Edition)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(c, warnMetricId, i18n.T, isE0Edition)
 	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
 
 	if isE0Edition {
@@ -482,11 +481,11 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 		}
 	} else {
 		forceAck := upstreamRequest.Context["force_ack"].(bool)
-		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
+		if appErr = a.NotifyAndSetWarnMetricAck(c, warnMetricId, user, forceAck, true); appErr != nil {
 			if forceAck {
 				return appErr
 			}
-			mailtoLinkText := a.buildWarnMetricMailtoLink(warnMetricId, user)
+			mailtoLinkText := a.buildWarnMetricMailtoLink(c, warnMetricId, user)
 			botPost.Message = ":warning: " + i18n.T("api.server.warn_metric.bot_response.notification_failure.message")
 			actions := []*model.PostAction{}
 			actions = append(actions,
@@ -543,9 +542,9 @@ func (mlc *MailToLinkContent) ToJSON() string {
 	return string(b)
 }
 
-func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
+func (a *App) buildWarnMetricMailtoLink(rctx request.CTX, warnMetricId string, user *model.User) string {
 	T := i18n.GetUserTranslations(user.Locale)
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(rctx, warnMetricId, T, false)
 
 	mailBody := warnMetricDisplayTexts.EmailBody
 	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]any{"Contact": user.GetFullName()})

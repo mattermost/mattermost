@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type SqlUserAccessTokenStore struct {
@@ -57,11 +57,9 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) (err error) {
 	}
 
 	return nil
-
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *sqlxTxWrapper, tokenId string) error {
-
 	query := ""
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
@@ -77,7 +75,6 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *sqlxTx
 }
 
 func (s SqlUserAccessTokenStore) deleteTokensById(transaction *sqlxTxWrapper, tokenId string) error {
-
 	if _, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE Id = ?", tokenId); err != nil {
 		return errors.Wrapf(err, "failed to delete UserAccessToken id=%s", tokenId)
 	}

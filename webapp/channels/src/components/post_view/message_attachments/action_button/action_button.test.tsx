@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
 
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {Preferences} from 'mattermost-redux/constants';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
-import ActionButton from 'components/post_view/message_attachments/action_button/action_button';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
+
+import ActionButton from './action_button';
 
 describe('components/post_view/message_attachments/action_button.jsx', () => {
     const baseProps = {
@@ -17,15 +18,23 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         theme: Preferences.THEMES.denim as unknown as Theme,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(<ActionButton {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('should match default component state with given props', () => {
+        render(<ActionButton {...baseProps}/>);
+
+        const button = screen.getByRole('button');
+        expect(button).toHaveAttribute('data-action-cookie', 'cookie-contents');
+        expect(button).toHaveAttribute('data-action-id', 'action_id_1');
+
+        const loadingIcon = screen.getByTitle('Loading Icon');
+        expect(loadingIcon).toHaveClass('fa fa-spinner fa-fw fa-pulse spinner');
     });
 
     test('should call handleAction on click', () => {
-        const wrapper = shallow(<ActionButton {...baseProps}/>);
+        render(<ActionButton {...baseProps}/>);
 
-        wrapper.find('button').simulate('click');
+        const button = screen.getByRole('button');
+
+        userEvent.click(button);
 
         expect(baseProps.handleAction).toHaveBeenCalledTimes(1);
     });
@@ -36,12 +45,12 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: 'onlineIndicator'},
         };
 
-        const wrapper = shallow(<ActionButton {...props}/>);
-        const buttonStyles = wrapper.find('button').prop('style');
+        render(<ActionButton {...props}/>);
 
-        expect(buttonStyles).toHaveProperty('borderColor', changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.25));
-        expect(buttonStyles).toHaveProperty('borderWidth', 2);
-        expect(buttonStyles).toHaveProperty('color', Preferences.THEMES.denim.onlineIndicator);
+        const button = screen.getByRole('button');
+
+        expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.08)}`);
+        expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
     });
 
     test('should have correct styles when provided color from not default theme', () => {
@@ -51,12 +60,12 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: 'danger'},
         };
 
-        const wrapper = shallow(<ActionButton {...props}/>);
-        const buttonStyles = wrapper.find('button').prop('style');
+        render(<ActionButton {...props}/>);
 
-        expect(buttonStyles).toHaveProperty('borderColor', changeOpacity(Preferences.THEMES.indigo.errorTextColor, 0.25));
-        expect(buttonStyles).toHaveProperty('borderWidth', 2);
-        expect(buttonStyles).toHaveProperty('color', Preferences.THEMES.indigo.errorTextColor);
+        const button = screen.getByRole('button');
+
+        expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.indigo.errorTextColor, 0.08)}`);
+        expect(button).toHaveStyle(`color: ${Preferences.THEMES.indigo.errorTextColor}`);
     });
 
     test('should have correct styles when provided status color', () => {
@@ -65,12 +74,11 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: 'success'},
         };
 
-        const wrapper = shallow(<ActionButton {...props}/>);
-        const buttonStyles = wrapper.find('button').prop('style');
+        render(<ActionButton {...props}/>);
+        const button = screen.getByRole('button');
 
-        expect(buttonStyles).toHaveProperty('borderColor', changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.25));
-        expect(buttonStyles).toHaveProperty('borderWidth', 2);
-        expect(buttonStyles).toHaveProperty('color', Preferences.THEMES.denim.onlineIndicator);
+        expect(button).toHaveStyle(`background-color: ${changeOpacity('#339970', 0.08)}`);
+        expect(button).toHaveStyle(`color: ${'#339970'}`);
     });
 
     test('should have correct styles when provided hex color', () => {
@@ -79,12 +87,11 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: '#28a745'},
         };
 
-        const wrapper = shallow(<ActionButton {...props}/>);
-        const buttonStyles = wrapper.find('button').prop('style');
+        render(<ActionButton {...props}/>);
+        const button = screen.getByRole('button');
 
-        expect(buttonStyles).toHaveProperty('borderColor', changeOpacity(props.action.style, 0.25));
-        expect(buttonStyles).toHaveProperty('borderWidth', 2);
-        expect(buttonStyles).toHaveProperty('color', props.action.style);
+        expect(button).toHaveStyle(`background-color: ${changeOpacity(props.action.style, 0.08)}`);
+        expect(button).toHaveStyle(`color: ${props.action.style}`);
     });
 
     test('should have no styles when provided invalid hex color', () => {
@@ -93,10 +100,10 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: '#wrong'},
         };
 
-        const wrapper = shallow(<ActionButton {...props}/>);
-        const buttonStyles = wrapper.find('button').prop('style');
+        render(<ActionButton {...props}/>);
+        const button = screen.getByRole('button');
 
-        expect(buttonStyles).toBeUndefined();
+        expect(button.style.length).toBe(0);
     });
 
     test('should have no styles when provided undefined', () => {
@@ -105,9 +112,9 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: undefined},
         };
 
-        const wrapper = shallow(<ActionButton {...props}/>);
-        const buttonStyles = wrapper.find('button').prop('style');
+        render(<ActionButton {...props}/>);
+        const button = screen.getByRole('button');
 
-        expect(buttonStyles).toBeUndefined();
+        expect(button.style.length).toBe(0);
     });
 });

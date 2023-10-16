@@ -3,65 +3,51 @@
 
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Provider from './provider';
-import Suggestion from './suggestion.jsx';
-
-export type Results = {
-    matchedPretext: string;
-    terms: string[];
-    items: Channel[];
-    component: React.ElementType;
-}
-
-type ResultsCallback = (results: Results) => void;
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
 
 type ChannelSearchFunc = (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
 
-class ChannelSuggestion extends Suggestion {
-    render() {
-        const isSelection = this.props.isSelection;
-        const item = this.props.item;
+const GenericChannelSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Channel>>((props, ref) => {
+    const {item} = props;
 
-        const channelName = item.display_name;
-        const purpose = item.purpose;
+    const channelName = item.display_name;
+    const purpose = item.purpose;
 
-        const icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
-                <i className='icon icon--standard icon--no-spacing icon-globe'/>
-            </span>
-        );
-        let className = 'suggestion-list__item';
-        if (isSelection) {
-            className += ' suggestion--selected';
-        }
+    const icon = (
+        <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <i className='icon icon--standard icon--no-spacing icon-globe'/>
+        </span>
+    );
 
-        const description = '(~' + item.name + ')';
+    const description = '(~' + item.name + ')';
 
-        return (
-            <div
-                className={className}
-                onClick={this.handleClick}
-                onMouseMove={this.handleMouseMove}
-                {...Suggestion.baseProps}
-            >
-                {icon}
-                <div className='suggestion-list__ellipsis'>
-                    <span className='suggestion-list__main'>
-                        {channelName}
-                    </span>
-                    {description}
-                    {purpose}
-                </div>
+    return (
+        <SuggestionContainer
+            ref={ref}
+            {...props}
+        >
+            {icon}
+            <div className='suggestion-list__ellipsis'>
+                <span className='suggestion-list__main'>
+                    {channelName}
+                </span>
+                {description}
+                {purpose}
             </div>
-        );
-    }
-}
+        </SuggestionContainer>
+    );
+});
+GenericChannelSuggestion.displayName = 'GenericChannelSuggestion';
 
-export default class ChannelProvider extends Provider {
+export default class GenericChannelProvider extends Provider {
     autocompleteChannels: ChannelSearchFunc;
     constructor(channelSearchFunc: ChannelSearchFunc) {
         super();
@@ -69,24 +55,22 @@ export default class ChannelProvider extends Provider {
         this.autocompleteChannels = channelSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<Channel>) {
         const normalizedPretext = pretext.toLowerCase();
         this.startNewRequest(normalizedPretext);
 
         this.autocompleteChannels(
             normalizedPretext,
-            (data: Channel[]) => {
+            (channels: Channel[]) => {
                 if (this.shouldCancelDispatch(normalizedPretext)) {
                     return;
                 }
-
-                const channels: Channel[] = Object.assign([], data);
 
                 resultsCallback({
                     matchedPretext: normalizedPretext,
                     terms: channels.map((channel: Channel) => channel.display_name),
                     items: channels,
-                    component: ChannelSuggestion,
+                    component: GenericChannelSuggestion,
                 });
             },
         );

@@ -2,15 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
 import {BrowserRouter} from 'react-router-dom';
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
-
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {ErrorPageTypes} from 'utils/constants';
-
 import {TestHelper} from 'utils/test_helper';
 
 import ErrorPage from './error_page';

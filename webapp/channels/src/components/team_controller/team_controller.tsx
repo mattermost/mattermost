@@ -1,26 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
-import iNoBounce from 'inobounce';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {reconnect} from 'actions/websocket_actions.jsx';
-
-import Constants from 'utils/constants';
-import {isIosSafari} from 'utils/user_agent';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/utils';
+import LocalStorageStore from 'stores/local_storage_store';
 
 import {makeAsyncComponent} from 'components/async_load';
 import ChannelController from 'components/channel_layout/channel_controller';
 import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdentifySync';
 
-import LocalStorageStore from 'stores/local_storage_store';
-
-import {ServerError} from '@mattermost/types/errors';
-import {Team} from '@mattermost/types/teams';
+import Constants from 'utils/constants';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {isIosSafari} from 'utils/user_agent';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
@@ -54,23 +53,19 @@ function TeamController(props: Props) {
 
     useEffect(() => {
         async function fetchInitialChannels() {
-            if (props.graphQLEnabled) {
-                await props.fetchChannelsAndMembers();
-            } else {
-                await props.fetchAllMyTeamsChannelsAndChannelMembersREST();
-            }
+            await props.fetchAllMyTeamsChannelsAndChannelMembersREST();
 
             setInitialChannelsLoaded(true);
         }
 
         fetchInitialChannels();
-    }, [props.graphQLEnabled]);
+    }, []);
 
     useEffect(() => {
         const wakeUpIntervalId = setInterval(() => {
             const currentTime = Date.now();
             if ((currentTime - lastTime.current) > WAKEUP_THRESHOLD) {
-                console.log('computer woke up - fetching latest'); //eslint-disable-line no-console
+                console.log('computer woke up - reconnecting'); //eslint-disable-line no-console
                 reconnect();
             }
             lastTime.current = currentTime;
@@ -92,12 +87,11 @@ function TeamController(props: Props) {
                 props.markChannelAsReadOnFocus(props.currentChannelId);
             }
 
-            const currentTime = Date.now();
-            if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
-                if (props.graphQLEnabled) {
+            // Temporary flag to disable refetching of channel members on browser focus
+            if (!props.disableRefetchingOnBrowserFocus) {
+                const currentTime = Date.now();
+                if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
                     props.fetchChannelsAndMembers(props.currentTeamId);
-                } else {
-                    props.fetchMyChannelsAndMembersREST(props.currentTeamId);
                 }
             }
         }
@@ -105,10 +99,6 @@ function TeamController(props: Props) {
         function handleBlur() {
             window.isActive = false;
             blurTime.current = Date.now();
-
-            if (props.currentUser) {
-                props.viewChannel('');
-            }
         }
 
         function handleKeydown(event: KeyboardEvent) {
@@ -134,7 +124,7 @@ function TeamController(props: Props) {
             window.removeEventListener('blur', handleBlur);
             window.removeEventListener('keydown', handleKeydown);
         };
-    }, [props.selectedThreadId, props.graphQLEnabled, props.currentChannelId, props.currentTeamId, props.currentUser.id]);
+    }, [props.selectedThreadId, props.currentChannelId, props.currentTeamId]);
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {

@@ -6,15 +6,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, ProductsIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
-import {Constants, CloudProducts, LicenseSkus} from 'utils/constants';
-import {isCloudFreePlan} from 'utils/cloud_utils';
-import {isCloudLicense} from 'utils/license_utils';
-import {getSiteURL} from 'utils/url';
-import {t} from 'utils/i18n';
 import {
     ldapTest, invalidateAllCaches, reloadConfig, testS3Connection,
     removeIdpSamlCertificate, uploadIdpSamlCertificate,
@@ -24,57 +19,40 @@ import {
     removePublicLdapCertificate, uploadPublicLdapCertificate,
     invalidateAllEmailInvites, testSmtp, testSiteURL, getSamlMetadataFromIdp, setSamlIdpCertificateFromMetadata,
 } from 'actions/admin_actions';
-import SystemAnalytics from 'components/analytics/system_analytics';
-import TeamAnalytics from 'components/analytics/team_analytics';
-import PluginManagement from 'components/admin_console/plugin_management';
-import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
-import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
-
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
+import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
+import PluginManagement from 'components/admin_console/plugin_management';
+import SystemAnalytics from 'components/analytics/system_analytics';
+import TeamAnalytics from 'components/analytics/team_analytics';
 import ExternalLink from 'components/external_link';
+import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import OpenIdConvert from './openid_convert';
+import {isCloudFreePlan} from 'utils/cloud_utils';
+import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {isCloudLicense} from 'utils/license_utils';
+import {getSiteURL} from 'utils/url';
+
+import * as DefinitionConstants from './admin_definition_constants';
 import Audits from './audits';
-import CustomURLSchemesSetting from './custom_url_schemes_setting.jsx';
-import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
-import LicenseSettings from './license_settings';
-import PermissionSchemesSettings from './permission_schemes_settings';
-import PermissionSystemSchemeSettings from './permission_schemes_settings/permission_system_scheme_settings';
-import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
-import ValidationResult from './validation';
-import SystemRoles from './system_roles';
-import SystemRole from './system_roles/system_role';
-import SystemUsers from './system_users';
-import SystemUserDetail from './system_user_detail';
-import ServerLogs from './server_logs';
-import BrandImageSetting from './brand_image_setting/brand_image_setting';
-import GroupSettings from './group_settings/group_settings';
-import GroupDetails from './group_settings/group_details';
-import TeamSettings from './team_channel_settings/team';
-import TeamDetails from './team_channel_settings/team/details';
-import ChannelSettings from './team_channel_settings/channel';
-import ChannelDetails from './team_channel_settings/channel/details';
-import PasswordSettings from './password_settings.jsx';
-import PushNotificationsSettings from './push_settings.jsx';
-import DataRetentionSettings from './data_retention_settings';
-import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
-import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
-import MessageExportSettings from './message_export_settings.jsx';
-import DatabaseSettings from './database_settings.jsx';
-import ElasticSearchSettings from './elasticsearch_settings.jsx';
-import BleveSettings from './bleve_settings.jsx';
-import FeatureFlags from './feature_flags.tsx';
-import ClusterSettings from './cluster_settings.jsx';
-import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
-import SessionLengthSettings from './session_length_settings';
-import BillingSubscriptions from './billing/billing_subscriptions/index.tsx';
 import BillingHistory from './billing/billing_history';
+import BillingSubscriptions from './billing/billing_subscriptions/index.tsx';
 import CompanyInfo from './billing/company_info';
-import PaymentInfo from './billing/payment_info';
 import CompanyInfoEdit from './billing/company_info_edit';
+import PaymentInfo from './billing/payment_info';
 import PaymentInfoEdit from './billing/payment_info_edit';
-import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
+import BleveSettings from './bleve_settings';
+import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import ClusterSettings from './cluster_settings.jsx';
+import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
+import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
+import CustomURLSchemesSetting from './custom_url_schemes_setting';
+import DataRetentionSettings from './data_retention_settings';
+import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
+import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
+import DatabaseSettings from './database_settings';
+import ElasticSearchSettings from './elasticsearch_settings';
 import {
     LDAPFeatureDiscovery,
     SAMLFeatureDiscovery,
@@ -88,8 +66,29 @@ import {
     SystemRolesFeatureDiscovery,
     GroupsFeatureDiscovery,
 } from './feature_discovery/features';
-
-import * as DefinitionConstants from './admin_definition_constants';
+import FeatureFlags from './feature_flags.tsx';
+import GroupDetails from './group_settings/group_details';
+import GroupSettings from './group_settings/group_settings';
+import LicenseSettings from './license_settings';
+import MessageExportSettings from './message_export_settings.jsx';
+import OpenIdConvert from './openid_convert';
+import PasswordSettings from './password_settings';
+import PermissionSchemesSettings from './permission_schemes_settings';
+import PermissionSystemSchemeSettings from './permission_schemes_settings/permission_system_scheme_settings';
+import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
+import PushNotificationsSettings from './push_settings';
+import ServerLogs from './server_logs';
+import SessionLengthSettings from './session_length_settings';
+import SystemRoles from './system_roles';
+import SystemRole from './system_roles/system_role';
+import SystemUserDetail from './system_user_detail';
+import SystemUsers from './system_users';
+import ChannelSettings from './team_channel_settings/channel';
+import ChannelDetails from './team_channel_settings/channel/details';
+import TeamSettings from './team_channel_settings/team';
+import TeamDetails from './team_channel_settings/team/details';
+import ValidationResult from './validation';
+import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -224,6 +223,7 @@ export const it = {
 
 export const validators = {
     isRequired: (text, textDefault) => (value) => new ValidationResult(Boolean(value), text, textDefault),
+    minValue: (min, text, textDefault) => (value) => new ValidationResult((value >= min), text, textDefault),
 };
 
 const usesLegacyOauth = (config, state, license, enterpriseReady, consoleAccess, cloud) => {
@@ -802,7 +802,7 @@ const AdminDefinition = {
                         help_text: t('admin.service.forward80To443Description'),
                         help_text_default: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.',
                         disabled_help_text: t('admin.service.forward80To443Description.disabled'),
-                        disabled_help_text_default: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.\n \nThis setting cannot be enabled until your server is [listening](#ListenAddress) on port 443.',
+                        disabled_help_text_default: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.\n \nThis setting cannot be enabled until your server is [listening](#ServiceSettings.ListenAddress) on port 443.',
                         disabled_help_text_markdown: true,
                         isDisabled: it.any(
                             it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -861,7 +861,7 @@ const AdminDefinition = {
                         help_text: t('admin.service.useLetsEncryptDescription'),
                         help_text_default: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.',
                         disabled_help_text: t('admin.service.useLetsEncryptDescription.disabled'),
-                        disabled_help_text_default: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#Forward80To443) setting is set to true.',
+                        disabled_help_text_default: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#SystemSettings.Forward80To443) setting is set to true.',
                         disabled_help_text_markdown: true,
                         isDisabled: it.any(
                             it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -944,7 +944,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/install/desktop-managed-resources.html'
+                                    href={DocLinks.DESKTOP_MANAGED_RESOURCES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1154,7 +1154,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://www.mattermost.com/file-content-extraction'
+                                    href={DocLinks.CONFIGURE_DOCUMENT_CONTENT_SEARCH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1294,7 +1294,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/configure/configuration-settings.html#session-lengths'
+                                    href={DocLinks.SESSION_LENGTHS}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1369,7 +1369,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deploy/image-proxy.html'
+                                    href={DocLinks.SETUP_IMAGE_PROXY}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1849,7 +1849,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://mattermost.com/privacy-policy/'
+                                    href={AboutLinks.PRIVACY_POLICY}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1924,7 +1924,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/metrics.html'
+                                    href={DocLinks.SETUP_PERFORMANCE_MONITORING}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -2136,6 +2136,16 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_TEXT,
+                        key: 'SupportSettings.ForgotPasswordLink',
+                        label: t('admin.support.forgotPasswordTitle'),
+                        label_default: 'Forgot Password Custom Link:',
+                        help_text: t('admin.support.forgotPasswordDesc'),
+                        help_text_default: 'The URL for the Forgot Password link on the Mattermost login page. If this field is empty the Forgot Password link takes users to the Password Reset page.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_TEXT,
                         key: 'SupportSettings.ReportAProblemLink',
                         label: t('admin.support.problemTitle'),
                         label_default: 'Report a Problem Link:',
@@ -2267,6 +2277,15 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'TeamSettings.EnableJoinLeaveMessageByDefault',
+                        label: t('admin.team.enableJoinLeaveMessageTitle'),
+                        label_default: 'Enable join/leave messages by default:',
+                        help_text: t('admin.team.enableJoinLeaveMessageDescription'),
+                        help_text_default: 'Choose the default configuration of system messages displayed when users join or leave channels. Users can override this default by configuring Join/Leave messages in Account Settings > Advanced.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_DROPDOWN,
                         key: 'TeamSettings.RestrictDirectMessage',
                         label: t('admin.team.restrictDirectMessage'),
@@ -2342,7 +2361,7 @@ const AdminDefinition = {
                         label: t('admin.privacy.showEmailTitle'),
                         label_default: 'Show Email Address:',
                         help_text: t('admin.privacy.showEmailDescription'),
-                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators.',
+                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators and the System Roles with read/write access to Compliance, Billing, or User Management.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
@@ -2822,6 +2841,132 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'ServiceSettings.AllowPersistentNotifications',
+                        label: t('admin.posts.persistentNotifications.title'),
+                        label_default: 'Persistent Notifications',
+                        help_text: t('admin.posts.persistentNotifications.desc'),
+                        help_text_default: 'When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                        ),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'ServiceSettings.PersistentNotificationMaxRecipients',
+                        label: t('admin.posts.persistentNotificationsMaxRecipients.title'),
+                        label_default: 'Maximum number of recipients for persistent notifications',
+                        help_text: t('admin.posts.persistentNotificationsMaxRecipients.desc'),
+                        help_text_default: 'Configure the maximum number of recipients to which users may send persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                        ),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'ServiceSettings.PersistentNotificationIntervalMinutes',
+                        label: t('admin.posts.persistentNotificationsInterval.title'),
+                        label_default: 'Frequency of persistent notifications',
+                        help_text: t('admin.posts.persistentNotificationsInterval.desc'),
+                        help_text_default: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                        ),
+                        validate: validators.minValue(2, t('admin.posts.persistentNotificationsInterval.minValue'), 'Frequency cannot not be set to less than 2 minutes'),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'ServiceSettings.PersistentNotificationMaxCount',
+                        label: t('admin.posts.persistentNotificationsMaxCount.title'),
+                        label_default: 'Total number of persistent notification per post',
+                        help_text: t('admin.posts.persistentNotificationsMaxCount.desc'),
+                        help_text_default: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                        ),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'ServiceSettings.AllowPersistentNotificationsForGuests',
+                        label: t('admin.posts.persistentNotificationsGuests.title'),
+                        label_default: 'Allow guests to send persistent notifications',
+                        help_text: t('admin.posts.persistentNotificationsGuests.desc'),
+                        help_text_default: 'Whether a guest is able to require persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('GuestAccountsSettings', 'Enable'),
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                        ),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
                         key: 'ServiceSettings.EnableLinkPreviews',
                         label: t('admin.customization.enableLinkPreviewsTitle'),
                         label_default: 'Enable website link previews:',
@@ -2854,7 +2999,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/messaging/sharing-messages.html'
+                                    href={DocLinks.SHARE_LINKS_TO_MESSAGES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -2869,7 +3014,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableSVGsTitle'),
                         label_default: 'Enable SVGs:',
                         help_text: t('admin.customization.enableSVGsDesc'),
-                        help_text_default: 'Enable previews for SVG file attachments and allow them to appear in messages.',
+                        help_text_default: 'Enable previews for SVG file attachments and allow them to appear in messages.\n\nEnabling SVGs is not recommended in environments where not all users are trusted.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {
@@ -2878,7 +3023,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableLatexTitle'),
                         label_default: 'Enable Latex Rendering:',
                         help_text: t('admin.customization.enableLatexDesc'),
-                        help_text_default: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only.',
+                        help_text_default: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only.\n\nEnabling Latex is not recommended in environments where not all users are trusted.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {
@@ -2892,7 +3037,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/messaging/formatting-text.html'
+                                    href={DocLinks.FORMAT_MESSAGES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -2908,6 +3053,15 @@ const AdminDefinition = {
                         type: Constants.SettingsTypes.TYPE_CUSTOM,
                         component: CustomURLSchemesSetting,
                         key: 'DisplaySettings.CustomURLSchemes',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'DisplaySettings.MaxMarkdownNodes',
+                        label: t('admin.customization.maxMarkdownNodesTitle'),
+                        label_default: 'Max Markdown Nodes:',
+                        help_text: t('admin.customization.maxMarkdownNodesDesc'),
+                        help_text_default: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {
@@ -2941,12 +3095,6 @@ const AdminDefinition = {
                         help_text: t('admin.customization.allowSyncedDraftsDesc'),
                         help_text_default: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.',
                         help_text_markdown: false,
-                        isHidden: it.any(
-                            it.configIsFalse('FeatureFlags', 'GlobalDrafts'),
-                        ),
-                        isDisabled: it.any(
-                            it.configIsFalse('FeatureFlags', 'GlobalDrafts'),
-                        ),
                     },
                 ],
             },
@@ -3023,7 +3171,7 @@ const AdminDefinition = {
                         label: t('admin.image.publicLinkTitle'),
                         label_default: 'Public Link Salt:',
                         help_text: t('admin.image.publicLinkDescription'),
-                        help_text_default: '32-character salt added to signing of public image links. Randomly generated on install. Click "Regenerate" to create new salt.',
+                        help_text_default: '32-character salt added to signing of public links. Randomly generated on install. Select "Regenerate" to create new salt.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.PUBLIC_LINKS)),
                     },
                 ],
@@ -3050,7 +3198,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/manage/in-product-notices.html'
+                                    href={DocLinks.IN_PRODUCT_NOTICES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3070,7 +3218,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/manage/in-product-notices.html'
+                                    href={DocLinks.IN_PRODUCT_NOTICES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3122,6 +3270,10 @@ const AdminDefinition = {
                         help_text_default: 'New user accounts are restricted to the above specified email domain (e.g. "mattermost.com") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.com"). New teams can only be created by users from the above domain(s). This setting only affects email login for users.',
                         placeholder: t('admin.team.restrictExample'),
                         placeholder_default: 'E.g.: "corp.mattermost.com, mattermost.com"',
+                        isHidden: it.all(
+                            it.licensed,
+                            it.not(it.licensedForSku('starter')),
+                        ),
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                     },
                     {
@@ -3269,7 +3421,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/auth.html'
+                                    href={DocLinks.MULTI_FACTOR_AUTH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3298,7 +3450,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/auth.html'
+                                    href={DocLinks.MULTI_FACTOR_AUTH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3915,7 +4067,7 @@ const AdminDefinition = {
                                     link: (msg) => (
                                         <ExternalLink
                                             location='admin_console'
-                                            href='https://mattermost.com/default-ldap-docs'
+                                            href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
                                         >
                                             {msg}
                                         </ExternalLink>
@@ -3952,7 +4104,7 @@ const AdminDefinition = {
                                     link: (msg) => (
                                         <ExternalLink
                                             location='admin_console'
-                                            href='https://mattermost.com/default-ldap-docs'
+                                            href={DocLinks.SETUP_LDAP}
                                         >
                                             {msg}
                                         </ExternalLink>
@@ -4154,7 +4306,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/onboard/ad-ldap.html'
+                                    href={DocLinks.SETUP_LDAP}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -4192,7 +4344,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/sso-saml-ldapsync.html'
+                                    href={DocLinks.CONFIGURE_OVERRIDE_SAML_BIND_DATA_WITH_LDAP}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5597,6 +5749,16 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'GuestAccountsSettings.HideTags',
+                        label: t('admin.guest_access.hideTags'),
+                        label_default: 'Hide guest tag',
+                        help_text: t('admin.guest_access.hideTagsDescription'),
+                        help_text_default: 'When true, the "guest" tag will not be shown next to the name of all guest users in the Mattermost chat interface.',
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_TEXT,
                         key: 'GuestAccountsSettings.RestrictCreationToDomains',
                         label: t('admin.guest_access.whitelistedDomainsTitle'),
@@ -5644,7 +5806,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/auth.html'
+                                    href={DocLinks.MULTI_FACTOR_AUTH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5735,42 +5897,6 @@ const AdminDefinition = {
             },
         },
     },
-    products: {
-        icon: (
-            <ProductsIcon
-                size={16}
-                className={'category-icon fa'}
-                color={'currentColor'}
-            />
-        ),
-        sectionTitle: t('admin.sidebar.products'),
-        sectionTitleDefault: 'Products',
-        isHidden: it.any(
-            it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.PRODUCTS)),
-        ),
-        boards: {
-            url: 'products/boards',
-            title: t('admin.sidebar.boards'),
-            title_default: 'Boards',
-            isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.PRODUCTS.BOARDS)),
-            schema: {
-                id: 'BoardsSettings',
-                name: t('admin.site.boards'),
-                name_default: 'Boards',
-                settings: [
-                    {
-                        type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ProductSettings.EnablePublicSharedBoards',
-                        label: t('admin.customization.enablePublicSharedBoardsTitle'),
-                        label_default: 'Enable Public Shared Boards:',
-                        help_text: t('admin.customization.enablePublicSharedBoardsDesc'),
-                        help_text_default: 'This allows board editors to share boards that can be accessed by anyone with the link.',
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.PRODUCTS.BOARDS)),
-                    },
-                ],
-            },
-        },
-    },
     integrations: {
         icon: (
             <SitemapIcon
@@ -5805,7 +5931,7 @@ const AdminDefinition = {
                         help_text_values: {
                             link: (msg) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-incoming/'
+                                    href={DeveloperLinks.INCOMING_WEBHOOKS}
                                     location='admin_console'
                                 >
                                     {msg}
@@ -5826,7 +5952,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-outgoing/'
+                                    href={DeveloperLinks.OUTGOING_WEBHOOKS}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5846,7 +5972,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                    href={DeveloperLinks.SETUP_CUSTOM_SLASH_COMMANDS}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5866,7 +5992,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/'
+                                    href={DeveloperLinks.ENABLE_OAUTH2}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5905,7 +6031,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5991,36 +6117,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableGifPickerTitle'),
                         label_default: 'Enable GIF Picker:',
                         help_text: t('admin.customization.enableGifPickerDesc'),
-                        help_text_default: 'Allow users to select GIFs from the emoji picker via a Gfycat integration.',
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
-                    },
-                    {
-                        type: Constants.SettingsTypes.TYPE_TEXT,
-                        key: 'ServiceSettings.GfycatAPIKey',
-                        label: t('admin.customization.gfycatApiKey'),
-                        label_default: 'Gfycat API Key:',
-                        help_text: t('admin.customization.gfycatApiKeyDescription'),
-                        help_text_default: 'Request an API key at <link>https://developers.gfycat.com/signup/#</link>. Enter the client ID you receive via email to this field. When blank, uses the default API key provided by Gfycat.',
-                        help_text_markdown: false,
-                        help_text_values: {
-                            link: (msg) => (
-                                <ExternalLink
-                                    location='admin_console'
-                                    href='https://developers.gfycat.com/signup/#'
-                                >
-                                    {msg}
-                                </ExternalLink>
-                            ),
-                        },
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
-                    },
-                    {
-                        type: Constants.SettingsTypes.TYPE_TEXT,
-                        key: 'ServiceSettings.GfycatAPISecret',
-                        label: t('admin.customization.gfycatApiSecret'),
-                        label_default: 'Gfycat API Secret:',
-                        help_text: t('admin.customization.gfycatApiSecretDescription'),
-                        help_text_default: 'The API secret generated by Gfycat for your API key. When blank, uses the default API secret provided by Gfycat.',
+                        help_text_default: 'Allows users to select GIFs from the emoji picker.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
                     },
                 ],
@@ -6280,7 +6377,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/administration/compliance.html'
+                                    href={DocLinks.COMPILANCE_MONITORING}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6546,7 +6643,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/certificate-based-authentication.html'
+                                    href={DocLinks.ENABLE_CLIENT_SIDE_CERTIFICATION}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6607,7 +6704,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/administration/config-settings.html#enable-hardened-mode-experimental'
+                                    href={DocLinks.ENABLE_HARDENED_MODE}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6858,33 +6955,31 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ExperimentalSettings.EnableAppBar',
-                        label: t('admin.experimental.enableAppBar.title'),
-                        label_default: 'Enable App Bar:',
-                        help_text: t('admin.experimental.enableAppBar.desc'),
-                        help_text_default: 'When true, all integrations move from the channel header to the App Bar. Channel header plugin icons that haven\'t explicitly registered an App Bar icon will be moved to the App Bar which may result in rendering issues. [See the documentation to learn more](https://docs.mattermost.com/welcome/what-changed-in-v70.html).',
+                        key: 'ExperimentalSettings.DisableAppBar',
+                        label: t('admin.experimental.disableAppBar.title'),
+                        label_default: 'Disable Apps Bar:',
+                        help_text: t('admin.experimental.disableAppBar.desc'),
+                        help_text_default: 'When false, all integrations move from the channel header to the Apps Bar. Channel header plugin icons that haven\'t explicitly registered an Apps Bar icon will be moved to the Apps Bar which may result in rendering issues.',
                         help_text_markdown: true,
                         isHidden: it.licensedForFeature('Cloud'),
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ExperimentalSettings.PatchPluginsReactDOM',
-                        label: t('admin.experimental.patchPluginsReactDOM.title'),
-                        label_default: 'Patch React DOM used by plugins:',
-                        help_text: t('admin.experimental.patchPluginsReactDOM.desc'),
-                        help_text_default: 'When true, client-side plugins will be patched to use the version of React DOM provided by the web app. This should only be enabled if plugins break after upgrading to Mattermost 7.6. The server must be restarted for this setting to take effect. See the <link>Important Upgrade Notes</link> for more information.',
-                        help_text_values: {
-                            link: (msg) => (
-                                <ExternalLink
-                                    location='admin_console'
-                                    href='https://docs.mattermost.com/upgrade/important-upgrade-notes.html'
-                                >
-                                    {msg}
-                                </ExternalLink>
-                            ),
-                        },
-                        isHidden: it.licensedForFeature('Cloud'),
+                        key: 'ExperimentalSettings.DisableRefetchingOnBrowserFocus',
+                        label: t('admin.experimental.disableRefetchingOnBrowserFocus.title'),
+                        label_default: 'Disable data refetching on browser refocus:',
+                        help_text: t('admin.experimental.disableRefetchingOnBrowserFocus.desc'),
+                        help_text_default: 'When true, Mattermost will not refetch channels and channel members when the browser regains focus. This may result in improved performance for users with many channels and channel members.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'ExperimentalSettings.DelayChannelAutocomplete',
+                        label: t('admin.experimental.delayChannelAutocomplete.title'),
+                        label_default: 'Delay Channel Autocomplete:',
+                        help_text: t('admin.experimental.delayChannelAutocomplete.desc'),
+                        help_text_default: 'When true, the autocomplete for channel links (such as ~town-square) will only trigger after typing a tilde followed by a couple letters. When false, the autocomplete will appear as soon as the user types a tilde.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                     },
                 ],

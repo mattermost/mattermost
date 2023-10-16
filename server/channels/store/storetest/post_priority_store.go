@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestPostPriorityStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -20,7 +20,6 @@ func TestPostPriorityStore(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func testPostPriorityStoreGetForPost(t *testing.T, ss store.Store) {
-
 	t.Run("Save post priority when in post's metadata", func(t *testing.T) {
 		p1 := model.Post{}
 		p1.ChannelId = model.NewId()

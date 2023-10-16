@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {fireEvent, screen} from '@testing-library/react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
-import ActionBar, {Props} from './action_bar';
+import ActionBar from './action_bar';
+import type {Props} from './action_bar';
 
 describe('channel_members_rhs/action_bar', () => {
     const actionBarDefaultProps: Props = {

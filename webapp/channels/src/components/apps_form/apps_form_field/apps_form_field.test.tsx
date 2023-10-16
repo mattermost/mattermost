@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {AppField} from '@mattermost/types/apps';
+import type {AppField} from '@mattermost/types/apps';
 
 import TextSetting from 'components/widgets/settings/text_setting';
 
-import Markdown from 'components/markdown';
-
-import AppsFormField, {Props} from './apps_form_field';
+import AppsFormField from './apps_form_field';
+import type {Props} from './apps_form_field';
 import AppsFormSelectField from './apps_form_select_field';
 
 describe('components/apps_form/apps_form_field/AppsFormField', () => {
@@ -37,23 +36,6 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             performLookup: jest.fn(),
         };
 
-        const baseTextSettingProps = {
-            inputClassName: '',
-            label: (
-                <React.Fragment>
-                    {textField.modal_label}
-                    {false}
-                </React.Fragment>
-            ),
-            maxLength: 100,
-            placeholder: 'The hint',
-            resizable: false,
-            type: 'input',
-            value: '',
-            id: baseDialogTextProps.name,
-            helpText: (<Markdown message='The description'/>),
-        };
-
         it('subtype blank - optional field', () => {
             const wrapper = shallow(
                 <AppsFormField
@@ -65,18 +47,8 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                     }}
                 />,
             );
-            expect(wrapper.matchesElement(
-                <TextSetting
-                    {...baseTextSettingProps}
-                    label={(
-                        <React.Fragment>
-                            {textField.modal_label}
-                            {<span className='light'>{' (optional)'}</span>}
-                        </React.Fragment>
-                    )}
-                    type='input'
-                />,
-            )).toEqual(true);
+
+            expect(wrapper.find(TextSetting).props().type).toEqual('text');
         });
 
         it('subtype blank', () => {
@@ -86,12 +58,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 />,
             );
 
-            expect(wrapper.matchesElement(
-                <TextSetting
-                    {...baseTextSettingProps}
-                    type='input'
-                />,
-            )).toEqual(true);
+            expect(wrapper.find(TextSetting).props().type).toEqual('text');
         });
 
         it('subtype email', () => {
@@ -104,30 +71,8 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                     }}
                 />,
             );
-            expect(wrapper.matchesElement(
-                <TextSetting
-                    {...baseTextSettingProps}
-                    type='email'
-                />,
-            )).toEqual(true);
-        });
 
-        it('subtype invalid', () => {
-            const wrapper = shallow(
-                <AppsFormField
-                    {...baseDialogTextProps}
-                    field={{
-                        ...textField,
-                        subtype: 'invalid',
-                    }}
-                />,
-            );
-            expect(wrapper.matchesElement(
-                <TextSetting
-                    {...baseTextSettingProps}
-                    type='input'
-                />,
-            )).toEqual(true);
+            expect(wrapper.find(TextSetting).props().type).toEqual('email');
         });
 
         it('subtype password', () => {
@@ -140,12 +85,8 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                     }}
                 />,
             );
-            expect(wrapper.matchesElement(
-                <TextSetting
-                    {...baseTextSettingProps}
-                    type='password'
-                />,
-            )).toEqual(true);
+
+            expect(wrapper.find(TextSetting).props().type).toEqual('password');
         });
     });
 

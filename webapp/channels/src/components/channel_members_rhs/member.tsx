@@ -1,31 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import styled from 'styled-components';
 import classNames from 'classnames';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import styled from 'styled-components';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import ProfilePopover from 'components/profile_popover';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
-import ProfilePicture from 'components/profile_picture';
 import {Client4} from 'mattermost-redux/client';
-import ChannelMembersDropdown from 'components/channel_members_dropdown';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
+import ChannelMembersDropdown from 'components/channel_members_dropdown';
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import OverlayTrigger from 'components/overlay_trigger';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
+import ProfilePicture from 'components/profile_picture';
+import ProfilePopover from 'components/profile_popover';
 import Tooltip from 'components/tooltip';
+import GuestTag from 'components/widgets/tag/guest_tag';
 
 import Constants from 'utils/constants';
 
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-
-import {ChannelMember} from './channel_members_rhs';
+import type {ChannelMember} from './channel_members_rhs';
 
 const Avatar = styled.div`
     flex-basis: fit-content;
@@ -33,43 +31,49 @@ const Avatar = styled.div`
 `;
 
 const UserInfo = styled.div`
+    display: flex;
     flex: 1;
+    cursor: pointer;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    cursor: pointer;
 `;
 
 const DisplayName = styled.span`
-    display: inline-flex;
-    gap: 8px;
+    display: inline;
+    overflow: hidden;
     margin-left: 8px;
-    font-size: 14px;
-    line-height: 20px;
     color: var(--center-channel-color);
+    font-size: 14px;
+    gap: 8px;
+    line-height: 20px;
+    text-overflow: ellipsis;
 `;
 
 const Username = styled.span`
-    margin-left: 8px;
+    margin-left: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
     font-size: 12px;
     line-height: 18px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
 `;
 
 const SendMessage = styled.button`
     display: none;
-    border: 0;
-    background-color: transparent;
-    padding: 0;
     width: 24px;
     height: 24px;
+    padding: 0;
+    border: 0;
+    margin-left: 8px;
+    background-color: transparent;
     border-radius: 4px;
+
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.12);
     }
+
     .icon {
-        font-size: 14.4px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14.4px;
     };
 `;
 
@@ -123,6 +127,7 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
     return (
         <div
             className={className}
+            style={{height: '48px'}}
             data-testid={`memberline-${member.user.id}`}
         >
 
@@ -137,7 +142,6 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                         userId={member.user.id}
                         src={profileSrc}
                         hide={hideProfilePopover}
-                        isRHS={true}
                         hideStatus={member.user.is_bot}
                     />
                 }
@@ -145,7 +149,6 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                 <span className='ProfileSpan'>
                     <Avatar>
                         <ProfilePicture
-                            isRHS={true}
                             popoverPlacement='left'
                             size='sm'
                             status={member.status}
@@ -167,8 +170,14 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                             userID={member.user.id}
                             showTooltip={true}
                             emojiSize={16}
+                            spanStyle={{
+                                display: 'flex',
+                                flex: '0 0 auto',
+                                alignItems: 'center',
+                            }}
                             emojiStyle={{
                                 marginLeft: '8px',
+                                alignItems: 'center',
                             }}
                         />
                     </UserInfo>
@@ -242,18 +251,23 @@ export default styled(Member)`
 
         ${SendMessage} {
             display: block;
+            flex: 0 0 auto;
         }
     }
 
     .ProfileSpan {
         display: flex;
+        overflow: hidden;
+        width: 100%;
         flex-direction: row;
         align-items: center;
+        // This padding is to make sure the status icon doesnt get clipped off because of the overflow
+        padding: 4px 0;
         margin-right: auto;
     }
 
     .MenuWrapper {
-        font-weight: 600;
         font-size: 11px;
+        font-weight: 600;
     }
 `;

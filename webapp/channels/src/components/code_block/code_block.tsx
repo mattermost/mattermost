@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useState} from 'react';
+import {useSelector} from 'react-redux';
 
 import CopyButton from 'components/copy_button';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
-
 import * as TextFormatting from 'utils/text_formatting';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     code: string;
@@ -67,10 +69,27 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
         htmlContent = `${searchedContent} ${content}`;
     }
 
+    const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);
+    const pluginItems = codeBlockActions?.
+        map((item) => {
+            if (!item.component) {
+                return null;
+            }
+
+            const Component = item.component as any;
+            return (
+                <Component
+                    key={item.id}
+                    code={code}
+                />
+            );
+        });
+
     return (
         <div className={className}>
             <div className='post-code__overlay'>
                 <CopyButton content={code}/>
+                {pluginItems}
                 {header}
             </div>
             <div className='hljs'>

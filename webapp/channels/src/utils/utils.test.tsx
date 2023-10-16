@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import type React from 'react';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
-import store from 'stores/redux_store.jsx';
 
+import store from 'stores/redux_store';
+
+import * as lineBreakHelpers from 'tests/helpers/line_break_helpers.js';
+import * as ua from 'tests/helpers/user_agent_mocks';
 import Constants, {ValidationErrors} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import * as lineBreakHelpers from 'tests/helpers/line_break_helpers.js';
-import {makeSelectionEvent} from 'tests/helpers/markdown_hotkey_helpers.js';
-import * as ua from 'tests/helpers/user_agent_mocks';
-import {UserProfile} from '@mattermost/types/users';
-import {TextboxElement} from 'components/textbox';
 
 describe('Utils.getDisplayNameByUser', () => {
     afterEach(() => {
@@ -292,147 +292,6 @@ describe('Utils.isValidUsername', () => {
     });
 });
 
-describe('Utils.isKeyPressed', () => {
-    test('Key match is used over keyCode if it exists', () => {
-        for (const data of [
-            {
-                event: new KeyboardEvent('keydown', {key: '/', keyCode: 55}),
-                key: ['/', 191],
-                valid: true,
-            },
-            {
-                event: new KeyboardEvent('keydown', {key: 'ù', keyCode: 191}),
-                key: ['/', 191],
-                valid: true,
-            },
-        ]) {
-            expect(Utils.isKeyPressed(data.event, data.key as [string, number])).toEqual(data.valid);
-        }
-    });
-
-    test('Key match works for both uppercase and lower case', () => {
-        for (const data of [
-            {
-                event: new KeyboardEvent('keydown', {key: 'A', keyCode: 65, code: 'KeyA'}),
-                key: ['a', 65],
-                valid: true,
-            },
-            {
-                event: new KeyboardEvent('keydown', {key: 'a', keyCode: 65, code: 'KeyA'}),
-                key: ['a', 65],
-                valid: true,
-            },
-        ]) {
-            expect(Utils.isKeyPressed(data.event, data.key as [string, number])).toEqual(data.valid);
-        }
-    });
-
-    test('KeyCode is used for dead letter keys', () => {
-        for (const data of [
-            {
-                event: new KeyboardEvent('keydown', {key: 'Dead', keyCode: 222}),
-                key: ['', 222],
-                valid: true,
-            },
-            {
-                event: new KeyboardEvent('keydown', {key: 'Dead', keyCode: 222}),
-                key: ['not-used-field', 222],
-                valid: true,
-            },
-            {
-                event: new KeyboardEvent('keydown', {key: 'Dead', keyCode: 222}),
-                key: [null, 222],
-                valid: true,
-            },
-            {
-                event: new KeyboardEvent('keydown', {key: 'Dead', keyCode: 222}),
-                key: [null, 223],
-                valid: false,
-            },
-        ]) {
-            expect(Utils.isKeyPressed(data.event, data.key as [string, number])).toEqual(data.valid);
-        }
-    });
-
-    test('KeyCode is used for unidentified keys', () => {
-        for (const data of [
-            {
-                event: new KeyboardEvent('keydown', {key: 'Unidentified', keyCode: 2220, code: 'Unidentified'}),
-                key: ['', 2220],
-                valid: true,
-            },
-            {
-                event: new KeyboardEvent('keydown', {key: 'Unidentified', keyCode: 2220, code: 'Unidentified'}),
-                key: ['not-used-field', 2220],
-                valid: true,
-            },
-            {
-                event: new KeyboardEvent('keydown', {key: 'Unidentified', keyCode: 2220, code: 'Unidentified'}),
-                key: [null, 2220],
-                valid: true,
-            },
-            {
-                event: new KeyboardEvent('keydown', {key: 'Unidentified', keyCode: 2220, code: 'Unidentified'}),
-                key: [null, 2221],
-                valid: false,
-            },
-        ]) {
-            expect(Utils.isKeyPressed(data.event, data.key as [string, number])).toEqual(data.valid);
-        }
-    });
-
-    test('KeyCode is used for undefined keys', () => {
-        for (const data of [
-            {
-                event: {keyCode: 2221},
-                key: ['', 2221],
-                valid: true,
-            },
-            {
-                event: {keyCode: 2221},
-                key: ['not-used-field', 2221],
-                valid: true,
-            },
-            {
-                event: {keyCode: 2221},
-                key: [null, 2221],
-                valid: true,
-            },
-            {
-                event: {keyCode: 2221},
-                key: [null, 2222],
-                valid: false,
-            },
-        ]) {
-            expect(Utils.isKeyPressed(data.event as KeyboardEvent, data.key as [string, number])).toEqual(data.valid);
-        }
-    });
-
-    test('keyCode is used for determining if it exists', () => {
-        for (const data of [
-            {
-                event: {key: 'a', keyCode: 65},
-                key: ['k', 65],
-                valid: true,
-            },
-            {
-                event: {key: 'b', keyCode: 66},
-                key: ['y', 66],
-                valid: true,
-            },
-        ]) {
-            expect(Utils.isKeyPressed(data.event as KeyboardEvent, data.key as [string, number])).toEqual(data.valid);
-        }
-    });
-
-    test('key should be tested as fallback for different layout of english keyboards', () => {
-        //key will be k for keyboards like dvorak but code will be keyV as `v` is pressed
-        const event = {key: 'k', code: 'KeyV'};
-        const key: [string, number] = ['k', 2221];
-        expect(Utils.isKeyPressed(event as KeyboardEvent, key)).toEqual(true);
-    });
-});
-
 describe('Utils.localizeMessage', () => {
     const originalGetState = store.getState;
 
@@ -560,68 +419,6 @@ describe('Utils.insertLineBreakFromKeyEvent', () => {
     });
     test('insertLineBreakFromKeyEvent returns with line break replacing (with selection range)', () => {
         expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getReplaceEvent() as React.KeyboardEvent<HTMLInputElement>)).toBe(lineBreakHelpers.OUTPUT_REPLACE);
-    });
-});
-
-describe('Utils.adjustSelection', () => {
-    test('adjustSelection fixes selection to correct text', () => {
-        // "_Fafda_" is selected
-        const e = makeSelectionEvent('Jalebi _Fafda_ and Sambharo', 7, 14);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).toHaveBeenCalledWith(8, 13);
-    });
-
-    test('adjustSelection does not fix selection when selected text does not end with "_"', () => {
-        // "_Fafda" is selected
-        const e = makeSelectionEvent('Jalebi _Fafda and Sambharo', 7, 13);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).not.toHaveBeenCalled();
-    });
-
-    test('adjustSelection does not fix selection when selected text does start end with "_"', () => {
-        // "Fafda_" is selected
-        const e = makeSelectionEvent('Jalebi Fafda_ and Sambharo', 7, 13);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).not.toHaveBeenCalled();
-    });
-
-    test('adjustSelection fixes selection at start of text', () => {
-        // "_Jalebi_" is selected
-        const e = makeSelectionEvent('_Jalebi_ Fafda and Sambharo', 0, 8);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).toHaveBeenCalledWith(1, 7);
-    });
-
-    test('adjustSelection fixes selection at end of text', () => {
-        // "_Sambharo_" is selected
-        const e = makeSelectionEvent('Jalebi Fafda and _Sambharo_', 17, 27);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).toHaveBeenCalledWith(18, 26);
     });
 });
 

@@ -7,20 +7,6 @@ import {Constants} from 'utils/constants';
 
 import {
     AppsTypes,
-    AppCallRequest,
-    AppBinding,
-    AppCall,
-    AppField,
-    DoAppCallResult,
-    AppLookupResponse,
-    AppContext,
-    AppForm,
-    AppCallValues,
-    AppSelectOption,
-    AutocompleteSuggestion,
-    AutocompleteStaticSelect,
-    Channel,
-    Store,
 
     AppBindingLocations,
     AppCallResponseTypes,
@@ -52,11 +38,26 @@ import {
     getChannelSuggestions,
     getUserSuggestions,
     inTextMentionSuggestions,
-    ExtendedAutocompleteSuggestion,
     getAppCommandForm,
     getAppRHSCommandForm,
     makeRHSAppBindingSelector,
 } from './app_command_parser_dependencies';
+import type {
+    AppCallRequest,
+    AppBinding,
+    AppCall,
+    AppField,
+    DoAppCallResult,
+    AppLookupResponse,
+    AppContext,
+    AppForm,
+    AppCallValues,
+    AppSelectOption,
+    AutocompleteSuggestion,
+    AutocompleteStaticSelect,
+    Channel,
+    Store,
+    ExtendedAutocompleteSuggestion} from './app_command_parser_dependencies';
 
 export enum ParseState {
     Start = 'Start',
@@ -541,7 +542,7 @@ export class ParsedCommand {
                     if (this.incompleteStart === this.i - 1) {
                         return this.asError(this.intl.formatMessage({
                             id: 'apps.error.parser.empty_value',
-                            defaultMessage: 'Empty values are not allowed.',
+                            defaultMessage: 'Empty values are not allowed',
                         }));
                     }
                     this.i++;
@@ -581,7 +582,7 @@ export class ParsedCommand {
                     if (this.incompleteStart === this.i - 1) {
                         return this.asError(this.intl.formatMessage({
                             id: 'apps.error.parser.empty_value',
-                            defaultMessage: 'Empty values are not allowed.',
+                            defaultMessage: 'Empty values are not allowed',
                         }));
                     }
                     this.i++;
@@ -730,7 +731,7 @@ export class ParsedCommand {
                     if (this.incompleteStart === this.i - 1) {
                         return this.asError(this.intl.formatMessage({
                             id: 'apps.error.parser.empty_value',
-                            defaultMessage: 'empty values are not allowed',
+                            defaultMessage: 'Empty values are not allowed',
                         }));
                     }
                     this.i++;
@@ -770,7 +771,7 @@ export class ParsedCommand {
                     if (this.incompleteStart === this.i - 1) {
                         return this.asError(this.intl.formatMessage({
                             id: 'apps.error.parser.empty_value',
-                            defaultMessage: 'empty values are not allowed',
+                            defaultMessage: 'Empty values are not allowed',
                         }));
                     }
                     this.i++;
@@ -1506,7 +1507,7 @@ export class AppCommandParser {
             const errorResponse = res.error;
             return {error: errorResponse.text || this.intl.formatMessage({
                 id: 'apps.error.unknown',
-                defaultMessage: 'Unknown error.',
+                defaultMessage: 'Unknown error occurred.',
             })};
         }
 
@@ -1822,7 +1823,7 @@ export class AppCommandParser {
             const errorResponse = res.error;
             return this.makeDynamicSelectSuggestionError(errorResponse.text || this.intl.formatMessage({
                 id: 'apps.error.unknown',
-                defaultMessage: 'Unknown error.',
+                defaultMessage: 'Unknown error occurred.',
             }));
         }
 

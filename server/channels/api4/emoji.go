@@ -8,11 +8,11 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/channels/web"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 const (
@@ -52,7 +52,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId, "", true)
+	memberships, err := c.App.GetTeamMembersForUser(c.AppContext, c.AppContext.Session().UserId, "", true)
 
 	if err != nil {
 		c.Err = err
@@ -144,7 +144,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("emoji")
 
 	// Allow any user with DELETE_EMOJIS permission at Team level to delete emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId, "", true)
+	memberships, err := c.App.GetTeamMembersForUser(c.AppContext, c.AppContext.Session().UserId, "", true)
 
 	if err != nil {
 		c.Err = err

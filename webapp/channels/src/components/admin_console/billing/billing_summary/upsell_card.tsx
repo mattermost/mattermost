@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {useIntl} from 'react-intl';
-
 import classNames from 'classnames';
-
-import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
-import StartTrialCaution from 'components/pricing_modal/start_trial_caution';
-
-import {Message, t} from 'utils/i18n';
-import {openExternalPricingLink, FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
+import React from 'react';
+import {useIntl} from 'react-intl';
 
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
+import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
+import StartTrialCaution from 'components/pricing_modal/start_trial_caution';
+
+import {openExternalPricingLink, FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
+import {t} from 'utils/i18n';
+import type {Message} from 'utils/i18n';
 
 import './upsell_card.scss';
 

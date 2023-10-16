@@ -13,17 +13,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
-
-func StringInSlice(a string, slice []string) bool {
-	for _, b := range slice {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
 
 // RemoveStringFromSlice removes the first occurrence of a from slice.
 func RemoveStringFromSlice(a string, slice []string) []string {
@@ -40,7 +32,7 @@ func RemoveStringsFromSlice(slice []string, strings ...string) []string {
 	newSlice := []string{}
 
 	for _, item := range slice {
-		if !StringInSlice(item, strings) {
+		if !pUtils.Contains(strings, item) {
 			newSlice = append(newSlice, item)
 		}
 	}
@@ -107,16 +99,14 @@ func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 			}
 		}
 
-		if address != "" {
+		if address != "" && net.ParseIP(address) != nil {
 			return address
 		}
 	}
 
-	if address == "" {
-		address, _, _ = net.SplitHostPort(r.RemoteAddr)
-	}
+	host, _, _ := net.SplitHostPort(r.RemoteAddr)
 
-	return address
+	return host
 }
 
 func GetHostnameFromSiteURL(siteURL string) string {
@@ -217,6 +207,25 @@ func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool
 	return false
 }
 
+// This will only return TRUE if the request comes from a mobile running the Mobile App.
+// If the request comes from a mobile using the browser, it will return FALSE.
+func IsMobileRequest(r *http.Request) bool {
+	userAgent := r.UserAgent()
+	if userAgent == "" {
+		return false
+	}
+
+	// Check if the User-Agent contain keywords found in mobile devices running the mobile App
+	mobileKeywords := []string{"Mobile", "Android", "iOS", "iPhone", "iPad"}
+	for _, keyword := range mobileKeywords {
+		if strings.Contains(userAgent, keyword) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // RoundOffToZeroes converts all digits to 0 except the 1st one.
 // Special case: If there is only 1 digit, then returns 0.
 func RoundOffToZeroes(n float64) int64 {
@@ -230,13 +239,13 @@ func RoundOffToZeroes(n float64) int64 {
 	return firstDigit * tens
 }
 
-func min(a, b int) int {
+func MinInt(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
 }
-func max(a, b int) int {
+func MaxInt(a, b int) int {
 	if a > b {
 		return a
 	}
@@ -247,7 +256,7 @@ func max(a, b int) int {
 // It implicitly sets the lowest minResolution to 0.
 // e.g. 0 reports 1s, 1 reports 10s, 2 reports 100s, 3 reports 1000s
 func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
-	resolution := max(0, minResolution)
+	resolution := MaxInt(0, minResolution)
 	if n >= -9 && n <= 9 {
 		if resolution == 0 {
 			return int64(n)
@@ -256,7 +265,7 @@ func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
 	}
 
 	zeroes := int(math.Log10(math.Abs(n)))
-	resolution = min(zeroes, resolution)
+	resolution = MinInt(zeroes, resolution)
 	tens := int64(math.Pow10(resolution))
 	significantDigits := int64(n) / tens
 	return significantDigits * tens

@@ -3,27 +3,28 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import type {Draft as ServerDraft} from '@mattermost/types/drafts';
+import type {FileInfo} from '@mattermost/types/files';
+import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
+import Preferences from 'mattermost-redux/constants/preferences';
+import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {setGlobalItem} from 'actions/storage';
-import {getConnectionId} from 'selectors/general';
-import type {GlobalState} from 'types/store';
-import {PostDraft} from 'types/store/draft';
-import {getGlobalItem} from 'selectors/storage';
 import {makeGetDrafts} from 'selectors/drafts';
+import {getConnectionId} from 'selectors/general';
+import {getGlobalItem} from 'selectors/storage';
 
-import {StoragePrefixes} from 'utils/constants';
+import {ActionTypes, StoragePrefixes} from 'utils/constants';
 
-import type {Draft as ServerDraft} from '@mattermost/types/drafts';
-import type {UserProfile} from '@mattermost/types/users';
-import {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
-import {FileInfo} from '@mattermost/types/files';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import Preferences from 'mattermost-redux/constants/preferences';
+import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 type Draft = {
     key: keyof GlobalState['storage']['storage'];
@@ -37,6 +38,7 @@ type Draft = {
  */
 export function getDrafts(teamId: string) {
     const getLocalDrafts = makeGetDrafts(false);
+
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
 
@@ -101,11 +103,10 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
                 ...value,
                 createAt: data.createAt || timestamp,
                 updateAt: timestamp,
-                remote: false,
             };
         }
 
-        dispatch(setGlobalItem(key, updatedValue));
+        dispatch(setGlobalDraft(key, updatedValue, false));
 
         if (syncedDraftsAreAllowedAndEnabled(state) && save && updatedValue) {
             const connectionId = getConnectionId(state);
@@ -150,6 +151,24 @@ export function setDraftsTourTipPreference(initializationState: Record<string, b
         };
         await dispatch(savePreferences(currentUserId, [preference]));
         return {data: true};
+    };
+}
+
+export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean) {
+    return (dispatch: DispatchFunc) => {
+        dispatch(setGlobalItem(key, value));
+        dispatch(setGlobalDraftSource(key, isRemote));
+        return {data: true};
+    };
+}
+
+export function setGlobalDraftSource(key: string, isRemote: boolean) {
+    return {
+        type: ActionTypes.SET_DRAFT_SOURCE,
+        data: {
+            key,
+            isRemote,
+        },
     };
 }
 

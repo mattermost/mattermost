@@ -1,0 +1,521 @@
+  /api/v4/hooks/incoming:
+    post:
+      tags:
+        - webhooks
+      summary: Create an incoming webhook
+      description: |
+        Create an incoming webhook for a channel.
+        ##### Permissions
+        `manage_webhooks` for the team the webhook is in.
+
+        `manage_others_incoming_webhooks` for the team the webhook is in if the user is different than the requester.
+      operationId: CreateIncomingWebhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+              properties:
+                channel_id:
+                  type: string
+                  description: The ID of a public channel or private group that receives
+                    the webhook payloads.
+                user_id:
+                  type: string
+                  description: The ID of the owner of the webhook if different than the requester. Required for [local mode](https://docs.mattermost.com/administration/mmctl-cli-tool.html#local-mode).
+                display_name:
+                  type: string
+                  description: The display name for this incoming webhook
+                description:
+                  type: string
+                  description: The description for this incoming webhook
+                username:
+                  type: string
+                  description: The username this incoming webhook will post as.
+                icon_url:
+                  type: string
+                  description: The profile picture this incoming webhook will use when
+                    posting.
+        description: Incoming webhook to be created
+        required: true
+      responses:
+        "201":
+          description: Incoming webhook creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomingWebhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    get:
+      tags:
+        - webhooks
+      summary: List incoming webhooks
+      description: >
+        Get a page of a list of incoming webhooks. Optionally filter for a
+        specific team using query parameters.
+
+        ##### Permissions
+
+        `manage_webhooks` for the system or `manage_webhooks` for the specific team.
+      operationId: GetIncomingWebhooks
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of hooks per page.
+          schema:
+            type: integer
+            default: 60
+        - name: team_id
+          in: query
+          description: The ID of the team to get hooks for.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Incoming webhooks retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IncomingWebhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/hooks/incoming/{hook_id}":
+    get:
+      tags:
+        - webhooks
+      summary: Get an incoming webhook
+      description: >
+        Get an incoming webhook given the hook id.
+
+        ##### Permissions
+
+        `manage_webhooks` for system or `manage_webhooks` for the specific team or `manage_webhooks` for the channel.
+      operationId: GetIncomingWebhook
+      parameters:
+        - name: hook_id
+          in: path
+          description: Incoming Webhook GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Webhook retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomingWebhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - webhooks
+      summary: Delete an incoming webhook
+      description: >
+        Delete an incoming webhook given the hook id.
+
+        ##### Permissions
+
+        `manage_webhooks` for system or `manage_webhooks` for the specific team or `manage_webhooks` for the channel.
+      operationId: DeleteIncomingWebhook
+      parameters:
+        - name: hook_id
+          in: path
+          description: Incoming webhook GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Webhook deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags:
+        - webhooks
+      summary: Update an incoming webhook
+      description: >
+        Update an incoming webhook given the hook id.
+
+        ##### Permissions
+
+        `manage_webhooks` for system or `manage_webhooks` for the specific team or `manage_webhooks` for the channel.
+      operationId: UpdateIncomingWebhook
+      parameters:
+        - name: hook_id
+          in: path
+          description: Incoming Webhook GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - channel_id
+                - display_name
+                - description
+              properties:
+                id:
+                  type: string
+                  description: Incoming webhook GUID
+                channel_id:
+                  type: string
+                  description: The ID of a public channel or private group that receives
+                    the webhook payloads.
+                display_name:
+                  type: string
+                  description: The display name for this incoming webhook
+                description:
+                  type: string
+                  description: The description for this incoming webhook
+                username:
+                  type: string
+                  description: The username this incoming webhook will post as.
+                icon_url:
+                  type: string
+                  description: The profile picture this incoming webhook will use when
+                    posting.
+        description: Incoming webhook to be updated
+        required: true
+      responses:
+        "200":
+          description: Webhook update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomingWebhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v4/hooks/outgoing:
+    post:
+      tags:
+        - webhooks
+      summary: Create an outgoing webhook
+      description: |
+        Create an outgoing webhook for a team.
+        ##### Permissions
+        `manage_webhooks` for the team the webhook is in.
+
+        `manage_others_outgoing_webhooks` for the team the webhook is in if the user is different than the requester.
+      operationId: CreateOutgoingWebhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - team_id
+                - display_name
+                - trigger_words
+                - callback_urls
+              properties:
+                team_id:
+                  description: The ID of the team that the webhook watchs
+                  type: string
+                channel_id:
+                  description: The ID of a public channel that the webhook watchs
+                  type: string
+                creator_id:
+                  description: The ID of the owner of the webhook if different than the requester. Required in [local mode](https://docs.mattermost.com/administration/mmctl-cli-tool.html#local-mode).
+                  type: string
+                description:
+                  description: The description for this outgoing webhook
+                  type: string
+                display_name:
+                  description: The display name for this outgoing webhook
+                  type: string
+                trigger_words:
+                  description: List of words for the webhook to trigger on
+                  type: array
+                  items:
+                    type: string
+                trigger_when:
+                  description: When to trigger the webhook, `0` when a trigger word is
+                    present at all and `1` if the message starts with a trigger
+                    word
+                  type: integer
+                callback_urls:
+                  description: The URLs to POST the payloads to when the webhook is
+                    triggered
+                  type: array
+                  items:
+                    type: string
+                content_type:
+                  description: The format to POST the data in, either `application/json` or
+                    `application/x-www-form-urlencoded`
+                  default: application/x-www-form-urlencoded
+                  type: string
+        description: Outgoing webhook to be created
+        required: true
+      responses:
+        "201":
+          description: Outgoing webhook creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutgoingWebhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    get:
+      tags:
+        - webhooks
+      summary: List outgoing webhooks
+      description: >
+        Get a page of a list of outgoing webhooks. Optionally filter for a
+        specific team or channel using query parameters.
+
+        ##### Permissions
+
+        `manage_webhooks` for the system or `manage_webhooks` for the specific team/channel.
+      operationId: GetOutgoingWebhooks
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of hooks per page.
+          schema:
+            type: integer
+            default: 60
+        - name: team_id
+          in: query
+          description: The ID of the team to get hooks for.
+          schema:
+            type: string
+        - name: channel_id
+          in: query
+          description: The ID of the channel to get hooks for.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Outgoing webhooks retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OutgoingWebhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/hooks/outgoing/{hook_id}":
+    get:
+      tags:
+        - webhooks
+      summary: Get an outgoing webhook
+      description: >
+        Get an outgoing webhook given the hook id.
+
+        ##### Permissions
+
+        `manage_webhooks` for system or `manage_webhooks` for the specific team or `manage_webhooks` for the channel.
+      operationId: GetOutgoingWebhook
+      parameters:
+        - name: hook_id
+          in: path
+          description: Outgoing webhook GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Outgoing webhook retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutgoingWebhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - webhooks
+      summary: Delete an outgoing webhook
+      description: >
+        Delete an outgoing webhook given the hook id.
+
+        ##### Permissions
+
+        `manage_webhooks` for system or `manage_webhooks` for the specific team or `manage_webhooks` for the channel.
+      operationId: DeleteOutgoingWebhook
+      parameters:
+        - name: hook_id
+          in: path
+          description: Outgoing webhook GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Webhook deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags:
+        - webhooks
+      summary: Update an outgoing webhook
+      description: >
+        Update an outgoing webhook given the hook id.
+
+        ##### Permissions
+
+        `manage_webhooks` for system or `manage_webhooks` for the specific team or `manage_webhooks` for the channel.
+      operationId: UpdateOutgoingWebhook
+      parameters:
+        - name: hook_id
+          in: path
+          description: outgoing Webhook GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - channel_id
+                - display_name
+                - description
+              properties:
+                id:
+                  type: string
+                  description: Outgoing webhook GUID
+                channel_id:
+                  type: string
+                  description: The ID of a public channel or private group that receives
+                    the webhook payloads.
+                display_name:
+                  type: string
+                  description: The display name for this incoming webhook
+                description:
+                  type: string
+                  description: The description for this incoming webhook
+        description: Outgoing webhook to be updated
+        required: true
+      responses:
+        "200":
+          description: Webhook update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutgoingWebhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/hooks/outgoing/{hook_id}/regen_token":
+    post:
+      tags:
+        - webhooks
+      summary: Regenerate the token for the outgoing webhook.
+      description: >
+        Regenerate the token for the outgoing webhook.
+
+        ##### Permissions
+
+        `manage_webhooks` for system or `manage_webhooks` for the specific team or `manage_webhooks` for the channel.
+      operationId: RegenOutgoingHookToken
+      parameters:
+        - name: hook_id
+          in: path
+          description: Outgoing webhook GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Webhook token regenerate successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
