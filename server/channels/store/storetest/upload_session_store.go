@@ -4,13 +4,13 @@
 package storetest
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -22,6 +22,8 @@ func TestUploadSessionStore(t *testing.T, ss store.Store) {
 }
 
 func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	var session *model.UploadSession
 
 	t.Run("saving nil session should fail", func(t *testing.T) {
@@ -53,13 +55,13 @@ func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("getting non-existing session should fail", func(t *testing.T) {
-		us, err := ss.UploadSession().Get(context.Background(), "fake")
+		us, err := ss.UploadSession().Get(c, "fake")
 		require.Error(t, err)
 		require.Nil(t, us)
 	})
 
 	t.Run("getting existing session should succeed", func(t *testing.T) {
-		us, err := ss.UploadSession().Get(context.Background(), session.Id)
+		us, err := ss.UploadSession().Get(c, session.Id)
 		require.NoError(t, err)
 		require.NotNil(t, us)
 		require.Equal(t, session, us)
@@ -67,6 +69,8 @@ func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
 }
 
 func testUploadSessionStoreUpdate(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	session := &model.UploadSession{
 		Type:      model.UploadTypeAttachment,
 		UserId:    model.NewId(),
@@ -101,7 +105,7 @@ func testUploadSessionStoreUpdate(t *testing.T, ss store.Store) {
 		err = ss.UploadSession().Update(us)
 		require.NoError(t, err)
 
-		updated, err := ss.UploadSession().Get(context.Background(), us.Id)
+		updated, err := ss.UploadSession().Get(c, us.Id)
 		require.NoError(t, err)
 		require.NotNil(t, us)
 		require.Equal(t, us, updated)
@@ -176,6 +180,8 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 }
 
 func testUploadSessionStoreDelete(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	session := &model.UploadSession{
 		Id:        model.NewId(),
 		Type:      model.UploadTypeAttachment,
@@ -200,7 +206,7 @@ func testUploadSessionStoreDelete(t *testing.T, ss store.Store) {
 		err = ss.UploadSession().Delete(session.Id)
 		require.NoError(t, err)
 
-		us, err = ss.UploadSession().Get(context.Background(), us.Id)
+		us, err = ss.UploadSession().Get(c, us.Id)
 		require.Error(t, err)
 		require.Nil(t, us)
 		require.IsType(t, &store.ErrNotFound{}, err)

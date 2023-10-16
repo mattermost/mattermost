@@ -227,7 +227,6 @@ func TestIsLegacyTrialRequest(t *testing.T) {
 		legacyTr.ContactName = ""
 		assert.True(t, legacyTr.IsLegacy())
 	})
-
 }
 
 func TestTrialLicenseRequestIsValid(t *testing.T) {
@@ -439,7 +438,6 @@ func TestLicense_IsSanctionedTrial(t *testing.T) {
 }
 
 func TestLicenseHasSharedChannels(t *testing.T) {
-
 	testCases := []struct {
 		description   string
 		license       License
