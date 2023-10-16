@@ -72,7 +72,7 @@ type Props = {
         /**
          * The function to call to fetch team commands
          */
-        loadCommandsAndProfilesForTeam: (teamId?: string) => any; // TechDebt-TODO: This needs to be changed to 'Promise<void>'
+        loadCommandsAndProfilesForTeam: (teamId: string) => any; // TechDebt-TODO: This needs to be changed to 'Promise<void>'
     };
 
     /**
@@ -95,7 +95,7 @@ export default class CommandsContainer extends React.PureComponent<Props, State>
 
     componentDidMount() {
         if (this.props.enableCommands) {
-            this.props.actions.loadCommandsAndProfilesForTeam(this.props.team?.id).then(
+            this.props.actions.loadCommandsAndProfilesForTeam(this.props.team?.id || '').then(
                 () => this.setState({loading: false}),
             );
         }

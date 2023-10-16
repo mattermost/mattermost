@@ -652,7 +652,6 @@ func (s *hooksRPCServer) MessageWillBePosted(args *Z_MessageWillBePostedArgs, re
 		MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBePosted(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("hook MessageWillBePosted called but not implemented"))
 	}
@@ -693,7 +692,6 @@ func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, 
 		MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBeUpdated(args.A, args.B, args.C)
-
 	} else {
 		return encodableError(fmt.Errorf("hook MessageWillBeUpdated called but not implemented"))
 	}
@@ -715,7 +713,6 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...any) {
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
 		log.Printf("RPC call to LogDebug API failed: %s", err.Error())
 	}
-
 }
 
 func (s *apiRPCServer) LogDebug(args *Z_LogDebugArgs, returns *Z_LogDebugReturns) error {
@@ -744,7 +741,6 @@ func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...any) {
 	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
 		log.Printf("RPC call to LogInfo API failed: %s", err.Error())
 	}
-
 }
 
 func (s *apiRPCServer) LogInfo(args *Z_LogInfoArgs, returns *Z_LogInfoReturns) error {
@@ -773,7 +769,6 @@ func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...any) {
 	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
 		log.Printf("RPC call to LogWarn API failed: %s", err.Error())
 	}
-
 }
 
 func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) error {

@@ -45,7 +45,6 @@ func (tl TokenLocation) String() string {
 }
 
 func (a *App) IsPasswordValid(password string) *model.AppError {
-
 	if err := users.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings); err != nil {
 		var invErr *users.ErrInvalidPassword
 		switch {

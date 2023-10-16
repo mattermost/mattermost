@@ -19,7 +19,6 @@ func TestTermsOfServiceStore(t *testing.T) {
 }
 
 func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
-
 	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}
 
 	t.Run("first call by latest not cached, second cached and returning same data", func(t *testing.T) {

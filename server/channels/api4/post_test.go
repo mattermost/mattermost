@@ -425,7 +425,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	})
 	require.Nil(t, appErr, "should create an OAuthApp")
 
-	session, appErr := th.App.CreateSession(&model.Session{
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
 		UserId:  th.BasicUser.Id,
 		Token:   "token",
 		IsOAuth: true,
@@ -763,7 +763,7 @@ func TestCreatePostPublic(t *testing.T) {
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
+	th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(context.Background(), user.Email, user.Password)
@@ -816,7 +816,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
+	th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(context.Background(), user.Email, user.Password)
@@ -1358,7 +1358,6 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
-
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
