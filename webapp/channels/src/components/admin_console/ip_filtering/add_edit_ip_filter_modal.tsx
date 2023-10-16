@@ -6,10 +6,10 @@ import React, {useState} from 'react';
 import {Button, Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
 import ExternalLink from 'components/external_link';
-import InfoIcon from 'components/widgets/icons/info_icon';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -58,7 +58,7 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
 
     const validateCIDRInput = () => {
         if (!validateCIDR(cidr)) {
-            setCidrError({type: 'error', value: 'Invalid CIDR'});
+            setCidrError({type: 'error', value: 'Invalid CIDR address range'});
         }
     };
 
@@ -71,14 +71,14 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
         >
             <Modal.Header closeButton={true}>
                 <div className='title'>
-                    {formatMessage({id: 'admin.ip_filtering.add_ip_filter', defaultMessage: 'Add IP Filter'})}
+                    {existingRange?.CIDRBlock ? formatMessage({id: 'admin.ip_filtering.edit_ip_filter', defaultMessage: 'Edit IP Filter'}) : formatMessage({id: 'admin.ip_filtering.add_ip_filter', defaultMessage: 'Add IP Filter'})}
                 </div>
             </Modal.Header>
             <Modal.Body>
                 <div className='body'>
                     <div className='current_ip_notice'>
                         <div className='Content'>
-                            <span><InfoIcon/>{formatMessage({id: 'admin.ip_filtering.your_current_ip_is', defaultMessage: 'Your current IP address is {ip}'}, {ip: currentIP})}</span>
+                            <span><InformationOutlineIcon/>{formatMessage({id: 'admin.ip_filtering.your_current_ip_is', defaultMessage: 'Your current IP address is {ip}'}, {ip: currentIP})}</span>
                         </div>
                     </div>
                     <div className='inputs'>

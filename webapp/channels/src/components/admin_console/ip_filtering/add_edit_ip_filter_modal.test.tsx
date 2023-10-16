@@ -29,12 +29,24 @@ describe('IPFilteringAddOrEditModal', () => {
         jest.clearAllMocks();
     });
 
-    test('renders the modal with the correct title', () => {
+    test('renders the modal with the correct title when an existingRange is provided', () => {
         const {getByText} = render(
             <IPFilteringAddOrEditModal
                 onClose={onClose}
                 onSave={onSave}
                 existingRange={existingRange}
+                currentIP={currentIP}
+            />,
+        );
+
+        expect(getByText('Edit IP Filter')).toBeInTheDocument();
+    });
+
+    test('renders the modal with the correct title when an existingRange is omitted (ie, Add Modal)', () => {
+        const {getByText} = render(
+            <IPFilteringAddOrEditModal
+                onClose={onClose}
+                onSave={onSave}
                 currentIP={currentIP}
             />,
         );
@@ -120,7 +132,7 @@ describe('IPFilteringAddOrEditModal', () => {
         fireEvent.click(getByTestId('save-add-edit-button'));
 
         await waitFor(() => {
-            expect(getByText('Invalid CIDR')).toBeInTheDocument();
+            expect(getByText('Invalid CIDR address range')).toBeInTheDocument();
             expect(onSave).not.toHaveBeenCalled();
             expect(onClose).not.toHaveBeenCalled();
         });

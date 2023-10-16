@@ -170,25 +170,22 @@ const EditSection: React.FC<EditSectionProps> = ({
                             {formatMessage({id: 'admin.ip_filtering.no_filters', defaultMessage: 'No IP filtering rules added'})}
                         </div>
                         <div className='Subtitle'>
-                            <p>
-                                {formatMessage(
-                                    {
-                                        id: 'admin.ip_filtering.any_ip_can_access_add_filter',
-                                        defaultMessage: 'Any IP can access your workspace. To limit access to selected IP Addresses, {add}.',
-                                    },
-                                    {
-                                        add: (
-                                            <Button
-                                                onClick={() => setShowAddModal(true)}
-                                                className='Button'
-                                                type='button'
-                                            >
-                                                {formatMessage({id: 'admin.ip_filtering.add_filter', defaultMessage: 'Add a filter'})}
-                                            </Button>
-                                        ),
-                                    },
-                                )}
-                            </p>
+                            {formatMessage(
+                                {
+                                    id: 'admin.ip_filtering.any_ip_can_access_add_filter',
+                                    defaultMessage: 'Any IP can access your workspace. To limit access to selected IP Addresses, {add}.',
+                                },
+                                {
+                                    add: (
+                                        <div
+                                            onClick={() => setShowAddModal(true)}
+                                            className='Button'
+                                        >
+                                            {formatMessage({id: 'admin.ip_filtering.add_filter', defaultMessage: 'Add a filter'})}
+                                        </div>
+                                    ),
+                                },
+                            )}
                         </div>
                     </div>
                 )

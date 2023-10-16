@@ -16,20 +16,31 @@
 
     .modal-header {
         .close {
-            &:hover,
-            &:active,
-            &:focus,
-            &:active:focus {
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            &:hover {
+                background-color:
+                    rgba(
+                        var(--center-channel-color-rgb),
+                        0.08
+                    );
                 color: rgba(var(--center-channel-color-rgb), 0.72);
-                opacity: 1;
             }
 
+            &:active {
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+                color: var(--button-bg);
+            }
+
+            top: 26px;
+            right: 26px;
+            width: 24px;
+            height: 24px;
             border-radius: 4px;
             color: rgba(var(--center-channel-color-rgb), 0.56) !important;
             font-family:
                 'Open Sans',
                 sans-serif;
+            font-size: 32px;
+            font-weight: 400;
         }
 
         .title {
@@ -44,6 +55,7 @@
         display: block;
         min-height: 48px;
         padding-top: 26px;
+        padding-right: 32px;
         padding-bottom: 0;
         padding-left: 32px;
         border: 0;
@@ -108,10 +120,10 @@
             line-height: 20px;
 
             > div {
-                margin-top: var(--spacing-xl, 24px);
+                margin-top: 24px;
 
                 .Input_container {
-                    margin-top: var(--spacing-xs, 8px);
+                    margin-top: 8px;
                 }
 
                 input {
@@ -120,7 +132,7 @@
             }
 
             > p {
-                margin-top: var(--spacing-xs, 8px);
+                margin-top: 8px;
                 font-weight: 400;
             }
         }
@@ -164,7 +176,7 @@
         line-height: 20px;
 
         .btn-cancel {
-            padding: var(--spacing-s, 10px) var(--spacing-xl, 20px);
+            padding: 10px 20px;
             background: var(--button-bg-8, rgba(28, 88, 217, 0.08));
             border-radius: 4px;
             color: var(--button-bg, #1c58d9);

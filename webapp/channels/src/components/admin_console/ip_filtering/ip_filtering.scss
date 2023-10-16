@@ -6,8 +6,8 @@
         height: 100%;
         flex-direction: column;
         align-items: flex-start;
-        padding: var(--spacing-xl, 20px);
-        gap: var(--spacing-xl, 20px);
+        padding: 20px;
+        gap: 20px;
 
         .EditSection {
             width: 920px;
@@ -23,8 +23,6 @@
                 width: 100%;
                 flex-direction: column;
                 padding: 20px;
-                background: white;
-                border-radius: 8px;
 
                 .Table {
                     display: flex;
@@ -152,7 +150,8 @@
                     text-align: center;
 
                     .Button {
-                        height: 14px;
+                        display: inline;
+                        height: 20px;
                         padding: 0;
                         background: none;
                         color: var(--link-color, #1c58d9);
@@ -160,6 +159,12 @@
                         font-size: 14px;
                         font-style: normal;
                         font-weight: 400;
+                        line-height: 20px;
+                        text-align: center;
+
+                        &:hover {
+                            cursor: pointer;
+                        }
                     }
                 }
             }
@@ -328,10 +333,12 @@
             flex-direction: column;
             align-items: flex-start;
             justify-content: flex-start;
-            padding: var(--spacing-xxl, 24px) 32px;
-            background-color: var(--center-channel-bg, #fff);
-            border-radius: 8px;
-            gap: var(--spacing-xxl, 24px);
+            padding: 24px 32px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            background-color: var(--center-channel-bg);
+            border-radius: 4px;
+            box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.08);
+            gap: 24px;
 
             .Frame1281 {
                 display: inline-flex;

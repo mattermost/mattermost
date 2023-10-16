@@ -5,8 +5,9 @@ import React from 'react';
 import {Button, Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+
 import ExternalLink from 'components/external_link';
-import InfoIcon from 'components/widgets/icons/info_icon';
 
 import './save_confirmation_modal.scss';
 
@@ -38,7 +39,7 @@ export default function SaveConfirmationModal({onClose, onConfirm, title, subtit
                 {includeDisclaimer &&
                     <div className='disclaimer'>
                         <div className='Icon'>
-                            <InfoIcon/>
+                            <InformationOutlineIcon/>
                         </div>
                         <div className='Body'>
                             <div className='Title'>{formatMessage({id: 'admin.ip_filtering.save_disclaimer_title', defaultMessage: 'Using the Customer Portal to restore access'})}</div>
