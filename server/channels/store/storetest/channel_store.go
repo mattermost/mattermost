@@ -4472,6 +4472,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
+		userId3 := model.NewId()
 
 		channelId := model.NewId()
 
@@ -4496,21 +4497,28 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId3,
+			ChannelId: channelId,
+			CreateAt:  1003,
+		})
+		require.NoError(t, err)
+
 		count, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, 4, count)
 
 		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, 3, count)
 
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId1)
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId2)
+		require.NoError(t, err)
+		assert.Equal(t, 3, count)
+
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId2)
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
-
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId1)
-		require.NoError(t, err)
-		assert.Equal(t, 1, count)
 	})
 
 	t.Run("should not count deleted posts", func(t *testing.T) {
@@ -4616,6 +4624,7 @@ func testCountUrgentPostsAfter(t *testing.T, ss store.Store) {
 	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
+		userId3 := model.NewId()
 
 		channelId := model.NewId()
 
@@ -4654,19 +4663,33 @@ func testCountUrgentPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId3,
+			ChannelId: channelId,
+			CreateAt:  1003,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewString(model.PostPriorityUrgent),
+					RequestedAck:            model.NewBool(false),
+					PersistentNotifications: model.NewBool(false),
+				},
+			},
+		})
+		require.NoError(t, err)
+
 		count, err := ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, 2, count)
 
 		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, 1, count)
 
-		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, userId1)
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, userId3)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 
-		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, userId1)
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, userId3)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
