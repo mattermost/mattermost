@@ -7,18 +7,19 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       "savePreferences": [MockFunction],
     }
   }
-  activeSection="email"
+  active={true}
+  areAllSectionsInactive={false}
   currentUserId="current_user_id"
   emailInterval={0}
   enableEmail={false}
   enableEmailBatching={false}
+  error=""
   isCollapsedThreadsEnabled={false}
   onCancel={[MockFunction]}
   onChange={[MockFunction]}
   onSubmit={[MockFunction]}
   saving={false}
   sendEmailNotifications={true}
-  serverError=""
   setParentState={[MockFunction]}
   threads="all"
   updateSection={[MockFunction]}
@@ -92,7 +93,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     section=""
     serverError=""
     submit={[Function]}
-    title="Email Notifications"
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Email Notifications"
+        id="user.settings.notifications.emailNotifications"
+      />
+    }
     updateSection={[Function]}
   >
     <section
@@ -102,7 +108,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         className="col-sm-12 section-title"
         id="settingTitle"
       >
-        Email Notifications
+        <FormattedMessage
+          defaultMessage="Email Notifications"
+          id="user.settings.notifications.emailNotifications"
+        >
+          <span>
+            Email Notifications
+          </span>
+        </FormattedMessage>
       </h4>
       <div
         className="col-sm-9 col-sm-offset-3"
@@ -266,7 +279,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 `;
 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, active section != email and SendEmailNotifications !== true 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Email notifications are not enabled"
@@ -274,13 +287,18 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     />
   }
   section="email"
-  title="Email Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Email Notifications"
+      id="user.settings.notifications.emailNotifications"
+    />
+  }
   updateSection={[Function]}
 />
 `;
 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, active section != email and SendEmailNotifications = true 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Never"
@@ -288,13 +306,18 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     />
   }
   section="email"
-  title="Email Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Email Notifications"
+      id="user.settings.notifications.emailNotifications"
+    />
+  }
   updateSection={[Function]}
 />
 `;
 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, active section != email, SendEmailNotifications = true and enableEmail = true 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Immediately"
@@ -302,7 +325,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     />
   }
   section="email"
-  title="Email Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Email Notifications"
+      id="user.settings.notifications.emailNotifications"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -314,18 +342,19 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       "savePreferences": [MockFunction],
     }
   }
-  activeSection="email"
+  active={true}
+  areAllSectionsInactive={false}
   currentUserId="current_user_id"
   emailInterval={0}
   enableEmail={false}
   enableEmailBatching={true}
+  error=""
   isCollapsedThreadsEnabled={false}
   onCancel={[MockFunction]}
   onChange={[MockFunction]}
   onSubmit={[MockFunction]}
   saving={false}
   sendEmailNotifications={true}
-  serverError=""
   setParentState={[MockFunction]}
   threads="all"
   updateSection={[MockFunction]}
@@ -448,7 +477,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     section=""
     serverError=""
     submit={[Function]}
-    title="Email Notifications"
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Email Notifications"
+        id="user.settings.notifications.emailNotifications"
+      />
+    }
     updateSection={[Function]}
   >
     <section
@@ -458,7 +492,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         className="col-sm-12 section-title"
         id="settingTitle"
       >
-        Email Notifications
+        <FormattedMessage
+          defaultMessage="Email Notifications"
+          id="user.settings.notifications.emailNotifications"
+        >
+          <span>
+            Email Notifications
+          </span>
+        </FormattedMessage>
       </h4>
       <div
         className="col-sm-9 col-sm-offset-3"
@@ -701,7 +742,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   saving={false}
   section="email"
   serverError=""
-  title="Email Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Email Notifications"
+      id="user.settings.notifications.emailNotifications"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -776,7 +822,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section=""
   serverError="serverError"
   submit={[Function]}
-  title="Email Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Email Notifications"
+      id="user.settings.notifications.emailNotifications"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -889,7 +940,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section=""
   serverError=""
   submit={[Function]}
-  title="Email Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Email Notifications"
+      id="user.settings.notifications.emailNotifications"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -964,7 +1020,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section=""
   serverError=""
   submit={[Function]}
-  title="Email Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Email Notifications"
+      id="user.settings.notifications.emailNotifications"
+    />
+  }
   updateSection={[Function]}
 />
 `;

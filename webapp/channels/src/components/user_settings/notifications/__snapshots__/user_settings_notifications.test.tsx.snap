@@ -68,31 +68,25 @@ Object {
           <div
             class="section-min"
           >
-            <div
-              class="d-flex"
-            >
+            <div>
               <h4
                 class="section-min__title"
                 id="desktopTitle"
               >
                 Desktop Notifications
               </h4>
-              <div
-                class="section-min__edit"
+              <button
+                aria-expanded="false"
+                aria-labelledby="desktopTitle desktopEdit"
+                class="color--link style--none section-min__edit"
+                id="desktopEdit"
               >
-                <button
-                  aria-expanded="false"
-                  aria-labelledby="desktopTitle desktopEdit"
-                  class="color--link cursor--pointer style--none text-left"
-                  id="desktopEdit"
-                >
-                  <i
-                    class="icon-pencil-outline"
-                    title="Edit Icon"
-                  />
-                  Edit
-                </button>
-              </div>
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
             </div>
             <div
               class="section-min__describe"
@@ -107,31 +101,25 @@ Object {
           <div
             class="section-min"
           >
-            <div
-              class="d-flex"
-            >
+            <div>
               <h4
                 class="section-min__title"
                 id="emailTitle"
               >
                 Email Notifications
               </h4>
-              <div
-                class="section-min__edit"
+              <button
+                aria-expanded="false"
+                aria-labelledby="emailTitle emailEdit"
+                class="color--link style--none section-min__edit"
+                id="emailEdit"
               >
-                <button
-                  aria-expanded="false"
-                  aria-labelledby="emailTitle emailEdit"
-                  class="color--link cursor--pointer style--none text-left"
-                  id="emailEdit"
-                >
-                  <i
-                    class="icon-pencil-outline"
-                    title="Edit Icon"
-                  />
-                  Edit
-                </button>
-              </div>
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
             </div>
             <div
               class="section-min__describe"
@@ -146,31 +134,25 @@ Object {
           <div
             class="section-min"
           >
-            <div
-              class="d-flex"
-            >
+            <div>
               <h4
                 class="section-min__title"
                 id="pushTitle"
               >
                 Mobile Push Notifications
               </h4>
-              <div
-                class="section-min__edit"
+              <button
+                aria-expanded="false"
+                aria-labelledby="pushTitle pushEdit"
+                class="color--link style--none section-min__edit"
+                id="pushEdit"
               >
-                <button
-                  aria-expanded="false"
-                  aria-labelledby="pushTitle pushEdit"
-                  class="color--link cursor--pointer style--none text-left"
-                  id="pushEdit"
-                >
-                  <i
-                    class="icon-pencil-outline"
-                    title="Edit Icon"
-                  />
-                  Edit
-                </button>
-              </div>
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
             </div>
             <div
               class="section-min__describe"
@@ -185,31 +167,25 @@ Object {
           <div
             class="section-min"
           >
-            <div
-              class="d-flex"
-            >
+            <div>
               <h4
                 class="section-min__title"
                 id="keysWithNotificationTitle"
               >
                 Keywords that trigger Notifications
               </h4>
-              <div
-                class="section-min__edit"
+              <button
+                aria-expanded="false"
+                aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
+                class="color--link style--none section-min__edit"
+                id="keysWithNotificationEdit"
               >
-                <button
-                  aria-expanded="false"
-                  aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
-                  class="color--link cursor--pointer style--none text-left"
-                  id="keysWithNotificationEdit"
-                >
-                  <i
-                    class="icon-pencil-outline"
-                    title="Edit Icon"
-                  />
-                  Edit
-                </button>
-              </div>
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
             </div>
             <div
               class="section-min__describe"
@@ -224,31 +200,25 @@ Object {
           <div
             class="section-min"
           >
-            <div
-              class="d-flex"
-            >
+            <div>
               <h4
                 class="section-min__title"
                 id="keysWithHighlightTitle"
               >
                 Keywords That Get Highlighted (without notifications)
               </h4>
-              <div
-                class="section-min__edit"
+              <button
+                aria-expanded="false"
+                aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
+                class="color--link style--none section-min__edit"
+                id="keysWithHighlightEdit"
               >
-                <button
-                  aria-expanded="false"
-                  aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
-                  class="color--link cursor--pointer style--none text-left"
-                  id="keysWithHighlightEdit"
-                >
-                  <i
-                    class="icon-pencil-outline"
-                    title="Edit Icon"
-                  />
-                  Edit
-                </button>
-              </div>
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
             </div>
             <div
               class="section-min__describe"
@@ -331,31 +301,25 @@ Object {
         <div
           class="section-min"
         >
-          <div
-            class="d-flex"
-          >
+          <div>
             <h4
               class="section-min__title"
               id="desktopTitle"
             >
               Desktop Notifications
             </h4>
-            <div
-              class="section-min__edit"
+            <button
+              aria-expanded="false"
+              aria-labelledby="desktopTitle desktopEdit"
+              class="color--link style--none section-min__edit"
+              id="desktopEdit"
             >
-              <button
-                aria-expanded="false"
-                aria-labelledby="desktopTitle desktopEdit"
-                class="color--link cursor--pointer style--none text-left"
-                id="desktopEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
           </div>
           <div
             class="section-min__describe"
@@ -370,31 +334,25 @@ Object {
         <div
           class="section-min"
         >
-          <div
-            class="d-flex"
-          >
+          <div>
             <h4
               class="section-min__title"
               id="emailTitle"
             >
               Email Notifications
             </h4>
-            <div
-              class="section-min__edit"
+            <button
+              aria-expanded="false"
+              aria-labelledby="emailTitle emailEdit"
+              class="color--link style--none section-min__edit"
+              id="emailEdit"
             >
-              <button
-                aria-expanded="false"
-                aria-labelledby="emailTitle emailEdit"
-                class="color--link cursor--pointer style--none text-left"
-                id="emailEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
           </div>
           <div
             class="section-min__describe"
@@ -409,31 +367,25 @@ Object {
         <div
           class="section-min"
         >
-          <div
-            class="d-flex"
-          >
+          <div>
             <h4
               class="section-min__title"
               id="pushTitle"
             >
               Mobile Push Notifications
             </h4>
-            <div
-              class="section-min__edit"
+            <button
+              aria-expanded="false"
+              aria-labelledby="pushTitle pushEdit"
+              class="color--link style--none section-min__edit"
+              id="pushEdit"
             >
-              <button
-                aria-expanded="false"
-                aria-labelledby="pushTitle pushEdit"
-                class="color--link cursor--pointer style--none text-left"
-                id="pushEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
           </div>
           <div
             class="section-min__describe"
@@ -448,31 +400,25 @@ Object {
         <div
           class="section-min"
         >
-          <div
-            class="d-flex"
-          >
+          <div>
             <h4
               class="section-min__title"
               id="keysWithNotificationTitle"
             >
               Keywords that trigger Notifications
             </h4>
-            <div
-              class="section-min__edit"
+            <button
+              aria-expanded="false"
+              aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
+              class="color--link style--none section-min__edit"
+              id="keysWithNotificationEdit"
             >
-              <button
-                aria-expanded="false"
-                aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
-                class="color--link cursor--pointer style--none text-left"
-                id="keysWithNotificationEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
           </div>
           <div
             class="section-min__describe"
@@ -487,31 +433,25 @@ Object {
         <div
           class="section-min"
         >
-          <div
-            class="d-flex"
-          >
+          <div>
             <h4
               class="section-min__title"
               id="keysWithHighlightTitle"
             >
               Keywords That Get Highlighted (without notifications)
             </h4>
-            <div
-              class="section-min__edit"
+            <button
+              aria-expanded="false"
+              aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
+              class="color--link style--none section-min__edit"
+              id="keysWithHighlightEdit"
             >
-              <button
-                aria-expanded="false"
-                aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
-                class="color--link cursor--pointer style--none text-left"
-                id="keysWithHighlightEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
           </div>
           <div
             class="section-min__describe"

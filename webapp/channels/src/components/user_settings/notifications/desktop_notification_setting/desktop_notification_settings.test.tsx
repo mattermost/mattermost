@@ -81,8 +81,8 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should call props.updateSection and props.cancel on handleMinUpdateSection', () => {
-        const props = {...baseProps, updateSection: jest.fn(), cancel: jest.fn()};
+    test('should call props.updateSection and props.onCancel on handleMinUpdateSection', () => {
+        const props = {...baseProps, updateSection: jest.fn(), onCancel: jest.fn()};
         const wrapper = shallow<DesktopNotificationSettings>(
             <DesktopNotificationSettings {...props}/>,
         );
@@ -90,14 +90,14 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
         wrapper.instance().handleMinUpdateSection('');
         expect(props.updateSection).toHaveBeenCalledTimes(1);
         expect(props.updateSection).toHaveBeenCalledWith('');
-        expect(props.cancel).toHaveBeenCalledTimes(1);
-        expect(props.cancel).toHaveBeenCalledWith();
+        expect(props.onCancel).toHaveBeenCalledTimes(1);
+        expect(props.onCancel).toHaveBeenCalledWith();
 
         wrapper.instance().handleMinUpdateSection('desktop');
         expect(props.updateSection).toHaveBeenCalledTimes(2);
         expect(props.updateSection).toHaveBeenCalledWith('desktop');
-        expect(props.cancel).toHaveBeenCalledTimes(2);
-        expect(props.cancel).toHaveBeenCalledWith();
+        expect(props.onCancel).toHaveBeenCalledTimes(2);
+        expect(props.onCancel).toHaveBeenCalledWith();
     });
 
     test('should call props.updateSection on handleMaxUpdateSection', () => {

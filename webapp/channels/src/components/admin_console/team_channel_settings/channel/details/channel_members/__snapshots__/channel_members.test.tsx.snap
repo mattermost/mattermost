@@ -3,7 +3,7 @@
 exports[`admin_console/team_channel_settings/channel/ChannelMembers should match snapshot 1`] = `
 <AdminPanel
   button={
-    <Memo(Connect(ToggleModalButton))
+    <ToggleModalButton
       className="btn btn-primary"
       dialogProps={
         Object {
@@ -47,7 +47,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
         defaultMessage="Add Members"
         id="admin.team_settings.team_details.add_members"
       />
-    </Memo(Connect(ToggleModalButton))>
+    </ToggleModalButton>
   }
   className=""
   id="channelMembers"
@@ -317,7 +317,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
 exports[`admin_console/team_channel_settings/channel/ChannelMembers should match snapshot loading no users 1`] = `
 <AdminPanel
   button={
-    <Memo(Connect(ToggleModalButton))
+    <ToggleModalButton
       className="btn btn-primary"
       dialogProps={
         Object {
@@ -361,7 +361,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
         defaultMessage="Add Members"
         id="admin.team_settings.team_details.add_members"
       />
-    </Memo(Connect(ToggleModalButton))>
+    </ToggleModalButton>
   }
   className=""
   id="channelMembers"
