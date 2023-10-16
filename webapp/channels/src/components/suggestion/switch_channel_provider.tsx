@@ -49,7 +49,7 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {getPostDraft} from 'selectors/rhs';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
@@ -388,9 +388,10 @@ function makeChannelSearchFilter(channelPrefix: string) {
     const curState = getState();
     const usersInChannels = getUserIdsInChannels(curState);
     const userSearchStrings: RelationOneToOne<UserProfile, string> = {};
+    const SEPARATOR = ';|;';
 
     return (channel: ChannelItem) => {
-        let searchString = `${channel.display_name}${channel.name}`;
+        let searchString = `${channel.display_name}${SEPARATOR}${channel.name}`;
         if (channel.type === Constants.GM_CHANNEL || channel.type === Constants.DM_CHANNEL) {
             const usersInChannel = usersInChannels[channel.id] || new Set([]);
 
@@ -412,7 +413,7 @@ function makeChannelSearchFilter(channelPrefix: string) {
                         continue;
                     }
                     const {nickname, username} = user;
-                    userString = `${nickname}${username}${Utils.getFullName(user)}`;
+                    userString = [nickname, username, Utils.getFullName(user)].join(SEPARATOR);
                     userSearchStrings[userId] = userString;
                 }
                 searchString += userString;

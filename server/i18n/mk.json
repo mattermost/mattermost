@@ -104,14 +104,6 @@
     "translation": "Декември"
   },
   {
-    "id": "Channels",
-    "translation": "Канали"
-  },
-  {
-    "id": "Boards",
-    "translation": "Табли"
-  },
-  {
     "id": "August",
     "translation": "Август"
   },
@@ -306,10 +298,6 @@
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
     "translation": "Неможеше да се парсира повеќеделна форма."
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Работни Книги"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
