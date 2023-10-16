@@ -7076,5 +7076,109 @@
   {
     "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": ""
+  },
+  {
+    "id": "app.session.remove.app_error",
+    "translation": "Không thể xóa phiên."
+  },
+  {
+    "id": "app.session.remove_all_sessions_for_team.app_error",
+    "translation": "Không thể xóa tất cả các phiên."
+  },
+  {
+    "id": "app.session.save.app_error",
+    "translation": "Không thể lưu phiên."
+  },
+  {
+    "id": "app.session.save.existing.app_error",
+    "translation": "Không thể cập nhật phiên hiện có."
+  },
+  {
+    "id": "app.session.update_device_id.app_error",
+    "translation": "Không thể cập nhật id thiết bị."
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "Đã gặp lỗi khi tạo kênh chia sẻ trực tiếp."
+  },
+  {
+    "id": "app.status.get.app_error",
+    "translation": "Đã gặp lỗi khi truy xuất trạng thái."
+  },
+  {
+    "id": "app.status.get.missing.app_error",
+    "translation": "Không có mục nào cho trạng thái đó tồn tại."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Việc giới thiệu chỉ có thể được hoàn thành bởi Quản trị viên hệ thống."
+  },
+  {
+    "id": "app.system.get.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm thuộc tính hệ thống."
+  },
+  {
+    "id": "app.system.get_by_name.app_error",
+    "translation": "Không thể tìm thấy biến hệ thống."
+  },
+  {
+    "id": "app.system.warn_metric.bot_displayname",
+    "translation": "Cố vấn của Mattermost"
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Không nhận được trạng thái hoàn tất quá trình giới thiệu."
+  },
+  {
+    "id": "app.system.permanent_delete_by_name.app_error",
+    "translation": "Chúng tôi không thể xóa vĩnh viễn mục nhập bảng hệ thống."
+  },
+  {
+    "id": "app.system.save.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi lưu thuộc tính hệ thống."
+  },
+  {
+    "id": "app.system.warn_metric.store.app_error",
+    "translation": "Không lưu trữ được giá trị cho {{.WarnMetricName}}"
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Không thể đếm được các đội."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Không thể truy xuất các thành viên trong nhóm."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Không giải mã được yêu cầu giới thiệu hoàn chỉnh."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Lỗi xóa bộ nhớ đệm của thành viên nhóm"
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Không thể tìm thấy đội hiện có."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Không thể đếm được số thành viên trong nhóm."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Chúng tôi không thể có được tất cả các đội."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Chúng tôi không thể có được tất cả các đội."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm nhóm."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Chúng tôi không thể có được tất cả các đội tư nhân."
   }
 ]
