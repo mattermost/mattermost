@@ -241,7 +241,6 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 	assert.Equal(t, 2, len(remojis))
 	assert.Equal(t, emojis[1].Name, remojis[0].Name)
 	assert.Equal(t, emojis[2].Name, remojis[1].Name)
-
 }
 
 func testEmojiSearch(t *testing.T, ss store.Store) {

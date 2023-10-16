@@ -38,7 +38,7 @@ func (api *API) InitSamlLocal() {
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
-	metadata, err := c.App.GetSamlMetadata()
+	metadata, err := c.App.GetSamlMetadata(c.AppContext)
 	if err != nil {
 		c.Err = err
 		return
