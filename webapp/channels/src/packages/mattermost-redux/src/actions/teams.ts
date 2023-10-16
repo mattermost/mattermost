@@ -21,8 +21,8 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {GetStateFunc, DispatchFunc, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
-import team from 'components/admin_console/team_channel_settings/team';
 
 async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: DispatchFunc, getState: GetStateFunc) {
     const {
@@ -738,28 +738,26 @@ export function joinTeam(inviteId: string, teamId: string): ActionFunc {
 }
 
 export function setTeamIcon(teamId: string, imageData: File): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let team;
+    return async (dispatch: DispatchFunc) => {
         await Client4.setTeamIcon(teamId, imageData);
-        team = await Client4.getTeam(teamId);
+        const team = await Client4.getTeam(teamId);
         dispatch({
             type: TeamTypes.PATCHED_TEAM,
             data: team,
         });
-        return {data: teamId}
+        return {data: teamId};
     };
 }
 
 export function removeTeamIcon(teamId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let team;
+    return async (dispatch: DispatchFunc) => {
         await Client4.removeTeamIcon(teamId);
-        team = await Client4.getTeam(teamId);
+        const team = await Client4.getTeam(teamId);
         dispatch({
             type: TeamTypes.PATCHED_TEAM,
             data: team,
         });
-        return {data: teamId}
+        return {data: teamId};
     };
 }
 
