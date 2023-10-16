@@ -5,13 +5,8 @@
 
 import {DynamicSizeList} from 'dynamic-virtualized-list';
 import type {OnItemsRenderedArgs} from 'dynamic-virtualized-list';
-import Pluggable from 'plugins/pluggable';
 import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import Constants, {PostListRowListIds, EventTypes, PostRequestTypes} from 'utils/constants';
-import DelayedAction from 'utils/delayed_action';
-import {getPreviousPostId, getLatestPostId, getNewMessageIndex} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import {isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';
@@ -23,6 +18,12 @@ import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import PostListRow from 'components/post_view/post_list_row';
 import ScrollToBottomArrows from 'components/post_view/scroll_to_bottom_arrows';
 import ToastWrapper from 'components/toast_wrapper';
+
+import Pluggable from 'plugins/pluggable';
+import Constants, {PostListRowListIds, EventTypes, PostRequestTypes} from 'utils/constants';
+import DelayedAction from 'utils/delayed_action';
+import {getPreviousPostId, getLatestPostId, getNewMessageIndex} from 'utils/post_utils';
+import * as Utils from 'utils/utils';
 
 import LatestPostReader from './latest_post_reader';
 

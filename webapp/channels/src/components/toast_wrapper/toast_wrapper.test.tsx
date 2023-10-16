@@ -4,20 +4,20 @@
 import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import type {ComponentProps} from 'react';
+
+import Preferences from 'mattermost-redux/constants/preferences';
+import {DATE_LINE} from 'mattermost-redux/utils/post_list';
+
+import {HINT_TOAST_TESTID} from 'components/hint-toast/hint_toast';
+import {SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID, SCROLL_TO_BOTTOM_TOAST_TESTID} from 'components/scroll_to_bottom_toast/scroll_to_bottom_toast';
+
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {PostListRowListIds} from 'utils/constants';
 
-import Preferences from 'mattermost-redux/constants/preferences';
-import {DATE_LINE} from 'mattermost-redux/utils/post_list';
-
-import {HintToast, HINT_TOAST_TESTID} from 'components/hint-toast/hint_toast';
-import ScrollToBottomToast from 'components/scroll_to_bottom_toast';
-
 import ToastWrapper from './toast_wrapper';
 import type {Props, ToastWrapperClass} from './toast_wrapper';
-import { SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID, SCROLL_TO_BOTTOM_TOAST_TESTID } from 'components/scroll_to_bottom_toast/scroll_to_bottom_toast';
 
 describe('components/ToastWrapper', () => {
     const baseProps: ComponentProps<typeof ToastWrapper> = {
