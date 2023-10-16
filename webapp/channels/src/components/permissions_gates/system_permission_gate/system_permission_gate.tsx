@@ -25,15 +25,19 @@ type Props = {
     children: React.ReactNode;
 };
 
-export default function SystemPermissionGate(props: Props) {
-    if (props.hasPermission && !props.invert) {
-        return props.children;
+const SystemPermissionGate = ({
+    permissions,
+    hasPermission,
+    invert = false,
+    children,
+ } : Props) => {
+    if (hasPermission && !invert) {
+        return children;
     }
-    if (!props.hasPermission && props.invert) {
-        return props.children;
+    if (!hasPermission && invert) {
+        return children;
     }
     return null;
 }
-SystemPermissionGate.defaultProps = {
-    invert: false,
-};
+
+export default SystemPermissionGate;
