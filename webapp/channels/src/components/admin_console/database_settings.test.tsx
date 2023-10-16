@@ -4,6 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import DatabaseSettings from 'components/admin_console/database_settings';
 
 jest.mock('actions/admin_actions.jsx', () => {
@@ -26,10 +29,6 @@ describe('components/DatabaseSettings', () => {
         },
     };
     test('should match snapshot', () => {
-        const props = {
-            ...baseProps,
-            value: [],
-        };
         const config = {
             SqlSettings: {
                 MaxIdleConns: 10,
@@ -44,11 +43,16 @@ describe('components/DatabaseSettings', () => {
             ServiceSettings: {
                 MinimumHashtagLength: 10,
             },
+        } as DeepPartial<AdminConfig>;
+        const props = {
+            ...baseProps,
+            value: [],
+            config,
+            isDisabled: false,
         };
         const wrapper = shallow(
             <DatabaseSettings
                 {...props}
-                config={config}
             />,
         );
         expect(wrapper).toMatchSnapshot();
