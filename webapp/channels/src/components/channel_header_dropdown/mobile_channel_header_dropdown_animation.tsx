@@ -12,6 +12,11 @@ type Props = {
     show: boolean;
 };
 
+const timeout = {
+    enter: ANIMATION_DURATION,
+    exit: ANIMATION_DURATION,
+};
+
 const MobileChannelHeaderDropdownAnimation = ({show, children}: Props) => {
     return (
         <CSSTransition
@@ -21,10 +26,7 @@ const MobileChannelHeaderDropdownAnimation = ({show, children}: Props) => {
             exit={true}
             mountOnEnter={true}
             unmountOnExit={true}
-            timeout={{
-                enter: ANIMATION_DURATION,
-                exit: ANIMATION_DURATION,
-            }}
+            timeout={timeout}
         >
             {children}
         </CSSTransition>
