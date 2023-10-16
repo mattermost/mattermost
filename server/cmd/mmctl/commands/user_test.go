@@ -687,7 +687,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.Background(), userArg, "").
+			GetUser(context.Background(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("Error while getting user")).
 			Times(1)
 
