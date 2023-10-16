@@ -407,9 +407,59 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
+
+			pageLoadContext := r.Header.Get("X-Page-Load-Context")
+			if pageLoadContext != "page_load" && pageLoadContext != "reconnect" {
+				pageLoadContext = ""
+			}
+
+			originClient := string(originClient(r))
+
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originClient, pageLoadContext, elapsed)
 		}
 	}
+}
+
+type OriginClient string
+
+const (
+	OriginClientUnknown OriginClient = "unknown"
+	OriginClientWeb     OriginClient = "web"
+	OriginClientMobile  OriginClient = "mobile"
+	OriginClientDesktop OriginClient = "desktop"
+)
+
+// originClient returns the device from which the provided request was issued. The algorithm roughly looks like:
+// - If the URL contains the query mobilev2=true, then it's mobile
+// - If the first field of the user agent starts with either "rnbeta" or "Mattermost", then it's mobile
+// - If the last field of the user agent starts with "Mattermost", then it's desktop
+// - Otherwise, it's web
+func originClient(r *http.Request) OriginClient {
+	userAgent := r.Header.Get("User-Agent")
+	fields := strings.Fields(userAgent)
+	if len(fields) < 1 {
+		return OriginClientUnknown
+	}
+
+	// Is mobile post v2?
+	queryParam := r.URL.Query().Get("mobilev2")
+	if queryParam == "true" {
+		return OriginClientMobile
+	}
+
+	// Is mobile pre v2?
+	clientAgent := fields[0]
+	if strings.HasPrefix(clientAgent, "rnbeta") || strings.HasPrefix(clientAgent, "Mattermost") {
+		return OriginClientMobile
+	}
+
+	// Is desktop?
+	if strings.HasPrefix(fields[len(fields)-1], "Mattermost") {
+		return OriginClientDesktop
+	}
+
+	// Default to web
+	return OriginClientWeb
 }
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
