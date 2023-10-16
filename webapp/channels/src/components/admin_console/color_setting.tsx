@@ -16,27 +16,27 @@ type Props = {
     disabled?: boolean;
 }
 
-export default class ColorSetting extends React.PureComponent<Props> {
-    private handleChange = (color: string) => {
-        if (this.props.onChange) {
-            this.props.onChange(this.props.id, color);
+const ColorSetting: React.FC<Props> = (props) => {
+    const handleChange = (color: string) => {
+        if (props.onChange) {
+            props.onChange(props.id, color);
         }
     };
 
-    public render() {
-        return (
-            <Setting
-                label={this.props.label}
-                helpText={this.props.helpText}
-                inputId={this.props.id}
-            >
-                <ColorInput
-                    id={this.props.id}
-                    value={this.props.value}
-                    onChange={this.handleChange}
-                    isDisabled={this.props.disabled}
-                />
-            </Setting>
-        );
-    }
-}
+return (
+        <Setting
+            label={props.label}
+            helpText={props.helpText}
+            inputId={props.id}
+        >
+            <ColorInput
+                id={props.id}
+                value={props.value}
+                onChange={handleChange}
+                isDisabled={props.disabled}
+            />
+        </Setting>
+    );
+};
+
+export default ColorSetting;
