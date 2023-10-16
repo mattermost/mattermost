@@ -6860,5 +6860,9 @@
   {
     "id": "api.templates.delinquency_14.subtitle2",
     "translation": "Vui lòng liên hệ với tổ chức tài chính của bạn để giải quyết mọi vấn đề. Sau đó, cập nhật chi tiết thanh toán của bạn nếu cần."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Lỗi xử lý yêu cầu tới CWS."
   }
 ]
