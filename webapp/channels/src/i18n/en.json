@@ -245,7 +245,6 @@
   "admin.billing.company_info.city": "City",
   "admin.billing.company_info.companyAddress": "Company Address",
   "admin.billing.company_info.companyName": "Company name",
-  "admin.billing.company_info.country": "Country",
   "admin.billing.company_info.employees": "{employees} employees",
   "admin.billing.company_info.numEmployees": "Number of employees (optional)",
   "admin.billing.company_info.title": "Company Information",
