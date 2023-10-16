@@ -459,7 +459,6 @@ func (th *TestHelper) InitLogin() *TestHelper {
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
-	mlog.Debug("INITBASIC")
 	th.BasicTeam = th.CreateTeam()
 	th.BasicChannel = th.CreatePublicChannel()
 	th.BasicPrivateChannel = th.CreatePrivateChannel()
@@ -468,12 +467,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicChannel2 = th.CreatePublicChannel()
 	th.BasicPost = th.CreatePost()
 
-	mlog.Debug("INITBASIC2" + th.BasicUser.Username)
-	mlog.Debug("INITBASIC2" + th.BasicUser2.Username)
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
 
-	mlog.Debug("INITBASIC3")
 	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
 	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false)
@@ -486,7 +482,6 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
 	th.LoginBasic()
 
-	mlog.Debug("INITBASIC4")
 	th.Group = th.CreateGroup()
 
 	return th
