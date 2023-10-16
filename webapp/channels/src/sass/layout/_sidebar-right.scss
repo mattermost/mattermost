@@ -17,7 +17,6 @@
 
     &:not(.expanded):not(.resize-disabled) {
         min-width: 400px;
-        max-width: 400px;
 
         &.sidebar--right--width-holder {
             @media screen and (min-width: 901px) and (max-width: 1200px) {
@@ -150,8 +149,6 @@
     }
 
     .sidebar--right__expand {
-        margin: 0 4px 0 0;
-
         i {
             top: 0;
         }
@@ -236,6 +233,7 @@
         white-space: nowrap;
 
         .btn-icon {
+            margin: 0 !important;
             font-size: 20px;
         }
 
@@ -243,6 +241,7 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
+            gap: 4px;
         }
     }
 

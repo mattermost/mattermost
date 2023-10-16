@@ -1647,7 +1647,6 @@ func testFileInfoSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
 	})
-
 }
 
 func testFileInfoSlashShouldNotBeCharSeparator(t *testing.T, th *SearchTestHelper) {

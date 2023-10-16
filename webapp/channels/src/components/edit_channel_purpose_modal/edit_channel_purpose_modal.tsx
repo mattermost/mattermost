@@ -193,7 +193,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
                 <Modal.Footer>
                     <button
                         type='button'
-                        className='btn btn-link cancel-button'
+                        className='btn btn-tertiary cancel-button'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
@@ -203,7 +203,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
                     </button>
                     <button
                         type='button'
-                        className='btn btn-primary save-button'
+                        className='btn btn-primary'
                         disabled={this.state.requestStarted}
                         onClick={this.handleSave}
                     >

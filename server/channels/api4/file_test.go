@@ -97,7 +97,6 @@ func testUploadFilesPost(
 	clientIds []string,
 	useChunked bool,
 ) (*model.FileUploadResponse, *model.Response, error) {
-
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
 	// of files, but it's not critical here.
@@ -731,7 +730,6 @@ func TestUploadFiles(t *testing.T) {
 					th.cleanupTestFile(dbInfo)
 				}
 			})
-
 		}
 	}
 }
