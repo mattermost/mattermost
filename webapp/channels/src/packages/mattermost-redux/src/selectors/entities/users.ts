@@ -215,7 +215,7 @@ export const getCurrentUserMentionKeys: (state: GlobalState) => UserMentionKey[]
             keys.push({key: '@here'});
         }
 
-        const usernameKey = '@' + user.username;
+        const usernameKey = `"@${user.username}"`;
         if (keys.findIndex((key) => key.key === usernameKey) === -1) {
             keys.push({key: usernameKey});
         }

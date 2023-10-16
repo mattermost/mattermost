@@ -2031,24 +2031,34 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 		excludeClause := ""
 		if excludedTerms != "" {
-			excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
-		}
-
-		var termsClause string
-		if params.OrTerms {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
-		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
-		} else {
-			tsVectorSearchQuery := strings.Join(strings.Fields(terms), " & ")
-			if params.IsHashtag {
-				tsVectorSearchQuery = terms
+			negatedTerms := strings.Fields(excludedTerms)
+			for i := range negatedTerms {
+				negatedTerms[i] = "-"
 			}
-
-			termsClause = "(" + tsVectorSearchQuery + ")" + excludeClause
+			excludeClause = " " + strings.Join(negatedTerms, " or ")
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
+		termsClause := terms
+		if params.OrTerms && !strings.HasPrefix(terms, `"`) || !strings.HasSuffix(terms, `"`) {
+			// If not globally quoted, there could still be quoted substrings which needs to be ignored from the "OR" clause
+
+			// Remove extra whitespace
+			terms = strings.Join(strings.Fields(terms), " ")
+
+			// Regex to match quoted substrings and the spaces outside of the quoted substrings.
+			re := regexp.MustCompile(`".+?"|\s`)
+
+			// Replace spaces with ' or '.
+			termsClause = re.ReplaceAllStringFunc(terms, func(s string) string {
+				if s == " " {
+					return " or "
+				}
+				return s // Return quoted substrings as they are.
+			})
+		}
+
+		termsClause += excludeClause
+		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  websearch_to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
 		baseQuery = baseQuery.Where(searchClause, termsClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
