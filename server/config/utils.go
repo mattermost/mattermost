@@ -85,10 +85,6 @@ func desanitize(actual, target *model.Config) {
 		*target.MessageExportSettings.GlobalRelaySettings.SMTPPassword = *actual.MessageExportSettings.GlobalRelaySettings.SMTPPassword
 	}
 
-	if target.ServiceSettings.GfycatAPISecret != nil && *target.ServiceSettings.GfycatAPISecret == model.FakeSetting {
-		*target.ServiceSettings.GfycatAPISecret = *actual.ServiceSettings.GfycatAPISecret
-	}
-
 	if *target.ServiceSettings.SplitKey == model.FakeSetting {
 		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
 	}
@@ -120,14 +116,14 @@ func FixInvalidLocales(cfg *model.Config) bool {
 
 	locales := i18n.GetSupportedLocales()
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
+		mlog.Warn("DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value.", mlog.String("locale", *cfg.LocalizationSettings.DefaultServerLocale))
 		*cfg.LocalizationSettings.DefaultServerLocale = model.DefaultLocale
-		mlog.Warn("DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value.")
 		changed = true
 	}
 
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
+		mlog.Warn("DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value.", mlog.String("locale", *cfg.LocalizationSettings.DefaultClientLocale))
 		*cfg.LocalizationSettings.DefaultClientLocale = model.DefaultLocale
-		mlog.Warn("DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value.")
 		changed = true
 	}
 
@@ -164,13 +160,7 @@ func FixInvalidLocales(cfg *model.Config) bool {
 // Merge merges two configs together. The receiver's values are overwritten with the patch's
 // values except when the patch's values are nil.
 func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfig) (*model.Config, error) {
-	ret, err := utils.Merge(cfg, patch, mergeConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	retCfg := ret.(model.Config)
-	return &retCfg, nil
+	return utils.Merge(cfg, patch, mergeConfig)
 }
 
 func IsDatabaseDSN(dsn string) bool {

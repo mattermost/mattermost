@@ -1,0 +1,357 @@
+  /api/v4/cloud/limits:
+    get:
+      tags:
+        - cloud
+      summary: Get cloud workspace limits
+      description: >
+        Retrieve any cloud workspace limits applicable to this instance.
+
+        ##### Permissions
+
+        Must be authenticated and be licensed for Cloud.
+
+        __Minimum server version__: 7.0
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: GetCloudLimits
+      responses:
+        "200":
+          description: Cloud workspace limits returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductLimits"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/products:
+    get:
+      tags:
+        - cloud
+      summary: Get cloud products
+      description: >
+        Retrieve a list of all products that are offered for Mattermost Cloud.
+
+        ##### Permissions
+
+        Must have `manage_system` permission and be licensed for Cloud.
+
+        __Minimum server version__: 5.28
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: GetCloudProducts
+      responses:
+        "200":
+          description: Cloud products returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/payment:
+    post:
+      tags:
+        - cloud
+      summary: Create a customer setup payment intent
+      description: |
+        Creates a customer setup payment intent for the given Mattermost cloud installation.
+
+        ##### Permissions
+
+        Must have `manage_system` permission and be licensed for Cloud.
+
+        __Minimum server version__: 5.28
+        __Note:__: This is intended for internal use and is subject to change.
+
+      operationId: CreateCustomerPayment
+      responses:
+        "201":
+          description: Payment setup intented created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentSetupIntent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/payment/confirm:
+    post:
+      tags:
+        - cloud
+      summary: Completes the payment setup intent
+      description: >
+        Confirms the payment setup intent initiated when posting to `/cloud/payment`.
+
+        ##### Permissions
+
+        Must have `manage_system` permission and be licensed for Cloud.
+
+        __Minimum server version__: 5.28
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: ConfirmCustomerPayment
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                stripe_setup_intent_id:
+                  type: string
+      responses:
+        "200":
+          description: Payment setup intent confirmed successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/customer:
+    get:
+      tags:
+        - cloud
+      summary: Get cloud customer
+      description: >
+        Retrieves the customer information for the Mattermost Cloud customer bound to this installation.
+
+        ##### Permissions
+
+        Must have `manage_system` permission and be licensed for Cloud.
+
+        __Minimum server version__: 5.28
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: GetCloudCustomer
+      responses:
+        "200":
+          description: Cloud customer returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CloudCustomer"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    put:
+      tags:
+        - cloud
+      summary: Update cloud customer
+      description: >
+        Updates the customer information for the Mattermost Cloud customer bound to this installation.
+
+        ##### Permissions
+
+        Must have `manage_system` permission and be licensed for Cloud.
+
+        __Minimum server version__: 5.29
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: UpdateCloudCustomer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                contact_first_name:
+                  type: string
+                contact_last_name:
+                  type: string
+                num_employees:
+                  type: string
+        description: Customer patch including information to update
+        required: true
+      responses:
+        "200":
+          description: Cloud customer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CloudCustomer"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/customer/address:
+    put:
+      tags:
+        - cloud
+      summary: Update cloud customer address
+      description: >
+        Updates the company address for the Mattermost Cloud customer bound to this installation.
+
+        ##### Permissions
+
+        Must have `manage_system` permission and be licensed for Cloud.
+
+        __Minimum server version__: 5.29
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: UpdateCloudCustomerAddress
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Address"
+        description: Company address information to update
+        required: true
+      responses:
+        "200":
+          description: Cloud customer address updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CloudCustomer"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/subscription:
+    get:
+      tags:
+        - cloud
+      summary: Get cloud subscription
+      description: >
+        Retrieves the subscription information for the Mattermost Cloud customer bound to this installation.
+
+        ##### Permissions
+
+        Must have `manage_system` permission and be licensed for Cloud.
+
+        __Minimum server version__: 5.28
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: GetSubscription
+      responses:
+        "200":
+          description: Cloud subscription returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/subscription/invoices:
+    get:
+      tags:
+        - cloud
+      summary: Get cloud subscription invoices
+      description: >
+        Retrieves the invoices for the subscription bound to this installation.
+
+        ##### Permissions
+
+        Must have `manage_system` permission and be licensed for Cloud.
+
+        __Minimum server version__: 5.30
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: GetInvoicesForSubscription
+      responses:
+        "200":
+          description: Subscription invoices returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/subscription/invoices/{invoice_id}/pdf:
+    get:
+      tags:
+        - cloud
+      summary: Get cloud invoice PDF
+      description: >
+        Retrieves the PDF for the invoice passed as parameter
+
+        ##### Permissions
+
+        Must have `manage_system` permission and be licensed for Cloud.
+
+        __Minimum server version__: 5.30
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: GetInvoiceForSubscriptionAsPdf
+      parameters:
+        - name: invoice_id
+          in: path
+          description: Invoice ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/webhook:
+    post:
+      tags:
+        - cloud
+      summary: POST endpoint for CWS Webhooks
+      description: >
+        An endpoint for processing webhooks from the Customer Portal
+
+        ##### Permissions
+
+        This endpoint should only be accessed by CWS, in a Mattermost Cloud instance
+
+        __Minimum server version__: 5.30
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: PostEndpointForCwsWebhooks
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+

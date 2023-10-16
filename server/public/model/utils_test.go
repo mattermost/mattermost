@@ -183,7 +183,6 @@ func TestCopyStringMap(t *testing.T) {
 }
 
 func TestMapJson(t *testing.T) {
-
 	m := make(map[string]string)
 	m["id"] = "test_id"
 	json := MapToJSON(m)
@@ -677,7 +676,7 @@ func TestNowhereNil(t *testing.T) {
 	t.Parallel()
 
 	var nilStringPtr *string
-	var nonNilStringPtr *string = new(string)
+	var nonNilStringPtr = new(string)
 	var nilSlice []string
 	var nilStruct *struct{}
 	var nilMap map[bool]bool

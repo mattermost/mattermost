@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
@@ -45,7 +45,6 @@ func (tl TokenLocation) String() string {
 }
 
 func (a *App) IsPasswordValid(password string) *model.AppError {
-
 	if err := users.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings); err != nil {
 		var invErr *users.ErrInvalidPassword
 		switch {

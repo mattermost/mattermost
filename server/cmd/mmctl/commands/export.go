@@ -40,6 +40,13 @@ var ExportDownloadCmd = &cobra.Command{
 	RunE: withClient(exportDownloadCmdF),
 }
 
+var ExportGeneratePresignedURLCmd = &cobra.Command{
+	Use:   "generate-presigned-url [exportname]",
+	Short: "Generate a presigned url for an export file. This is helpful when an export is big and might have trouble downloading from the Mattermost server.",
+	Args:  cobra.ExactArgs(1),
+	RunE:  withClient(exportGeneratePresignedURLCmdF),
+}
+
 var ExportDeleteCmd = &cobra.Command{
 	Use:     "delete [exportname]",
 	Aliases: []string{"rm"},
@@ -93,6 +100,7 @@ func init() {
 	_ = ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
 
 	ExportCreateCmd.Flags().Bool("no-attachments", false, "Set to true to exclude file attachments in the export file.")
+	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Set to true to include archived channels in the export file.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
 	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
@@ -115,6 +123,7 @@ func init() {
 		ExportListCmd,
 		ExportDeleteCmd,
 		ExportDownloadCmd,
+		ExportGeneratePresignedURLCmd,
 		ExportJobCmd,
 	)
 	RootCmd.AddCommand(ExportCmd)
@@ -126,6 +135,11 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	excludeAttachments, _ := command.Flags().GetBool("no-attachments")
 	if !excludeAttachments {
 		data["include_attachments"] = "true"
+	}
+
+	includeArchivedChannels, _ := command.Flags().GetBool("include-archived-channels")
+	if includeArchivedChannels {
+		data["include_archived_channels"] = "true"
 	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
@@ -167,6 +181,22 @@ func exportDeleteCmdF(c client.Client, command *cobra.Command, args []string) er
 	}
 
 	printer.Print(fmt.Sprintf("Export file %q has been deleted", name))
+
+	return nil
+}
+
+func exportGeneratePresignedURLCmdF(c client.Client, command *cobra.Command, args []string) error {
+	name := args[0]
+
+	presignedURL, _, err := c.GeneratePresignedURL(context.TODO(), name)
+	if err != nil {
+		return fmt.Errorf("failed to generate export link: %w", err)
+	}
+
+	printer.PrintT("Export link: {{.Link}}\nExpiration: {{.Expiration}}", map[string]interface{}{
+		"Link":       presignedURL.URL,
+		"Expiration": presignedURL.Expiration.String(),
+	})
 
 	return nil
 }

@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {General} from 'mattermost-redux/constants';
 
-import {localizeMessage} from 'utils/utils';
 import ActivityLog from 'components/activity_log_modal/components/activity_log';
+
 import {TestHelper} from 'utils/test_helper';
+import {localizeMessage} from 'utils/utils';
 
 describe('components/activity_log_modal/ActivityLog', () => {
     const baseProps = {

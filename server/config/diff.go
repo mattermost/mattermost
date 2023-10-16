@@ -53,7 +53,6 @@ var configSensitivePaths = map[string]bool{
 	"MessageExportSettings.GlobalRelaySettings.SMTPUsername": true,
 	"MessageExportSettings.GlobalRelaySettings.SMTPPassword": true,
 	"MessageExportSettings.GlobalRelaySettings.EmailAddress": true,
-	"ServiceSettings.GfycatAPISecret":                        true,
 	"ServiceSettings.SplitKey":                               true,
 	"PluginSettings.Plugins":                                 true,
 }

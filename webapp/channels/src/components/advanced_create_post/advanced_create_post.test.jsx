@@ -1,23 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {Posts} from 'mattermost-redux/constants';
 
-import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
-import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers.js';
-
 import * as GlobalActions from 'actions/global_actions';
-
-import EmojiMap from 'utils/emoji_map';
-import Constants, {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {execCommandInsertText} from 'utils/exec_commands';
 
 import AdvancedCreatePost from 'components/advanced_create_post/advanced_create_post';
 import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+
+import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
+import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers.js';
+import Constants, {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
+import EmojiMap from 'utils/emoji_map';
+import {execCommandInsertText} from 'utils/exec_commands';
+import * as Utils from 'utils/utils';
 
 jest.mock('actions/global_actions', () => ({
     emitLocalUserTypingEvent: jest.fn(),
@@ -1456,35 +1455,6 @@ describe('components/advanced_create_post', () => {
         false,
         'post_textbox',
     );
-
-    /**
-     * TODO@all: move this test to advanced_text_editor.test.tsx and rewrite it according to the component
-     *
-     * it is not possible to test for this here since we only shallow render
-     *
-     * @see: https://mattermost.atlassian.net/browse/MM-44343
-     */
-    // it('should adjust selection to correct text', () => {
-    //     const value = 'Jalebi _Fafda_ and Sambharo';
-    //     const wrapper = shallow(advancedCreatePost({draft: {...draftProp, message: value}}));
-    //
-    //     const setSelectionRangeFn = jest.fn();
-    //     wrapper.instance().textboxRef = {
-    //         current: {
-    //             getInputBox: jest.fn(() => {
-    //                 return {
-    //                     focus: jest.fn(),
-    //                     setSelectionRange: setSelectionRangeFn,
-    //                 };
-    //             }),
-    //         },
-    //     };
-    //
-    //     const textbox = wrapper.find(Textbox);
-    //     const e = makeSelectionEvent(value, 7, 14);
-    //     textbox.props().onSelect(e);
-    //     expect(setSelectionRangeFn).toHaveBeenCalledWith(8, 13);
-    // });
 
     it('should match snapshot, can post; preview enabled', () => {
         const wrapper = shallow(advancedCreatePost({canPost: true, isMarkdownPreviewEnabled: true}));

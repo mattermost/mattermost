@@ -10,12 +10,12 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) createInitialSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
-	categories, nErr := a.Srv().Store().Channel().CreateInitialSidebarCategories(userID, opts)
+func (a *App) createInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
+	categories, nErr := a.Srv().Store().Channel().CreateInitialSidebarCategories(c, userID, opts)
 	if nErr != nil {
 		return nil, model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -28,7 +28,7 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 	categories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
 	if err == nil && len(categories.Categories) == 0 {
 		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
-		categories, appErr = a.createInitialSidebarCategories(userID, &store.SidebarCategorySearchOpts{
+		categories, appErr = a.createInitialSidebarCategories(c, userID, &store.SidebarCategorySearchOpts{
 			TeamID:      teamID,
 			ExcludeTeam: false,
 		})
@@ -55,7 +55,7 @@ func (a *App) GetSidebarCategories(c request.CTX, userID string, opts *store.Sid
 	categories, err := a.Srv().Store().Channel().GetSidebarCategories(userID, opts)
 	if err == nil && len(categories.Categories) == 0 {
 		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
-		categories, appErr = a.createInitialSidebarCategories(userID, opts)
+		categories, appErr = a.createInitialSidebarCategories(c, userID, opts)
 		if appErr != nil {
 			return nil, appErr
 		}

@@ -3,14 +3,14 @@
 
 import React from 'react';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
-import MenuActionProvider from 'components/suggestion/menu_action_provider';
-import GenericUserProvider from 'components/suggestion/generic_user_provider';
-import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
 import AutocompleteSelector from 'components/autocomplete_selector';
 import PostContext from 'components/post_view/post_context';
+import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
+import GenericUserProvider from 'components/suggestion/generic_user_provider';
+import MenuActionProvider from 'components/suggestion/menu_action_provider';
 
 import type {OwnProps, PropsFromRedux} from './index';
 

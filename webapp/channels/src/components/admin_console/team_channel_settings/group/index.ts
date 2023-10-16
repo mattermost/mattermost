@@ -1,14 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
 
 import {t} from 'utils/i18n';
-import {Group} from '@mattermost/types/groups';
+
+import type {GlobalState} from 'types/store';
+
 import List from './group_list';
-import {GlobalState} from 'types/store';
-import { Team } from '@mattermost/types/teams';
-import { Channel } from '@mattermost/types/channels';
 
 export type OwnProps = {
     groups: Group[];
@@ -17,8 +21,8 @@ export type OwnProps = {
     isModeSync: boolean;
     onGroupRemoved: (gid: string) => void;
     setNewGroupRole: (gid: string) => void;
-    emptyListTextId?: string,
-    emptyListTextDefaultMessage?: string
+    emptyListTextId?: string;
+    emptyListTextDefaultMessage?: string;
     type?: string;
     team?: Team;
     channel?: Partial<Channel>;

@@ -3,15 +3,15 @@
 
 import nock from 'nock';
 
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import * as Actions from 'mattermost-redux/actions/preferences';
-import {loadMeREST} from 'mattermost-redux/actions/users';
 import {UserTypes} from 'mattermost-redux/action_types';
+import * as Actions from 'mattermost-redux/actions/preferences';
+import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {Preferences} from '../constants';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
+import {Preferences} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
 
@@ -203,7 +203,7 @@ describe('Actions.Preferences', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMeREST()(store.dispatch, store.getState);
+        await loadMe()(store.dispatch, store.getState);
 
         // Test that a new preference is created if none exists
         nock(Client4.getUsersRoute()).
@@ -303,7 +303,7 @@ describe('Actions.Preferences', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMeREST()(store.dispatch, store.getState);
+        await loadMe()(store.dispatch, store.getState);
 
         const theme = {
             type: 'Mattermost Dark',

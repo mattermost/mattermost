@@ -11,12 +11,12 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("GetDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -35,7 +35,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 }
 
 func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("CreateDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -54,6 +54,15 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	// If the draft is empty, just delete it
+	if draft.Message == "" {
+		deleteErr := a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId)
+		if deleteErr != nil {
+			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, deleteErr.Error(), http.StatusInternalServerError)
+		}
+		return nil, nil
 	}
 
 	dt, nErr := a.Srv().Store().Draft().Upsert(draft)
@@ -75,7 +84,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 }
 
 func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("GetDraftsForUser", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -107,9 +116,22 @@ func (a *App) getFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *mode
 		return nil, nil
 	}
 
-	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds)
+	allFileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds)
 	if err != nil {
 		return nil, model.NewAppError("GetFileInfosForDraft", "app.draft.get_for_draft.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	fileInfos := []*model.FileInfo{}
+	for _, fileInfo := range allFileInfos {
+		if fileInfo.PostId == "" && fileInfo.CreatorId == draft.UserId {
+			fileInfos = append(fileInfos, fileInfo)
+		} else {
+			mlog.Debug("Invalid file id in draft", mlog.String("file_id", fileInfo.Id), mlog.String("user_id", draft.UserId))
+		}
+	}
+
+	if len(fileInfos) == 0 {
+		return nil, nil
 	}
 
 	a.generateMiniPreviewForInfos(fileInfos)
@@ -118,7 +140,7 @@ func (a *App) getFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *mode
 }
 
 func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("DeleteDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 

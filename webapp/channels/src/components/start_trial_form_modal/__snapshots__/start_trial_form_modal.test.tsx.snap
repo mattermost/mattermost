@@ -76,6 +76,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-label="Name"
                       class="Input form-control large"
                       id="input_name"
                       name="name"
@@ -101,6 +102,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-label="Business Email"
                       class="Input form-control large Input__focus"
                       id="input_email"
                       name="email"
@@ -134,6 +136,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-label="Company Name"
                       class="Input form-control large"
                       id="input_company_name"
                       name="company_name"

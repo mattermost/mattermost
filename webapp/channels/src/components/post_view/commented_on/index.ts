@@ -3,14 +3,14 @@
 
 import {connect} from 'react-redux';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {Post} from '@mattermost/types/posts';
-
-import {GlobalState} from 'types/store';
-
 import {getDisplayNameByUser} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import CommentedOn from './commented_on';
 

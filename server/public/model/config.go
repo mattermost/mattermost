@@ -109,8 +109,7 @@ const (
 	ServiceSettingsDefaultMaxLoginAttempts = 10
 	ServiceSettingsDefaultAllowCorsFrom    = ""
 	ServiceSettingsDefaultListenAndAddress = ":8065"
-	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
-	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
+	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags   = ""
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
@@ -133,7 +132,7 @@ const (
 
 	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermomst"
+	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermost"
 	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
 	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/pl/report-a-bug"
 	SupportSettingsDefaultSupportEmail       = ""
@@ -205,11 +204,13 @@ const (
 	BleveSettingsDefaultIndexDir  = ""
 	BleveSettingsDefaultBatchSize = 10000
 
-	DataRetentionSettingsDefaultMessageRetentionDays = 365
-	DataRetentionSettingsDefaultFileRetentionDays    = 365
-	DataRetentionSettingsDefaultBoardsRetentionDays  = 365
-	DataRetentionSettingsDefaultDeletionJobStartTime = "02:00"
-	DataRetentionSettingsDefaultBatchSize            = 3000
+	DataRetentionSettingsDefaultMessageRetentionDays           = 365
+	DataRetentionSettingsDefaultFileRetentionDays              = 365
+	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
+	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
+	DataRetentionSettingsDefaultBatchSize                      = 3000
+	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
+	DataRetentionSettingsDefaultRetentionIdsBatchSize          = 100
 
 	PluginSettingsDefaultDirectory         = "./plugins"
 	PluginSettingsDefaultClientDirectory   = "./client/plugins"
@@ -345,8 +346,7 @@ type ServiceSettings struct {
 	WebsocketPort                                     *int    `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	WebserverMode                                     *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableGifPicker                                   *bool   `access:"integrations_gif"`
-	GfycatAPIKey                                      *string `access:"integrations_gif"`
-	GfycatAPISecret                                   *string `access:"integrations_gif"`
+	GiphySdkKey                                       *string `access:"integrations_gif"`
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
@@ -395,6 +395,8 @@ type ServiceSettings struct {
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
+
+var MattermostGiphySdkKey string
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
@@ -731,12 +733,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableGifPicker = NewBool(true)
 	}
 
-	if s.GfycatAPIKey == nil || *s.GfycatAPIKey == "" {
-		s.GfycatAPIKey = NewString(ServiceSettingsDefaultGfycatAPIKey)
-	}
-
-	if s.GfycatAPISecret == nil || *s.GfycatAPISecret == "" {
-		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
+	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
+		s.GiphySdkKey = NewString("")
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {
@@ -1278,6 +1276,7 @@ type LogSettings struct {
 	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingConfig  *string         `access:"environment_logging,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
+	MaxFieldSize           *int            `access:"environment_logging,write_restrictable,cloud_restrictable"`
 }
 
 func NewLogSettings() *LogSettings {
@@ -1341,6 +1340,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
+	}
+
+	if s.MaxFieldSize == nil {
+		s.MaxFieldSize = NewInt(2048)
 	}
 }
 
@@ -1486,11 +1489,12 @@ func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 }
 
 type PasswordSettings struct {
-	MinimumLength *int  `access:"authentication_password"`
-	Lowercase     *bool `access:"authentication_password"`
-	Number        *bool `access:"authentication_password"`
-	Uppercase     *bool `access:"authentication_password"`
-	Symbol        *bool `access:"authentication_password"`
+	MinimumLength    *int  `access:"authentication_password"`
+	Lowercase        *bool `access:"authentication_password"`
+	Number           *bool `access:"authentication_password"`
+	Uppercase        *bool `access:"authentication_password"`
+	Symbol           *bool `access:"authentication_password"`
+	EnableForgotLink *bool `access:"authentication_password"`
 }
 
 func (s *PasswordSettings) SetDefaults() {
@@ -1512,6 +1516,10 @@ func (s *PasswordSettings) SetDefaults() {
 
 	if s.Symbol == nil {
 		s.Symbol = NewBool(false)
+	}
+
+	if s.EnableForgotLink == nil {
+		s.EnableForgotLink = NewBool(true)
 	}
 }
 
@@ -1540,6 +1548,22 @@ type FileSettings struct {
 	AmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	// Export store settings
+	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportDirectory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3Region                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1646,6 +1670,68 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3RequestTimeoutMilliseconds == nil {
 		s.AmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
+	}
+
+	if s.DedicatedExportStore == nil {
+		s.DedicatedExportStore = NewBool(false)
+	}
+
+	if s.ExportDriverName == nil {
+		s.ExportDriverName = NewString(ImageDriverLocal)
+	}
+
+	if s.ExportDirectory == nil || *s.ExportDirectory == "" {
+		s.ExportDirectory = NewString(FileSettingsDefaultDirectory)
+	}
+
+	if s.ExportAmazonS3AccessKeyId == nil {
+		s.ExportAmazonS3AccessKeyId = NewString("")
+	}
+
+	if s.ExportAmazonS3SecretAccessKey == nil {
+		s.ExportAmazonS3SecretAccessKey = NewString("")
+	}
+
+	if s.ExportAmazonS3Bucket == nil {
+		s.ExportAmazonS3Bucket = NewString("")
+	}
+
+	if s.ExportAmazonS3PathPrefix == nil {
+		s.ExportAmazonS3PathPrefix = NewString("")
+	}
+
+	if s.ExportAmazonS3Region == nil {
+		s.ExportAmazonS3Region = NewString("")
+	}
+
+	if s.ExportAmazonS3Endpoint == nil || *s.ExportAmazonS3Endpoint == "" {
+		// Defaults to "s3.amazonaws.com"
+		s.ExportAmazonS3Endpoint = NewString("s3.amazonaws.com")
+	}
+
+	if s.ExportAmazonS3SSL == nil {
+		s.ExportAmazonS3SSL = NewBool(true) // Secure by default.
+	}
+
+	if s.ExportAmazonS3SignV2 == nil {
+		s.ExportAmazonS3SignV2 = new(bool)
+		// Signature v2 is not enabled by default.
+	}
+
+	if s.ExportAmazonS3SSE == nil {
+		s.ExportAmazonS3SSE = NewBool(false) // Not Encrypted by default.
+	}
+
+	if s.ExportAmazonS3Trace == nil {
+		s.ExportAmazonS3Trace = NewBool(false)
+	}
+
+	if s.ExportAmazonS3RequestTimeoutMilliseconds == nil {
+		s.ExportAmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
+	}
+
+	if s.ExportAmazonS3PresignExpiresSeconds == nil {
+		s.ExportAmazonS3PresignExpiresSeconds = NewInt64(21600) // 6h
 	}
 }
 
@@ -1881,6 +1967,7 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	ForgotPasswordLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
@@ -1926,6 +2013,14 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.ReportAProblemLink == nil {
 		s.ReportAProblemLink = NewString(SupportSettingsDefaultReportAProblemLink)
+	}
+
+	if !isSafeLink(s.ForgotPasswordLink) {
+		*s.ForgotPasswordLink = ""
+	}
+
+	if s.ForgotPasswordLink == nil {
+		s.ForgotPasswordLink = NewString("")
 	}
 
 	if s.SupportEmail == nil {
@@ -1995,7 +2090,6 @@ func (s *AnnouncementSettings) SetDefaults() {
 	if s.NoticesFetchFrequency == nil {
 		s.NoticesFetchFrequency = NewInt(AnnouncementSettingsDefaultNoticesFetchFrequencySeconds)
 	}
-
 }
 
 type ThemeSettings struct {
@@ -2024,18 +2118,19 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                  *string `access:"site_customization"`
-	MaxUsersPerTeam           *int    `access:"site_users_and_teams"`
-	EnableUserCreation        *bool   `access:"authentication_signup"`
-	EnableOpenServer          *bool   `access:"authentication_signup"`
-	EnableUserDeactivation    *bool   `access:"experimental_features"`
-	RestrictCreationToDomains *string `access:"authentication_signup"` // telemetry: none
-	EnableCustomUserStatuses  *bool   `access:"site_users_and_teams"`
-	EnableCustomBrand         *bool   `access:"site_customization"`
-	CustomBrandText           *string `access:"site_customization"`
-	CustomDescriptionText     *string `access:"site_customization"`
-	RestrictDirectMessage     *string `access:"site_users_and_teams"`
-	EnableLastActiveTime      *bool   `access:"site_users_and_teams"`
+	SiteName                        *string `access:"site_customization"`
+	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
+	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
+	EnableUserCreation              *bool   `access:"authentication_signup"`
+	EnableOpenServer                *bool   `access:"authentication_signup"`
+	EnableUserDeactivation          *bool   `access:"experimental_features"`
+	RestrictCreationToDomains       *string `access:"authentication_signup"` // telemetry: none
+	EnableCustomUserStatuses        *bool   `access:"site_users_and_teams"`
+	EnableCustomBrand               *bool   `access:"site_customization"`
+	CustomBrandText                 *string `access:"site_customization"`
+	CustomDescriptionText           *string `access:"site_customization"`
+	RestrictDirectMessage           *string `access:"site_users_and_teams"`
+	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
@@ -2050,13 +2145,16 @@ type TeamSettings struct {
 }
 
 func (s *TeamSettings) SetDefaults() {
-
 	if s.SiteName == nil || *s.SiteName == "" {
 		s.SiteName = NewString(TeamSettingsDefaultSiteName)
 	}
 
 	if s.MaxUsersPerTeam == nil {
 		s.MaxUsersPerTeam = NewInt(TeamSettingsDefaultMaxUsersPerTeam)
+	}
+
+	if s.EnableJoinLeaveMessageByDefault == nil {
+		s.EnableJoinLeaveMessageByDefault = NewBool(true)
 	}
 
 	if s.EnableUserCreation == nil {
@@ -2765,14 +2863,16 @@ func (bs *BleveSettings) SetDefaults() {
 }
 
 type DataRetentionSettings struct {
-	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
-	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
-	EnableBoardsDeletion  *bool   `access:"compliance_data_retention_policy"`
-	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
-	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
-	BoardsRetentionDays   *int    `access:"compliance_data_retention_policy"`
-	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
-	BatchSize             *int    `access:"compliance_data_retention_policy"`
+	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
+	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
+	EnableBoardsDeletion           *bool   `access:"compliance_data_retention_policy"`
+	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"`
+	FileRetentionDays              *int    `access:"compliance_data_retention_policy"`
+	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
+	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
+	BatchSize                      *int    `access:"compliance_data_retention_policy"`
+	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
+	RetentionIdsBatchSize          *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2806,6 +2906,13 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(DataRetentionSettingsDefaultBatchSize)
+	}
+
+	if s.TimeBetweenBatchesMilliseconds == nil {
+		s.TimeBetweenBatchesMilliseconds = NewInt(DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds)
+	}
+	if s.RetentionIdsBatchSize == nil {
+		s.RetentionIdsBatchSize = NewInt(DataRetentionSettingsDefaultRetentionIdsBatchSize)
 	}
 }
 
@@ -3038,7 +3145,8 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes     []string `access:"site_customization"`
+	CustomURLSchemes     []string `access:"site_posts"`
+	MaxMarkdownNodes     *int     `access:"site_posts"`
 	ExperimentalTimezone *bool    `access:"experimental_features"`
 }
 
@@ -3048,6 +3156,10 @@ func (s *DisplaySettings) SetDefaults() {
 		s.CustomURLSchemes = customURLSchemes
 	}
 
+	if s.MaxMarkdownNodes == nil {
+		s.MaxMarkdownNodes = NewInt(0)
+	}
+
 	if s.ExperimentalTimezone == nil {
 		s.ExperimentalTimezone = NewBool(true)
 	}
@@ -3055,6 +3167,7 @@ func (s *DisplaySettings) SetDefaults() {
 
 type GuestAccountsSettings struct {
 	Enable                           *bool   `access:"authentication_guest_access"`
+	HideTags                         *bool   `access:"authentication_guest_access"`
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
@@ -3063,6 +3176,10 @@ type GuestAccountsSettings struct {
 func (s *GuestAccountsSettings) SetDefaults() {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
+	}
+
+	if s.HideTags == nil {
+		s.HideTags = NewBool(false)
 	}
 
 	if s.AllowEmailAccounts == nil {
@@ -3386,6 +3503,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.ExperimentalSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.SqlSettings.isValid(); appErr != nil {
 		return appErr
 	}
@@ -3461,6 +3582,10 @@ func (s *TeamSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.UserStatusAwayTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.user_status_away_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.MaxNotificationsPerChannel <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_notify_per_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -3475,6 +3600,14 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if len(*s.SiteName) > SitenameMaxLength {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]any{"MaxLength": SitenameMaxLength}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (s *ExperimentalSettings) isValid() *AppError {
+	if *s.LinkMetadataTimeoutMilliseconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.link_metadata_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4063,10 +4196,6 @@ func (o *Config) Sanitize() {
 		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
-	}
-
-	if o.ServiceSettings.GfycatAPISecret != nil && *o.ServiceSettings.GfycatAPISecret != "" {
-		*o.ServiceSettings.GfycatAPISecret = FakeSetting
 	}
 
 	if o.ServiceSettings.SplitKey != nil {

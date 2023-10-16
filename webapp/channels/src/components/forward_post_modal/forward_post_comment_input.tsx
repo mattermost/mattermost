@@ -3,18 +3,20 @@
 
 import React, {useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
-
 import {useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import Textbox, {TextboxClass, TextboxElement} from 'components/textbox';
+import Textbox from 'components/textbox';
+import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import Constants from 'utils/constants';
-import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import * as Keyboard from 'utils/keyboard';
+import {applyMarkdown} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import * as Utils from 'utils/utils';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 const {KeyCodes} = Constants;
 
@@ -43,13 +45,6 @@ const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkL
 
     // we do not allow sending the forwarding when hitting enter
     const postMsgKeyPress = () => {};
-
-    const handleSelect = (e: React.SyntheticEvent<Element, Event>) => {
-        Utils.adjustSelection(
-            textboxRef?.current?.getInputBox(),
-            e as React.KeyboardEvent<HTMLInputElement>,
-        );
-    };
 
     const handleChange = useCallback(
         (e: React.ChangeEvent<TextboxElement>) => {
@@ -138,7 +133,6 @@ const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkL
             onChange={handleChange}
             onKeyPress={postMsgKeyPress}
             onKeyDown={handleKeyDown}
-            onSelect={handleSelect}
             onHeightChange={onHeightChange}
             handlePostError={onError}
             value={comment}

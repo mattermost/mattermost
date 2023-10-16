@@ -71,7 +71,7 @@ func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	job, appErr := s.th.App.CreateJob(&model.Job{
+	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeExtractContent,
 		Data: map[string]string{},
 	})
@@ -80,7 +80,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExtractContent,
 			Data: map[string]string{},
 		})
@@ -156,7 +156,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 
-		_, appErr := s.th.App.CreateJob(&model.Job{
+		_, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExtractContent,
 			Data: map[string]string{},
 		})
@@ -164,7 +164,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExtractContent,
 			Data: map[string]string{},
 		})
@@ -172,11 +172,13 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		job3, appErr := s.th.App.CreateJob(&model.Job{
+		job3, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExtractContent,
 			Data: map[string]string{},
 		})
 		s.Require().Nil(appErr)
+
+		time.Sleep(time.Millisecond)
 
 		err := extractJobListCmdF(c, cmd, nil)
 		s.Require().Nil(err)

@@ -92,7 +92,7 @@ func (o *FileInfoList) SortByCreateAt() {
 
 func (o *FileInfoList) Etag() string {
 	id := "0"
-	var t int64 = 0
+	var t int64
 
 	for _, v := range o.FileInfos {
 		if v.UpdateAt > t {

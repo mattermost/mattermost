@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
 import ProfilePicture from 'components/profile_picture';
 
@@ -42,7 +43,6 @@ describe('components/ProfilePicture', () => {
         const props: Props = {
             ...baseProps,
             size: 'xl',
-            isRHS: true,
             hasMention: true,
         };
         const wrapper = shallow(
@@ -69,7 +69,6 @@ describe('components/ProfilePicture', () => {
             ...baseProps,
             username: 'username',
             size: 'xs',
-            isRHS: true,
             hasMention: true,
         };
         const wrapper = shallow(

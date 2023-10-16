@@ -6,8 +6,8 @@ package slashcommands
 import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type AwayProvider struct {
@@ -34,7 +34,7 @@ func (*AwayProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*AwayProvider) DoCommand(a *app.App, _ request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*AwayProvider) DoCommand(a *app.App, _ *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	a.SetStatusAwayIfNeeded(args.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_away.success")}

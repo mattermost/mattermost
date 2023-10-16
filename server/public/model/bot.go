@@ -81,8 +81,8 @@ func (b *Bot) Trace() map[string]any {
 
 // Clone returns a shallow copy of the bot.
 func (b *Bot) Clone() *Bot {
-	copy := *b
-	return &copy
+	bCopy := *b
+	return &bCopy
 }
 
 // IsValidCreate validates bot for Create call. This skips validations of fields that are auto-filled on Create
@@ -205,7 +205,6 @@ func (l *BotList) Etag() string {
 			t = v.UpdateAt
 			id = v.UserId
 		}
-
 	}
 
 	return Etag(id, t, delta, len(*l))
@@ -213,8 +212,8 @@ func (l *BotList) Etag() string {
 
 // MakeBotNotFoundError creates the error returned when a bot does not exist, or when the user isn't allowed to query the bot.
 // The errors must the same in both cases to avoid leaking that a user is a bot.
-func MakeBotNotFoundError(userId string) *AppError {
-	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]any{"user_id": userId}, "", http.StatusNotFound)
+func MakeBotNotFoundError(where, userId string) *AppError {
+	return NewAppError(where, "store.sql_bot.get.missing.app_error", map[string]any{"user_id": userId}, "", http.StatusNotFound)
 }
 
 func IsBotDMChannel(channel *Channel, botUserID string) bool {
