@@ -3,6 +3,7 @@
 exports[`components/HintToast should match snapshot 1`] = `
 <div
   className="hint-toast"
+  data-testid="hint-toast"
 >
   <div
     className="hint-toast__message"
