@@ -22,6 +22,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {GetStateFunc, DispatchFunc, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
+import team from 'components/admin_console/team_channel_settings/team';
 
 async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: DispatchFunc, getState: GetStateFunc) {
     const {
@@ -737,24 +738,29 @@ export function joinTeam(inviteId: string, teamId: string): ActionFunc {
 }
 
 export function setTeamIcon(teamId: string, imageData: File): ActionFunc {
-    return bindClientFunc({
-        clientFunc: Client4.setTeamIcon,
-        onSuccess: TeamTypes.PATCHED_TEAM,
-        params: [
-            teamId,
-            imageData,
-        ],
-    });
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let team;
+        await Client4.setTeamIcon(teamId, imageData);
+        team = await Client4.getTeam(teamId);
+        dispatch({
+            type: TeamTypes.PATCHED_TEAM,
+            data: team,
+        });
+        return {data: teamId}
+    };
 }
 
 export function removeTeamIcon(teamId: string): ActionFunc {
-    return bindClientFunc({
-        clientFunc: Client4.removeTeamIcon,
-        onSuccess: TeamTypes.PATCHED_TEAM,
-        params: [
-            teamId,
-        ],
-    });
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let team;
+        await Client4.removeTeamIcon(teamId);
+        team = await Client4.getTeam(teamId);
+        dispatch({
+            type: TeamTypes.PATCHED_TEAM,
+            data: team,
+        });
+        return {data: teamId}
+    };
 }
 
 export function updateTeamScheme(teamId: string, schemeId: string): ActionFunc {

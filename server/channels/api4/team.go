@@ -1685,21 +1685,10 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patchedTeam, err := c.App.GetTeam(c.Params.TeamId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
-
 	auditRec.Success()
-	auditRec.AddEventResultState(patchedTeam)
 	c.LogAudit("")
 
-	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
+	ReturnStatusOK(w)
 }
 
 func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1722,22 +1711,10 @@ func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patchedTeam, err := c.App.GetTeam(c.Params.TeamId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
-
 	auditRec.Success()
-	auditRec.AddEventResultState(patchedTeam)
 	c.LogAudit("")
 
-	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-
+	ReturnStatusOK(w)
 }
 
 func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {

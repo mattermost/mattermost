@@ -2768,26 +2768,26 @@ func (c *Client4) GetTeamInviteInfo(ctx context.Context, inviteId string) (*Team
 }
 
 // SetTeamIcon sets team icon of the team.
-func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (*Team, *Response, error) {
+func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (*Response, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
 	part, err := writer.CreateFormFile("image", "teamIcon.png")
 	if err != nil {
-		return nil, nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if err = writer.Close(); err != nil {
-		return nil, nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	rq, err := http.NewRequest("POST", c.APIURL+c.teamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
@@ -2797,19 +2797,15 @@ func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (
 
 	rp, err := c.HTTPClient.Do(rq)
 	if err != nil {
-		return nil, BuildResponse(rp), err
+		return BuildResponse(rp), err
 	}
 	defer closeBody(rp)
 
 	if rp.StatusCode >= 300 {
-		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
+		return BuildResponse(rp), AppErrorFromJSON(rp.Body)
 	}
 
-	var t Team
-	if err := json.NewDecoder(rp.Body).Decode(&t); err != nil {
-		return nil, nil, NewAppError("GetTeamInviteInfo", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &t, BuildResponse(rp), nil
+	return BuildResponse(rp), nil
 }
 
 // GetTeamIcon gets the team icon of the team.
@@ -2828,17 +2824,13 @@ func (c *Client4) GetTeamIcon(ctx context.Context, teamId, etag string) ([]byte,
 }
 
 // RemoveTeamIcon updates LastTeamIconUpdate to 0 which indicates team icon is removed.
-func (c *Client4) RemoveTeamIcon(ctx context.Context, teamId string) (*Team, *Response, error) {
+func (c *Client4) RemoveTeamIcon(ctx context.Context, teamId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.teamRoute(teamId)+"/image")
 	if err != nil {
-		return nil, BuildResponse(r), err
+		return BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var t Team
-	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
-		return nil, nil, NewAppError("GetTeamInviteInfo", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &t, BuildResponse(r), nil
+	return BuildResponse(r), nil
 }
 
 // Channel Section
