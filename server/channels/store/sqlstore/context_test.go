@@ -26,7 +26,7 @@ func TestRequestContextWithMaster(t *testing.T) {
 		assert.True(t, HasMaster(rctx.Context()))
 	})
 
-	t.Run("directly assigning does cause the child to alter the partent", func(t *testing.T) {
+	t.Run("directly assigning does cause the child to alter the parent", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
 		rctxClone := rctx
 		rctxClone = RequestContextWithMaster(rctxClone)
@@ -53,7 +53,7 @@ func TestRequestContextWithMaster(t *testing.T) {
 		assert.True(t, HasMaster(rctxClone.Context()))
 	})
 
-	t.Run("changing the parten does not alter the child", func(t *testing.T) {
+	t.Run("changing the parent does not alter the child", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
 		rctxClone := rctx.Clone()
 		rctx = RequestContextWithMaster(rctx)
