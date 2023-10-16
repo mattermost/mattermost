@@ -1764,7 +1764,11 @@ func TestGetMentionKeywords_Groups(t *testing.T) {
 				tc.ChannelMemberNotifyProps,
 				tc.Groups,
 			)
-			assert.EqualValues(t, tc.Expected, keywords)
+
+			require.Equal(t, len(tc.Expected), len(keywords))
+			for keyword, ids := range tc.Expected {
+				assert.ElementsMatch(t, ids, keywords[keyword])
+			}
 		})
 	}
 }
