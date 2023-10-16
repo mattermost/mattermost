@@ -112,13 +112,8 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 
 func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
 	var link = template.HTMLEscapeString(redirectURL)
-	var invalidSchemes = map[string]bool{
-		"data":       true,
-		"javascript": true,
-		"vbscript":   true,
-	}
 	u, redirectErr := url.Parse(redirectURL)
-	if redirectErr != nil || invalidSchemes[u.Scheme] {
+	if redirectErr != nil || !StringInSlice(u.Scheme, config.NativeAppSettings.AppCustomURLSchemes) {
 		link = *config.ServiceSettings.SiteURL
 	}
 	RenderMobileMessage(w, `
