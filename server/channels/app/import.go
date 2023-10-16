@@ -268,7 +268,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 			linesChan = make(chan imports.LineImportWorkerData, workers)
 			for i := 0; i < workers; i++ {
 				wg.Add(1)
-				go a.bulkImportWorker(c, dryRun, &wg, linesChan, errorsChan)
+				go a.bulkImportWorker(c.Clone(), dryRun, &wg, linesChan, errorsChan)
 			}
 		}
 
