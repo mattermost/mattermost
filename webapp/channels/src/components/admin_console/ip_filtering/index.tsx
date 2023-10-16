@@ -170,7 +170,7 @@ const IPFiltering = () => {
 
         return (
             <>
-                <AlertOutlineIcon size={16}/> {formatMessage({id: 'admin.ip_filtering.error_on_page', defaultMessage: 'There are errors on this page'})}
+                <AlertOutlineIcon size={16}/> {formatMessage({id: 'admin.ip_filtering.error_on_page', defaultMessage: 'Your IP address is not included in your filters'})}
             </>
         );
     };

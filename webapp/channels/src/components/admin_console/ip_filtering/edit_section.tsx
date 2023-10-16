@@ -45,15 +45,15 @@ const EditSection: React.FC<EditSectionProps> = ({
                 </div>
                 <div className='Body'>
                     {formatMessage({id: 'admin.ip_filtering.include_your_ip', defaultMessage: 'Include your IP address in at least one of the rules below to continue.'})}
+                    <div
+                        className='Button'
+                        onClick={() => {
+                            setShowAddModal(true);
+                        }}
+                    >
+                        {formatMessage({id: 'admin.ip_filtering.add_your_ip', defaultMessage: 'Add your IP address'})}
+                    </div>
                 </div>
-                <Button
-                    className='Button'
-                    onClick={() => {
-                        setShowAddModal(true);
-                    }}
-                >
-                    {formatMessage({id: 'admin.ip_filtering.add_your_ip', defaultMessage: 'Add your IP address'})}
-                </Button>
             </div>
         </div>
     );

@@ -1206,7 +1206,7 @@
   "admin.ip_filtering.edit_section_description_line_2_strong": "NOTE:",
   "admin.ip_filtering.enable_ip_filtering": "Enable IP Filtering",
   "admin.ip_filtering.enable_ip_filtering_description": "Limit access to your workspace by IP address. {learnmore}",
-  "admin.ip_filtering.error_on_page": "There are errors on this page",
+  "admin.ip_filtering.error_on_page": "Your IP address is not included in your filters",
   "admin.ip_filtering.filter_name": "Filter Name",
   "admin.ip_filtering.include_your_ip": "Include your IP address in at least one of the rules below to continue.",
   "admin.ip_filtering.ip_address_range": "IP Address Range",

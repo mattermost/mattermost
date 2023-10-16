@@ -315,10 +315,19 @@
                             }
 
                             .Button {
+                                display: inline;
                                 height: 16px;
                                 padding: 0;
+                                padding-left: 2px;
                                 background: none;
                                 color: var(--button-bg, rgba(28, 88, 217, 1));
+                                font-size: 14px;
+                                font-weight: 600;
+                                line-height: 20px;
+
+                                &:hover {
+                                    cursor: pointer;
+                                }
                             }
                         }
                     }
