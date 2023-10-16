@@ -20,7 +20,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -79,7 +79,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -138,7 +138,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -197,7 +197,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

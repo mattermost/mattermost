@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -54,6 +54,15 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	// If the draft is empty, just delete it
+	if draft.Message == "" {
+		deleteErr := a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId)
+		if deleteErr != nil {
+			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, deleteErr.Error(), http.StatusInternalServerError)
+		}
+		return nil, nil
 	}
 
 	dt, nErr := a.Srv().Store().Draft().Upsert(draft)

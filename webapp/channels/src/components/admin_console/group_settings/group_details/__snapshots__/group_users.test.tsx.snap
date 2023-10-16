@@ -207,17 +207,15 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       />
     </div>
     <button
-      className="btn btn-link prev disabled"
+      className="btn btn-tertiary prev disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next disabled"
+      className="btn btn-tertiary next disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
@@ -437,17 +435,15 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       />
     </div>
     <button
-      className="btn btn-link prev disabled"
+      className="btn btn-tertiary prev disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next "
+      className="btn btn-tertiary next "
       disabled={false}
       onClick={[Function]}
       type="button"
@@ -667,17 +663,15 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       />
     </div>
     <button
-      className="btn btn-link prev "
+      className="btn btn-tertiary prev "
       disabled={false}
       onClick={[Function]}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next "
+      className="btn btn-tertiary next "
       disabled={false}
       onClick={[Function]}
       type="button"
@@ -857,17 +851,15 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       />
     </div>
     <button
-      className="btn btn-link prev "
+      className="btn btn-tertiary prev "
       disabled={false}
       onClick={[Function]}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next disabled"
+      className="btn btn-tertiary next disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
@@ -1087,17 +1079,15 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       />
     </div>
     <button
-      className="btn btn-link prev disabled"
+      className="btn btn-tertiary prev disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next disabled"
+      className="btn btn-tertiary next disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
@@ -1359,17 +1349,15 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       />
     </div>
     <button
-      className="btn btn-link prev disabled"
+      className="btn btn-tertiary prev disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next disabled"
+      className="btn btn-tertiary next disabled"
       disabled={true}
       onClick={[Function]}
       type="button"

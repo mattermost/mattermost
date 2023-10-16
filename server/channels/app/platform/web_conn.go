@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const (
@@ -701,7 +702,11 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 		return true
 	}
 
-	canSee, err := wc.Suite.UserCanSeeOtherUser(wc.UserId, userID)
+	// In the future, other methods in WebConn will use a request.Context.
+	// For now, it's fine to create it here.
+	c := request.EmptyContext(wc.Platform.logger)
+
+	canSee, err := wc.Suite.UserCanSeeOtherUser(c, wc.UserId, userID)
 	if err != nil {
 		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 		return false

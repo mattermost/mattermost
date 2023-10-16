@@ -6,8 +6,8 @@ package slashcommands
 import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type OfflineProvider struct {
@@ -34,7 +34,7 @@ func (*OfflineProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comm
 	}
 }
 
-func (*OfflineProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*OfflineProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	a.SetStatusOffline(args.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_offline.success")}

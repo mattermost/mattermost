@@ -455,7 +455,6 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 			return nil, store.NewErrNotFound("User", id)
 		}
 		return nil, errors.Wrapf(err, "failed to get User with userId=%s", id)
-
 	}
 	if err = json.Unmarshal(props, &user.Props); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal user props")
@@ -580,7 +579,6 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 					sqOr = append(sqOr, sq.Like{"u.Roles": queryRole})
 				}
 			}
-
 		}
 	}
 
@@ -1304,7 +1302,6 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 	}
 
 	return users[0], nil
-
 }
 
 func (us SqlUserStore) VerifyEmail(userId, email string) (string, error) {
@@ -1378,7 +1375,6 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
 }
 
 func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.UserCountOptions) (int64, error) {
-
 	time := model.GetMillis() - timePeriod
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ?", time)
 

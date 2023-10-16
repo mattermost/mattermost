@@ -50,6 +50,10 @@ type MessageHasBeenUpdatedIFace interface {
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
 }
 
+type MessageHasBeenDeletedIFace interface {
+	MessageHasBeenDeleted(c *Context, post *model.Post)
+}
+
 type ChannelHasBeenCreatedIFace interface {
 	ChannelHasBeenCreated(c *Context, channel *model.Channel)
 }
@@ -120,6 +124,10 @@ type ConfigurationWillBeSavedIFace interface {
 
 type NotificationWillBePushedIFace interface {
 	NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+}
+
+type UserHasBeenDeactivatedIFace interface {
+	UserHasBeenDeactivated(c *Context, user *model.User)
 }
 
 type HooksAdapter struct {
@@ -214,6 +222,15 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		a.implemented[MessageHasBeenUpdatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("MessageHasBeenUpdated"); ok {
 		return nil, errors.New("hook has MessageHasBeenUpdated method but does not implement plugin.MessageHasBeenUpdated interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements MessageHasBeenDeleted interface.
+	tt = reflect.TypeOf((*MessageHasBeenDeletedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[MessageHasBeenDeletedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("MessageHasBeenDeleted"); ok {
+		return nil, errors.New("hook has MessageHasBeenDeleted method but does not implement plugin.MessageHasBeenDeleted interface")
 	}
 
 	// Assessing the type of the productHooks if it individually implements ChannelHasBeenCreated interface.
@@ -378,6 +395,15 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has NotificationWillBePushed method but does not implement plugin.NotificationWillBePushed interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements UserHasBeenDeactivated interface.
+	tt = reflect.TypeOf((*UserHasBeenDeactivatedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserHasBeenDeactivatedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserHasBeenDeactivated"); ok {
+		return nil, errors.New("hook has UserHasBeenDeactivated method but does not implement plugin.UserHasBeenDeactivated interface")
+	}
+
 	return a, nil
 }
 
@@ -459,6 +485,15 @@ func (a *HooksAdapter) MessageHasBeenUpdated(c *Context, newPost, oldPost *model
 	}
 
 	a.productHooks.(MessageHasBeenUpdatedIFace).MessageHasBeenUpdated(c, newPost, oldPost)
+
+}
+
+func (a *HooksAdapter) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	if _, ok := a.implemented[MessageHasBeenDeletedID]; !ok {
+		panic("product hooks must implement MessageHasBeenDeleted")
+	}
+
+	a.productHooks.(MessageHasBeenDeletedIFace).MessageHasBeenDeleted(c, post)
 
 }
 
@@ -621,5 +656,14 @@ func (a *HooksAdapter) NotificationWillBePushed(pushNotification *model.PushNoti
 	}
 
 	return a.productHooks.(NotificationWillBePushedIFace).NotificationWillBePushed(pushNotification, userID)
+
+}
+
+func (a *HooksAdapter) UserHasBeenDeactivated(c *Context, user *model.User) {
+	if _, ok := a.implemented[UserHasBeenDeactivatedID]; !ok {
+		panic("product hooks must implement UserHasBeenDeactivated")
+	}
+
+	a.productHooks.(UserHasBeenDeactivatedIFace).UserHasBeenDeactivated(c, user)
 
 }

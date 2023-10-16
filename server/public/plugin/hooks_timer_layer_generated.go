@@ -113,6 +113,12 @@ func (hooks *hooksTimerLayer) MessageHasBeenUpdated(c *Context, newPost, oldPost
 	hooks.recordTime(startTime, "MessageHasBeenUpdated", true)
 }
 
+func (hooks *hooksTimerLayer) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.MessageHasBeenDeleted(c, post)
+	hooks.recordTime(startTime, "MessageHasBeenDeleted", true)
+}
+
 func (hooks *hooksTimerLayer) ChannelHasBeenCreated(c *Context, channel *model.Channel) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.ChannelHasBeenCreated(c, channel)
@@ -224,4 +230,10 @@ func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.P
 	_returnsA, _returnsB := hooks.hooksImpl.NotificationWillBePushed(pushNotification, userID)
 	hooks.recordTime(startTime, "NotificationWillBePushed", true)
 	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) UserHasBeenDeactivated(c *Context, user *model.User) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.UserHasBeenDeactivated(c, user)
+	hooks.recordTime(startTime, "UserHasBeenDeactivated", true)
 }

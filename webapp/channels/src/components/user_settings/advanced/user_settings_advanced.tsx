@@ -3,26 +3,26 @@
 
 /* eslint-disable max-lines */
 
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
+
+import ConfirmModal from 'components/confirm_modal';
+import SettingItem from 'components/setting_item';
+import SettingItemMax from 'components/setting_item_max';
+import BackIcon from 'components/widgets/icons/fa_back_icon';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
 import {a11yFocus, localizeMessage} from 'utils/utils';
-
-import SettingItemMax from 'components/setting_item_max';
-import ConfirmModal from 'components/confirm_modal';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {UserProfile} from '@mattermost/types/users';
-import {PreferenceType} from '@mattermost/types/preferences';
-
-import SettingItem from 'components/setting_item';
 
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
@@ -36,6 +36,7 @@ type Settings = {
     formatting: Props['formatting'];
     join_leave: Props['joinLeave'];
     sync_drafts: Props['syncDrafts'];
+    data_prefetch: Props['dataPrefetchEnabled'];
 };
 
 export type Props = {
@@ -54,6 +55,8 @@ export type Props = {
     enablePreviewFeatures: boolean;
     enableUserDeactivation: boolean;
     syncedDraftsAreAllowed: boolean;
+    disableWebappPrefetchAllowed: boolean;
+    dataPrefetchEnabled: string;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
         updateUserActive: (userId: string, active: boolean) => Promise<ActionResult>;
@@ -87,6 +90,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             formatting: this.props.formatting,
             join_leave: this.props.joinLeave,
             sync_drafts: this.props.syncDrafts,
+            data_prefetch: this.props.dataPrefetchEnabled,
             [Preferences.UNREAD_SCROLL_POSITION]: this.props.unreadScrollPosition,
         };
 
@@ -575,6 +579,93 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         );
     };
 
+    renderDataPrefetchSection = () => {
+        const active = this.props.activeSection === AdvancedSections.DATA_PREFETCH;
+        let max = null;
+        if (active) {
+            max = (
+                <SettingItemMax
+                    title={
+                        <FormattedMessage
+                            id='user.settings.advance.dataPrefetch.Title'
+                            defaultMessage='Allow Mattermost to prefetch channel posts'
+                        />
+                    }
+                    inputs={[
+                        <fieldset key='syncDraftsSetting'>
+                            <legend className='form-legend hidden-label'>
+                                <FormattedMessage
+                                    id='user.settings.advance.dataPrefetch.Title'
+                                    defaultMessage='Allow Mattermost to prefetch channel posts'
+                                />
+                            </legend>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        id='dataPrefetchOn'
+                                        type='radio'
+                                        name='dataPrefetch'
+                                        checked={this.state.settings.data_prefetch !== 'false'}
+                                        onChange={this.updateSetting.bind(this, 'data_prefetch', 'true')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.advance.on'
+                                        defaultMessage='On'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        id='dataPrefetchOff'
+                                        type='radio'
+                                        name='dataPrefetch'
+                                        checked={this.state.settings.data_prefetch === 'false'}
+                                        onChange={this.updateSetting.bind(this, 'data_prefetch', 'false')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.advance.off'
+                                        defaultMessage='Off'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div className='mt-5'>
+                                <FormattedMessage
+                                    id='user.settings.advance.dataPrefetch.Desc'
+                                    defaultMessage='When disabled, messages and user information will be fetched on each channel load instead of being pre-fetched on startup. Disabling prefetch is recommended for users with a high unread channel count in order to improve application performance.'
+                                />
+                            </div>
+                        </fieldset>,
+                    ]}
+                    setting={AdvancedSections.DATA_PREFETCH}
+                    submit={this.handleSubmit.bind(this, ['data_prefetch'])}
+                    saving={this.state.isSaving}
+                    serverError={this.state.serverError}
+                    updateSection={this.handleUpdateSection}
+                />
+            );
+        }
+
+        return (
+            <SettingItem
+                active={active}
+                areAllSectionsInactive={this.props.activeSection === ''}
+                title={
+                    <FormattedMessage
+                        id='user.settings.advance.dataPrefetch.Title'
+                        defaultMessage='Allow Mattermost to prefetch channel posts'
+                    />
+                }
+                describe={this.renderOnOffLabel(this.state.settings.data_prefetch)}
+                section={AdvancedSections.DATA_PREFETCH}
+                updateSection={this.handleUpdateSection}
+                max={max}
+            />
+        );
+    };
+
     renderFeatureLabel(feature: string): ReactNode {
         switch (feature) {
         case 'MARKDOWN_PREVIEW':
@@ -895,6 +986,15 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             }
         }
 
+        let dataPrefetchSection = null;
+        let dataPrefetchSectionDivider = null;
+        if (this.props.disableWebappPrefetchAllowed) {
+            dataPrefetchSection = this.renderDataPrefetchSection();
+            if (syncDraftsSection) {
+                dataPrefetchSectionDivider = <div className='divider-light'/>;
+            }
+        }
+
         return (
             <div>
                 <div className='modal-header'>
@@ -953,6 +1053,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     {unreadScrollPositionSection}
                     {syncDraftsSectionDivider}
                     {syncDraftsSection}
+                    {dataPrefetchSectionDivider}
+                    {dataPrefetchSection}
                     <div className='divider-dark'/>
                     {makeConfirmationModal}
                 </div>

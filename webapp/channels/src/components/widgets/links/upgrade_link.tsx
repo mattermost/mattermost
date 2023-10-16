@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {FormattedMessage} from 'react-intl';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-
-import {openModal} from 'actions/views/modals';
 import {trackEvent} from 'actions/telemetry_actions';
-import {ModalIdentifiers} from 'utils/constants';
+import {openModal} from 'actions/views/modals';
+
 import PurchaseModal from 'components/purchase_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import './link.scss';
 

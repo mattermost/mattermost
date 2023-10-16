@@ -6,8 +6,8 @@ package slashcommands
 import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type MeProvider struct {
@@ -35,7 +35,7 @@ func (*MeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (*MeProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*MeProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         model.PostTypeMe,

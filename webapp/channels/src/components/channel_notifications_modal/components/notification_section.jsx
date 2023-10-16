@@ -88,6 +88,11 @@ export default class NotificationSection extends React.PureComponent {
          * Error string from the server
          */
         serverError: PropTypes.string,
+
+        /**
+         * Whether the preferences are those of a GM
+         */
+        isGM: PropTypes.bool,
     };
 
     handleOnChange = (e) => {
@@ -134,6 +139,7 @@ export default class NotificationSection extends React.PureComponent {
             onReset,
             section,
             serverError,
+            isGM,
         } = this.props;
 
         if (expand) {
@@ -157,6 +163,7 @@ export default class NotificationSection extends React.PureComponent {
                     onSubmit={onSubmit}
                     serverError={serverError}
                     onCollapseSection={this.handleCollapseSection}
+                    isGM={isGM}
                 />
             );
         }

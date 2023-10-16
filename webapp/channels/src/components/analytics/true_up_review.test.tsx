@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {GlobalState} from '@mattermost/types/store';
-import {DeepPartial} from '@mattermost/types/utilities';
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 import {LicenseSkus} from 'utils/constants';
-
 import {TestHelper as TH} from 'utils/test_helper';
 
 import TrueUpReview from './true_up_review';

@@ -21,8 +21,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -540,7 +540,6 @@ func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImp
 	}
 
 	return &reactionsOfPost, nil
-
 }
 
 func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportData, *model.AppError) {

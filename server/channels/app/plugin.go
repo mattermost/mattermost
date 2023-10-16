@@ -24,7 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
@@ -552,7 +552,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
 	plugins := map[string]*model.MarketplacePlugin{}
 
-	if *a.Config().PluginSettings.EnableRemoteMarketplace && !a.Config().FeatureFlags.StreamlinedMarketplace && !filter.LocalOnly {
+	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
 		p, appErr := a.getRemotePlugins()
 		if appErr != nil {
 			return nil, appErr

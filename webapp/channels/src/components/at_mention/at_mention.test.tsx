@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject} from 'react';
 import {shallow} from 'enzyme';
-
-import AtMention from 'components/at_mention/at_mention';
+import React from 'react';
+import type {RefObject} from 'react';
 
 import {General} from 'mattermost-redux/constants';
+
+import AtMention from 'components/at_mention/at_mention';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -208,6 +209,19 @@ describe('components/AtMention', () => {
                 mentionName='marketing'
             >
                 {'(at)-marketing'}
+            </AtMention>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot when mentioning a group followed by punctuation', () => {
+        const wrapper = shallow<AtMention>(
+            <AtMention
+                {...baseProps}
+                mentionName='developers.'
+            >
+                {'(at)-developers.'}
             </AtMention>,
         );
 
