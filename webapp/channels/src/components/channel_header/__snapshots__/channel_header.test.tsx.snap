@@ -61,7 +61,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -384,7 +384,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -679,7 +679,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -980,7 +980,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -1281,7 +1281,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -1582,7 +1582,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -1886,7 +1886,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
           </div>
         </div>
@@ -2153,7 +2153,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -2486,7 +2486,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -2795,7 +2795,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -3118,7 +3118,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -3453,7 +3453,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -3754,7 +3754,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -4055,7 +4055,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -4387,7 +4387,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
@@ -4690,7 +4690,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                   />
                 </button>
               </div>
-              <ChannelHeaderDropdown />
+              <Memo(ChannelHeaderDropdown) />
             </MenuWrapper>
             <OverlayTrigger
               defaultOverlayShown={false}
