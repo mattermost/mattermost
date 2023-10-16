@@ -6864,5 +6864,205 @@
   {
     "id": "api.cloud.request_error",
     "translation": "Lỗi xử lý yêu cầu tới CWS."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} đã gửi cho bạn một tin nhắn mới"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Khi bạn đi vắng, {{.SenderName}} đã gửi tin nhắn cho nhóm của bạn."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} đã gửi cho bạn một tin nhắn mới"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Khi bạn đi vắng, {{.SenderName}} đã đề cập đến bạn trên kênh {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Khi bạn đi vắng, {{.SenderName}} đã trả lời chủ đề bạn đang theo dõi trong {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Khi bạn đi vắng, {{.SenderName}} đã trả lời một chuỗi trong Tin nhắn trực tiếp của bạn."
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " và đi tới Cài đặt > Thông báo"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Đăng nhập vào Mattermost"
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Bạn muốn thay đổi cài đặt thông báo của mình?"
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Không thể lưu dữ liệu thông báo."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Không thể gửi bài viết thông báo."
+  },
+  {
+    "id": "app.oauth.delete_app.app_error",
+    "translation": "Đã xảy ra lỗi khi xóa Ứng dụng OAuth2."
+  },
+  {
+    "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm tất cả mã thông báo truy cập."
+  },
+  {
+    "id": "app.oauth.get_app.find.app_error",
+    "translation": "Không thể tìm thấy ứng dụng được yêu cầu."
+  },
+  {
+    "id": "app.oauth.get_app.finding.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm ứng dụng."
+  },
+  {
+    "id": "app.oauth.get_apps.find.app_error",
+    "translation": "Đã xảy ra lỗi khi tìm Ứng dụng OAuth2."
+  },
+  {
+    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+    "translation": "Không thể xóa mã ủy quyền."
+  },
+  {
+    "id": "app.oauth.remove_access_data.app_error",
+    "translation": "Không thể xóa mã thông báo truy cập."
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Không thể xóa dữ liệu oauth."
+  },
+  {
+    "id": "app.oauth.save_app.save.app_error",
+    "translation": "Không thể lưu ứng dụng."
+  },
+  {
+    "id": "app.oauth.update_app.find.app_error",
+    "translation": "Không thể tìm thấy ứng dụng hiện có để cập nhật."
+  },
+  {
+    "id": "app.oauth.update_app.updating.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi cập nhật ứng dụng."
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": "Đã xảy ra lỗi khi giải nén gói plugin."
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "Đã xảy ra lỗi khi lấy khóa chung từ cửa hàng."
+  },
+  {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Không giải mã được yêu cầu plugin thị trường."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Không thể tìm thấy plugin thị trường được yêu cầu."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": "Không thể tìm thấy chữ ký plugin thị trường được yêu cầu."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Không thể sửa đổi tập tin saml."
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Bỏ qua cài đặt plugin {{.Id}} vì phiên bản hiện tại tương đương hoặc mới hơn."
+  },
+  {
+    "id": "app.plugin_store.delete.app_error",
+    "translation": "Không thể xóa giá trị khóa plugin."
+  },
+  {
+    "id": "app.plugin_store.list.app_error",
+    "translation": "Không thể liệt kê tất cả các khóa plugin."
+  },
+  {
+    "id": "app.plugin_store.save.app_error",
+    "translation": "Không thể lưu hoặc cập nhật giá trị khóa plugin."
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Không thể lấy được số lượng bài viết."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Không thể sử dụng nhóm"
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Không thể lấy số lượng người dùng bằng bài viết."
+  },
+  {
+    "id": "app.post.delete.app_error",
+    "translation": "Không thể xóa bài viết."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Đã xảy ra lỗi khi tải nhóm."
+  },
+  {
+    "id": "app.post.get.app_error",
+    "translation": "Không thể nhận được bài viết."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Không thể nhận được bài viết trực tiếp."
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} đã đề cập đến bạn trong tin nhắn"
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} đã trả lời một chủ đề"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Khi bạn đi vắng, {{.SenderName}} đã trả lời chủ đề bạn đang theo dõi."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Khi bạn đi vắng, {{.SenderName}} đã trả lời một chủ đề trong nhóm của bạn."
+  },
+  {
+    "id": "app.oauth.get_app_by_user.find.app_error",
+    "translation": "Không thể tìm thấy bất kỳ ứng dụng hiện có nào."
+  },
+  {
+    "id": "app.oauth.save_app.existing.app_error",
+    "translation": "Phải gọi cập nhật cho ứng dụng hiện có."
+  },
+  {
+    "id": "app.plugin.invalid_version.app_error",
+    "translation": "Phiên bản plugin không thể được phân tích cú pháp."
+  },
+  {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Không thể giải mã chữ ký base64."
+  },
+  {
+    "id": "app.plugin_store.get.app_error",
+    "translation": "Không thể lấy giá trị khóa plugin."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Không thể đếm số bài viết theo ngày."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Không thể tìm nạp bài đăng vì nó đã vượt quá giới hạn gói của đám mây."
   }
 ]
