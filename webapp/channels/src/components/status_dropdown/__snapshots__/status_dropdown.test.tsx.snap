@@ -631,7 +631,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
           <span
             className="custom_status__icon"
           >
-            <EmojiIcon
+            <Memo(EmojiIcon)
               className="custom-status-emoji"
             />
           </span>
@@ -898,7 +898,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
           <span
             className="custom_status__icon"
           >
-            <EmojiIcon
+            <Memo(EmojiIcon)
               className="custom-status-emoji"
             />
           </span>
@@ -1165,7 +1165,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
           <span
             className="custom_status__icon"
           >
-            <EmojiIcon
+            <Memo(EmojiIcon)
               className="custom-status-emoji"
             />
           </span>
@@ -1909,7 +1909,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
           <span
             className="custom_status__icon"
           >
-            <EmojiIcon
+            <Memo(EmojiIcon)
               className="custom-status-emoji"
             />
           </span>
