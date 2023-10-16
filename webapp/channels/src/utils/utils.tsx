@@ -1333,7 +1333,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
 }
 
 function isChannelOrPermalink(link: string) {
-    let match = (/\/([a-z0-9\-_]+)\/channels\/([a-z0-9\-__]+)/).exec(link);
+    let match = (/\/([a-z0-9\-_]+)\/channels\/([a-z0-9\-__][a-z0-9\-__.]+)/).exec(link);
     if (match) {
         return {
             type: 'channel',

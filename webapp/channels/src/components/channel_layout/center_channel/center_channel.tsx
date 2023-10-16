@@ -11,7 +11,7 @@ import PlaybookRunner from 'components/channel_layout/playbook_runner';
 import LoadingScreen from 'components/loading_screen';
 import PermalinkView from 'components/permalink_view';
 
-import {IDENTIFIER_PATTERN, ID_PATH_PATTERN} from 'utils/path';
+import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
@@ -93,7 +93,6 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                 )}
                 <div className='row main'>
                     <Switch>
-                        {/* /:team already validated on parent route */}
                         <Route
                             path={`${url}/pl/:postid(${ID_PATH_PATTERN})`}
                             render={(props) => (
@@ -104,22 +103,22 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             )}
                         />
                         <Route
-                            path={`/:team/:path(channels|messages)/:identifier(${IDENTIFIER_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
                             component={ChannelIdentifierRouter}
                         />
                         <Route
-                            path={`/:team/_playbooks/:playbookId(${ID_PATH_PATTERN})/run`}
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/_playbooks/:playbookId(${ID_PATH_PATTERN})/run`}
                         >
                             <PlaybookRunner/>
                         </Route>
                         {isCollapsedThreadsEnabled ? (
                             <Route
-                                path={`/:team/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
                                 component={LazyGlobalThreads}
                             />
                         ) : null}
                         <Route
-                            path='/:team/drafts'
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
                             component={LazyDrafts}
                         />
 
