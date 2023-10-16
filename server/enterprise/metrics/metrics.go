@@ -707,7 +707,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Time to execute the api handler",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"handler", "method", "status_code"},
+		[]string{"handler", "method", "status_code", "origin_client", "page_load_context"},
 	)
 	m.Registry.MustRegister(m.APITimesHistograms)
 
@@ -1121,8 +1121,8 @@ func (mi *MetricsInterfaceImpl) ObserveStoreMethodDuration(method string, succes
 	mi.StoreTimesHistograms.With(prometheus.Labels{"method": method, "success": success}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveAPIEndpointDuration(handler, method, statusCode, originClient string, elapsed float64) {
-	mi.APITimesHistograms.With(prometheus.Labels{"handler": handler, "method": method, "status_code": statusCode, "origin_client": originClient}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveAPIEndpointDuration(handler, method, statusCode, originClient, pageLoadContext string, elapsed float64) {
+	mi.APITimesHistograms.With(prometheus.Labels{"handler": handler, "method": method, "status_code": statusCode, "origin_client": originClient, "page_load_context": pageLoadContext}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) IncrementClusterEventType(eventType model.ClusterEvent) {
