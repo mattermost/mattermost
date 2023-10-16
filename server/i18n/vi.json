@@ -7168,5 +7168,213 @@
   {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Chúng tôi không thể có được tất cả các đội tư nhân."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Văn bản đã nhập vượt quá giới hạn ký tự. Tiêu đề kênh được giới hạn ở {{.MaxLength}} ký tự."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Lỗi cài đặt trạng thái."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Lỗi xoá trạng thái"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Văn bản đã nhập vượt quá giới hạn ký tự. Tiêu đề kênh được giới hạn ở {{.MaxLength}} ký tự."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Không thể tạo nhóm vì đã đạt đến giới hạn số lượng nhóm"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Không thể khôi phục đội vì đã đạt đến giới hạn nhóm"
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "Từ kích hoạt lệnh thiếu ký tự gạch chéo ở đầu"
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Kênh này không còn được chia sẻ."
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Không thể hủy chia sẻ kênh này: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Hủy mời kết nối an toàn khỏi kênh được chia sẻ này"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "ID của kết nối an toàn để hủy mời."
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Hành động không xác định `{{.Action}}`. Hành động có sẵn: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Hủy chia sẻ kênh hiện tại"
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "Không hợp nhất được cấu hình."
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Không thể tải lại cấu hình."
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Không thể di chuyển kho lưu trữ cấu hình."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Không thể phân biệt cấu hình"
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "Không hợp nhất được cấu hình đã cho."
+  },
+  {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "URL trang web không thể bị xóa."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Không thể phân biệt cấu hình"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Không được phép thay đổi {{.Name}} vì lý do bảo mật."
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Không thể cập nhật bản dịch máy chủ."
+  },
+  {
+    "id": "api.context.get_user.app_error",
+    "translation": "Không thể lấy người dùng từ phiên UserID."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Lời mời đã hết hạn."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Lỗi mã hóa JSON."
+  },
+  {
+    "id": "api.context.local_origin_required.app_error",
+    "translation": "Điểm cuối này yêu cầu nguồn gốc yêu cầu cục bộ."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Không thể tìm thấy ID kết nối an toàn {{.RemoteId}}."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Thiếu ID kết nối an toàn."
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "nhóm đếm lỗi"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "tính năng nhóm tùy chỉnh bị vô hiệu hóa"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "không được cấp phép cho các nhóm tùy chỉnh"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference phải là 'true' cho các nhóm tùy chỉnh"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id phải trống cho nhóm tùy chỉnh"
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Tính năng trạng thái tùy chỉnh đã bị tắt. Vui lòng liên hệ với quản trị viên hệ thống của bạn để biết chi tiết."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Không cập nhật được trạng thái tùy chỉnh. Vui lòng thêm biểu tượng cảm xúc hoặc trạng thái văn bản tùy chỉnh hoặc cả hai."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "ID kết nối an toàn không khớp."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Không xóa được trạng thái gần đây. Vui lòng thử thêm trạng thái trước hoặc liên hệ với quản trị viên hệ thống của bạn để biết chi tiết."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Không thể lưu bản nháp vào kênh đã xóa"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Tính năng nháp bị tắt."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Cài đặt Elaticsearch có các giá trị chưa được đặt."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.failure.app_error",
+    "translation": "Không gửi được email xác nhận của quản trị viên"
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+    "translation": "không thể tìm thấy số liệu cảnh báo."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+    "translation": "Máy chủ SMTP là bắt buộc"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Mở quan trọng nhất"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Xem tin nhắn này"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Xem bên dưới để biết tóm tắt về tin nhắn mới của bạn."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "\"{{.Giờ}}:{{.Phút}} {{.Múi giờ}}\""
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "Bạn có tin nhắn mới"
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Lỗi khi truy xuất trạng thái lượt truy cập thị trường của quản trị viên đầu tiên từ cửa hàng."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Lỗi không cung cấp tên tổ chức cho quá trình giới thiệu tự lưu trữ."
+  },
+  {
+    "id": "api.emoji.create.internal_error",
+    "translation": "server_error: Đã gặp lỗi máy chủ nội bộ khi tạo biểu tượng cảm xúc."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Lỗi khi truy xuất thiết lập hoàn chỉnh của quản trị viên đầu tiên từ cửa hàng."
   }
 ]
