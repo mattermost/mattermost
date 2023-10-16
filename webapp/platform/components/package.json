@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/components",
-  "version": "8.0.0",
+  "version": "9.2.0",
   "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",

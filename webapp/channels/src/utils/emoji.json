@@ -3893,7 +3893,10 @@
         "unified": "1F64F",
         "short_name": "pray",
         "short_names": [
-            "pray"
+            "pray",
+            "thanks",
+            "thank you",
+            "thank_you"
         ],
         "text": null,
         "texts": null,
