@@ -729,7 +729,6 @@ func (s *hooksRPCServer) MessagesWillBeConsumed(args *Z_MessagesWillBeConsumedAr
 		MessagesWillBeConsumed(posts []*model.Post) []*model.Post
 	}); ok {
 		returns.A = hook.MessagesWillBeConsumed(args.A)
-
 	} else {
 		return encodableError(fmt.Errorf("hook MessagesWillBeConsumed called but not implemented"))
 	}

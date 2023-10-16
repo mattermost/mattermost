@@ -2290,10 +2290,8 @@ func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
 	}
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
-		if postReplacements != nil {
-			for _, postReplacement := range postReplacements {
-				posts[postReplacement.Id] = postReplacement
-			}
+		for _, postReplacement := range postReplacements {
+			posts[postReplacement.Id] = postReplacement
 		}
 		return true
 	}, plugin.MessagesWillBeConsumedID)
@@ -2307,7 +2305,7 @@ func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
 	ps := []*model.Post{*post}
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		rp := hooks.MessagesWillBeConsumed(ps)
-		if rp != nil {
+		if len(rp) > 0 {
 			(*post) = rp[0]
 		}
 		return true
