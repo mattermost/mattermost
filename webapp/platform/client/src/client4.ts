@@ -159,8 +159,6 @@ const PER_PAGE_DEFAULT = 60;
 export const DEFAULT_LIMIT_BEFORE = 30;
 export const DEFAULT_LIMIT_AFTER = 30;
 
-const GRAPHQL_ENDPOINT = '/api/v5/graphql';
-
 export default class Client4 {
     logToConsole = false;
     serverVersion = '';
@@ -194,10 +192,6 @@ export default class Client4 {
         return this.getUrl() + baseUrl;
     }
 
-    getGraphQLUrl() {
-        return `${this.url}${GRAPHQL_ENDPOINT}`;
-    }
-
     setUrl(url: string) {
         this.url = url;
     }
@@ -220,6 +214,14 @@ export default class Client4 {
 
     setAcceptLanguage(locale: string) {
         this.defaultHeaders['Accept-Language'] = locale;
+    }
+
+    setHeader(header: string, value: string) {
+        this.defaultHeaders[header] = value;
+    }
+
+    removeHeader(header: string) {
+        delete this.defaultHeaders[header];
     }
 
     setEnableLogging(enable: boolean) {
@@ -416,10 +418,6 @@ export default class Client4 {
 
     getSchemesRoute() {
         return `${this.getBaseRoute()}/schemes`;
-    }
-
-    getRedirectLocationRoute() {
-        return `${this.getBaseRoute()}/redirect_location`;
     }
 
     getBotsRoute() {
@@ -3681,17 +3679,6 @@ export default class Client4 {
         );
     }
 
-    // Redirect Location
-    getRedirectLocation = (urlParam: string) => {
-        if (!urlParam.length) {
-            return Promise.resolve();
-        }
-        const url = `${this.getRedirectLocationRoute()}${buildQueryString({url: urlParam})}`;
-        return this.doFetch<{
-            location: string;
-        }>(url, {method: 'get'});
-    };
-
     // Bot Routes
 
     createBot = (bot: Bot) => {
@@ -4047,15 +4034,6 @@ export default class Client4 {
             `${this.getSystemRoute()}/schema/version`,
             {method: 'get'},
         );
-    }
-
-    /**
-     * @param query string query of graphQL, pass the json stringified version of the query
-     * eg.  const query = JSON.stringify({query: `{license, config}`, operationName: 'queryForLicenseAndConfig'});
-     *      client4.fetchWithGraphQL(query);
-     */
-    fetchWithGraphQL = async <DataResponse>(query: string) => {
-        return this.doFetch<DataResponse>(this.getGraphQLUrl(), {method: 'post', body: query});
     }
 
     getCallsChannelState = (channelId: string) => {

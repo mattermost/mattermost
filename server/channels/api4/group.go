@@ -109,7 +109,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -153,7 +153,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var group *model.GroupWithUserIds
-	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&group); err != nil || group == nil {
 		c.SetInvalidParamWithErr("group", err)
 		return
 	}
@@ -686,7 +686,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1061,7 +1061,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Since = since
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1073,7 +1073,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	)
 
 	if opts.FilterHasMember != "" {
-		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, opts.FilterHasMember)
+		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, opts.FilterHasMember)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -1256,7 +1256,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newMembers *model.GroupModifyMembers
-	if err := json.NewDecoder(r.Body).Decode(&newMembers); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&newMembers); err != nil || newMembers == nil {
 		c.SetInvalidParamWithErr("addGroupMembers", err)
 		return
 	}
@@ -1315,7 +1315,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var deleteBody *model.GroupModifyMembers
-	if err := json.NewDecoder(r.Body).Decode(&deleteBody); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&deleteBody); err != nil || deleteBody == nil {
 		c.SetInvalidParamWithErr("deleteGroupMembers", err)
 		return
 	}

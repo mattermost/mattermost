@@ -164,7 +164,6 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 			rows[5].Value = float64(totalSockets)
 			rows[6].Value = float64(totalMasterDb)
 			rows[7].Value = float64(totalReadDb)
-
 		} else {
 			rows[5].Value = float64(a.TotalWebsocketConnections())
 			rows[6].Value = float64(a.Srv().Store().TotalMasterDbConnections())

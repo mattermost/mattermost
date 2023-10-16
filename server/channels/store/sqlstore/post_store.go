@@ -637,7 +637,6 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 						sq.Lt{"Posts.Id": opts.FromPost},
 					},
 				})
-
 			} else {
 				query = query.Where(direction)
 			}
@@ -759,7 +758,6 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 							sq.Lt{"p.Id": opts.FromPost},
 						},
 					})
-
 				} else {
 					query = query.Where(direction)
 				}
@@ -2220,7 +2218,6 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
-
 	var args []any
 	query :=
 		`SELECT

@@ -73,5 +73,4 @@ func TestTeamStoreCache(t *testing.T) {
 		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
 		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 2)
 	})
-
 }

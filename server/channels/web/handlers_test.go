@@ -171,7 +171,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	}
 	session.GenerateCSRF()
 	th.App.SetSessionExpireInHours(session, 24)
-	session, err := th.App.CreateSession(session)
+	session, err := th.App.CreateSession(th.Context, session)
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}
@@ -451,7 +451,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, 200, response.Code)
 		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
 	})
-
 }
 
 func TestGenerateDevCSP(t *testing.T) {
@@ -882,4 +881,72 @@ func TestCheckCSRFToken(t *testing.T) {
 		assert.True(t, passed)
 		assert.Nil(t, c.Err)
 	})
+}
+
+func TestOriginClient(t *testing.T) {
+	testCases := []struct {
+		name           string
+		userAgent      string
+		mobilev2       bool
+		expectedClient OriginClient
+	}{
+		{
+			name:           "No user agent - unknown client",
+			userAgent:      "",
+			expectedClient: OriginClientUnknown,
+		},
+		{
+			name:           "Mozilla user agent",
+			userAgent:      "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0",
+			expectedClient: OriginClientWeb,
+		},
+		{
+			name:           "Chrome user agent",
+			userAgent:      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+			expectedClient: OriginClientWeb,
+		},
+		{
+			name:           "Mobile post v2",
+			userAgent:      "someother-agent/3.2.4",
+			mobilev2:       true,
+			expectedClient: OriginClientMobile,
+		},
+		{
+			name:           "Mobile Android",
+			userAgent:      "rnbeta/2.0.0.441 someother-agent/3.2.4",
+			expectedClient: OriginClientMobile,
+		},
+		{
+			name:           "Mobile iOS",
+			userAgent:      "Mattermost/2.0.0.441 someother-agent/3.2.4",
+			expectedClient: OriginClientMobile,
+		},
+		{
+			name:           "Desktop user agent",
+			userAgent:      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.177 Electron/23.1.2 Safari/537.36 Mattermost/5.3.1",
+			expectedClient: OriginClientDesktop,
+		},
+	}
+
+	for _, tc := range testCases {
+		req, err := http.NewRequest(http.MethodGet, "example.com", nil)
+		require.NoError(t, err)
+
+		// Set User-Agent header, if any
+		if tc.userAgent != "" {
+			req.Header.Set("User-Agent", tc.userAgent)
+		}
+
+		// Set mobilev2 query if needed
+		if tc.mobilev2 {
+			q := req.URL.Query()
+			q.Add("mobilev2", "true")
+			req.URL.RawQuery = q.Encode()
+		}
+
+		// Compute origin client
+		actualClient := originClient(req)
+
+		require.Equal(t, tc.expectedClient, actualClient)
+	}
 }

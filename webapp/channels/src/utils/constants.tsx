@@ -1014,6 +1014,7 @@ export const AdvancedSections = {
     PREVIEW_FEATURES: 'advancedPreviewFeatures',
     PERFORMANCE_DEBUGGING: 'performanceDebugging',
     SYNC_DRAFTS: 'syncDrafts',
+    DATA_PREFETCH: 'dataPrefetch',
 };
 
 export const RHSStates = {
@@ -2159,6 +2160,11 @@ export const DataSearchTypes = {
 export const OverActiveUserLimits = {
     MIN: 0.05,
     MAX: 0.1,
+} as const;
+
+export const PageLoadContext = {
+    PAGE_LOAD: 'page_load',
+    RECONNECT: 'reconnect',
 } as const;
 
 export default Constants;

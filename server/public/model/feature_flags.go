@@ -29,9 +29,6 @@ type FeatureFlags struct {
 
 	NormalizeLdapDNs bool
 
-	// Enable GraphQL feature
-	GraphQL bool
-
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
@@ -54,7 +51,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = true
 	f.NormalizeLdapDNs = false
-	f.GraphQL = false
 	f.CallsEnabled = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
