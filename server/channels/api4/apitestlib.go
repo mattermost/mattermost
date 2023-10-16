@@ -466,10 +466,8 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicDeletedChannel = th.CreatePublicChannel()
 	th.BasicChannel2 = th.CreatePublicChannel()
 	th.BasicPost = th.CreatePost()
-
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-
 	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
 	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false)
@@ -483,7 +481,6 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.LoginBasic()
 
 	th.Group = th.CreateGroup()
-
 	return th
 }
 
