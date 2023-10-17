@@ -151,6 +151,8 @@ jobs:
           gzip -d upgraded-dump-server/${DUMP_SERVER_NAME}.gz
           gzip -d upgraded-dump-script/${DUMP_SCRIPT_NAME}.gz
           diff upgraded-dump-server/$DUMP_SERVER_NAME upgraded-dump-script/$DUMP_SCRIPT_NAME > $DIFF_NAME
+      - name: Display diff
+        run: |
           cat $DIFF_NAME
       - name: Upload diff
         if: failure() # Upload the diff only if the previous step failed; i.e., if the diff is non-empty
