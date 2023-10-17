@@ -3,13 +3,12 @@
 
 import classNames from 'classnames';
 import React, {useState, useRef} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import {emailToOAuth} from 'actions/admin_actions.jsx';
 
-import LocalizedInput from 'components/localized_input/localized_input';
 import LoginMfa from 'components/login/login_mfa';
 
 import Constants, {ClaimErrors} from 'utils/constants';
@@ -26,6 +25,8 @@ type Props = {
 }
 
 const EmailToOAuth = (props: Props) => {
+    const {formatMessage} = useIntl();
+
     const [showMfa, setShowMfa] = useState(false);
     const [password, setPassword] = useState('');
     const [serverError, setServerError] = useState<string>('');
@@ -75,7 +76,6 @@ const EmailToOAuth = (props: Props) => {
         id: t('claim.email_to_oauth.title'),
         defaultMessage: 'Switch Email/Password Account to {uiType}',
     };
-    const placeholderPasswordMessage = {id: t('claim.email_to_oauth.pwd'), defaultMessage: 'Password'};
 
     if (showMfa) {
         return (
@@ -119,12 +119,12 @@ const EmailToOAuth = (props: Props) => {
                     />
                 </p>
                 <div className={classNames('form-group', {'has-error': serverError})}>
-                    <LocalizedInput
+                    <input
                         type='password'
                         className='form-control'
                         name='password'
                         ref={passwordInput}
-                        placeholder={placeholderPasswordMessage}
+                        placeholder={formatMessage({id: t('claim.email_to_oauth.pwd'), defaultMessage: 'Password'})}
                         spellCheck='false'
                     />
                 </div>
