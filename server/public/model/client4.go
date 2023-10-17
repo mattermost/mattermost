@@ -6635,6 +6635,26 @@ func (c *Client4) GetSortedEmojiList(ctx context.Context, page, perPage int, sor
 	return list, BuildResponse(r), nil
 }
 
+// GetEmojisByNames takes an array of custom emoji names and returns an array of those emojis.
+func (c *Client4) GetEmojisByNames(ctx context.Context, names []string) ([]*Emoji, *Response, error) {
+	buf, err := json.Marshal(names)
+	if err != nil {
+		return nil, nil, NewAppError("GetEmojisByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.emojisRoute()+"/names", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var list []*Emoji
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetEmojisByNames", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
 func (c *Client4) DeleteEmoji(ctx context.Context, emojiId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.emojiRoute(emojiId))

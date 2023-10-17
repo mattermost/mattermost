@@ -2762,6 +2762,13 @@ export default class Client4 {
         );
     };
 
+    getCustomEmojisByNames = (names: string[]) => {
+        return this.doFetch<CustomEmoji[]>(
+            `${this.getEmojisRoute()}/names`,
+            {method: 'post', body: JSON.stringify(names)},
+        );
+    };
+
     getCustomEmojis = (page = 0, perPage = PER_PAGE_DEFAULT, sort = '') => {
         return this.doFetch<CustomEmoji[]>(
             `${this.getEmojisRoute()}${buildQueryString({page, per_page: perPage, sort})}`,
