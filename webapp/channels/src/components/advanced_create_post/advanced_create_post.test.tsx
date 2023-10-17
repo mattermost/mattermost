@@ -8,6 +8,7 @@ import type {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -1510,13 +1511,13 @@ describe('components/advanced_create_post', () => {
     });
 
     it('should match snapshot, post priority enabled, with priority important', () => {
-        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: true, draft: {...draftProp, metadata: {priority: {priority: 'important'}}}}));
+        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: true, draft: {...draftProp, metadata: {priority: {priority: PostPriority.IMPORTANT}}}}));
 
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should match snapshot, post priority disabled, with priority important', () => {
-        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: false, draft: {...draftProp, metadata: {priority: {priority: 'important'}}}}));
+        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: false, draft: {...draftProp, metadata: {priority: {priority: PostPriority.IMPORTANT}}}}));
 
         expect(wrapper).toMatchSnapshot();
     });
