@@ -232,7 +232,7 @@ const IPFiltering = () => {
                 isDisabled={!currentIPIsInRange}
                 onClick={handleSaveClick}
                 serverError={saveBarError()}
-                cancelLink='/admin_console/site_config/ip_filtering'
+                cancelLink=''
             />
         </div>
     );

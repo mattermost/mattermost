@@ -118,9 +118,10 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
                                     {
                                         link: (
                                             <ExternalLink
-                                                href='https://docs.mattermost.com/deployment/ip-address-filtering.html'
+                                                href='https://docs.mattermost.com/guides/cloud-workspace-management.html'
                                                 target='_blank'
                                                 rel='noopener noreferrer'
+                                                location={'ip_filtering_add_edit_rule_modal'}
                                             >
                                                 {formatMessage({id: 'admin.ip_filtering.more_info_link', defaultMessage: 'More info'})}
                                             </ExternalLink>

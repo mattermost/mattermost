@@ -33,9 +33,10 @@ const EnableSectionContent: React.FC<Props> = ({filterToggle, setFilterToggle}) 
                                     {
                                         learnmore: (
                                             <ExternalLink
-                                                href='https://docs.mattermost.com/deployment/ip-address-filtering.html'
+                                                href='https://docs.mattermost.com/guides/cloud-workspace-management.html'
                                                 target='_blank'
                                                 rel='noreferrer'
+                                                location={'ip_filtering_enable_section'}
                                             >
                                                 {formatMessage({id: 'admin.ip_filtering.learn_more', defaultMessage: 'Learn more in the docs'})}
                                             </ExternalLink>
