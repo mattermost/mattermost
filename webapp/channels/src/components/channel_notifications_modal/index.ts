@@ -15,9 +15,14 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store/index';
 
+import {
+    isCollapsedThreadsEnabled,
+} from 'mattermost-redux/selectors/entities/preferences';
+
 import ChannelNotificationsModal from './channel_notifications_modal';
 
 const mapStateToProps = (state: GlobalState) => ({
+    collapsedReplyThreads: isCollapsedThreadsEnabled(state),
     channelMember: getMyCurrentChannelMembership(state),
     sendPushNotifications: getConfig(state).SendPushNotifications === 'true',
 });

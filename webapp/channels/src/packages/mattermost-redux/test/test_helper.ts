@@ -3,7 +3,6 @@
 
 import {randomUUID} from 'crypto';
 import nock from 'nock';
-
 import {Client4} from '@mattermost/client';
 import type {Bot} from '@mattermost/types/bots';
 import type {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
@@ -16,9 +15,6 @@ import type {Role} from '@mattermost/types/roles';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile, UserNotifyProps} from '@mattermost/types/users';
-
-import General from 'mattermost-redux/constants/general';
-import {generateId} from 'mattermost-redux/utils/helpers';
 
 export const DEFAULT_SERVER = 'http://localhost:8065';
 const PASSWORD = 'password1';
@@ -450,6 +446,8 @@ class TestHelper {
         return {
             desktop: 'default',
             desktop_sound: 'off',
+            desktop_threads: 'default',
+            push_threads: 'default',
             email: 'default',
             mark_unread: 'mention',
             push: 'default',
