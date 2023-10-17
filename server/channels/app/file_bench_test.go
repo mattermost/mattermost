@@ -89,7 +89,6 @@ func BenchmarkUploadFile(b *testing.B) {
 				}
 				th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
 				th.App.RemoveFile(info1.Path)
-
 			},
 		},
 		{

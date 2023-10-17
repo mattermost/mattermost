@@ -5,6 +5,8 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {Team} from '@mattermost/types/teams';
+
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
@@ -23,6 +25,8 @@ export type Props = {
     onURLChange: (url: string) => void;
     autoFocus?: boolean;
     onErrorStateChange?: (isError: boolean) => void;
+    team?: Team;
+    urlError?: string;
 }
 
 import './channel_name_form_field.scss';
@@ -58,6 +62,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
 
     const {name: currentTeamName} = useSelector(getCurrentTeam);
+    const teamName = props.team ? props.team.name : currentTeamName;
 
     const handleOnDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -131,11 +136,11 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             <URLInput
                 className='new-channel-modal__url'
                 base={getSiteURL()}
-                path={`${currentTeamName}/channels`}
+                path={`${teamName}/channels`}
                 pathInfo={url}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
                 shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
-                error={urlError}
+                error={urlError || props.urlError}
                 onChange={handleOnURLChange}
             />
         </React.Fragment>
