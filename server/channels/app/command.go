@@ -255,7 +255,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 	var wg sync.WaitGroup
 	for _, mention := range possibleMentions {
 		wg.Add(1)
-		go func(mention string) {
+		go func(c request.CTX, mention string) {
 			defer wg.Done()
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
 
@@ -299,7 +299,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 			}
 
 			mentionChan <- &mentionMapItem{mention, user.Id}
-		}(mention)
+		}(c.Clone(), mention)
 	}
 
 	wg.Wait()

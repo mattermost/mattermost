@@ -403,15 +403,15 @@ func (_m *MockAppIface) SendEphemeralPost(c request.CTX, userId string, post *mo
 }
 
 // UpdatePost provides a mock function with given fields: c, post, safeUpdate
-func (_m *MockAppIface) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (_m *MockAppIface) UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	ret := _m.Called(c, post, safeUpdate)
 
 	var r0 *model.Post
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Post, bool) (*model.Post, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, bool) (*model.Post, *model.AppError)); ok {
 		return rf(c, post, safeUpdate)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Post, bool) *model.Post); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, bool) *model.Post); ok {
 		r0 = rf(c, post, safeUpdate)
 	} else {
 		if ret.Get(0) != nil {
@@ -419,7 +419,7 @@ func (_m *MockAppIface) UpdatePost(c *request.Context, post *model.Post, safeUpd
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, *model.Post, bool) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, bool) *model.AppError); ok {
 		r1 = rf(c, post, safeUpdate)
 	} else {
 		if ret.Get(1) != nil {
