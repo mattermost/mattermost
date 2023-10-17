@@ -647,8 +647,8 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	users, err := getUsersFromArgs(c, args)
-	result = multierror.Append(result, err)
 	if err != nil {
+		result = multierror.Append(result, err)
 		printer.PrintError(err.Error())
 	}
 	for i, user := range users {
