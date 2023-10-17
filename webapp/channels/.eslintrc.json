@@ -1,11 +1,11 @@
 {
   "root": true,
   "extends": [
-    "plugin:mattermost/react",
+    "plugin:@mattermost/react",
     "plugin:react-hooks/recommended"
   ],
   "plugins": [
-    "mattermost",
+    "@mattermost",
     "import",
     "no-only-tests",
     "@typescript-eslint",
@@ -23,6 +23,7 @@
     }
   },
   "rules": {
+    "@mattermost/use-external-link": 2,
     "header/header": [
       2,
       "line",
@@ -30,7 +31,6 @@
       2
     ],
     "no-duplicate-imports": 0,
-    "mattermost/use-external-link": 2,
     "import/no-duplicates": 2,
     "max-nested-callbacks": ["error", 10],
     "no-unused-expressions": 0,

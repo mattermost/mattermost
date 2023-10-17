@@ -54,17 +54,13 @@ function TeamController(props: Props) {
 
     useEffect(() => {
         async function fetchInitialChannels() {
-            if (props.graphQLEnabled) {
-                await props.fetchChannelsAndMembers();
-            } else {
-                await props.fetchAllMyTeamsChannelsAndChannelMembersREST();
-            }
+            await props.fetchAllMyTeamsChannelsAndChannelMembersREST();
 
             setInitialChannelsLoaded(true);
         }
 
         fetchInitialChannels();
-    }, [props.graphQLEnabled]);
+    }, []);
 
     useEffect(() => {
         const wakeUpIntervalId = setInterval(() => {
@@ -96,11 +92,7 @@ function TeamController(props: Props) {
             if (!props.disableRefetchingOnBrowserFocus) {
                 const currentTime = Date.now();
                 if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
-                    if (props.graphQLEnabled) {
-                        props.fetchChannelsAndMembers(props.currentTeamId);
-                    } else {
-                        props.fetchMyChannelsAndMembersREST(props.currentTeamId);
-                    }
+                    props.fetchChannelsAndMembers(props.currentTeamId);
                 }
             }
         }
@@ -133,7 +125,7 @@ function TeamController(props: Props) {
             window.removeEventListener('blur', handleBlur);
             window.removeEventListener('keydown', handleKeydown);
         };
-    }, [props.selectedThreadId, props.graphQLEnabled, props.currentChannelId, props.currentTeamId]);
+    }, [props.selectedThreadId, props.currentChannelId, props.currentTeamId]);
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {
