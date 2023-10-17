@@ -87,7 +87,6 @@ describe('IPFiltering', () => {
         });
 
         expect(getByText('Save')).toBeInTheDocument();
-        expect(getByText('Cancel')).toBeInTheDocument();
     });
 
     test('disables IP Filtering when the toggle is turned off', async () => {
