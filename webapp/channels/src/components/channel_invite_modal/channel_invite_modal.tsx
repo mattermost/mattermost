@@ -474,7 +474,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             return (
                 <ToggleModalButton
                     id='inviteGuest'
-                    className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-tertiary`}
+                    className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-quaternary`}
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
                     dialogProps={{
