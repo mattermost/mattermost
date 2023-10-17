@@ -26,11 +26,11 @@ type Props = {
 };
 
 const SystemPermissionGate = ({
-    permissions,
-    hasPermission,
-    invert = false,
-    children,
- } : Props) => {
+        permissions,
+        hasPermission,
+        invert = false,
+        children,
+    }: Props) => {
     if (hasPermission && !invert) {
         return children;
     }
@@ -38,6 +38,6 @@ const SystemPermissionGate = ({
         return children;
     }
     return null;
-}
+};
 
 export default SystemPermissionGate;
