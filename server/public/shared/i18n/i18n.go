@@ -49,6 +49,7 @@ var supportedLocales = []string{
 	"pt-BR",
 	"ro",
 	"sv",
+	"vi",
 	"tr",
 	"bg",
 	"ru",
