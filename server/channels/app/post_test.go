@@ -2859,26 +2859,64 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, false, false)
-	require.Nil(t, err)
-	require.NotNil(t, post)
+	t.Run("Private channel", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, false, false)
+		require.Nil(t, err)
+		require.NotNil(t, post)
 
-	session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
-	require.Nil(t, err)
-	require.NotNil(t, session1)
+		session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		require.NotNil(t, session1)
 
-	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
-	require.Nil(t, err)
-	require.NotNil(t, session2)
+		session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		require.NotNil(t, session2)
 
-	// User is not authorized to get post
-	_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
-	require.NotNil(t, err)
+		// User is not authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		require.NotNil(t, err)
 
-	// User is authorized to get post
-	_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
-	require.Nil(t, err)
+		// User is authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		require.Nil(t, err)
+	})
+
+	t.Run("Public channel", func(t *testing.T) {
+		publicChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: publicChannel.Id, Message: "Hello"}, publicChannel, false, false)
+		require.Nil(t, err)
+		require.NotNil(t, post)
+
+		session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		require.NotNil(t, session1)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		require.NotNil(t, session2)
+
+		// User is authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		require.Nil(t, err)
+
+		// User is authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(c *model.Config) {
+			b := true
+			c.ComplianceSettings.Enable = &b
+		})
+
+		// User is not authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		require.NotNil(t, err)
+
+		// User is authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		require.Nil(t, err)
+	})
 }
 
 func TestShouldNotRefollowOnOthersReply(t *testing.T) {
