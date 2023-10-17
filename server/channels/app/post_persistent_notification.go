@@ -235,7 +235,7 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 				continue
 			}
 			validProfileMap[userID] = user
-			channelKeywords[c.Id].AddUserID(userID, "@"+user.Username)
+			channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
 		}
 		channelProfileMap[c.Id] = validProfileMap
 	}

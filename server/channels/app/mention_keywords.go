@@ -15,6 +15,7 @@ const (
 	mentionableGroupPrefix = "group:"
 )
 
+// A MentionableID stores the ID of a single User/Group with information about which type of object it refers to.
 type MentionableID string
 
 func MentionableUserID(userID string) MentionableID {
@@ -43,6 +44,7 @@ func (id MentionableID) AsGroupID() (groupID string, ok bool) {
 	return idString[len(mentionableGroupPrefix):], true
 }
 
+// MentionKeywords is a collection of mention keywords and the IDs of the objects that have a given keyword.
 type MentionKeywords map[string][]MentionableID
 
 func (k MentionKeywords) AddUser(profile *model.User, channelNotifyProps map[string]string, status *model.Status, allowChannelMentions bool) MentionKeywords {
@@ -53,10 +55,10 @@ func (k MentionKeywords) AddUser(profile *model.User, channelNotifyProps map[str
 
 	// Add all the user's mention keys
 	for _, mentionKey := range profile.GetMentionKeys() {
-		// note that these are made lower case so that we can do a case insensitive check for them
-		mentionKey = strings.ToLower(mentionKey)
-
 		if mentionKey != "" {
+			// Note that these are made lower case so that we can do a case insensitive check for them
+			mentionKey = strings.ToLower(mentionKey)
+
 			k[mentionKey] = append(k[mentionKey], mentionableID)
 		}
 	}
@@ -84,7 +86,7 @@ func (k MentionKeywords) AddUser(profile *model.User, channelNotifyProps map[str
 	return k
 }
 
-func (k MentionKeywords) AddUserID(userID string, keyword string) MentionKeywords {
+func (k MentionKeywords) AddUserKeyword(userID string, keyword string) MentionKeywords {
 	k[keyword] = append(k[keyword], MentionableUserID(userID))
 
 	return k
