@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -13,6 +13,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import LocalStorageStore from 'stores/local_storage_store';
 
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
@@ -605,6 +606,26 @@ const AdvanceTextEditor = ({
         }
     }, [handleWidthChange, message]);
 
+    const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
+
+    const ariaLabel = useMemo(() => {
+        let label;
+        if (!wasNotifiedOfLogIn) {
+            label = Utils.localizeMessage(
+                'channelView.login.successfull',
+                'Login Successful',
+            );
+
+            // set timeout to make sure aria-label is read by a screen reader,
+            // and then set the flag to "true" to make sure it's not read again until a user logs back in
+            const timeoutId = setTimeout(() => {
+                LocalStorageStore.setWasNotifiedOfLogIn(true);
+                clearTimeout(timeoutId);
+            }, 3000);
+        }
+        return label ? `${label} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
+    }, [ariaLabelMessageInput, wasNotifiedOfLogIn]);
+
     const formattingBar = (
         <AutoHeightSwitcher
             showSlot={showFormattingBar ? 1 : 2}
@@ -632,16 +653,17 @@ const AdvanceTextEditor = ({
                     'formatting-bar': showFormattingBar,
                 })}
             >
-                <div
-                    id={'speak-'}
-                    aria-live='assertive'
-                    className='sr-only'
-                >
-                    <FormattedMessage
-                        id='channelView.login.successfull'
-                        defaultMessage='Login Successfull'
-                    />
-                </div>
+                {!wasNotifiedOfLogIn && (
+                    <div
+                        aria-live='assertive'
+                        className='sr-only'
+                    >
+                        <FormattedMessage
+                            id='channelView.login.successfull'
+                            defaultMessage='Login Successful'
+                        />
+                    </div>
+                )}
                 <div
                     className={'AdvancedTextEditor__body'}
                     disabled={readOnlyChannel}
@@ -651,10 +673,7 @@ const AdvanceTextEditor = ({
                         role='application'
                         id='advancedTextEditorCell'
                         data-a11y-sort-order='2'
-                        aria-label={Utils.localizeMessage(
-                            'channelView.login.successfull',
-                            'Login Successfull',
-                        ) + ' ' + ariaLabelMessageInput}
+                        aria-label={ariaLabel}
                         tabIndex={-1}
                         className='AdvancedTextEditor__cell a11y__region'
                     >
