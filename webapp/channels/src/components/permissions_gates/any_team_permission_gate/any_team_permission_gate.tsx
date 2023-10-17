@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from "react";
+import React from 'react';
 
 export type Props = {
+
     /**
      * Permissions enough to pass the gate (binary OR)
      */
@@ -25,10 +26,12 @@ export type Props = {
     children: React.ReactNode;
 };
 
-const AnyTeamPermissionGate: React.FC<Props> = ({
-    hasPermission,
-    invert = false,
-    children,
-}) => <>{hasPermission !== invert ? children : null}</>
+const AnyTeamPermissionGate = ({hasPermission, children, invert = false }: Props) => {
+    return (
+        <>
+            {hasPermission === invert ? null : children}
+        </>
+    );
+};
 
-export default AnyTeamPermissionGate;
+export default React.memo(AnyTeamPermissionGate);
