@@ -236,7 +236,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
                     desktop: baseProps.channelMember?.notify_props.desktop,
                     ignore_channel_mentions: 'off',
                     mark_unread: 'all',
-                    channel_auto_follow_threads: 'false',
+                    channel_auto_follow_threads: 'off',
                     push: 'all',
                     push_threads: 'default',
                     desktop_threads: 'all',
