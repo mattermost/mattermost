@@ -12,8 +12,11 @@ type Props = {
     isDisabled?: boolean;
 }
 
-const UserGridRemove = (props: Props) => {
-    const {user, removeUser, isDisabled} = props;
+const UserGridRemove = ({
+  user,
+  removeUser,
+  isDisabled,
+}: Props) => {
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
