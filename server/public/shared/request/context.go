@@ -54,6 +54,12 @@ func TestContext(t testing.TB) *Context {
 	return EmptyContext(logger)
 }
 
+// Clone creates a shallow copy of Context, allowing clones to apply per-request changes.
+func (c *Context) Clone() CTX {
+	cCopy := *c
+	return &cCopy
+}
+
 func (c *Context) T(translationID string, args ...any) string {
 	return c.t(translationID, args...)
 }
@@ -125,6 +131,7 @@ func (c *Context) Logger() mlog.LoggerIFace {
 }
 
 type CTX interface {
+	Clone() CTX
 	T(string, ...interface{}) string
 	Session() *model.Session
 	RequestId() string
