@@ -124,7 +124,7 @@ const EmailToOAuth = (props: Props) => {
                         className='form-control'
                         name='password'
                         ref={passwordInput}
-                        placeholder={formatMessage({id: t('claim.email_to_oauth.pwd'), defaultMessage: 'Password'})}
+                        placeholder={formatMessage({id: 'claim.email_to_oauth.pwd', defaultMessage: 'Password'})}
                         spellCheck='false'
                     />
                 </div>
