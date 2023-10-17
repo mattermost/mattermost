@@ -2162,4 +2162,9 @@ export const OverActiveUserLimits = {
     MAX: 0.1,
 } as const;
 
+export const PageLoadContext = {
+    PAGE_LOAD: 'page_load',
+    RECONNECT: 'reconnect',
+} as const;
+
 export default Constants;
