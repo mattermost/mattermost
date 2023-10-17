@@ -12,6 +12,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -30,7 +31,7 @@ func (ps *PlatformService) initLogging() error {
 	// create the app logger if needed
 	if ps.logger == nil {
 		var err error
-		ps.logger, err = mlog.NewLogger()
+		ps.logger, err = mlog.NewLogger(logr.MaxFieldLen(*ps.Config().LogSettings.MaxFieldSize))
 		if err != nil {
 			return err
 		}

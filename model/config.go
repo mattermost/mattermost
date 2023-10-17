@@ -1247,6 +1247,7 @@ type LogSettings struct {
 	VerboseDiagnostics     *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingConfig  *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	MaxFieldSize           *int    `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func NewLogSettings() *LogSettings {
@@ -1306,6 +1307,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
+	}
+
+	if s.MaxFieldSize == nil {
+		s.MaxFieldSize = NewInt(2048)
 	}
 }
 
