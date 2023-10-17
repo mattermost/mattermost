@@ -26,7 +26,7 @@ export type Props = {
     children: React.ReactNode;
 };
 
-const AnyTeamPermissionGate = ({hasPermission, children, invert = false }: Props) => {
+const AnyTeamPermissionGate = ({hasPermission, children, invert = false}: Props) => {
     return (
         <>
             {hasPermission === invert ? null : children}
