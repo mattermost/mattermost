@@ -16,7 +16,6 @@ import Timestamp from 'components/timestamp';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 import ThreadViewer from 'components/threading/thread_viewer';
-import AdvancedCreatePost from 'components/advanced_create_post';
 import AdvancedCreateComment from 'components/advanced_create_comment';
 
 import {getHistory} from 'utils/browser_history';
@@ -90,7 +89,6 @@ window.Components = {
     BotBadge: BotTag,
     StartTrialFormModal,
     ThreadViewer,
-    AdvancedCreatePost,
     AdvancedCreateComment,
 };
 
