@@ -10,6 +10,7 @@ import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import * as GlobalActions from 'actions/global_actions';
 
@@ -135,7 +136,7 @@ const submitEvent = {
     preventDefault: jest.fn(),
 } as unknown as React.FormEvent;
 
-function advancedCreatePost(props?: any) {
+function advancedCreatePost(props?: Partial<Props>) {
     const allProps: Props = {...baseProp, ...props};
 
     return (
@@ -635,11 +636,14 @@ describe('components/advanced_create_post', () => {
     });
 
     it('onSubmit test for @all with timezones', async () => {
+        const result: ActionResult = {
+            data: [1, 2, 3, 4],
+        };
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
                     ...baseProp.actions,
-                    getChannelTimezones: jest.fn(() => Promise.resolve({data: [1, 2, 3, 4]})),
+                    getChannelTimezones: jest.fn(() => result),
                 },
                 isTimezoneEnabled: true,
                 currentChannelMembersCount: 9,
@@ -670,9 +674,15 @@ describe('components/advanced_create_post', () => {
     });
 
     it('onSubmit test for @all with timezones disabled', () => {
+        const result: ActionResult = {
+            data: [],
+        };
         const wrapper = shallow(
             advancedCreatePost({
-                getChannelTimezones: jest.fn(() => Promise.resolve([])),
+                actions: {
+                    ...baseProp.actions,
+                    getChannelTimezones: jest.fn(() => result),
+                },
                 isTimezoneEnabled: false,
             }),
         );
@@ -935,11 +945,11 @@ describe('components/advanced_create_post', () => {
 
     it('Remove preview from fileInfos', () => {
         const setDraft = jest.fn();
-        const fileInfos = {
+        const fileInfos = TestHelper.getFileInfoMock({
             id: 'a',
             extension: 'jpg',
             name: 'trimmedFilename',
-        };
+        });
         const uploadsInProgressDraft = {
             ...draftProp,
             fileInfos: [
@@ -1138,7 +1148,7 @@ describe('components/advanced_create_post', () => {
 
     it('Show tutorial', () => {
         const wrapper = shallow(advancedCreatePost({
-            showTutorialTip: true,
+            showSendTutorialTip: true,
         }));
         expect(wrapper).toMatchSnapshot();
     });
@@ -1197,7 +1207,10 @@ describe('components/advanced_create_post', () => {
             message: 'No command found',
             server_error_id: 'api.command.execute_command.not_found.app_error',
         };
-        const executeCommand = jest.fn(() => Promise.resolve({error}));
+        const result: ActionResult = {
+            error,
+        };
+        const executeCommand = jest.fn(() => result);
         const onSubmitPost = jest.fn();
 
         const wrapper = shallow(
@@ -1233,7 +1246,10 @@ describe('components/advanced_create_post', () => {
             message: 'No command found',
             server_error_id: 'api.command.execute_command.not_found.app_error',
         };
-        const executeCommand = jest.fn(() => Promise.resolve({error}));
+        const result: ActionResult = {
+            error,
+        };
+        const executeCommand = jest.fn(() => result);
         const onSubmitPost = jest.fn();
 
         const wrapper = shallow(
@@ -1256,9 +1272,11 @@ describe('components/advanced_create_post', () => {
         expect(executeCommand).toHaveBeenCalled();
         expect(onSubmitPost).not.toHaveBeenCalled();
 
-        instance.handleChange({
-            target: {value: 'some valid text'},
-        });
+        const target = {
+            value: 'some valid text',
+        } as unknown as React.ChangeEvent<TextboxElement>;
+
+        instance.handleChange(target);
 
         await instance.handleSubmit(submitEvent);
 
@@ -1436,15 +1454,15 @@ describe('components/advanced_create_post', () => {
     // });
 
     testComponentForLineBreak(
-        (value: any) => advancedCreatePost({draft: {...draftProp, message: value}}),
-        (instance: any) => instance.state().message,
+        (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
+        (instance: AdvancedCreatePost) => instance.state.message,
         false,
     );
 
     testComponentForMarkdownHotkeys(
-        (value: any) => advancedCreatePost({draft: {...draftProp, message: value}}),
-        (wrapper: any, setSelectionRangeFn: any) => {
-            wrapper.instance().textboxRef = {
+        (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
+        (wrapper: ReturnType<typeof shallow>, setSelectionRangeFn: any) => {
+            (wrapper.instance() as AdvancedCreatePost).textboxRef = {
                 current: {
                     getInputBox: jest.fn(() => {
                         return {
