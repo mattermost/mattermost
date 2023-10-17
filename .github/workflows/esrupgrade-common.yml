@@ -148,8 +148,8 @@ jobs:
         uses: actions/download-artifact@v3
       - name: Diff dumps
         run: |
-          gzip -d  upgraded-dump-server/${DUMP_SERVER_NAME}.gz
-          gzip -d  upgraded-dump-script/${DUMP_SCRIPT_NAME}.gz
+          gzip -d upgraded-dump-server/${DUMP_SERVER_NAME}.gz
+          gzip -d upgraded-dump-script/${DUMP_SCRIPT_NAME}.gz
           diff $DUMP_SERVER_NAME $DUMP_SCRIPT_NAME > $DIFF_NAME
       - name: Upload diff
         if: failure() # Upload the diff only if the previous step failed; i.e., if the diff is non-empty
