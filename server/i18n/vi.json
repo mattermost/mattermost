@@ -7808,5 +7808,337 @@
   {
     "id": "ent.elasticsearch.search_files.disabled",
     "translation": "Tìm kiếm tệp Elaticsearch bị vô hiệu hóa trên máy chủ này"
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Lỗi khi lưu thiết lập hoàn chỉnh của quản trị viên đầu tiên trong cửa hàng."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Lỗi khi lưu trạng thái lượt truy cập thị trường của quản trị viên đầu tiên trong cửa hàng."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Không thể tìm thấy tập tin xuất."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Không thể thêm dữ liệu vào tập tin."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Tải lên qua mmctl lên phiên bản Đám mây không được hỗ trợ. Vui lòng kiểm tra tài liệu tại đây: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Không thể kiểm tra xem tập tin có tồn tại hay không."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Không thể biết thời gian sửa đổi lần cuối cho tệp."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Không thể có được một trình đọc tập tin."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Không thể lấy kích thước tập tin."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Không thể liệt kê thư mục."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Không thể di chuyển tập tin."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Không thể đọc tập tin."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Không thể xóa thư mục."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Không thể xóa tệp."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Không thể truy cập vào bộ lưu trữ tập tin."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "Cài đặt email có giá trị chưa được đặt."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Không thể kết nối với S3. Xác minh các tham số ủy quyền kết nối Amazon S3 và cài đặt xác thực của bạn."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Đảm bảo bộ chứa Amazon S3 của bạn có sẵn và xác minh quyền của bộ chứa."
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "Cài đặt lưu trữ tệp có giá trị chưa được đặt."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Không thể tải tập tin lên. ID kênh không chính xác: {{.channelId}}"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Không thể ghi tập tin."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Các tham số OnlyThreads và OnlyTotals của getThreadsForUser loại trừ lẫn nhau"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Các tham số trước và sau của getThreadsForUser loại trừ lẫn nhau"
+  },
+  {
+    "id": "api.image.get.app_error",
+    "translation": "Không thể phân tích cú pháp url hình ảnh được yêu cầu."
+  },
+  {
+    "id": "api.invalid_channel",
+    "translation": "Kênh được liệt kê trong yêu cầu không thuộc về người dùng"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Lược đồ url tùy chỉnh không hợp lệ đã được cung cấp"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Url chuyển hướng không hợp lệ đã được cung cấp"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Loại công việc của công việc bạn đang cố truy xuất không chứa quyền"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Loại công việc bạn đang cố gắng tạo không hợp lệ"
+  },
+  {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Không thể tải xuống công việc này"
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Loại công việc bạn đang cố tải xuống hiện không được hỗ trợ"
+  },
+  {
+    "id": "api.ldap_groups.existing_reserved_name_error",
+    "translation": "tên nhóm đã tồn tại dưới dạng tên dành riêng"
+  },
+  {
+    "id": "api.ldap_groups.existing_user_name_error",
+    "translation": "tên nhóm đã tồn tại dưới dạng tên người dùng"
+  },
+  {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "Số lượng người dùng được yêu cầu không chính xác."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Email doanh nghiệp không hợp lệ để dùng thử"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "Bạn phải chấp nhận Thỏa thuận đánh giá phần mềm quan trọng nhất và Chính sách quyền riêng tư để yêu cầu giấy phép."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Không thể kiểm tra xem có thể bắt đầu dùng thử hay không"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Không thể áp dụng giấy phép dùng thử mới. Trước đây, bạn đã đăng ký giấy phép dùng thử cho phiên bản Matter Extreme này. Nếu bạn muốn kéo dài thời gian dùng thử, vui lòng [liên hệ với nhóm bán hàng của chúng tôi](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Lỗi lấy link gia hạn giấy phép"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Không thể gia hạn giấy phép này trên cổng thông tin"
+  },
+  {
+    "id": "api.license.request_trial_license.app_error",
+    "translation": "Không thể nhận được giấy phép dùng thử, vui lòng thử lại hoặc liên hệ với support@mattermost.com."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Chúng tôi không thể xử lý yêu cầu do những hạn chế đối với các quốc gia bị cấm vận. [Tìm hiểu thêm trong tài liệu của chúng tôi](https://mattermost.com/pl/limitations-for-embargoed-countries) hoặc liên hệ với legal@mattermost.com nếu có câu hỏi xung quanh các hạn chế xuất khẩu."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Không thể nhận được giấy phép dùng thử, vui lòng thử lại hoặc liên hệ với support@mattermost.com. Không thể có được số lượng người dùng đã đăng ký."
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Không thể tạo bản ghi trạng thái đúng"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Không thể gửi hồ sơ đánh giá thực tế tới CWS."
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Không thể lấy được bản ghi trạng thái đúng"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "Đánh giá thực tế cần có giấy phép"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "Đánh giá thực tế không được phép đối với các phiên bản đám mây"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Không thể lấy tổng số lượng webhook đến"
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Không thể di chuyển SAML."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Chuyển hướng bạn quay lại ứng dụng."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_group_users.message.none",
+    "translation": "@{{.GroupName}} không có thành viên nào trong nhóm này"
+  },
+  {
+    "id": "api.post.error_get_post_id.pending",
+    "translation": "Không thể nhận được bài viết đang chờ xử lý."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Bài đăng thông báo liên tục cho phép tối đa {{.MaxRecipients}} người nhận."
+  },
+  {
+    "id": "app.channel.create_initial_sidebar_categories.internal_error",
+    "translation": "Không thể tạo danh mục thanh bên ban đầu cho người dùng."
+  },
+  {
+    "id": "app.channel.delete.app_error",
+    "translation": "Không thể xóa kênh."
+  },
+  {
+    "id": "app.channel.get.existing.app_error",
+    "translation": "Không thể tìm thấy kênh hiện có."
+  },
+  {
+    "id": "app.channel.get.find.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm kênh."
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Không thể nhận được tất cả các kênh."
+  },
+  {
+    "id": "app.channel.get_all_channels.app_error",
+    "translation": "Không thể nhận được tất cả các kênh."
+  },
+  {
+    "id": "app.channel.get_all_channels_count.app_error",
+    "translation": "Không thể đếm tất cả các kênh."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Không thể nhận được tất cả các kênh trực tiếp."
+  },
+  {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Không thể tìm thấy kênh hiện có."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Không thể nhận được các kênh cho chương trình được cung cấp."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Vai trò người dùng không hợp lệ dài hơn {{.Limit}} ký tự."
+  },
+  {
+    "id": "store.sql_command.get.missing.app_error",
+    "translation": "Lệnh không tồn tại."
+  },
+  {
+    "id": "store.sql_command.update.missing.app_error",
+    "translation": "Lệnh không tồn tại."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Tìm kiếm tập tin đã bị vô hiệu hóa trên máy chủ này. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Người dùng không được phép tạo bài đăng ưu tiên hoặc thông báo liên tục."
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Không thể lấy tổng số người dùng đang hoạt động"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Không thể lấy tổng số lượng webhook gửi đi"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Tính năng yêu cầu nâng cấp lên Phiên bản doanh nghiệp."
+  },
+  {
+    "id": "api.license_error",
+    "translation": "điểm cuối api yêu cầu giấy phép"
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Cần có giấy phép E10 hoặc E20 để sử dụng điểm cuối này."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Xác thực hoàn tất"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Chỉ những bài viết gốc mới được phép ưu tiên."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Nếu bạn không được chuyển hướng tự động, vui lòng nhấp vào <a href='{{.Link}}'>liên kết</a>"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Bạn có thể đóng tab trình duyệt này ngay bây giờ."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Bài đăng thông báo liên tục phải có ít nhất 1 người nhận."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Xác thực thông báo liên tục không thành công."
+  },
+  {
+    "id": "searchengine.bleve.disabled.error",
+    "translation": "Lỗi xóa chỉ mục Bleve: động cơ bị tắt"
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Không thể gửi một hoặc nhiều bài đăng tới trang web từ xa {{.Remote}} vì trang này đang ngoại tuyến. (Các) bài đăng sẽ được gửi khi trang web trực tuyến."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Bài đăng này chứa các liên kết cố định đến các kênh khác mà người dùng trên các trang web khác có thể không hiển thị."
   }
 ]
