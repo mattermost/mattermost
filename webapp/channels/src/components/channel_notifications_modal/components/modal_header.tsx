@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import {CloseIcon} from '@mattermost/compass-icons/components';
 import './modal_header.scss';
 

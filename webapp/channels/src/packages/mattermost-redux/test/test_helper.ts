@@ -3,6 +3,7 @@
 
 import {randomUUID} from 'crypto';
 import nock from 'nock';
+
 import {Client4} from '@mattermost/client';
 import type {Bot} from '@mattermost/types/bots';
 import type {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
@@ -18,6 +19,9 @@ import type {UserProfile, UserNotifyProps} from '@mattermost/types/users';
 
 export const DEFAULT_SERVER = 'http://localhost:8065';
 const PASSWORD = 'password1';
+
+import General from 'mattermost-redux/constants/general';
+import {generateId} from 'mattermost-redux/utils/helpers';
 
 const {DEFAULT_LOCALE} = General;
 

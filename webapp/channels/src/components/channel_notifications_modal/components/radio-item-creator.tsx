@@ -4,7 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import SectionItemCreator, {SectionItemProps} from './section_item_creator';
+import type {SectionItemProps} from './section_item_creator';
+import SectionItemCreator from './section_item_creator';
 
 export type FieldsetRadio = {
     options: Array<{

@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactSelect, {ValueType} from 'react-select';
+import type {ValueType} from 'react-select';
+import ReactSelect from 'react-select';
 
-import SectionItemCreator, {SectionItemProps} from './section_item_creator';
+import type {SectionItemProps} from './section_item_creator';
+import SectionItemCreator from './section_item_creator';
 
 export type Limit = {
     value: number;

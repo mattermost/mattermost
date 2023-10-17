@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import React from 'react';
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserNotifyProps} from '@mattermost/types/users';
 
 import {t} from 'utils/i18n';
-import {FieldsetCheckbox} from './checkbox-item-creator';
 
-import {FieldsetRadio} from './radio-item-creator';
+import type {FieldsetCheckbox} from './checkbox-item-creator';
+import type {FieldsetRadio} from './radio-item-creator';
+
 import {NotificationLevels} from '../../utils/constants';
-import {ChannelNotifyProps} from '@mattermost/types/channels';
-import {UserNotifyProps} from '@mattermost/types/users';
 
 export type ChannelMemberNotifyProps = Partial<ChannelNotifyProps> & Pick<UserNotifyProps, 'desktop_threads' | 'push_threads'>
 

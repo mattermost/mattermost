@@ -6,17 +6,19 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {BellOffOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
-import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
+import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+
 import AlertBanner from 'components/alert_banner';
 
-import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
+import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
 
-import ModalHeader from './modal_header';
-import SectionCreator from './section_creator';
-import RadioItemCreator from './radio-item-creator';
 import CheckboxItemCreator from './checkbox-item-creator';
-
+import ModalHeader from './modal_header';
+import RadioItemCreator from './radio-item-creator';
+import SectionCreator from './section_creator';
+import type {
+    ChannelMemberNotifyProps} from './utils';
 import {
     desktopNotificationInputFieldData,
     DesktopNotificationsSectionDesc,
@@ -29,7 +31,6 @@ import {
     MuteAndIgnoreSectionTitle,
     MuteChannelDesc,
     MuteChannelInputFieldData,
-    ChannelMemberNotifyProps,
     NotifyMeTitle,
     DesktopReplyThreadsInputFieldData,
     ThreadsReplyTitle,
