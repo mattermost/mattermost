@@ -54,6 +54,8 @@
 .custom-emoji-tab__icon__text {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .custom-emoji-tab {

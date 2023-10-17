@@ -276,15 +276,17 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	job, appErr := s.th.App.CreateJob(&model.Job{
+	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeExportProcess,
 	})
 	s.Require().Nil(appErr)
 
+	time.Sleep(time.Millisecond)
+
 	s.Run("MM-T3885 - no permissions", func() {
 		printer.Clean()
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -356,21 +358,21 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 
-		_, appErr := s.th.App.CreateJob(&model.Job{
+		_, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
-		job3, appErr := s.th.App.CreateJob(&model.Job{
+		job3, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -392,7 +394,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 
 		cmd := &cobra.Command{}
 
-		job, appErr := s.th.App.CreateJob(&model.Job{
+		job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -421,14 +423,14 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 
 		cmd := &cobra.Command{}
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -439,11 +441,11 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 
 		// Get job1 again to refresh its status
-		job1, appErr = s.th.App.GetJob(job1.Id)
+		job1, appErr = s.th.App.GetJob(s.th.Context, job1.Id)
 		s.Require().Nil(appErr)
 
 		// Get job2 again to ensure its status did not change
-		job2, _ = s.th.App.GetJob(job2.Id)
+		job2, _ = s.th.App.GetJob(s.th.Context, job2.Id)
 		s.Require().Nil(appErr)
 
 		s.Require().Equal(job1.Status, model.JobStatusCanceled)

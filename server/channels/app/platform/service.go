@@ -204,7 +204,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			var err error
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			if err != nil {
+				return nil, err
+			}
 
 			searchStore := searchlayer.NewSearchLayer(
 				retrylayer.New(ps.sqlStore),
@@ -367,7 +371,6 @@ func (ps *PlatformService) Start() error {
 		ps.Go(func() {
 			ps.Publish(message)
 		})
-
 	})
 	return nil
 }

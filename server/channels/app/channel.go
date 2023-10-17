@@ -11,15 +11,17 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
@@ -695,6 +697,9 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
+			if invErr.Entity == "Channel" && invErr.Field == "Name" {
+				return nil, model.NewAppError("UpdateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
@@ -1103,7 +1108,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 
 	for _, channelModerationPatch := range channelModerationsPatch {
 		permissionModified := *channelModerationPatch.Name
-		if channelModerationPatch.Roles.Guests != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch)) {
+		if channelModerationPatch.Roles.Guests != nil && pUtils.Contains(model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch), permissionModified) {
 			if *channelModerationPatch.Roles.Guests {
 				c.Logger().Info("Permission enabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
@@ -1111,7 +1116,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 			}
 		}
 
-		if channelModerationPatch.Roles.Members != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch)) {
+		if channelModerationPatch.Roles.Members != nil && pUtils.Contains(model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch), permissionModified) {
 			if *channelModerationPatch.Roles.Members {
 				c.Logger().Info("Permission enabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
@@ -1581,7 +1586,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 // AddUserToChannel adds a user to a given channel.
 func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
 	if !skipTeamMemberIntegrityCheck {
-		teamMember, nErr := a.Srv().Store().Team().GetMember(context.Background(), channel.TeamId, user.Id)
+		teamMember, nErr := a.Srv().Store().Team().GetMember(c, channel.TeamId, user.Id)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -1931,14 +1936,6 @@ func (s *Server) getChannelsForTeamForUser(c request.CTX, teamID string, userID 
 
 func (a *App) GetChannelsForTeamForUser(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
 	return a.Srv().getChannelsForTeamForUser(c, teamID, userID, opts)
-}
-
-func (a *App) GetChannelsForTeamForUserWithCursor(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetChannelsWithCursor(teamID, userID, opts, afterChannelID)
-	if err != nil {
-		return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return list, nil
 }
 
 func (a *App) GetChannelsForUser(c request.CTX, userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
@@ -2529,7 +2526,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 			return err
 		}
 		if len(currentMembers) == 0 {
-			teamMember, err := a.GetTeamMember(channel.TeamId, userIDToRemove)
+			teamMember, err := a.GetTeamMember(c, channel.TeamId, userIDToRemove)
 			if err != nil {
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
@@ -2970,57 +2967,32 @@ func (a *App) SearchChannelsUserNotIn(c request.CTX, teamID string, userID strin
 }
 
 func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
-	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
-	channelsToClearPushNotifications := []string{}
-	if a.canSendPushNotifications() {
-		for _, channelID := range channelIDs {
-			channel, errCh := a.Srv().Store().Channel().Get(channelID, true)
-			if errCh != nil {
-				c.Logger().Warn("Failed to get channel", mlog.Err(errCh))
-				continue
-			}
+	var err error
 
-			member, err := a.Srv().Store().Channel().GetMember(context.Background(), channelID, userID)
-			if err != nil {
-				c.Logger().Warn("Failed to get membership", mlog.Err(err))
-				continue
-			}
-
-			notify := member.NotifyProps[model.PushNotifyProp]
-			if notify == model.ChannelNotifyDefault {
-				user, err := a.GetUser(userID)
-				if err != nil {
-					c.Logger().Warn("Failed to get user", mlog.String("user_id", userID), mlog.Err(err))
-					continue
-				}
-				notify = user.NotifyProps[model.PushNotifyProp]
-			}
-			if notify == model.UserNotifyAll {
-				if count, err := a.Srv().Store().User().GetAnyUnreadPostCountForChannel(userID, channelID); err == nil {
-					if count > 0 {
-						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelID)
-					}
-				}
-			} else if notify == model.UserNotifyMention || channel.Type == model.ChannelTypeDirect {
-				if count, err := a.Srv().Store().User().GetUnreadCountForChannel(userID, channelID); err == nil {
-					if count > 0 {
-						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelID)
-					}
-				}
-			}
-		}
+	user, err := a.Srv().Store().User().Get(c.Context(), userID)
+	if err != nil {
+		return nil, model.NewAppError("MarkChannelsAsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var err error
+	// We use channelsToView to later only update those, or early return if no channel is to be read
+	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(c.Context(), channelIDs, userID, user.NotifyProps)
+	if err != nil {
+		return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.get_channels_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(channelsToView) == 0 {
+		return times, nil
+	}
+
 	updateThreads := *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !isCRTEnabled)
 	if updateThreads {
-		err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, channelIDs)
+		err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, channelsToView)
 		if err != nil {
-			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.thread.mark_all_as_read_by_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	times, err := a.Srv().Store().Channel().UpdateLastViewedAt(channelIDs, userID)
+	_, err = a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -3032,19 +3004,18 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 	}
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
-		for _, channelID := range channelIDs {
-			message := model.NewWebSocketEvent(model.WebsocketEventChannelViewed, "", "", userID, nil, "")
-			message.Add("channel_id", channelID)
-			a.Publish(message)
-		}
+		message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
+		message.Add("channel_times", times)
+		a.Publish(message)
 	}
+
 	for _, channelID := range channelsToClearPushNotifications {
 		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
 	if updateThreads && isCRTEnabled {
 		timestamp := model.GetMillis()
-		for _, channelID := range channelIDs {
+		for _, channelID := range channelsToView {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
 			a.Publish(message)
@@ -3226,7 +3197,6 @@ func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channe
 }
 
 func (a *App) postChannelMoveMessage(c request.CTX, user *model.User, channel *model.Channel, previousTeam *model.Team) *model.AppError {
-
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.move_channel.success"), previousTeam.Name),
@@ -3502,6 +3472,231 @@ func (a *App) GetMemberCountsByGroup(ctx context.Context, channelID string, incl
 
 func (a *App) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {
 	return a.Srv().getDirectChannel(c, userID, otherUserID)
+}
+
+func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+	channel, appErr := a.GetChannel(c, channelID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if channel.Type != model.ChannelTypeGroup {
+		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.incorrect_channel_type", nil, "", http.StatusBadRequest)
+	}
+
+	users, appErr := a.GetUsersInChannel(&model.UserGetOptions{
+		PerPage:     model.ChannelGroupMaxUsers,
+		Page:        0,
+		InChannelId: channelID,
+		Inactive:    false,
+		Active:      true,
+	})
+
+	var userIDs = make([]string, len(users))
+	for i := 0; i < len(users); i++ {
+		userIDs[i] = users[i].Id
+	}
+
+	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.store_get_common_teams_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	teams := []*model.Team{}
+	if len(commonTeamIDs) > 0 {
+		teams, appErr = a.GetTeams(commonTeamIDs)
+	}
+
+	return teams, appErr
+}
+
+func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError) {
+	originalChannel, appErr := a.GetChannel(c, gmConversionRequest.ChannelID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	appErr = a.validateForConvertGroupMessageToChannel(c, convertedByUserId, originalChannel, gmConversionRequest)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	toUpdate := originalChannel.DeepCopy()
+	toUpdate.Type = model.ChannelTypePrivate
+	toUpdate.TeamId = gmConversionRequest.TeamID
+	toUpdate.Name = gmConversionRequest.Name
+	toUpdate.DisplayName = gmConversionRequest.DisplayName
+
+	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
+
+	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
+		InChannelId: gmConversionRequest.ChannelID,
+		Page:        0,
+		PerPage:     model.ChannelGroupMaxUsers,
+	}, false)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	_ = a.setSidebarCategoriesForConvertedGroupMessage(c, gmConversionRequest, users)
+	_ = a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId, users)
+	return updatedChannel, nil
+}
+
+func (a *App) setSidebarCategoriesForConvertedGroupMessage(c request.CTX, gmConversionRequest *model.GroupMessageConversionRequestBody, channelUsers []*model.User) *model.AppError {
+	// First we'll delete channel from everyone's sidebar. Only the members of GM
+	// can have it in sidebar, so we can delete the channel from all SidebarChannels entries.
+	err := a.Srv().Store().Channel().DeleteAllSidebarChannelForChannel(gmConversionRequest.ChannelID)
+	if err != nil {
+		return model.NewAppError(
+			"setSidebarCategoriesForConvertedGroupMessage",
+			"app.channel.gm_conversion_set_categories.delete_all.error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(err)
+	}
+
+	// Now that we've deleted existing entries, we can set the channel in default "Channels" category
+	// for all GM members
+	for _, user := range channelUsers {
+		categories, appErr := a.GetSidebarCategories(c, user.Id, &store.SidebarCategorySearchOpts{
+			TeamID: gmConversionRequest.TeamID,
+			Type:   model.SidebarCategoryChannels,
+		})
+
+		if appErr != nil {
+			mlog.Error("Failed to search sidebar categories for user for adding converted GM")
+			continue
+		}
+
+		if len(categories.Categories) < 1 {
+			// It is normal for user to not have the default category.
+			// The default "Channels" category is created when the user first logs in,
+			// and all their channels are moved to this category at the same time.
+			// So its perfectly okay for this condition to occur.
+			continue
+		}
+
+		// when we fetch the default "Channels" category from store layer,
+		// it auto-fills any channels the user has access to but aren't associated to a category in the database.
+		// So what we do is fetch the category, so we get an auto-filled data,
+		// then call update category to persist the data and send the websocket events.
+		channelsCategory := categories.Categories[0]
+		_, appErr = a.UpdateSidebarCategories(c, user.Id, gmConversionRequest.TeamID, []*model.SidebarCategoryWithChannels{channelsCategory})
+		if appErr != nil {
+			mlog.Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(err))
+		}
+	}
+
+	return nil
+}
+
+func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, originalChannel *model.Channel, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
+	commonTeams, appErr := a.GetGroupMessageMembersCommonTeams(c, originalChannel.Id)
+	if appErr != nil {
+		return appErr
+	}
+
+	teamFound := false
+	for _, team := range commonTeams {
+		if team.Id == gmConversionRequest.TeamID {
+			teamFound = true
+			break
+		}
+	}
+
+	if !teamFound {
+		return model.NewAppError(
+			"validateForConvertGroupMessageToChannel",
+			"app.channel.group_message_conversion.incorrect_team",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
+	if originalChannel.Type != model.ChannelTypeGroup {
+		return model.NewAppError(
+			"ConvertGroupMessageToChannel",
+			"app.channel.group_message_conversion.original_channel_not_gm",
+			nil,
+			"",
+			http.StatusNotFound,
+		)
+	}
+
+	channelMember, appErr := a.GetChannelMember(c, gmConversionRequest.ChannelID, convertedByUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	if channelMember == nil {
+		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.group_message_conversion.channel_member_missing", nil, "", http.StatusNotFound)
+	}
+
+	// apply dummy changes to check validity
+	clone := originalChannel.DeepCopy()
+	clone.Type = model.ChannelTypePrivate
+	clone.Name = gmConversionRequest.Name
+	clone.DisplayName = gmConversionRequest.DisplayName
+	return clone.IsValid()
+}
+
+func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelID, convertedByUserId string, channelUsers []*model.User) *model.AppError {
+	convertedByUser, appErr := a.GetUser(convertedByUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	userIDs := make([]string, len(channelUsers))
+	usernames := make([]string, len(channelUsers))
+	for i, user := range channelUsers {
+		userIDs[i] = user.Id
+		usernames[i] = user.Username
+	}
+
+	message := i18n.T(
+		"api.channel.group_message.converted.to_private_channel",
+		map[string]any{
+			"ConvertedByUsername": convertedByUser.Username,
+			"GMMembers":           utils.JoinList(usernames),
+		})
+
+	post := &model.Post{
+		ChannelId: channelID,
+		Message:   message,
+		Type:      model.PostTypeGMConvertedToChannel,
+		UserId:    convertedByUserId,
+	}
+
+	// these props are used for re-constructing a localized message on the client
+	post.AddProp("convertedByUserId", convertedByUser.Id)
+	post.AddProp("gmMembersDuringConversionIDs", userIDs)
+
+	channel, appErr := a.GetChannel(c, channelID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if _, appErr := a.CreatePost(c, post, channel, false, true); appErr != nil {
+		mlog.Error("Failed to create post for notifying about GM converted to private channel", mlog.Err(appErr))
+
+		return model.NewAppError(
+			"postMessageForConvertGroupMessageToChannel",
+			"app.channel.group_message_conversion.post_message.error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(appErr)
+	}
+
+	return nil
 }
 
 func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {

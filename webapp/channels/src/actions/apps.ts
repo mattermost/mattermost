@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+
 import {Client4} from 'mattermost-redux/client';
-import {Action, ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
-import {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {Post} from '@mattermost/types/posts';
-import {CommandArgs} from '@mattermost/types/integrations';
+import type {Action, ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
+import {cleanForm} from 'mattermost-redux/utils/apps';
 
 import {openModal} from 'actions/views/modals';
 
 import AppsForm from 'components/apps_form';
 
+import {createCallRequest, makeCallErrorResponse} from 'utils/apps';
+import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
-import {getHistory} from 'utils/browser_history';
-import {createCallRequest, makeCallErrorResponse} from 'utils/apps';
-
-import {cleanForm} from 'mattermost-redux/utils/apps';
 
 import {sendEphemeralPost} from './global_actions';
 
@@ -114,9 +114,7 @@ export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): Act
                     window.open(res.navigate_to_url);
                     return {data: res};
                 }
-                const navigateURL = res.navigate_to_url.startsWith(getSiteURL()) ?
-                    res.navigate_to_url.slice(getSiteURL().length) :
-                    res.navigate_to_url;
+                const navigateURL = res.navigate_to_url.startsWith(getSiteURL()) ? res.navigate_to_url.slice(getSiteURL().length) : res.navigate_to_url;
                 getHistory().push(navigateURL);
                 return {data: res};
             }

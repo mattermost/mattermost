@@ -25,15 +25,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            roles, resp := Client.GetAllRoles()
-
   "/api/v4/roles/{role_id}":
     get:
       tags:
@@ -65,14 +56,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            role, resp := Client.GetRole(<ROLEID>, "")
   "/api/v4/roles/name/{role_name}":
     get:
       tags:
@@ -104,14 +87,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            role, resp := Client.GetRoleByName(<ROLENAME>, "")
   "/api/v4/roles/{role_id}/patch":
     put:
       tags:
@@ -202,13 +177,3 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            roleNames := []string{<NAME OF ROLE1>, <NAME OF ROLE2>, ...}
-
-            roles, resp := Client.GetRolesByNames(roleNames)

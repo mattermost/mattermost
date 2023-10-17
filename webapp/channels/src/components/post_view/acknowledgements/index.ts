@@ -3,12 +3,12 @@
 
 import {connect} from 'react-redux';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getHasReactions, makeGetPostAcknowledgementsWithProfiles} from 'mattermost-redux/selectors/entities/posts';
 
-import {GlobalState} from 'types/store';
-
-import {Post} from '@mattermost/types/posts';
+import type {GlobalState} from 'types/store';
 
 import PostAcknowledgements from './post_acknowledgements';
 

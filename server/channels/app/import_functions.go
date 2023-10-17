@@ -19,8 +19,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -275,7 +275,7 @@ func (a *App) importChannel(c request.CTX, data *imports.ChannelImportData, dryR
 	}
 
 	var channel *model.Channel
-	if result, err := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); err == nil {
+	if result, gErr := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); gErr == nil {
 		channel = result
 	} else {
 		channel = &model.Channel{}
@@ -311,13 +311,20 @@ func (a *App) importChannel(c request.CTX, data *imports.ChannelImportData, dryR
 		channel.SchemeId = &scheme.Id
 	}
 
+	var chErr *model.AppError
 	if channel.Id == "" {
-		if _, err := a.CreateChannel(c, channel, false); err != nil {
-			return err
+		if _, chErr = a.CreateChannel(c, channel, false); chErr != nil {
+			return chErr
 		}
 	} else {
-		if _, err := a.UpdateChannel(c, channel); err != nil {
-			return err
+		if _, chErr = a.UpdateChannel(c, channel); chErr != nil {
+			return chErr
+		}
+	}
+
+	if data.DeletedAt != nil && *data.DeletedAt > 0 {
+		if err := a.Srv().Store().Channel().Delete(channel.Id, *data.DeletedAt); err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_channel.deleting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -563,7 +570,6 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 		if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
 			c.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
-
 	} else {
 		var appErr *model.AppError
 		if hasUserChanged {
@@ -798,7 +804,7 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.U
 		isAdminByTeamId          = map[string]bool{}
 	)
 
-	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(context.Background(), user.Id, "", true)
+	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(c, user.Id, "", true)
 	if nErr != nil {
 		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -910,12 +916,12 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.U
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
-			if _, err = a.UpdateTeamMemberRoles(member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
+			if _, err = a.UpdateTeamMemberRoles(c, member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
 				return err
 			}
 		}
 
-		a.UpdateTeamMemberSchemeRoles(member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
+		a.UpdateTeamMemberSchemeRoles(c, member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
 	}
 
 	for _, team := range allTeams {
@@ -1374,7 +1380,7 @@ func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.Ap
 }
 
 func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*model.Channel, *model.AppError) {
-	allChannels, err := a.Srv().Store().Channel().GetByNames(teamID, names, true)
+	allChannels, err := a.Srv().Store().Channel().GetByNamesIncludeDeleted(teamID, names, true)
 	if err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.get_teams_by_names.some_teams_not_found.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -1946,7 +1952,7 @@ func (a *App) importEmoji(c request.CTX, data *imports.EmojiImportData, dryRun b
 
 	var emoji *model.Emoji
 
-	emoji, err := a.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, err := a.Srv().Store().Emoji().GetByName(c, *data.Name, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {

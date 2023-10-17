@@ -70,7 +70,7 @@ exports[`components/unarchive_channel_modal should match snapshot for unarchive_
     componentClass="div"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       onClick={[Function]}
       type="button"
     >

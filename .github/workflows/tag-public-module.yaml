@@ -1,0 +1,60 @@
+name: Tag Public Module
+
+on:
+  workflow_dispatch:
+    inputs:
+      semver_bump:
+        type: choice
+        required: false
+        description: The semver update level
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+      commit_sha:
+        type: string
+        description: The commit sha to tag. Defaults to HEAD master
+        required: false
+
+jobs:
+  tag-public-module:
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+    steps:
+      - name: release/checkout-mattermost
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          fetch-depth: 0
+
+      - name: release/find-latest-public-module-tags
+        run: |
+          echo LATEST_MODULE_TAG=$(git tag --list 'server/public/*' --format='%(refname:lstrip=-1)'  --sort -v:refname | head -1) >> ${GITHUB_ENV}
+
+      - name: release/generate-module-release-notes
+        run: |
+          echo "RELEASE_NOTES<<EOF" >> ${GITHUB_ENV}
+          if [ "${{ inputs.commit_sha }}" = "" ]; 
+            then
+              echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...$(git rev-parse HEAD) server/public)" >> ${GITHUB_ENV}
+            else
+              echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...${{ inputs.commit_sha }} server/public)" >> ${GITHUB_ENV}
+          fi
+          echo "EOF" >> ${GITHUB_ENV}
+
+      - name: release/semver-bump
+        uses: mattermost/action-bump-semver@51a0e77acb7b1769f17ce3e0ee89f0a3b0978d51
+        id: bump-semver
+        with:
+          current_version: ${{ env.LATEST_MODULE_TAG }}
+          level: ${{ inputs.semver_bump }}
+
+      - name: release/create-annotated-tag
+        uses: mattermost/actions/delivery/create-tag@93502485eec8db2fd67b54c71a02462e06d0fa46
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag: server/public/${{ steps.bump-semver.outputs.new_version }}
+          message: ${{ env.RELEASE_NOTES }}
+          commit_sha: ${{ inputs.commit_sha || github.sha }}
