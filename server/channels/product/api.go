@@ -226,14 +226,6 @@ type FrontendService interface {
 	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
 }
 
-// CommandService is the API for interacting with front end.
-//
-// The service shall be registered via app.CommandKey service key.
-type CommandService interface {
-	ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
-	RegisterProductCommand(productID string, command *model.Command) error
-}
-
 // ThreadsService is the API for interacting with threads anywhere.
 //
 // The service shall be registered via app.ThreadsKey service key.
