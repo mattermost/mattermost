@@ -37,7 +37,7 @@ type MentionResults struct {
 	// Mentions maps the ID of each user that was mentioned to how they were mentioned.
 	Mentions map[string]MentionType
 
-	// Contains maps the ID of each group that was mentioned to how it was mentioned.
+	// GroupMentions maps the ID of each group that was mentioned to how it was mentioned.
 	GroupMentions map[string]MentionType
 
 	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
