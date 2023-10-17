@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent} from 'react';
-import {FormattedMessage, MessageDescriptor} from 'react-intl';
-
+import React from 'react';
+import type {ChangeEvent} from 'react';
+import {FormattedMessage, type MessageDescriptor, injectIntl, type IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import type {Command} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+
 import BackstageHeader from 'components/backstage/components/backstage_header';
-import {Constants, DeveloperLinks} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
-import LocalizedInput from 'components/localized_input/localized_input';
-import ExternalLink from 'components/external_link';
 
-import {t} from 'utils/i18n';
-import {Command} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
+import {Constants, DeveloperLinks} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
@@ -31,17 +30,17 @@ type Props = {
     /**
     * The header text to render, has id and defaultMessage
     */
-    header: MessageDescriptor;
+    header: MessageDescriptor | string;
 
     /**
     * The footer text to render, has id and defaultMessage
     */
-    footer: MessageDescriptor;
+    footer: MessageDescriptor | string;
 
     /**
     * The spinner loading text to render, has id and defaultMessage
     */
-    loading: MessageDescriptor;
+    loading: MessageDescriptor | string;
 
     /**
     * Any extra component/node to render
@@ -62,6 +61,8 @@ type Props = {
     * The async function to run when the action button is pressed
     */
     action: (command: Command) => Promise<void>;
+
+    intl: IntlShape;
 }
 
 type State= {
@@ -79,7 +80,7 @@ type State= {
     autocompleteDescription: string;
 }
 
-export default class AbstractCommand extends React.PureComponent<Props, State> {
+export class AbstractCommand extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -101,6 +102,32 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
             saving: false,
             clientError: null,
         };
+    };
+
+    getBackstageHeader = () => {
+        if (typeof this.props.header === 'string') {
+            return <span>{this.props.header}</span>;
+        }
+
+        return (
+            <FormattedMessage
+                id={this.props.header.id}
+                defaultMessage={this.props.header.defaultMessage}
+            />
+        );
+    };
+
+    getBackstageFooter = () => {
+        if (typeof this.props.footer === 'string') {
+            return <span>{this.props.footer}</span>;
+        }
+
+        return (
+            <FormattedMessage
+                id={this.props.footer.id}
+                defaultMessage={this.props.footer.defaultMessage}
+            />
+        );
     };
 
     handleSubmit = (e: React.FormEvent) => {
@@ -302,14 +329,17 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                         />
                     </label>
                     <div className='col-md-5 col-sm-8'>
-                        <LocalizedInput
+                        <input
                             id='autocompleteHint'
                             type='text'
                             maxLength={1024}
                             className='form-control'
                             value={this.state.autocompleteHint}
                             onChange={this.updateAutocompleteHint}
-                            placeholder={{id: t('add_command.autocompleteHint.placeholder'), defaultMessage: 'Example: [Patient Name]'}}
+                            placeholder={this.props.intl.formatMessage({
+                                id: 'add_command.autocompleteHint.placeholder',
+                                defaultMessage: 'Example: [Patient Name]',
+                            })}
                         />
                         <div className='form__help'>
                             <FormattedMessage
@@ -333,14 +363,17 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                         />
                     </label>
                     <div className='col-md-5 col-sm-8'>
-                        <LocalizedInput
+                        <input
                             id='description'
                             type='text'
                             maxLength={128}
                             className='form-control'
                             value={this.state.autocompleteDescription}
                             onChange={this.updateAutocompleteDescription}
-                            placeholder={{id: t('add_command.autocompleteDescription.placeholder'), defaultMessage: 'Example: "Returns search results for patient records"'}}
+                            placeholder={this.props.intl.formatMessage({
+                                id: 'add_command.autocompleteDescription.placeholder',
+                                defaultMessage: 'Example: "Returns search results for patient records"',
+                            })}
                         />
                         <div className='form__help'>
                             <FormattedMessage
@@ -362,10 +395,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                             defaultMessage='Slash Commands'
                         />
                     </Link>
-                    <FormattedMessage
-                        id={this.props.header.id}
-                        defaultMessage={this.props.header.defaultMessage}
-                    />
+                    {this.getBackstageHeader()}
                 </BackstageHeader>
                 <div className='backstage-form'>
                     <form
@@ -437,14 +467,17 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <LocalizedInput
+                                <input
                                     id='trigger'
                                     type='text'
                                     maxLength={Constants.MAX_TRIGGER_LENGTH}
                                     className='form-control'
                                     value={this.state.trigger}
                                     onChange={this.updateTrigger}
-                                    placeholder={{id: t('add_command.trigger.placeholder'), defaultMessage: 'Command trigger e.g. "hello" not including the slash'}}
+                                    placeholder={this.props.intl.formatMessage({
+                                        id: 'add_command.trigger.placeholder',
+                                        defaultMessage: 'Command trigger e.g. "hello" not including the slash',
+                                    })}
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage
@@ -490,14 +523,17 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <LocalizedInput
+                                <input
                                     id='url'
                                     type='text'
                                     maxLength={1024}
                                     className='form-control'
                                     value={this.state.url}
                                     onChange={this.updateUrl}
-                                    placeholder={{id: t('add_command.url.placeholder'), defaultMessage: 'Must start with http:// or https://'}}
+                                    placeholder={this.props.intl.formatMessage({
+                                        id: 'add_command.url.placeholder',
+                                        defaultMessage: 'Must start with http:// or https://',
+                                    })}
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage
@@ -550,14 +586,17 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <LocalizedInput
+                                <input
                                     id='username'
                                     type='text'
                                     maxLength={64}
                                     className='form-control'
                                     value={this.state.username}
                                     onChange={this.updateUsername}
-                                    placeholder={{id: t('add_command.username.placeholder'), defaultMessage: 'Username'}}
+                                    placeholder={this.props.intl.formatMessage({
+                                        id: 'add_command.username.placeholder',
+                                        defaultMessage: 'Username',
+                                    })}
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage
@@ -578,14 +617,17 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <LocalizedInput
+                                <input
                                     id='iconUrl'
                                     type='text'
                                     maxLength={1024}
                                     className='form-control'
                                     value={this.state.iconUrl}
                                     onChange={this.updateIconUrl}
-                                    placeholder={{id: t('add_command.iconUrl.placeholder'), defaultMessage: 'https://www.example.com/myicon.png'}}
+                                    placeholder={this.props.intl.formatMessage({
+                                        id: 'add_command.iconUrl.placeholder',
+                                        defaultMessage: 'https://www.example.com/myicon.png',
+                                    })}
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage
@@ -628,7 +670,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
-                                className='btn btn-link btn-sm'
+                                className='btn btn-tertiary'
                                 to={'/' + this.props.team.name + '/integrations/commands'}
                             >
                                 <FormattedMessage
@@ -640,14 +682,11 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={Utils.localizeMessage(this.props.loading?.id ?? '', this.props.loading?.defaultMessage as string)}
+                                spinningText={typeof this.props.loading === 'string' ? this.props.loading : Utils.localizeMessage(this.props.loading?.id ?? '', this.props.loading?.defaultMessage as string)}
                                 onClick={this.handleSubmit}
                                 id='saveCommand'
                             >
-                                <FormattedMessage
-                                    id={this.props.footer.id}
-                                    defaultMessage={this.props.footer.defaultMessage}
-                                />
+                                {this.getBackstageFooter()}
                             </SpinnerButton>
                             {this.props.renderExtra}
                         </div>
@@ -657,3 +696,5 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(AbstractCommand);

@@ -3,11 +3,10 @@
 
 import {connect} from 'react-redux';
 
+import Permissions from 'mattermost-redux/constants/permissions';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {GlobalState} from 'types/store';
-
-import Permissions from 'mattermost-redux/constants/permissions';
+import type {GlobalState} from 'types/store';
 
 import GuestPermissionsTree from './guest_permissions_tree';
 
@@ -17,6 +16,8 @@ export const GUEST_INCLUDED_PERMISSIONS = [
     Permissions.DELETE_POST,
     Permissions.ADD_REACTION,
     Permissions.REMOVE_REACTION,
+    Permissions.READ_CHANNEL,
+    Permissions.UPLOAD_FILE,
     Permissions.USE_CHANNEL_MENTIONS,
     Permissions.USE_GROUP_MENTIONS,
     Permissions.CREATE_POST,

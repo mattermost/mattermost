@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -387,7 +387,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
+			isExplicitlyMentioned := mentions.Mentions[id] > GMMention
+			isGM := channel.Type == model.ChannelTypeGroup
+			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], isExplicitlyMentioned, status, post, isGM) {
 				mentionType := mentions.Mentions[id]
 
 				replyToThreadType := ""
@@ -428,7 +430,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}
 
-				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
+				isGM := channel.Type == model.ChannelTypeGroup
+				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post, isGM) {
 					a.sendPushNotification(
 						notification,
 						profileMap[id],
@@ -770,6 +773,14 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
 		mentions = getExplicitMentions(post, keywords, groups)
+
+		// Add a GM mention to all members of a GM channel
+		if channel.Type == model.ChannelTypeGroup {
+			for id := range channelMemberNotifyPropsMap {
+				mentions.addMention(id, GMMention)
+			}
+		}
+
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.PostTypeAddToChannel {
@@ -876,7 +887,7 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(c request.CTX, sender *model.U
 // sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
 // are outside of the post's channel. Returns whether or not an ephemeral post was sent.
 func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
-	outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(sender, post, channel, potentialMentions)
+	outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(c, sender, post, channel, potentialMentions)
 	if err != nil {
 		return false, err
 	}
@@ -890,10 +901,10 @@ func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *
 	return true, nil
 }
 
-func (a *App) FilterUsersByVisible(viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
+func (a *App) FilterUsersByVisible(c request.CTX, viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
 	result := []*model.User{}
 	for _, user := range otherUsers {
-		canSee, err := a.UserCanSeeOtherUser(viewer.Id, user.Id)
+		canSee, err := a.UserCanSeeOtherUser(c, viewer.Id, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -904,7 +915,7 @@ func (a *App) FilterUsersByVisible(viewer *model.User, otherUsers []*model.User)
 	return result, nil
 }
 
-func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
+func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
 	if post.IsSystemMessage() {
 		return nil, nil, nil
 	}
@@ -925,7 +936,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 	// Filter out inactive users and bots
 	allUsers := model.UserSlice(users).FilterByActive(true)
 	allUsers = allUsers.FilterWithoutBots()
-	allUsers, appErr := a.FilterUsersByVisible(sender, allUsers)
+	allUsers, appErr := a.FilterUsersByVisible(c, sender, allUsers)
 	if appErr != nil {
 		return nil, nil, appErr
 	}
@@ -1063,6 +1074,9 @@ const (
 	// A placeholder that should never be used in practice
 	NoMention MentionType = iota
 
+	// The post is in a GM
+	GMMention
+
 	// The post is in a thread that the user has commented on
 	ThreadMention
 
@@ -1175,7 +1189,6 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 
 	ret = append(ret, post.Message)
 	for _, attachment := range post.Attachments() {
-
 		if attachment.Pretext != "" {
 			ret = append(ret, attachment.Pretext)
 		}

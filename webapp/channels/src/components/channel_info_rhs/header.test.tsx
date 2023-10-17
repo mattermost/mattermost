@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+
 import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 
 import Header from './header';

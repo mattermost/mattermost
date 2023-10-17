@@ -1,1 +1,0 @@
-ALTER TABLE focalboard_category_boards ADD COLUMN hidden boolean;

@@ -17,7 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -123,7 +123,6 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		if !cnd.Audience.Matches(isSystemAdmin, isTeamAdmin) {
 			return false, nil
 		}
-
 	}
 
 	// check user count condition against previously calculated total user count

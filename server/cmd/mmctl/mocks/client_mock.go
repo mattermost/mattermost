@@ -525,6 +525,22 @@ func (mr *MockClientMockRecorder) EnablePlugin(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnablePlugin", reflect.TypeOf((*MockClient)(nil).EnablePlugin), arg0, arg1)
 }
 
+// GeneratePresignedURL mocks base method.
+func (m *MockClient) GeneratePresignedURL(arg0 context.Context, arg1 string) (*model.PresignURLResponse, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GeneratePresignedURL", arg0, arg1)
+	ret0, _ := ret[0].(*model.PresignURLResponse)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GeneratePresignedURL indicates an expected call of GeneratePresignedURL.
+func (mr *MockClientMockRecorder) GeneratePresignedURL(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GeneratePresignedURL", reflect.TypeOf((*MockClient)(nil).GeneratePresignedURL), arg0, arg1)
+}
+
 // GetAllTeams mocks base method.
 func (m *MockClient) GetAllTeams(arg0 context.Context, arg1 string, arg2, arg3 int) ([]*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()

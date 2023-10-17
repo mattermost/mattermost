@@ -26,7 +26,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
     <ProfilePicture
       hasMention={false}
       isEmoji={false}
-      isRHS={false}
       newStatusIcon={true}
       popoverPlacement="right"
       size="xs"
@@ -67,7 +66,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
     <ProfilePicture
       hasMention={false}
       isEmoji={false}
-      isRHS={false}
       newStatusIcon={true}
       popoverPlacement="right"
       size="xs"
@@ -109,7 +107,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
     <ProfilePicture
       hasMention={false}
       isEmoji={false}
-      isRHS={false}
       newStatusIcon={true}
       popoverPlacement="right"
       size="xs"

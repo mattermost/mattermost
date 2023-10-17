@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -73,7 +74,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, ss) })
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, ss) })
 	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, ss) })
-	t.Run("GetNewTeamMembersSince", func(t *testing.T) { testGetNewTeamMembersSince(t, ss) })
+	t.Run("GetCommonTeamIDsForMultipleUsers", func(t *testing.T) { testGetCommonTeamIDsForMultipleUsers(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1299,6 +1300,8 @@ func testGetMembers(t *testing.T, ss store.Store) {
 }
 
 func testTeamMembers(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	teamId1 := model.NewId()
 	teamId2 := model.NewId()
 
@@ -1318,8 +1321,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Len(t, ms, 1)
 	require.Equal(t, m3.UserId, ms[0].UserId)
 
-	ctx := context.Background()
-	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId, "", true)
+	ms, err = ss.Team().GetTeamsForUser(c, m1.UserId, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -1348,11 +1350,11 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.NoError(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", true)
+	ms, err = ss.Team().GetTeamsForUser(c, uid, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 2)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid, teamId2, true)
+	ms, err = ss.Team().GetTeamsForUser(c, uid, teamId2, true)
 	require.NoError(t, err)
 	require.Len(t, ms, 1)
 
@@ -1360,18 +1362,18 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, err = ss.Team().UpdateMember(m4)
 	require.NoError(t, err)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", true)
+	ms, err = ss.Team().GetTeamsForUser(c, uid, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 2)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", false)
+	ms, err = ss.Team().GetTeamsForUser(c, uid, "", false)
 	require.NoError(t, err)
 	require.Len(t, ms, 1)
 
 	nErr = ss.Team().RemoveAllMembersByUser(uid)
 	require.NoError(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId, "", true)
+	ms, err = ss.Team().GetTeamsForUser(c, m1.UserId, "", true)
 	require.NoError(t, err)
 	require.Empty(t, ms)
 }
@@ -2974,6 +2976,8 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 }
 
 func testGetTeamMember(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	teamId1 := model.NewId()
 
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
@@ -2981,17 +2985,17 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	var rm1 *model.TeamMember
-	rm1, err := ss.Team().GetMember(context.Background(), m1.TeamId, m1.UserId)
+	rm1, err := ss.Team().GetMember(c, m1.TeamId, m1.UserId)
 	require.NoError(t, err)
 
 	require.Equal(t, rm1.TeamId, m1.TeamId, "bad team id")
 
 	require.Equal(t, rm1.UserId, m1.UserId, "bad user id")
 
-	_, err = ss.Team().GetMember(context.Background(), m1.TeamId, "")
+	_, err = ss.Team().GetMember(c, m1.TeamId, "")
 	require.Error(t, err, "empty user id - should have failed")
 
-	_, err = ss.Team().GetMember(context.Background(), "", m1.UserId)
+	_, err = ss.Team().GetMember(c, "", m1.UserId)
 	require.Error(t, err, "empty team id - should have failed")
 
 	// Test with a custom team scheme.
@@ -3021,7 +3025,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(m2, -1)
 	require.NoError(t, nErr)
 
-	m3, err := ss.Team().GetMember(context.Background(), m2.TeamId, m2.UserId)
+	m3, err := ss.Team().GetMember(c, m2.TeamId, m2.UserId)
 	require.NoError(t, err)
 	t.Log(m3)
 
@@ -3031,7 +3035,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(m4, -1)
 	require.NoError(t, nErr)
 
-	m5, err := ss.Team().GetMember(context.Background(), m4.TeamId, m4.UserId)
+	m5, err := ss.Team().GetMember(c, m4.TeamId, m4.UserId)
 	require.NoError(t, err)
 
 	assert.Equal(t, s2.DefaultTeamGuestRole, m5.Roles)
@@ -3198,7 +3202,6 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 }
 
 func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
-
 	// team icon initially updated a second ago
 	lastTeamIconUpdateInitial := model.GetMillis() - 1000
 
@@ -3293,6 +3296,8 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 }
 
 func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	s1 := model.NewId()
 	t1 := &model.Team{
 		DisplayName: "Name",
@@ -3342,19 +3347,19 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 		}
 	}
 
-	tm1b, err := ss.Team().GetMember(context.Background(), tm1.TeamId, tm1.UserId)
+	tm1b, err := ss.Team().GetMember(c, tm1.TeamId, tm1.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "", tm1b.ExplicitRoles)
 	assert.True(t, tm1b.SchemeUser)
 	assert.True(t, tm1b.SchemeAdmin)
 
-	tm2b, err := ss.Team().GetMember(context.Background(), tm2.TeamId, tm2.UserId)
+	tm2b, err := ss.Team().GetMember(c, tm2.TeamId, tm2.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "", tm2b.ExplicitRoles)
 	assert.True(t, tm2b.SchemeUser)
 	assert.False(t, tm2b.SchemeAdmin)
 
-	tm3b, err := ss.Team().GetMember(context.Background(), tm3.TeamId, tm3.UserId)
+	tm3b, err := ss.Team().GetMember(c, tm3.TeamId, tm3.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "something_else", tm3b.ExplicitRoles)
 	assert.False(t, tm3b.SchemeUser)
@@ -3409,6 +3414,8 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 }
 
 func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	m1 := &model.TeamMember{
 		TeamId:        model.NewId(),
 		UserId:        model.NewId(),
@@ -3435,19 +3442,19 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 
 	require.NoError(t, (ss.Team().ClearAllCustomRoleAssignments()))
 
-	r1, err := ss.Team().GetMember(context.Background(), m1.TeamId, m1.UserId)
+	r1, err := ss.Team().GetMember(c, m1.TeamId, m1.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, m1.ExplicitRoles, r1.Roles)
 
-	r2, err := ss.Team().GetMember(context.Background(), m2.TeamId, m2.UserId)
+	r2, err := ss.Team().GetMember(c, m2.TeamId, m2.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, "team_user team_admin", r2.Roles)
 
-	r3, err := ss.Team().GetMember(context.Background(), m3.TeamId, m3.UserId)
+	r3, err := ss.Team().GetMember(c, m3.TeamId, m3.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, m3.ExplicitRoles, r3.Roles)
 
-	r4, err := ss.Team().GetMember(context.Background(), m4.TeamId, m4.UserId)
+	r4, err := ss.Team().GetMember(c, m4.TeamId, m4.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, "", r4.Roles)
 }
@@ -3620,16 +3627,202 @@ func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
 	require.GreaterOrEqual(t, countAfter, count+1)
 }
 
-func testGetNewTeamMembersSince(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName:      NewTestId(),
-		Name:             NewTestId(),
-		Email:            MakeEmail(),
-		Type:             model.TeamInvite,
-		GroupConstrained: model.NewBool(true),
-	})
+func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
+	// Creating teams
+
+	// Team 1
+	t1 := model.Team{}
+	t1.DisplayName = "Team 1"
+	t1.Name = NewTestId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TeamOpen
+	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
-	_, _, err = ss.Team().GetNewTeamMembersSince(team.Id, 0, 0, 1000)
+	// Team 2
+	t2 := model.Team{}
+	t2.DisplayName = "Team 2"
+	t2.Name = NewTestId()
+	t2.Email = MakeEmail()
+	t2.Type = model.TeamOpen
+	_, err = ss.Team().Save(&t2)
 	require.NoError(t, err)
+
+	// Team 3
+	t3 := model.Team{}
+	t3.DisplayName = "Team 3"
+	t3.Name = NewTestId()
+	t3.Email = MakeEmail()
+	t3.Type = model.TeamOpen
+	_, err = ss.Team().Save(&t3)
+	require.NoError(t, err)
+
+	// Creating users
+
+	// User 1
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = NewTestId()
+	_, err = ss.User().Save(&u1)
+	require.NoError(t, err)
+
+	// User 2
+	u2 := model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = NewTestId()
+	_, err = ss.User().Save(&u2)
+	require.NoError(t, err)
+
+	t.Run("multiple common teams exist", func(t *testing.T) {
+		// Add user 1 in team 1 and 2
+		m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: t2.Id, UserId: u1.Id}
+
+		// Add user 2 in team1, 2 and 3
+		m3 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
+		m4 := &model.TeamMember{TeamId: t2.Id, UserId: u2.Id}
+		m5 := &model.TeamMember{TeamId: t3.Id, UserId: u2.Id}
+
+		// Save team memberships
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5}, -1)
+		require.NoError(t, nErr)
+
+		// Find common teams between user 1 and user 2
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id})
+		require.NoError(t, err2)
+		require.Equal(t, 2, len(commonTeamIDs))
+		require.Contains(t, commonTeamIDs, t1.Id)
+		require.Contains(t, commonTeamIDs, t2.Id)
+
+		// cleanup
+		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		require.NoError(t, err2)
+
+		err2 = ss.Team().RemoveAllMembersByUser(u2.Id)
+		require.NoError(t, err2)
+	})
+
+	t.Run("single common teams exist", func(t *testing.T) {
+		// Add user 1 in team 1 and 2
+		m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: t2.Id, UserId: u1.Id}
+
+		// Add user 2 in team1, 2 and 3
+		m3 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
+		m5 := &model.TeamMember{TeamId: t3.Id, UserId: u2.Id}
+
+		// Save team memberships
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m5}, -1)
+		require.NoError(t, nErr)
+
+		// Find common teams between user 1 and user 2
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id})
+		require.NoError(t, err2)
+		require.Equal(t, 1, len(commonTeamIDs))
+		require.Contains(t, commonTeamIDs, t1.Id)
+
+		// cleanup
+		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		require.NoError(t, err2)
+
+		err2 = ss.Team().RemoveAllMembersByUser(u2.Id)
+		require.NoError(t, err2)
+	})
+
+	t.Run("no common teams exist", func(t *testing.T) {
+		// Add user 1 in team 1 and 2
+		m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
+
+		// Add user 2 in team1, 2 and 3
+		m4 := &model.TeamMember{TeamId: t2.Id, UserId: u2.Id}
+		m5 := &model.TeamMember{TeamId: t3.Id, UserId: u2.Id}
+
+		// Save team memberships
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m4, m5}, -1)
+		require.NoError(t, nErr)
+
+		// Find common teams between user 1 and user 2
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id})
+		require.NoError(t, err2)
+		require.Equal(t, 0, len(commonTeamIDs))
+
+		// cleanup
+		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		require.NoError(t, err2)
+
+		err2 = ss.Team().RemoveAllMembersByUser(u2.Id)
+		require.NoError(t, err2)
+	})
+
+	t.Run("some user have no team members", func(t *testing.T) {
+		// Add user 1 in team 1 and 2
+		m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: t2.Id, UserId: u1.Id}
+
+		// We'll leave user 2 without any team
+
+		// Save team memberships
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
+		require.NoError(t, nErr)
+
+		// Find common teams between user 1 and user 2
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id})
+		require.NoError(t, err2)
+		require.Equal(t, 0, len(commonTeamIDs))
+
+		// cleanup
+		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		require.NoError(t, err2)
+	})
+
+	t.Run("more than two users, common teams exist", func(t *testing.T) {
+		// User 3
+		u3 := model.User{}
+		u3.Email = MakeEmail()
+		u3.Nickname = NewTestId()
+		_, err = ss.User().Save(&u3)
+		require.NoError(t, err)
+
+		// User 4
+		u4 := model.User{}
+		u4.Email = MakeEmail()
+		u4.Nickname = NewTestId()
+		_, err = ss.User().Save(&u4)
+		require.NoError(t, err)
+
+		// Add user 1 in team 1 and 2
+		m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: t2.Id, UserId: u1.Id}
+
+		// Add user 2 in team1, 2 and 3
+		m3 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
+		m4 := &model.TeamMember{TeamId: t2.Id, UserId: u2.Id}
+		m5 := &model.TeamMember{TeamId: t3.Id, UserId: u2.Id}
+
+		// Add user 3 in team 1 and 2
+		m6 := &model.TeamMember{TeamId: t1.Id, UserId: u3.Id}
+		m7 := &model.TeamMember{TeamId: t2.Id, UserId: u3.Id}
+
+		// Add user 4 in team 1 and 2
+		m8 := &model.TeamMember{TeamId: t1.Id, UserId: u4.Id}
+		m9 := &model.TeamMember{TeamId: t2.Id, UserId: u4.Id}
+
+		// Save team memberships
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6, m7, m8, m9}, -1)
+		require.NoError(t, nErr)
+
+		// Find common teams between user 1 and user 2
+		commonTeamIDs, err := ss.Team().GetCommonTeamIDsForMultipleUsers([]string{u1.Id, u2.Id, u3.Id, u4.Id})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(commonTeamIDs))
+		require.Contains(t, commonTeamIDs, t1.Id)
+		require.Contains(t, commonTeamIDs, t2.Id)
+
+		// cleanup
+		err = ss.Team().RemoveAllMembersByUser(u1.Id)
+		require.NoError(t, err)
+
+		err = ss.Team().RemoveAllMembersByUser(u2.Id)
+		require.NoError(t, err)
+	})
 }

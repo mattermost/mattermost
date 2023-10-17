@@ -455,7 +455,6 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 			return nil, store.NewErrNotFound("User", id)
 		}
 		return nil, errors.Wrapf(err, "failed to get User with userId=%s", id)
-
 	}
 	if err = json.Unmarshal(props, &user.Props); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal user props")
@@ -580,7 +579,6 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 					sqOr = append(sqOr, sq.Like{"u.Roles": queryRole})
 				}
 			}
-
 		}
 	}
 
@@ -1174,6 +1172,26 @@ func (us SqlUserStore) GetByEmail(email string) (*model.User, error) {
 	return &user, nil
 }
 
+func (us SqlUserStore) GetByRemoteID(remoteID string) (*model.User, error) {
+	query := us.usersQuery.Where(sq.Eq{"RemoteId": remoteID})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_remote_id_tosql")
+	}
+
+	user := model.User{}
+	if err := us.GetReplicaX().Get(&user, queryString, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.Wrap(store.NewErrNotFound("User", fmt.Sprintf("remoteid=%s", remoteID)), "failed to find User")
+		}
+
+		return nil, errors.Wrapf(err, "failed to get User with RemoteId=%s", remoteID)
+	}
+
+	return &user, nil
+}
+
 func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
 	if authData == nil || *authData == "" {
 		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
@@ -1284,7 +1302,6 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 	}
 
 	return users[0], nil
-
 }
 
 func (us SqlUserStore) VerifyEmail(userId, email string) (string, error) {
@@ -1308,6 +1325,10 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
 
 	if !options.IncludeDeleted {
 		query = query.Where("u.DeleteAt = 0")
+	}
+
+	if !options.IncludeRemoteUsers {
+		query = query.Where(sq.Or{sq.Eq{"u.RemoteId": ""}, sq.Eq{"u.RemoteId": nil}})
 	}
 
 	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
@@ -1354,20 +1375,30 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
 }
 
 func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.UserCountOptions) (int64, error) {
-
 	time := model.GetMillis() - timePeriod
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ?", time)
 
 	if !options.IncludeBotAccounts {
-		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		if us.DriverName() == model.DatabaseDriverPostgres {
+			query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
+		}
+	}
+
+	if !options.IncludeRemoteUsers || !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id")
+	}
+
+	if !options.IncludeRemoteUsers {
+		query = query.Where(sq.Or{sq.Eq{"Users.RemoteId": ""}, sq.Eq{"Users.RemoteId": nil}})
 	}
 
 	if !options.IncludeDeleted {
-		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+		query = query.Where("Users.DeleteAt = 0")
 	}
 
 	queryStr, args, err := query.ToSql()
-
 	if err != nil {
 		return 0, errors.Wrap(err, "analytics_active_count_tosql")
 	}
@@ -1384,15 +1415,26 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ? AND LastActivityAt <= ?", startTime, endTime)
 
 	if !options.IncludeBotAccounts {
-		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		if us.DriverName() == model.DatabaseDriverPostgres {
+			query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
+		}
+	}
+
+	if !options.IncludeRemoteUsers || !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id")
+	}
+
+	if !options.IncludeRemoteUsers {
+		query = query.Where(sq.Or{sq.Eq{"Users.RemoteId": ""}, sq.Eq{"Users.RemoteId": nil}})
 	}
 
 	if !options.IncludeDeleted {
-		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+		query = query.Where("Users.DeleteAt = 0")
 	}
 
 	queryStr, args, err := query.ToSql()
-
 	if err != nil {
 		return 0, errors.Wrap(err, "Failed to build query.")
 	}
@@ -2023,19 +2065,9 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err erro
 		return nil, err
 	}
 
-	roles := user.GetRoles()
-
-	newRoles := []string{}
-	for _, role := range roles {
-		if role == model.SystemUserRoleId {
-			newRoles = append(newRoles, model.SystemGuestRoleId)
-		} else if role != model.SystemAdminRoleId {
-			newRoles = append(newRoles, role)
-		}
-	}
-
 	curTime := model.GetMillis()
-	newRolesDBStr := strings.Join(newRoles, " ")
+	newRolesDBStr := model.SystemGuestRoleId
+
 	query := us.getQueryBuilder().Update("Users").
 		Set("Roles", newRolesDBStr).
 		Set("UpdateAt", curTime).
@@ -2145,7 +2177,11 @@ func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
 		From("Users")
 
 	if excludeBots {
-		builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+		if us.DriverName() == model.DatabaseDriverPostgres {
+			builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			builder = builder.Where(sq.Expr("Users.Id NOT IN (SELECT UserId FROM Bots)"))
+		}
 	}
 
 	builder = builder.Suffix(")")

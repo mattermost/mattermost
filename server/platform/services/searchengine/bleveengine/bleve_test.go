@@ -49,7 +49,12 @@ func (s *BleveEngineTestSuite) setupStore() {
 		driverName = model.DatabaseDriverPostgres
 	}
 	s.SQLSettings = storetest.MakeSqlSettings(driverName, false)
-	s.SQLStore = sqlstore.New(*s.SQLSettings, nil)
+
+	var err error
+	s.SQLStore, err = sqlstore.New(*s.SQLSettings, nil)
+	if err != nil {
+		s.Require().FailNow("Cannot initialize store: %s", err.Error())
+	}
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()

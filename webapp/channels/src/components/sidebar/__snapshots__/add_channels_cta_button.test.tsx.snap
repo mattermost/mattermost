@@ -13,7 +13,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
     id="addChannelsCta"
     onClick={[Function]}
   >
-    <li
+    <div
       aria-label="Add channels"
     >
       <i
@@ -22,7 +22,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
       <span>
         Add Channels
       </span>
-    </li>
+    </div>
   </button>
   <Menu
     ariaLabel="Add Channels Dropdown"
@@ -63,7 +63,7 @@ exports[`components/new_channel_modal should match snapshot when user has only j
   id="addChannelsCta"
   onClick={[Function]}
 >
-  <li
+  <div
     aria-label="Add channels"
   >
     <i
@@ -72,6 +72,6 @@ exports[`components/new_channel_modal should match snapshot when user has only j
     <span>
       Add Channels
     </span>
-  </li>
+  </div>
 </button>
 `;

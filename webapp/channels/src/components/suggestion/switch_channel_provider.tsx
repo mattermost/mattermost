@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {connect} from 'react-redux';
-import classNames from 'classnames';
 
-import {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
+import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
+import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
+import {Preferences} from 'mattermost-redux/constants';
 import {
     getDirectAndGroupChannels,
     getGroupChannels,
@@ -27,14 +27,15 @@ import {
     getSortedAllTeamsUnreadChannels,
     getAllTeamsUnreadChannelIds,
 } from 'mattermost-redux/selectors/entities/channels';
-
-import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled, insightsAreEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
+    getActiveTeamsList,
     getCurrentTeamId,
     getMyTeams,
     getTeam,
 } from 'mattermost-redux/selectors/entities/teams';
+import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 import {
     getCurrentUserId,
     getUserIdsInChannels,
@@ -42,25 +43,29 @@ import {
     makeSearchProfilesMatchingWithTerm,
     getStatusForUserId,
 } from 'mattermost-redux/selectors/entities/users';
-import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
-import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
-import {logError} from 'mattermost-redux/actions/errors';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortChannelsByTypeAndDisplayName, isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import {getPostDraft} from 'selectors/rhs';
+import store from 'stores/redux_store';
+
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
-import {getPostDraft} from 'selectors/rhs';
-import store from 'stores/redux_store.jsx';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+
 import {Constants, StoragePrefixes} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-import {Preferences} from 'mattermost-redux/constants';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import Provider, {ResultsCallback} from './provider';
-import {SuggestionContainer, SuggestionProps} from './suggestion';
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
+
+import Provider from './provider';
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
 
 const getState = store.getState;
 const searchProfilesMatchingWithTerm = makeSearchProfilesMatchingWithTerm();
@@ -70,14 +75,6 @@ const ThreadsChannel: FakeChannel = {
     name: 'threads',
     display_name: 'Threads',
     type: Constants.THREADS,
-    delete_at: 0,
-};
-
-const InsightsChannel: FakeChannel = {
-    id: 'insights',
-    name: 'activity-and-insights',
-    display_name: 'Insights',
-    type: Constants.INSIGHTS,
     delete_at: 0,
 };
 
@@ -181,12 +178,6 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         icon = (
             <span className='suggestion-list__icon suggestion-list__icon--large'>
                 <i className='icon icon-message-text-outline'/>
-            </span>
-        );
-    } else if (channel.type === Constants.INSIGHTS) {
-        icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
-                <i className='icon icon-chart-line'/>
             </span>
         );
     } else if (channel.type === Constants.GM_CHANNEL) {
@@ -397,9 +388,10 @@ function makeChannelSearchFilter(channelPrefix: string) {
     const curState = getState();
     const usersInChannels = getUserIdsInChannels(curState);
     const userSearchStrings: RelationOneToOne<UserProfile, string> = {};
+    const SEPARATOR = ';|;';
 
     return (channel: ChannelItem) => {
-        let searchString = `${channel.display_name}${channel.name}`;
+        let searchString = `${channel.display_name}${SEPARATOR}${channel.name}`;
         if (channel.type === Constants.GM_CHANNEL || channel.type === Constants.DM_CHANNEL) {
             const usersInChannel = usersInChannels[channel.id] || new Set([]);
 
@@ -421,7 +413,7 @@ function makeChannelSearchFilter(channelPrefix: string) {
                         continue;
                     }
                     const {nickname, username} = user;
-                    userString = `${nickname}${username}${Utils.getFullName(user)}`;
+                    userString = [nickname, username, Utils.getFullName(user)].join(SEPARATOR);
                     userSearchStrings[userId] = userString;
                 }
                 searchString += userString;
@@ -455,9 +447,10 @@ export default class SwitchChannelProvider extends Provider {
             }
 
             // Dispatch suggestions for local data (filter out deleted and archived channels from local store data)
-            const channels = getChannelsInAllTeams(getState()).concat(getDirectAndGroupChannels(getState())).filter((c) => c.delete_at === 0);
+            let channels = getChannelsInAllTeams(getState()).concat(getDirectAndGroupChannels(getState())).filter((c) => c.delete_at === 0);
+            channels = this.removeChannelsFromArchivedTeams(channels);
             const users = searchProfilesMatchingWithTerm(getState(), channelPrefix, false);
-            const formattedData = this.formatList(channelPrefix, [ThreadsChannel, InsightsChannel, ...channels], users, true, true);
+            const formattedData = this.formatList(channelPrefix, [ThreadsChannel, ...channels], users, true, true);
             if (formattedData) {
                 resultsCallback(formattedData);
             }
@@ -508,10 +501,13 @@ export default class SwitchChannelProvider extends Provider {
         const currentUserId = getCurrentUserId(state);
 
         // filter out deleted and archived channels from local store data
-        const localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
+        let localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
+        localChannelData = this.removeChannelsFromArchivedTeams(localChannelData);
         const localUserData = searchProfilesMatchingWithTerm(state, channelPrefix, false);
-        const localFormattedData = this.formatList(channelPrefix, [ThreadsChannel, InsightsChannel, ...localChannelData], localUserData);
-        const remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
+        const localFormattedData = this.formatList(channelPrefix, [ThreadsChannel, ...localChannelData], localUserData);
+        let remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
+        remoteChannelData = this.removeChannelsFromArchivedTeams(remoteChannelData);
+
         const remoteUserData = usersFromServer.users || [];
         const remoteFormattedData = this.formatList(channelPrefix, remoteChannelData, remoteUserData, false);
 
@@ -593,7 +589,7 @@ export default class SwitchChannelProvider extends Provider {
                 let wrappedChannel: WrappedChannel = {channel: newChannel, name: newChannel.name, deactivated: false};
                 if (members[channel.id]) {
                     wrappedChannel.last_viewed_at = members[channel.id].last_viewed_at;
-                } else if (skipNotMember && (newChannel.type !== Constants.THREADS && newChannel.type !== Constants.INSIGHTS)) {
+                } else if (skipNotMember && (newChannel.type !== Constants.THREADS)) {
                     continue;
                 }
 
@@ -611,13 +607,6 @@ export default class SwitchChannelProvider extends Provider {
                     const threadItem = this.getThreadsItem('total');
                     if (threadItem) {
                         wrappedChannel = threadItem;
-                    } else {
-                        continue;
-                    }
-                } else if (newChannel.type === Constants.INSIGHTS) {
-                    const insightsItem = this.getInsightsItem();
-                    if (insightsItem) {
-                        wrappedChannel = insightsItem;
                     } else {
                         continue;
                     }
@@ -710,9 +699,22 @@ export default class SwitchChannelProvider extends Provider {
         };
     }
 
+    removeChannelsFromArchivedTeams(channels: Channel[]) {
+        const state = getState();
+        const activeTeams = getActiveTeamsList(state).map((team: Team) => team.id);
+        const newChannels = channels.filter((channel: Channel) => {
+            if (!channel.team_id) {
+                return true;
+            }
+            return activeTeams.includes(channel.team_id);
+        });
+        return newChannels;
+    }
+
     fetchAndFormatRecentlyViewedChannels(resultsCallback: ResultsCallback<WrappedChannel>) {
         const state = getState();
-        const recentChannels = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state));
+        let recentChannels = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state));
+        recentChannels = this.removeChannelsFromArchivedTeams(recentChannels);
         const wrappedRecentChannels = this.wrapChannels(recentChannels, Constants.MENTION_RECENT_CHANNELS);
         const unreadChannels = getSortedAllTeamsUnreadChannels(state);
         const myMembers = getMyChannelMemberships(state);
@@ -762,27 +764,6 @@ export default class SwitchChannelProvider extends Provider {
         }
         if (collapsedThreads && ((countType === 'unread' && counts?.total_unread_threads) || (countType === 'total'))) {
             return threadsItem;
-        }
-
-        return null;
-    }
-
-    getInsightsItem() {
-        const state = getState();
-        const insightsEnabled = insightsAreEnabled(state);
-
-        // adding last viewed at equal to Date.now() to push it to the top of the list
-        const insightsItem = {
-            channel: InsightsChannel,
-            name: InsightsChannel.name,
-            unread: false,
-            unread_mentions: 0,
-            deactivated: false,
-            last_viewed_at: Date.now(),
-        };
-
-        if (insightsEnabled) {
-            return insightsItem;
         }
 
         return null;

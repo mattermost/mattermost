@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
+import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {useHistory} from 'react-router-dom';
-import {useIntl, MessageDescriptor} from 'react-intl';
 
-import {Command} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
+import type {Command} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
-import {ActionResult} from 'mattermost-redux/types/actions.js';
+import type {ActionResult} from 'mattermost-redux/types/actions.js';
 
 import AbstractCommand from '../abstract_command';
 

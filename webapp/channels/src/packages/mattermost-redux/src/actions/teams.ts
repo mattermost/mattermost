@@ -1,31 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AnyAction} from 'redux';
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile} from '@mattermost/types/users';
-import {Team, TeamMembership, TeamMemberWithError, GetTeamMembersOpts, TeamsWithCount, TeamSearchOpts} from '@mattermost/types/teams';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team, TeamMembership, TeamMemberWithError, GetTeamMembersOpts, TeamsWithCount, TeamSearchOpts} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Client4} from 'mattermost-redux/client';
-
-import {General} from 'mattermost-redux/constants';
 import {ChannelTypes, TeamTypes, UserTypes} from 'mattermost-redux/action_types';
-import {GetStateFunc, DispatchFunc, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
-
-import {isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {getProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
-import {logError} from 'mattermost-redux/actions/errors';
 import {selectChannel} from 'mattermost-redux/actions/channels';
+import {logError} from 'mattermost-redux/actions/errors';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
+import {getProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
+import {General} from 'mattermost-redux/constants';
+import {isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selectors/entities/general';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {GetStateFunc, DispatchFunc, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: DispatchFunc, getState: GetStateFunc) {
     const {
@@ -292,18 +288,6 @@ export function unarchiveTeam(teamId: string): ActionFunc {
             type: TeamTypes.RECEIVED_TEAM_UNARCHIVED,
             data: team,
         });
-
-        return {data: true};
-    };
-}
-
-export function archiveAllTeamsExcept(teamId: string) {
-    return async () => {
-        try {
-            await Client4.archiveAllTeamsExcept(teamId);
-        } catch (error) {
-            return {error};
-        }
 
         return {data: true};
     };

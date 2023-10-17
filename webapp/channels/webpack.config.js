@@ -3,11 +3,8 @@
 
 /* eslint-disable no-console, no-process-env */
 
-const fs = require('fs');
 const path = require('path');
-
 const url = require('url');
-
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const webpack = require('webpack');
@@ -134,6 +131,9 @@ var config = {
             'mattermost-redux/test': 'packages/mattermost-redux/test',
             'mattermost-redux': 'packages/mattermost-redux/src',
             '@mui/styled-engine': '@mui/styled-engine-sc',
+
+            // This alias restricts single version of styled components acros all packages
+            'styled-components': path.resolve(__dirname, '..', 'node_modules', 'styled-components'),
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
         fallback: {
@@ -358,7 +358,7 @@ async function initializeModuleFederation() {
     // Desktop specific code for remote module loading
     moduleFederationPluginOptions.exposes = {
         './app': 'components/app',
-        './store': 'stores/redux_store.jsx',
+        './store': 'stores/redux_store',
         './styles': './src/sass/styles.scss',
         './registry': 'module_registry',
     };
