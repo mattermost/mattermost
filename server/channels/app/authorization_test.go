@@ -510,8 +510,10 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 	for _, tc := range ttcc {
 		t.Run(tc.name, func(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.ExperimentalViewArchivedChannels = &tc.configViewArchived
-				cfg.ComplianceSettings.Enable = &tc.configComplianceEnabled
+				configViewArchived := tc.configViewArchived
+				configComplianceEnabled := tc.configComplianceEnabled
+				cfg.TeamSettings.ExperimentalViewArchivedChannels = &configViewArchived
+				cfg.ComplianceSettings.Enable = &configComplianceEnabled
 			})
 
 			team := th.CreateTeam()
