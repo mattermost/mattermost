@@ -1813,6 +1813,10 @@
     "translation": "Unable to read image file for emoji."
   },
   {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many emojis by name. Only {{.MaxNames}} emojis can be requested at once."
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
