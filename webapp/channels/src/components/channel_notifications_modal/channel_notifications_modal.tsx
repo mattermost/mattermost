@@ -91,18 +91,18 @@ function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channe
         push,
         push_threads: channelMemberNotifyProps?.push_threads || NotificationLevels.ALL,
         ignore_channel_mentions: ignoreChannelMentions,
-        channel_auto_follow_threads: channelMemberNotifyProps?.channel_auto_follow_threads || 'false',
+        channel_auto_follow_threads: channelMemberNotifyProps?.channel_auto_follow_threads || 'off',
     };
 }
 
 type SettingsType = {
     desktop: ChannelNotifyProps['desktop'];
-    channel_auto_follow_threads: 'true' | 'false';
     desktop_threads: ChannelNotifyProps['desktop_threads'];
     mark_unread: ChannelNotifyProps['mark_unread'];
     push: ChannelNotifyProps['push'];
     push_threads: ChannelNotifyProps['push_threads'];
     ignore_channel_mentions: ChannelNotifyProps['ignore_channel_mentions'];
+    channel_auto_follow_threads: ChannelNotifyProps['channel_auto_follow_threads'];
 };
 
 export default function ChannelNotificationsModal(props: Props) {
@@ -206,9 +206,9 @@ export default function ChannelNotificationsModal(props: Props) {
     const AutoFollowThreadsSectionContent = (
         <>
             <CheckboxItemCreator
-                inputFieldValue={settings.channel_auto_follow_threads === 'true'}
+                inputFieldValue={settings.channel_auto_follow_threads === 'on'}
                 inputFieldData={AutoFollowThreadsInputFieldData}
-                handleChange={(e) => handleChange({channel_auto_follow_threads: e ? 'true' : 'false'})}
+                handleChange={(e) => handleChange({channel_auto_follow_threads: e ? 'on' : 'off'})}
             />
         </>
     );

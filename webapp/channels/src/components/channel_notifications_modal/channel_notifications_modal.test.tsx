@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
-
 import {screen, fireEvent, waitFor} from '@testing-library/react';
+import type {ComponentProps} from 'react';
+import React from 'react';
 
-import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import type {ChannelMembership} from '@mattermost/types/channels';
+import type {UserNotifyProps} from '@mattermost/types/users';
 
 import ChannelNotificationsModal from 'components/channel_notifications_modal/channel_notifications_modal';
-import {renderWithIntl} from 'tests/react_testing_utils';
 
-import {UserNotifyProps} from '@mattermost/types/users';
-import {ChannelMembership} from '@mattermost/types/channels';
+import {renderWithIntl} from 'tests/react_testing_utils';
+import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/channel_notifications_modal/ChannelNotificationsModal', () => {
     const baseProps: ComponentProps<typeof ChannelNotificationsModal> = {
