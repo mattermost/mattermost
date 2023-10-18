@@ -82,7 +82,7 @@ type State = {
     schemeDescription: string | undefined;
 };
 
-class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
+export class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {
         super(props);
         this.state = {
