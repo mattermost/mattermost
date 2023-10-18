@@ -9,6 +9,5 @@ export const isSVGImage = (imageMetadata: PostImage | undefined, src: string) =>
         // having to deal with query strings and proxied image URLs
         return src.indexOf('.svg') !== -1;
     }
-
     return imageMetadata.format === 'svg';
 };

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {ReactElement} from 'react';
-import {memo} from 'react';
 
 import type {PostImage} from '@mattermost/types/posts';
 
@@ -10,7 +9,7 @@ import {getImageSrc} from 'utils/post_utils';
 
 import {isSVGImage} from './external_image_isSVGImage';
 
-interface Props {
+type Props = {
     children: (src: string) => ReactElement | null;
     enableSVGs: boolean;
     hasImageProxy: boolean;
@@ -21,10 +20,10 @@ interface Props {
 const ExternalImage = (props: Props) => {
     const shouldRenderImage = () => props.enableSVGs || !isSVGImage(props.imageMetadata, props.src);
     let src = getImageSrc(props.src, props.hasImageProxy);
-    if (!shouldRenderImage) {
+    if (!shouldRenderImage()) {
         src = '';
     }
     return props.children(src);
 };
 
-export default memo(ExternalImage);
+export default ExternalImage;
