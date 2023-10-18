@@ -172,6 +172,26 @@ func TestCreatePost(t *testing.T) {
 		}
 	})
 
+	t.Run("err with integrations-reserved props", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+		})
+
+		_, postResp, postErr := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with props",
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
+		})
+
+		require.Error(t, postErr)
+		CheckBadRequestStatus(t, postResp)
+	})
+
 	post.RootId = ""
 	post.Type = model.PostTypeSystemGeneric
 	_, resp, err := client.CreatePost(post)
@@ -245,7 +265,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 		Message:   "test message",
 	})
 	require.NoError(t, err)
-	assert.NotContains(t, post.GetProps(), "from_oauth_app", "contains from_oauth_app prop when not using OAuth client")
+	assert.NotContains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("contains %s prop when not using OAuth client", model.PostPropsOverrideUsername))
 
 	client := th.CreateClient()
 	client.SetOAuthToken(session.Token)
@@ -255,7 +275,28 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Contains(t, post.GetProps(), "from_oauth_app", "missing from_oauth_app prop when using OAuth client")
+	assert.Contains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
+
+	t.Run("allow username and icon overrides", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+		})
+
+		post, _, err = client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test message",
+			Props:     model.StringInterface{model.PostPropsOverrideUsername: "newUsernameValue", model.PostPropsOverrideIconURL: "iconUrlOverrideValue"},
+		})
+
+		require.NoError(t, err)
+		assert.Contains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
+		assert.Contains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideIconURL))
+	})
 }
 
 func TestCreatePostEphemeral(t *testing.T) {
@@ -850,6 +891,26 @@ func TestUpdatePost(t *testing.T) {
 		assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
 	})
 
+	t.Run("err with integrations-reserved props", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+		})
+
+		_, resp, err := client.UpdatePost(rpost.Id, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with props",
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
+		})
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		client.Logout()
 		_, resp, err := client.UpdatePost(rpost.Id, rpost)
@@ -1034,6 +1095,33 @@ func TestPatchPost(t *testing.T) {
 
 		_, _, err = client.PatchPost(post.Id, patch)
 		require.NoError(t, err)
+	})
+
+	t.Run("err with integrations-reserved props", func(t *testing.T) {
+
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+		})
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		post, _, createErr := th.SystemAdminClient.CreatePost(post)
+		require.NoError(t, createErr)
+
+		patch := &model.PostPatch{}
+		patch.Props = &model.StringInterface{model.PostPropsFromWebhook: "true"}
+		_, patchResp, patchErr := client.PatchPost(post.Id, patch)
+
+		require.Error(t, patchErr)
+		CheckBadRequestStatus(t, patchResp)
 	})
 }
 
