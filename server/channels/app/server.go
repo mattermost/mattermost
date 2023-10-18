@@ -149,8 +149,6 @@ type Server struct {
 
 	products map[string]product.Product
 	services map[product.ServiceKey]any
-
-	hooksManager *product.HooksManager
 }
 
 func (s *Server) Store() store.Store {
@@ -245,8 +243,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
-
-	s.hooksManager = product.NewHooksManager(s.GetMetrics())
 
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
