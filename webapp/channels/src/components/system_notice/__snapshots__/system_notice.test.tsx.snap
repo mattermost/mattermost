@@ -39,7 +39,7 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
       className="system-notice__footer"
     >
       <button
-        className="btn btn-primary"
+        className="btn btn-sm btn-primary"
         id="systemnotice_remindme"
         onClick={[Function]}
       >
@@ -49,7 +49,7 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
         />
       </button>
       <button
-        className="btn"
+        className="btn btn-sm btn-tertiary"
         id="systemnotice_dontshow"
         onClick={[Function]}
       >
@@ -85,7 +85,7 @@ exports[`components/SystemNotice should match snapshot for admin, regular notice
       className="system-notice__footer"
     >
       <button
-        className="btn btn-primary"
+        className="btn btn-sm btn-primary"
         id="systemnotice_remindme"
         onClick={[Function]}
       >
@@ -95,7 +95,7 @@ exports[`components/SystemNotice should match snapshot for admin, regular notice
         />
       </button>
       <button
-        className="btn"
+        className="btn btn-sm btn-tertiary"
         id="systemnotice_dontshow"
         onClick={[Function]}
       >
@@ -131,7 +131,7 @@ exports[`components/SystemNotice should match snapshot for regular user, admin a
       className="system-notice__footer"
     >
       <button
-        className="btn btn-primary"
+        className="btn btn-sm btn-primary"
         id="systemnotice_remindme"
         onClick={[Function]}
       >
@@ -141,7 +141,7 @@ exports[`components/SystemNotice should match snapshot for regular user, admin a
         />
       </button>
       <button
-        className="btn"
+        className="btn btn-sm btn-tertiary"
         id="systemnotice_dontshow"
         onClick={[Function]}
       >
@@ -185,7 +185,7 @@ exports[`components/SystemNotice should match snapshot for regular user, regular
       className="system-notice__footer"
     >
       <button
-        className="btn btn-primary"
+        className="btn btn-sm btn-primary"
         id="systemnotice_remindme"
         onClick={[Function]}
       >
@@ -195,7 +195,7 @@ exports[`components/SystemNotice should match snapshot for regular user, regular
         />
       </button>
       <button
-        className="btn"
+        className="btn btn-sm btn-tertiary"
         id="systemnotice_dontshow"
         onClick={[Function]}
       >
@@ -233,7 +233,7 @@ exports[`components/SystemNotice should match snapshot for show function returni
       className="system-notice__footer"
     >
       <button
-        className="btn btn-primary"
+        className="btn btn-sm btn-primary"
         id="systemnotice_remindme"
         onClick={[Function]}
       >
@@ -243,7 +243,7 @@ exports[`components/SystemNotice should match snapshot for show function returni
         />
       </button>
       <button
-        className="btn"
+        className="btn btn-sm btn-tertiary"
         id="systemnotice_dontshow"
         onClick={[Function]}
       >
@@ -279,7 +279,7 @@ exports[`components/SystemNotice should match snapshot for with allowForget equa
       className="system-notice__footer"
     >
       <button
-        className="btn btn-primary"
+        className="btn btn-sm btn-primary"
         id="systemnotice_remindme"
         onClick={[Function]}
       >
@@ -317,7 +317,7 @@ exports[`components/SystemNotice should match snapshot when a custom icon is pas
       className="system-notice__footer"
     >
       <button
-        className="btn btn-primary"
+        className="btn btn-sm btn-primary"
         id="systemnotice_remindme"
         onClick={[Function]}
       >
@@ -327,7 +327,7 @@ exports[`components/SystemNotice should match snapshot when a custom icon is pas
         />
       </button>
       <button
-        className="btn"
+        className="btn btn-sm btn-tertiary"
         id="systemnotice_dontshow"
         onClick={[Function]}
       >

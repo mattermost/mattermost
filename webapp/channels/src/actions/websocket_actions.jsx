@@ -110,16 +110,18 @@ import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import InteractiveDialog from 'components/interactive_dialog';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
-import WebSocketClient from 'client/web_websocket_client.jsx';
+import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes, PageLoadContext} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
+
+import {temporarilySetPageLoadContext} from './telemetry_actions';
 
 const dispatch = store.dispatch;
 const getState = store.getState;
@@ -210,6 +212,8 @@ function restart() {
 export function reconnect() {
     // eslint-disable-next-line
     console.log('Reconnecting WebSocket');
+
+    temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
 
     dispatch({
         type: GeneralTypes.WEBSOCKET_SUCCESS,
@@ -622,9 +626,22 @@ export function handleChannelUpdatedEvent(msg) {
     return (doDispatch, doGetState) => {
         const channel = JSON.parse(msg.data.channel);
 
-        doDispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
+        const actions = [{type: ChannelTypes.RECEIVED_CHANNEL, data: channel}];
 
+        // handling the case of GM converted to private channel.
         const state = doGetState();
+        const existingChannel = getChannel(state, channel.id);
+
+        // if the updated channel exists in store
+        if (existingChannel) {
+            // and it was a GM, converted to a private channel
+            if (existingChannel.type === General.GM_CHANNEL && channel.type === General.PRIVATE_CHANNEL) {
+                actions.push({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
+            }
+        }
+
+        doDispatch(batchActions(actions));
+
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
             getHistory().replace(`${getRelativeTeamUrl(state, channel.team_id)}/channels/${channel.name}`);
