@@ -2029,37 +2029,39 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
 
-		excludeClause := ""
-		if excludedTerms != "" {
-			negatedTerms := strings.Fields(excludedTerms)
-			for i := range negatedTerms {
-				negatedTerms[i] = "-"
+		// Replace spaces with to_tsquery symbols
+		replaceSpaces := func(input string, excludedInput bool) string {
+			if input == "" {
+				return input
 			}
-			excludeClause = " " + strings.Join(negatedTerms, " or ")
-		}
 
-		termsClause := terms
-		if params.OrTerms && !strings.HasPrefix(terms, `"`) || !strings.HasSuffix(terms, `"`) {
-			// If not globally quoted, there could still be quoted substrings which needs to be ignored from the "OR" clause
+			// Remove extra spaces
+			input = strings.Join(strings.Fields(input), " ")
 
-			// Remove extra whitespace
-			terms = strings.Join(strings.Fields(terms), " ")
-
-			// Regex to match quoted substrings and the spaces outside of the quoted substrings.
-			re := regexp.MustCompile(`".+?"|\s`)
-
-			// Replace spaces with ' or '.
-			termsClause = re.ReplaceAllStringFunc(terms, func(s string) string {
-				if s == " " {
-					return " or "
-				}
-				return s // Return quoted substrings as they are.
+			// Replace spaces within quoted strings with '<->'
+			quotedStringsReg := regexp.MustCompile(`("[^"]*")`)
+			input = quotedStringsReg.ReplaceAllStringFunc(input, func(match string) string {
+				return strings.Replace(match, " ", "<->", -1)
 			})
+
+			// Replace spaces outside of quoted substrings with '&' or '|'
+			replacer := "&"
+			if excludedInput || params.OrTerms {
+				replacer = "|"
+			}
+			input = strings.Replace(input, " ", replacer, -1)
+
+			return input
 		}
 
-		termsClause += excludeClause
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  websearch_to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
-		baseQuery = baseQuery.Where(searchClause, termsClause)
+		tsQueryClause := replaceSpaces(terms, false)
+		excludedClause := replaceSpaces(excludedTerms, true)
+		if excludedClause != "" {
+			tsQueryClause += " &!(" + excludedClause + ")"
+		}
+
+		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
+		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
 			terms, err = removeMysqlStopWordsFromTerms(terms)
