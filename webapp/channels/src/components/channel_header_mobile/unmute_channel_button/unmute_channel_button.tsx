@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React from 'react';
 
 import type {ChannelNotifyProps} from '@mattermost/types/channels';
 
@@ -17,7 +17,7 @@ type Props = {
     actions: Actions;
 };
 
-const UnmuteChannelButton = memo(({user, channel, actions}: Props) => {
+const UnmuteChannelButton = React.memo(({user, channel, actions}: Props) => {
     const handleClick = () => {
         actions.updateChannelNotifyProps(user.id, channel.id, {mark_unread: NotificationLevels.ALL} as ChannelNotifyProps);
     };
