@@ -34,6 +34,7 @@ const state: GlobalState = {
             stats: {},
             myUserAccessTokens: {},
             lastActivity: {},
+            dndEndTimes: {},
         },
         teams: {
             currentTeamId: '',

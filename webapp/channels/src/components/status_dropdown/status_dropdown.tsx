@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import moment from 'moment-timezone';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
@@ -38,7 +39,7 @@ import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
 
 import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
+import {getBrowserTimezone, getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -67,6 +68,7 @@ type Props = {
     showCompleteYourProfileTour: boolean;
     showCustomStatusPulsatingDot: boolean;
     timezone?: string;
+    dndEndTime?: number;
 }
 
 type State = {
@@ -77,11 +79,12 @@ type State = {
 
 export class StatusDropdown extends React.PureComponent<Props, State> {
     dndTimes = [
+        {id: 'dont_clear', label: t('status_dropdown.dnd_sub_menu_item.dont_clear'), labelDefault: 'Don\'t clear'},
         {id: 'thirty_minutes', label: t('status_dropdown.dnd_sub_menu_item.thirty_minutes'), labelDefault: '30 mins'},
         {id: 'one_hour', label: t('status_dropdown.dnd_sub_menu_item.one_hour'), labelDefault: '1 hour'},
         {id: 'two_hours', label: t('status_dropdown.dnd_sub_menu_item.two_hours'), labelDefault: '2 hours'},
         {id: 'tomorrow', label: t('status_dropdown.dnd_sub_menu_item.tomorrow'), labelDefault: 'Tomorrow'},
-        {id: 'custom', label: t('status_dropdown.dnd_sub_menu_item.custom'), labelDefault: 'Custom'},
+        {id: 'custom', label: t('status_dropdown.dnd_sub_menu_item.custom'), labelDefault: 'Choose date and time'},
     ];
     static defaultProps = {
         userId: '',
@@ -138,18 +141,21 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         let endTime = currentDate;
         switch (index) {
         case 0:
+            endTime = moment(0);
+            break;
+        case 1:
             // add 30 minutes in current time
             endTime = currentDate.add(30, 'minutes');
             break;
-        case 1:
+        case 2:
             // add 1 hour in current time
             endTime = currentDate.add(1, 'hour');
             break;
-        case 2:
+        case 3:
             // add 2 hours in current time
             endTime = currentDate.add(2, 'hours');
             break;
-        case 3:
+        case 4:
             // add one day in current date
             endTime = currentDate.add(1, 'day');
             break;
@@ -344,10 +350,37 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         );
     };
 
+    renderDndExtraText = (dndEndTime?: number, timezone?: string) => {
+        if (!(dndEndTime && dndEndTime > 0)) {
+            return localizeMessage('status_dropdown.set_dnd.extra', 'Disables all notifications');
+        }
+
+        const tz = timezone || getBrowserTimezone();
+        const currentTime = moment().tz(tz);
+        const endTime = moment.unix(dndEndTime).tz(tz);
+
+        let formattedEndTime;
+
+        const diffDays = endTime.clone().startOf('day').diff(currentTime.clone().startOf('day'), 'days');
+
+        switch (diffDays) {
+        case 0:
+            formattedEndTime = endTime.format('h:mm A');
+            break;
+        case 1:
+            formattedEndTime = endTime.format(`[${localizeMessage('status_dropdown.dnd_sub_menu_item.tomorrow', 'Tomorrow')}] h:mm A`);
+            break;
+        default:
+            formattedEndTime = endTime.format('lll');
+        }
+
+        return `${localizeMessage('custom_status.expiry.until')} ${formattedEndTime}`;
+    };
+
     render = (): JSX.Element => {
         const {intl} = this.props;
         const needsConfirm = this.isUserOutOfOffice() && this.props.autoResetPref === '';
-        const {status, customStatus, isCustomStatusExpired, currentUser} = this.props;
+        const {status, customStatus, isCustomStatusExpired, currentUser, timezone, dndEndTime} = this.props;
         const isStatusSet = customStatus && (customStatus.text.length > 0 || customStatus.emoji.length > 0) && !isCustomStatusExpired;
 
         const setOnline = needsConfirm ? () => this.showStatusChangeConfirmation('online') : this.setOnline;
@@ -367,13 +400,13 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             {
                 id: 'dndSubMenu-header',
                 direction: 'right',
-                text: localizeMessage('status_dropdown.dnd_sub_menu_header', 'Disable notifications until:'),
+                text: localizeMessage('status_dropdown.dnd_sub_menu_header', 'Clear after:'),
                 isHeader: true,
             } as any,
         ].concat(
             this.dndTimes.map(({id, label, labelDefault}, index) => {
                 let text: React.ReactNode = localizeMessage(label, labelDefault);
-                if (index === 3) {
+                if (index === 4) {
                     const tomorrow = getCurrentMomentForTimezone(this.props.timezone).add(1, 'day').toDate();
                     text = (
                         <>
@@ -400,7 +433,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     direction: 'right',
                     text,
                     action:
-                        index === 4 ? () => setCustomTimedDnd() : () => setDnd(index),
+                        index === 5 ? () => setCustomTimedDnd() : () => setDnd(index),
                 } as any;
             }),
         );
@@ -445,6 +478,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                 defaultMessage: 'Select to open profile and status menu.',
             });
         }
+
+        const dndExtraText = this.renderDndExtraText(dndEndTime, timezone);
 
         return (
             <MenuWrapper
@@ -540,7 +575,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             subMenu={dndSubMenuItems}
                             ariaLabel={`${localizeMessage('status_dropdown.set_dnd', 'Do not disturb').toLowerCase()}. ${localizeMessage('status_dropdown.set_dnd.extra', 'Disables desktop, email and push notifications').toLowerCase()}`}
                             text={localizeMessage('status_dropdown.set_dnd', 'Do not disturb')}
-                            extraText={localizeMessage('status_dropdown.set_dnd.extra', 'Disables all notifications')}
+                            extraText={dndExtraText}
                             icon={(
                                 <StatusIcon
                                     status={'dnd'}
@@ -551,6 +586,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             direction={'left'}
                             openUp={this.state.openUp}
                             id={'status-menu-dnd'}
+                            action={() => setDnd(0)}
                         />
                         <Menu.ItemAction
                             onClick={setOffline}

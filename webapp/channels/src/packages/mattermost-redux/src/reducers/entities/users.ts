@@ -500,6 +500,24 @@ function addToState<T>(state: Record<string, T>, key: string, value: T): Record<
     };
 }
 
+function dndEndTimes(state: RelationOneToOne<UserProfile, number> = {}, action: GenericAction) {
+    switch (action.type) {
+    case UserTypes.RECEIVED_STATUS: {
+        const userId = action.data.user_id;
+        const endTime = action.data.dnd_end_time;
+
+        return addToState(state, userId, endTime);
+    }
+    case UserTypes.RECEIVED_STATUSES: {
+        const userStatuses: UserStatus[] = action.data;
+
+        return userStatuses.reduce((nextState, userStatus) => addToState(nextState, userStatus.user_id, userStatus.dnd_end_time || 0), state);
+    }
+    default:
+        return state;
+    }
+}
+
 function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: GenericAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_STATUS: {
@@ -708,6 +726,9 @@ export default combineReducers({
 
     // object where every key is a group id and has a Set with the users id that are members of the group
     profilesNotInGroup,
+
+    // object where every key is the user id and has a value with the dnd end time of each user
+    dndEndTimes,
 
     // object where every key is the user id and has a value with the current status of each user
     statuses,
