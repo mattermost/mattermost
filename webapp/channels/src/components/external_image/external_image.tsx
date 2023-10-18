@@ -20,8 +20,11 @@ interface Props {
 
 const ExternalImage = (props: Props) => {
     const shouldRenderImage = () => props.enableSVGs || !isSVGImage(props.imageMetadata, props.src);
-    const srcStr = !shouldRenderImage() ? '' : getImageSrc(props.src, props.hasImageProxy);
-    return props.children(srcStr);
+    let src = getImageSrc(props.src, props.hasImageProxy);
+    if (!shouldRenderImage) {
+        src = '';
+    }
+    return props.children(src);
 };
 
 export default memo(ExternalImage);
