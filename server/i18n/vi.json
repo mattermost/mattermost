@@ -7355,7 +7355,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",
-    "translation": "\"{{.Giờ}}:{{.Phút}} {{.Múi giờ}}\""
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.title",
