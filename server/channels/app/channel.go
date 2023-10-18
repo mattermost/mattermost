@@ -2366,7 +2366,7 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 	}
 
 	a.Srv().Go(func() {
-		a.postLeaveChannelMessage(c, user, channel)
+		a.postLeaveChannelMessage(c.Clone(), user, channel)
 	})
 
 	return nil
