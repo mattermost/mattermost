@@ -1329,8 +1329,8 @@
     post:
       tags:
         - channels
-      summary: Add user to channel
-      description: Add a user to a channel by creating a channel member object.
+      summary: Add user(s) to channel
+      description: Add a user(s) to a channel by creating a channel member object(s).
       operationId: AddChannelMember
       parameters:
         - name: channel_id
@@ -1344,12 +1344,15 @@
           application/json:
             schema:
               type: object
-              required:
-                - user_id
               properties:
                 user_id:
                   type: string
-                  description: The ID of user to add into the channel
+                  description: The ID of user to add into the channel, kept for backwards compatibility.
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: The IDs of users to add into the channel, required if 'user_id' does not exist.
                 post_root_id:
                   type: string
                   description: The ID of root post where link to add channel member
