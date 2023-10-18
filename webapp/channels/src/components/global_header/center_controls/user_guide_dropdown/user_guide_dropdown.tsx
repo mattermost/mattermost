@@ -146,7 +146,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                     />
                 </OverlayTrigger>
                 <Menu
-                    openLeft={true}
+                    openLeft={false}
                     openUp={false}
                     id='AddChannelDropdown'
                     ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}

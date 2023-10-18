@@ -15,23 +15,23 @@ type MessageExportInterface struct {
 	mock.Mock
 }
 
-// RunExport provides a mock function with given fields: format, since, limit
-func (_m *MessageExportInterface) RunExport(format string, since int64, limit int) (int64, *model.AppError) {
-	ret := _m.Called(format, since, limit)
+// RunExport provides a mock function with given fields: c, format, since, limit
+func (_m *MessageExportInterface) RunExport(c *request.Context, format string, since int64, limit int) (int64, *model.AppError) {
+	ret := _m.Called(c, format, since, limit)
 
 	var r0 int64
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64, int) (int64, *model.AppError)); ok {
-		return rf(format, since, limit)
+	if rf, ok := ret.Get(0).(func(*request.Context, string, int64, int) (int64, *model.AppError)); ok {
+		return rf(c, format, since, limit)
 	}
-	if rf, ok := ret.Get(0).(func(string, int64, int) int64); ok {
-		r0 = rf(format, since, limit)
+	if rf, ok := ret.Get(0).(func(*request.Context, string, int64, int) int64); ok {
+		r0 = rf(c, format, since, limit)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int64, int) *model.AppError); ok {
-		r1 = rf(format, since, limit)
+	if rf, ok := ret.Get(1).(func(*request.Context, string, int64, int) *model.AppError); ok {
+		r1 = rf(c, format, since, limit)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -76,7 +76,6 @@ func cleanComplianceStrings(in string) string {
 }
 
 func (cp *CompliancePost) Row() []string {
-
 	postDeleteAt := ""
 	if cp.PostDeleteAt > 0 {
 		postDeleteAt = time.Unix(0, cp.PostDeleteAt*int64(1000*1000)).Format(time.RFC3339)

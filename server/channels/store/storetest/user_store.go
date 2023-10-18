@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -1035,7 +1036,6 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -1114,7 +1114,6 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s Sq
 }
 
 func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -2553,7 +2552,6 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -4268,7 +4266,6 @@ func testCount(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	// Create 5 users statuses u0, u1, u2, u3, u4.
@@ -4353,7 +4350,6 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore)
 }
 
 func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s SqlStore) {
-
 	cleanupStatusStore(t, s)
 
 	// Create 5 users statuses u0, u1, u2, u3, u4.
@@ -4482,7 +4478,6 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	result, err := ss.User().AnalyticsGetSystemAdminCount()
 	require.NoError(t, err)
 	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
-
 }
 
 func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
@@ -5250,6 +5245,8 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 }
 
 func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	// create users
 	t.Run("Must do nothing with regular user", func(t *testing.T) {
 		id := model.NewId()
@@ -5286,7 +5283,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_user", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5331,7 +5328,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user system_admin", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5387,7 +5384,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5427,7 +5424,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5472,7 +5469,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user custom_role", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5538,7 +5535,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId1, user1.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId1, user1.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5552,7 +5549,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId2, user2.Id)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(c, teamId2, user2.Id)
 		require.NoError(t, nErr)
 		require.True(t, notUpdatedTeamMember.SchemeGuest)
 		require.False(t, notUpdatedTeamMember.SchemeUser)
@@ -5565,6 +5562,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
+	c := request.TestContext(t)
+
 	// create users
 	t.Run("Must do nothing with guest", func(t *testing.T) {
 		id := model.NewId()
@@ -5599,7 +5598,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_guest", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, updatedUser.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, updatedUser.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5642,7 +5641,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5694,7 +5693,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5732,7 +5731,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5775,7 +5774,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5839,7 +5838,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId1, user1.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId1, user1.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5853,7 +5852,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId2, user2.Id)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(c, teamId2, user2.Id)
 		require.NoError(t, nErr)
 		require.False(t, notUpdatedTeamMember.SchemeGuest)
 		require.True(t, notUpdatedTeamMember.SchemeUser)

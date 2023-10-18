@@ -350,7 +350,6 @@ func TestPreparePostForClient(t *testing.T) {
 			assert.True(t, ok)
 			assert.EqualValues(t, colonEmoji, s)
 		})
-
 	})
 
 	t.Run("markdown image dimensions", func(t *testing.T) {
@@ -1971,7 +1970,6 @@ func TestGetLinkMetadata(t *testing.T) {
 		params := r.URL.Query()
 
 		writeImage := func(height, width int) {
-
 			img := image.NewGray(image.Rect(0, 0, height, width))
 
 			var encoder png.Encoder
