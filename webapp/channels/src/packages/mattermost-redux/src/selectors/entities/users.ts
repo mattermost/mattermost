@@ -49,6 +49,7 @@ type Filters = {
     exclude_roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];
+    exclude_bots?: boolean;
 };
 
 export function getUserIdsInChannels(state: GlobalState): RelationOneToManyUnique<Channel, UserProfile> {
@@ -302,6 +303,10 @@ export function filterProfiles(profiles: IDMappedObjects<UserProfile>, filters?:
         users = users.filter((user) => {
             return user.roles.length > 0 && applyRolesFilters(user, filterRoles, excludeRoles, memberships?.[user.id]);
         });
+    }
+
+    if (filters.exclude_bots) {
+        users = users.filter((user) => !user.is_bot);
     }
 
     if (filters.inactive) {

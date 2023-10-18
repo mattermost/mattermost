@@ -123,7 +123,6 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		if !cnd.Audience.Matches(isSystemAdmin, isTeamAdmin) {
 			return false, nil
 		}
-
 	}
 
 	// check user count condition against previously calculated total user count

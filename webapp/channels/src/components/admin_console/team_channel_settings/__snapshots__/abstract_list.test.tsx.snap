@@ -112,9 +112,7 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
       disabled={true}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
       className="btn btn-tertiary next disabled"
@@ -122,9 +120,7 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
       disabled={true}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>

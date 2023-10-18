@@ -552,7 +552,6 @@ func TestGetCommand(t *testing.T) {
 	newCmd, _, err := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
 	require.NoError(t, err)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-
 		t.Run("ValidId", func(t *testing.T) {
 			cmd, _, err := client.GetCommandById(context.Background(), newCmd.Id)
 			require.NoError(t, err)
