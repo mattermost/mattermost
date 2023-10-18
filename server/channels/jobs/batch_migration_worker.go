@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -35,6 +36,7 @@ type BatchMigrationWorker struct {
 
 	stop    chan bool
 	stopped chan bool
+	closed  atomic.Bool
 	jobs    chan model.Job
 
 	migrationKey       string
@@ -64,7 +66,9 @@ func (worker *BatchMigrationWorker) Run() {
 	worker.logger.Debug("Worker started")
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
-	worker.stop = make(chan bool, 1)
+	if worker.closed.CompareAndSwap(true, false) {
+		worker.stop = make(chan bool, 1)
+	}
 
 	defer func() {
 		worker.logger.Debug("Worker finished")
@@ -84,6 +88,11 @@ func (worker *BatchMigrationWorker) Run() {
 
 // Stop interrupts the worker even if the migration has not yet completed.
 func (worker *BatchMigrationWorker) Stop() {
+	// Set to close, and if already closed before, then return.
+	if !worker.closed.CompareAndSwap(false, true) {
+		return
+	}
+
 	worker.logger.Debug("Worker stopping")
 	close(worker.stop)
 	<-worker.stopped
