@@ -213,7 +213,7 @@ func (api *PluginAPI) GetTeamMembers(teamID string, page, perPage int) ([]*model
 }
 
 func (api *PluginAPI) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMember(teamID, userID)
+	return api.app.GetTeamMember(api.ctx, teamID, userID)
 }
 
 func (api *PluginAPI) GetTeamMembersForUser(userID string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
@@ -221,7 +221,7 @@ func (api *PluginAPI) GetTeamMembersForUser(userID string, page int, perPage int
 }
 
 func (api *PluginAPI) UpdateTeamMemberRoles(teamID, userID, newRoles string) (*model.TeamMember, *model.AppError) {
-	return api.app.UpdateTeamMemberRoles(teamID, userID, newRoles)
+	return api.app.UpdateTeamMemberRoles(api.ctx, teamID, userID, newRoles)
 }
 
 func (api *PluginAPI) GetTeamStats(teamID string) (*model.TeamStats, *model.AppError) {
@@ -283,15 +283,15 @@ func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []mode
 }
 
 func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
-	return api.app.GetSessionById(sessionID)
+	return api.app.GetSessionById(api.ctx, sessionID)
 }
 
 func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
-	return api.app.CreateSession(session)
+	return api.app.CreateSession(api.ctx, session)
 }
 
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
-	session, err := api.app.ch.srv.platform.GetSessionByID(sessionID)
+	session, err := api.app.ch.srv.platform.GetSessionByID(api.ctx, sessionID)
 	if err != nil {
 		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -304,7 +304,7 @@ func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *mo
 }
 
 func (api *PluginAPI) RevokeSession(sessionID string) *model.AppError {
-	return api.app.RevokeSessionById(sessionID)
+	return api.app.RevokeSessionById(api.ctx, sessionID)
 }
 
 func (api *PluginAPI) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
@@ -317,7 +317,7 @@ func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
 		return err
 	}
 
-	return api.app.RevokeUserAccessToken(accessToken)
+	return api.app.RevokeUserAccessToken(api.ctx, accessToken)
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
@@ -963,7 +963,7 @@ func (api *PluginAPI) HasPermissionTo(userID string, permission *model.Permissio
 }
 
 func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool {
-	return api.app.HasPermissionToTeam(userID, teamID, permission)
+	return api.app.HasPermissionToTeam(api.ctx, userID, teamID, permission)
 }
 
 func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {

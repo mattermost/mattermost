@@ -9,7 +9,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/teams';
-import {loadMeREST} from 'mattermost-redux/actions/users';
+import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -55,7 +55,7 @@ describe('Actions.Teams', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMeREST()(store.dispatch, store.getState);
+        await loadMe()(store.dispatch, store.getState);
 
         nock(Client4.getBaseRoute()).
             get('/users/me/teams').
@@ -741,7 +741,7 @@ describe('Actions.Teams', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMeREST()(store.dispatch, store.getState);
+        await loadMe()(store.dispatch, store.getState);
 
         const team = TestHelper.basicTeam;
         const imageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
@@ -759,7 +759,7 @@ describe('Actions.Teams', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMeREST()(store.dispatch, store.getState);
+        await loadMe()(store.dispatch, store.getState);
 
         const team = TestHelper.basicTeam;
 
@@ -776,7 +776,7 @@ describe('Actions.Teams', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMeREST()(store.dispatch, store.getState);
+        await loadMe()(store.dispatch, store.getState);
 
         const schemeId = 'xxxxxxxxxxxxxxxxxxxxxxxxxx';
         const {id} = TestHelper.basicTeam!;

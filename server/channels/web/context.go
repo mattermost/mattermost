@@ -19,15 +19,12 @@ import (
 )
 
 type Context struct {
-	App        app.AppIface
-	AppContext *request.Context
-	Logger     *mlog.Logger
-	Params     *Params
-	Err        *model.AppError
-	// This is used to track the graphQL query that's being executed,
-	// so that we can monitor the timings in Grafana.
-	GraphQLOperationName string
-	siteURLHeader        string
+	App           app.AppIface
+	AppContext    *request.Context
+	Logger        *mlog.Logger
+	Params        *Params
+	Err           *model.AppError
+	siteURLHeader string
 }
 
 // LogAuditRec logs an audit record using default LevelAPI.
