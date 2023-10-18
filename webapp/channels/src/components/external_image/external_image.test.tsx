@@ -23,7 +23,7 @@ describe('ExternalImage', () => {
     };
 
     test('should render an image', () => {
-        const wrapper = shallow<typeof ExternalImage>(<ExternalImage {...baseProps}/>);
+        const wrapper = shallow(<ExternalImage {...baseProps}/>);
 
         expect(baseProps.children).toHaveBeenCalledWith(baseProps.src);
         expect(wrapper.find('img').exists()).toBe(true);
@@ -35,7 +35,7 @@ describe('ExternalImage', () => {
             imageMetadata: undefined,
         };
 
-        const wrapper = shallow<typeof ExternalImage>(<ExternalImage {...props}/>);
+        const wrapper = shallow(<ExternalImage {...props}/>);
 
         expect(baseProps.children).toHaveBeenCalledWith(baseProps.src);
         expect(wrapper.find('img').exists()).toBe(true);
@@ -53,7 +53,7 @@ describe('ExternalImage', () => {
             src: 'https://example.com/logo.svg',
         };
 
-        const wrapper = shallow<typeof ExternalImage>(<ExternalImage {...props}/>);
+        const wrapper = shallow(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith(props.src);
         expect(wrapper.find('img').exists()).toBe(true);
@@ -72,7 +72,7 @@ describe('ExternalImage', () => {
             src: 'https://example.com/logo.svg',
         };
 
-        const wrapper = shallow<typeof ExternalImage>(<ExternalImage {...props}/>);
+        const wrapper = shallow(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith('');
         expect(wrapper.find('img').exists()).toBe(true);
@@ -84,7 +84,7 @@ describe('ExternalImage', () => {
             hasImageProxy: true,
         };
 
-        const wrapper = shallow<typeof ExternalImage>(<ExternalImage {...props}/>);
+        const wrapper = shallow(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith(Client4.getBaseRoute() + '/image?url=' + encodeURIComponent(props.src));
         expect(wrapper.find('img').exists()).toBe(true);
