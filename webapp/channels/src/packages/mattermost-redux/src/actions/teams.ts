@@ -744,7 +744,7 @@ export function setTeamIcon(teamId: string, imageData: File): ActionFunc {
             type: TeamTypes.PATCHED_TEAM,
             data: team,
         });
-        return {data: teamId};
+        return {data: {status: 'OK'}};
     };
 }
 
@@ -756,7 +756,7 @@ export function removeTeamIcon(teamId: string): ActionFunc {
             type: TeamTypes.PATCHED_TEAM,
             data: team,
         });
-        return {data: teamId};
+        return {data: {status: 'OK'}};
     };
 }
 
