@@ -182,7 +182,7 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
 		})
 
-		_, postResp, postErr := client.CreatePost(context.Background(), &model.Post{
+		_, postResp, postErr := client.CreatePost(&model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with props",
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
@@ -287,7 +287,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
 		})
 
-		post, _, err = client.CreatePost(context.Background(), &model.Post{
+		post, _, err = client.CreatePost(&model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "test message",
 			Props:     model.StringInterface{model.PostPropsOverrideUsername: "newUsernameValue", model.PostPropsOverrideIconURL: "iconUrlOverrideValue"},
