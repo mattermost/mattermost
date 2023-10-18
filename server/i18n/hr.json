@@ -216,18 +216,6 @@
     "translation": "Optimiraj tok tvog rada pomoću alata kao što su GitHub, Jira i Zoom. Istraži sve naše integracije na"
   },
   {
-    "id": "Playbooks",
-    "translation": "Priručnici"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanali"
-  },
-  {
-    "id": "Boards",
-    "translation": "Ploče"
-  },
-  {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP nije dostupan."
   },
