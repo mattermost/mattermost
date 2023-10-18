@@ -240,7 +240,6 @@
   "admin.billing.company_info.city": "Miasto",
   "admin.billing.company_info.companyAddress": "Adres Organizacji",
   "admin.billing.company_info.companyName": "Nazwa organizacji",
-  "admin.billing.company_info.country": "Kraj",
   "admin.billing.company_info.employees": "{employees} pracownicy",
   "admin.billing.company_info.numEmployees": "Liczba pracowników (opcjonalnie)",
   "admin.billing.company_info.title": "Informacje o Organizacji",

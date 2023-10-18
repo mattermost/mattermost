@@ -240,7 +240,6 @@
   "admin.billing.company_info.city": "城市",
   "admin.billing.company_info.companyAddress": "公司地址",
   "admin.billing.company_info.companyName": "公司名",
-  "admin.billing.company_info.country": "国家",
   "admin.billing.company_info.employees": "{employees} 位员工",
   "admin.billing.company_info.numEmployees": "员工数（可选）",
   "admin.billing.company_info.title": "公司信息",

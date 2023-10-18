@@ -240,7 +240,6 @@
   "admin.billing.company_info.city": "İl",
   "admin.billing.company_info.companyAddress": "Kuruluş adresi",
   "admin.billing.company_info.companyName": "Kuruluş adı",
-  "admin.billing.company_info.country": "Ülke",
   "admin.billing.company_info.employees": "{employees} çalışan",
   "admin.billing.company_info.numEmployees": "Çalışan sayısı (isteğe bağlı)",
   "admin.billing.company_info.title": "Kuruluş bilgileri",
