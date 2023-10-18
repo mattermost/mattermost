@@ -519,11 +519,11 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	}
 
 	if len(mentionedUsersList) > 0 {
-		UseAddMentionsHook(message, mentionedUsersList)
+		useAddMentionsHook(message, mentionedUsersList)
 	}
 
 	if len(notificationsForCRT.Desktop) > 0 {
-		UseAddFollowersHook(message, notificationsForCRT.Desktop)
+		useAddFollowersHook(message, notificationsForCRT.Desktop)
 	}
 
 	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)

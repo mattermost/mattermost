@@ -70,8 +70,7 @@ type Hub struct {
 	explicitStop    bool
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
-
-	broadcastHooks map[string]BroadcastHook
+	broadcastHooks  map[string]BroadcastHook
 }
 
 // newWebHub creates a new Hub.

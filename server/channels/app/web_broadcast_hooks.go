@@ -41,7 +41,7 @@ func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, w
 	return nil
 }
 
-func UseAddMentionsHook(message *model.WebSocketEvent, mentionedUsers model.StringArray) {
+func useAddMentionsHook(message *model.WebSocketEvent, mentionedUsers model.StringArray) {
 	message.GetBroadcast().AddHook(broadcastAddMentions, map[string]any{
 		"mentions": mentionedUsers,
 	})
@@ -63,7 +63,7 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 	return nil
 }
 
-func UseAddFollowersHook(message *model.WebSocketEvent, followers model.StringArray) {
+func useAddFollowersHook(message *model.WebSocketEvent, followers model.StringArray) {
 	message.GetBroadcast().AddHook(broadcastAddFollowers, map[string]any{
 		"followers": followers,
 	})
