@@ -2347,7 +2347,8 @@ export default class Client4 {
         return this.doFetch<{
             status: string;
             ActiveSearchBackend: string;
-            FileStoreSatus: string;
+            database_status: string;
+            filestore_status: string;
         }>(
             `${this.getBaseRoute()}/system/ping${buildQueryString({get_server_status: getServerStatus, device_id: deviceId})}`,
             {method: 'get', ignoreStatus: true},

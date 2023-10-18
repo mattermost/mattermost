@@ -84,7 +84,7 @@ const fileStorage = async (
     const testFileStorage = async () => {
         const pingResponse = await Client4.ping(true);
 
-        return pingResponse.FileStoreSatus === 'OK' ? ItemStatus.OK : ItemStatus.ERROR;
+        return pingResponse.filestore_status === 'OK' ? ItemStatus.OK : ItemStatus.ERROR;
     };
 
     const status = await testFileStorage();
