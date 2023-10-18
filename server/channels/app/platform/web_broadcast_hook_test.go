@@ -15,17 +15,13 @@ const broadcastTest = "test_broadcast_hook"
 
 type testBroadcastHook struct{}
 
-func (h *testBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) (bool, error) {
-	return args["makes_changes"].(bool), nil
-}
-
-func (h *testBroadcastHook) Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) (*model.WebSocketEvent, error) {
+func (h *testBroadcastHook) Process(msg *HookedWebSocketEvent, webConn *WebConn, args map[string]any) error {
 	if args["makes_changes"].(bool) {
-		changesMade, _ := msg.GetData()["changes_made"].(int)
+		changesMade, _ := msg.Get("changes_made").(int)
 		msg.Add("changes_made", changesMade+1)
 	}
 
-	return msg, nil
+	return nil
 }
 
 func TestRunBroadcastHooks(t *testing.T) {
@@ -77,7 +73,7 @@ func TestRunBroadcastHooks(t *testing.T) {
 
 		assert.NotSame(t, event, result)
 		assert.NotSame(t, event.GetData(), result.GetData())
-		assert.Equal(t, event.GetData(), map[string]any{})
+		assert.Equal(t, map[string]any{}, event.GetData())
 		assert.Equal(t, result.GetData(), map[string]any{
 			"changes_made": 1,
 		})

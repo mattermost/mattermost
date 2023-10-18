@@ -209,7 +209,7 @@ func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 }
 
 func (ev *WebSocketEvent) RemovePrecomputedJSON() *WebSocketEvent {
-	evCopy := ev.Copy()
+	evCopy := ev.DeepCopy()
 	evCopy.precomputedJSON = nil
 	return evCopy
 }

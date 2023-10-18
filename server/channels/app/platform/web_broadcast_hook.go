@@ -9,11 +9,9 @@ import (
 )
 
 type BroadcastHook interface {
-	// ShouldProcess returns true if the BroadcastHook wants to make changes to the WebSocketEvent.
-	ShouldProcess(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) (bool, error)
-
-	// Process takes a WebSocketEvent and modifies it in some way. It is passed a deep copy of the WebSocketEvent.
-	Process(msg *model.WebSocketEvent, webConn *WebConn, args map[string]any) (*model.WebSocketEvent, error)
+	// Process takes a WebSocket event and modifies it in some way. It is passed a HookedWebSocketEvent which allows
+	// safe modification of the event.
+	Process(msg *HookedWebSocketEvent, webConn *WebConn, args map[string]any) error
 }
 
 func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hookIDs []string, hookArgs []map[string]any) *model.WebSocketEvent {
@@ -21,8 +19,7 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 		return msg
 	}
 
-	// Check first if any hooks want to make changes to the event
-	hasChanges := false
+	hookedEvent := MakeHookedWebSocketEvent(msg)
 
 	for i, hookID := range hookIDs {
 		hook := h.broadcastHooks[hookID]
@@ -32,36 +29,59 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 			continue
 		}
 
-		hookHasChanges, err := hook.ShouldProcess(msg, webConn, args)
-		if err != nil {
-			mlog.Error("runBroadcastHooks: Encountered error running ShouldProcess for broadcast hook", mlog.Err(err))
-		}
-
-		if hookHasChanges {
-			hasChanges = true
-			break
-		}
+		hook.Process(hookedEvent, webConn, args)
 	}
 
-	if !hasChanges {
-		return msg
+	return hookedEvent.Event()
+}
+
+// HookedWebSocketEvent is a wrapper for model.WebSocketEvent that is intended to provide a similar interface, except
+// it ensures the original WebSocket event is not modified.
+type HookedWebSocketEvent struct {
+	original *model.WebSocketEvent
+	copy     *model.WebSocketEvent
+}
+
+func MakeHookedWebSocketEvent(event *model.WebSocketEvent) *HookedWebSocketEvent {
+	return &HookedWebSocketEvent{
+		original: event,
+	}
+}
+
+func (he *HookedWebSocketEvent) Add(key string, value any) {
+	he.copyIfNecessary()
+
+	he.copy.Add(key, value)
+}
+
+func (he *HookedWebSocketEvent) EventType() string {
+	if he.copy == nil {
+		return he.original.EventType()
 	}
 
-	// Copy the event and remove any precomputed JSON since one or more hooks wants to make changes to it
-	msg = msg.DeepCopy().RemovePrecomputedJSON()
+	return he.copy.EventType()
+}
 
-	for i, hookID := range hookIDs {
-		hook := h.broadcastHooks[hookID]
-		args := hookArgs[i]
-		if hook == nil {
-			continue
-		}
-
-		_, err := hook.Process(msg, webConn, args)
-		if err != nil {
-			mlog.Error("Encountered error running Process for broadcast hook", mlog.Err(err))
-		}
+// Get returns a value from the WebSocket event data. You should never mutate a value returned by this method.
+func (he *HookedWebSocketEvent) Get(key string) any {
+	if he.copy == nil {
+		return he.original.GetData()[key]
 	}
 
-	return msg
+	return he.copy.GetData()[key]
+}
+
+// copyIfNecessary should be called by any mutative method to ensure that the copy is instantiated.
+func (he *HookedWebSocketEvent) copyIfNecessary() {
+	if he.copy == nil {
+		he.copy = he.original.RemovePrecomputedJSON()
+	}
+}
+
+func (he *HookedWebSocketEvent) Event() *model.WebSocketEvent {
+	if he.copy == nil {
+		return he.original
+	}
+
+	return he.copy
 }

@@ -27,37 +27,18 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 
 type addMentionsBroadcastHook struct{}
 
-func (h *addMentionsBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (bool, error) {
-	if msg.EventType() != model.WebsocketEventPosted {
-		return false, nil
-	}
-
+func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	mentions, err := getTypedArg[model.StringArray](args, "mentions")
 	if err != nil {
-		return false, errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
+		return errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
 	}
 
-	// This hook will only modify the event if the current user is mentioned by the post
-	return pUtils.Contains[string](mentions, webConn.UserId), nil
-}
-
-func (h *addMentionsBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (*model.WebSocketEvent, error) {
-	mentions, err := getTypedArg[model.StringArray](args, "mentions")
-	if err != nil {
-		return msg, errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
-	}
-
-	hasMention := false
-	if len(mentions) > 0 {
-		hasMention = pUtils.Contains(mentions, webConn.UserId)
-	}
-
-	if hasMention {
+	if len(mentions) > 0 && pUtils.Contains[string](mentions, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
 	}
 
-	return msg, nil
+	return nil
 }
 
 func UseAddMentionsHook(message *model.WebSocketEvent, mentionedUsers model.StringArray) {
@@ -68,37 +49,18 @@ func UseAddMentionsHook(message *model.WebSocketEvent, mentionedUsers model.Stri
 
 type addFollowersBroadcastHook struct{}
 
-func (h *addFollowersBroadcastHook) ShouldProcess(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (bool, error) {
-	if msg.EventType() != model.WebsocketEventPosted {
-		return false, nil
-	}
-
+func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	followers, err := getTypedArg[model.StringArray](args, "followers")
 	if err != nil {
-		return false, errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
+		return errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
 	}
 
-	// This hook will only modify the event if the current user is following the post
-	return pUtils.Contains[string](followers, webConn.UserId), nil
-}
-
-func (h *addFollowersBroadcastHook) Process(msg *model.WebSocketEvent, webConn *platform.WebConn, args map[string]any) (*model.WebSocketEvent, error) {
-	followers, err := getTypedArg[model.StringArray](args, "followers")
-	if err != nil {
-		return msg, errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
-	}
-
-	isFollower := false
-	if len(followers) > 0 {
-		isFollower = pUtils.Contains(followers, webConn.UserId)
-	}
-
-	if isFollower {
+	if len(followers) > 0 && pUtils.Contains[string](followers, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
 	}
 
-	return msg, nil
+	return nil
 }
 
 func UseAddFollowersHook(message *model.WebSocketEvent, followers model.StringArray) {
