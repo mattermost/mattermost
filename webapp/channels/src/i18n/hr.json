@@ -178,7 +178,6 @@
   "admin.billing.company_info.city": "Grad",
   "admin.billing.company_info.companyAddress": "Adresa poduzeća",
   "admin.billing.company_info.companyName": "Ime poduzeća",
-  "admin.billing.company_info.country": "Zemlja",
   "admin.billing.company_info.employees": "{employees} zaposlenika",
   "admin.billing.company_info.numEmployees": "Broj zaposlenika (opcijonalno)",
   "admin.billing.company_info.title": "Podaci poduzeća",
