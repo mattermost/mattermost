@@ -106,11 +106,11 @@ func (_m *LdapInterface) FirstLoginSync(c *request.Context, user *model.User, us
 }
 
 // GetADLdapIdFromSAMLId provides a mock function with given fields: c, authData
-func (_m *LdapInterface) GetADLdapIdFromSAMLId(c *request.Context, authData string) string {
+func (_m *LdapInterface) GetADLdapIdFromSAMLId(c request.CTX, authData string) string {
 	ret := _m.Called(c, authData)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*request.Context, string) string); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
 		r0 = rf(c, authData)
 	} else {
 		r0 = ret.Get(0).(string)
@@ -379,7 +379,7 @@ func (_m *LdapInterface) SwitchToLdap(c *request.Context, userID string, ldapID 
 }
 
 // UpdateProfilePictureIfNecessary provides a mock function with given fields: _a0, _a1, _a2
-func (_m *LdapInterface) UpdateProfilePictureIfNecessary(_a0 *request.Context, _a1 model.User, _a2 model.Session) {
+func (_m *LdapInterface) UpdateProfilePictureIfNecessary(_a0 request.CTX, _a1 model.User, _a2 model.Session) {
 	_m.Called(_a0, _a1, _a2)
 }
 

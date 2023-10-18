@@ -23,8 +23,8 @@ type LdapInterface interface {
 	GetGroup(groupUID string) (*model.Group, *model.AppError)
 	GetAllGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
 	FirstLoginSync(c *request.Context, user *model.User, userAuthService, userAuthData, email string) *model.AppError
-	UpdateProfilePictureIfNecessary(*request.Context, model.User, model.Session)
-	GetADLdapIdFromSAMLId(c *request.Context, authData string) string
+	UpdateProfilePictureIfNecessary(request.CTX, model.User, model.Session)
+	GetADLdapIdFromSAMLId(c request.CTX, authData string) string
 	GetSAMLIdFromADLdapId(c *request.Context, authData string) string
 	GetVendorNameAndVendorVersion() (string, string)
 }

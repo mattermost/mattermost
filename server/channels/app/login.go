@@ -220,7 +220,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 		userVal := *user
 		sessionVal := *session
 		a.Srv().Go(func() {
-			a.Ldap().UpdateProfilePictureIfNecessary(c, userVal, sessionVal)
+			a.Ldap().UpdateProfilePictureIfNecessary(c.Clone(), userVal, sessionVal)
 		})
 	}
 
