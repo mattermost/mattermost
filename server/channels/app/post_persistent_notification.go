@@ -56,7 +56,7 @@ func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, log
 	}
 
 	stopNotifications := false
-	if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+	if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 		if mentions.isUserMentioned(loggedInUserID) {
 			stopNotifications = true
 		}
@@ -151,7 +151,7 @@ func (a *App) SendPersistentNotifications() error {
 	return nil
 }
 
-func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error) error {
+func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *MentionResults, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error) error {
 	channelsMap, teamsMap, err := a.channelTeamMapsForPosts(posts)
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		}
 		profileMap := channelProfileMap[channel.Id]
 
-		mentions := &ExplicitMentions{}
+		mentions := &MentionResults{}
 		// In DMs, only the "other" user can be mentioned
 		if channel.Type == model.ChannelTypeDirect {
 			otherUserId := channel.GetOtherUserIdForDM(post.UserId)
@@ -273,7 +273,7 @@ func (a *App) channelTeamMapsForPosts(posts []*model.Post) (map[string]*model.Ch
 	return channelsMap, teamsMap, nil
 }
 
-func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error {
+func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Channel, team *model.Team, mentions *MentionResults, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error {
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	for id, v := range mentions.Mentions {
 		// Don't send notification to post owner nor GM mentions
