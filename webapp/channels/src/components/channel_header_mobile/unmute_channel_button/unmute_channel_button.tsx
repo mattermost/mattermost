@@ -17,7 +17,7 @@ type Props = {
     actions: Actions;
 };
 
-const UnmuteChannelButton = React.memo(({user, channel, actions}: Props) => {
+const UnmuteChannelButton = ({user, channel, actions}: Props) => {
     const handleClick = () => {
         actions.updateChannelNotifyProps(user.id, channel.id, {mark_unread: NotificationLevels.ALL} as ChannelNotifyProps);
     };
@@ -31,6 +31,6 @@ const UnmuteChannelButton = React.memo(({user, channel, actions}: Props) => {
             <span className='fa fa-bell-slash-o icon'/>
         </button>
     );
-});
+};
 
-export default UnmuteChannelButton;
+export default React.memo(UnmuteChannelButton);
