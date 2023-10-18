@@ -587,7 +587,6 @@ func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []str
 	var query sq.UpdateBuilder
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
-
 	} else {
 		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
 	}

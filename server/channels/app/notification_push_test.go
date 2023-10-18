@@ -1067,7 +1067,7 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 func TestSendPushNotifications(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	_, err := th.App.CreateSession(&model.Session{
+	_, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId:    th.BasicUser.Id,
 		DeviceId:  "test",
 		ExpiresAt: model.GetMillis() + 100000,
@@ -1407,14 +1407,14 @@ func TestAllPushNotifications(t *testing.T) {
 	var testData []userSession
 	for i := 0; i < 10; i++ {
 		u := th.CreateUser()
-		sess, err := th.App.CreateSession(&model.Session{
+		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
 		// We don't need to track the 2nd session.
-		_, err = th.App.CreateSession(&model.Session{
+		_, err = th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,

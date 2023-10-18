@@ -187,7 +187,6 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 
 func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention,
 	hasFiles bool, senderName string, channelType model.ChannelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
-
 	// If the post only has images then push an appropriate message
 	if postMessage == "" && hasFiles {
 		if channelType == model.ChannelTypeDirect {
@@ -582,7 +581,6 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 
 func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
-
 	var msg *model.PushNotification
 
 	notificationInterface := a.ch.Notification
@@ -669,7 +667,6 @@ func (a *App) buildIdLoadedPushNotificationMessage(c request.CTX, channel *model
 
 func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.PushNotification {
-
 	msg := &model.PushNotification{
 		Category:     model.CategoryCanReply,
 		Version:      model.PushMessageV2,
