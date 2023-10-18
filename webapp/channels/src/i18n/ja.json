@@ -240,7 +240,6 @@
   "admin.billing.company_info.city": "市区町村",
   "admin.billing.company_info.companyAddress": "会社住所",
   "admin.billing.company_info.companyName": "会社名",
-  "admin.billing.company_info.country": "国",
   "admin.billing.company_info.employees": "従業員数 {employees}",
   "admin.billing.company_info.numEmployees": "従業員数 (任意)",
   "admin.billing.company_info.title": "会社情報",
