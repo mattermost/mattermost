@@ -90,6 +90,9 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         },
         teams: [
         ],
+        intl: {
+            formatMessage: jest.fn(),
+        },
         actions: {
             loadRolesIfNeeded: jest.fn().mockReturnValue(Promise.resolve()),
             loadRole: jest.fn(),
