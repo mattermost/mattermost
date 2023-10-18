@@ -44,7 +44,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"
-    openLeft={true}
+    openLeft={false}
     openUp={false}
   >
     <MenuGroup>
@@ -122,7 +122,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"
-    openLeft={true}
+    openLeft={false}
     openUp={false}
   >
     <MenuGroup>
@@ -193,7 +193,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"
-    openLeft={true}
+    openLeft={false}
     openUp={false}
   >
     <MenuGroup>

@@ -53,7 +53,6 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("createUpload", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
-
 	} else {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)

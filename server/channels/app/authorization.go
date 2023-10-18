@@ -212,7 +212,6 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
-
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -282,11 +281,11 @@ func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission)
 	return a.RolesGrantPermission(roles, permission.Id)
 }
 
-func (a *App) HasPermissionToTeam(askingUserId string, teamID string, permission *model.Permission) bool {
+func (a *App) HasPermissionToTeam(c request.CTX, askingUserId string, teamID string, permission *model.Permission) bool {
 	if teamID == "" || askingUserId == "" {
 		return false
 	}
-	teamMember, _ := a.GetTeamMember(teamID, askingUserId)
+	teamMember, _ := a.GetTeamMember(c, teamID, askingUserId)
 	if teamMember != nil && teamMember.DeleteAt == 0 {
 		if a.RolesGrantPermission(teamMember.GetRoles(), permission.Id) {
 			return true
@@ -311,13 +310,13 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 	var channel *model.Channel
 	channel, err = a.GetChannel(c, channelID)
 	if err == nil {
-		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
+		return a.HasPermissionToTeam(c, askingUserId, channel.TeamId, permission)
 	}
 
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
+func (a *App) HasPermissionToChannelByPost(c request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
@@ -325,7 +324,7 @@ func (a *App) HasPermissionToChannelByPost(askingUserId string, postID string, p
 	}
 
 	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
-		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
+		return a.HasPermissionToTeam(c, askingUserId, channel.TeamId, permission)
 	}
 
 	return a.HasPermissionTo(askingUserId, permission)
@@ -407,5 +406,5 @@ func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *
 	if !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0 {
 		return false
 	}
-	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
+	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(c, userID, channel.TeamId, model.PermissionReadPublicChannel))
 }

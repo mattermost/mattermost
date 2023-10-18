@@ -49,9 +49,15 @@ func EmptyContext(logger mlog.LoggerIFace) *Context {
 
 // TestContext creates an empty context with a new logger to use in testing where a test helper is
 // not required.
-func TestContext(t *testing.T) *Context {
+func TestContext(t testing.TB) *Context {
 	logger := mlog.CreateConsoleTestLogger(t)
 	return EmptyContext(logger)
+}
+
+// Clone creates a shallow copy of Context, allowing clones to apply per-request changes.
+func (c *Context) Clone() CTX {
+	cCopy := *c
+	return &cCopy
 }
 
 func (c *Context) T(translationID string, args ...any) string {
@@ -125,6 +131,7 @@ func (c *Context) Logger() mlog.LoggerIFace {
 }
 
 type CTX interface {
+	Clone() CTX
 	T(string, ...interface{}) string
 	Session() *model.Session
 	RequestId() string
