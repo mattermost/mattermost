@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {ChannelsHeader} from './channels/header';
-import {ChannelsHeaderMobile} from './channels/header_mobile';
 import {ChannelsAppBar} from './channels/app_bar';
 import {ChannelsPostCreate} from './channels/post_create';
 import {ChannelsPost} from './channels/post';
@@ -27,7 +26,6 @@ const components = {
     ChannelsSidebarRight,
     ChannelsAppBar,
     ChannelsHeader,
-    ChannelsHeaderMobile,
     ChannelsPostCreate,
     ChannelsPost,
     FindChannelsModal,
@@ -49,7 +47,6 @@ export {
     ChannelsSidebarRight,
     ChannelsAppBar,
     ChannelsHeader,
-    ChannelsHeaderMobile,
     ChannelsPostCreate,
     ChannelsPost,
     FindChannelsModal,

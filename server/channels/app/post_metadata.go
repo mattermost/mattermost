@@ -646,7 +646,6 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 		}
 	} else {
-
 		var request *http.Request
 		// Make request for a web page or an image
 		request, err = http.NewRequest("GET", requestURL, nil)

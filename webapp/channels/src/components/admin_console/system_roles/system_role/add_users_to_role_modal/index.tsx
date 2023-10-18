@@ -16,7 +16,7 @@ import AddUsersToRoleModal from './add_users_to_role_modal';
 import type {Props} from './add_users_to_role_modal';
 
 function mapStateToProps(state: GlobalState, props: Props) {
-    const filterOptions: {[key: string]: any} = {active: true, exclude_roles: [props.role.name]};
+    const filterOptions: {[key: string]: any} = {active: true, exclude_roles: [props.role.name], exclude_bots: true};
     const users: UserProfile[] = selectProfiles(state, filterOptions);
 
     return {
