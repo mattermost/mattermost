@@ -17,7 +17,6 @@ import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
-import {allAtMentions} from 'utils/text_formatting';
 import * as Keyboard from 'utils/keyboard';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
@@ -29,6 +28,7 @@ import {
     isGitHubCodeBlock,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
+import {allAtMentions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -105,7 +105,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const [renderScrollbar, setRenderScrollbar] = useState<boolean>(false);
     const [showMentionHelper, setShowMentionHelper] = useState<boolean>(false);
 
-    const originalText = useRef(draft.message || editingPost?.post?.message_source || editingPost?.post?.message || '');
     const textboxRef = useRef<TextboxClass>(null);
     const emojiButtonRef = useRef<HTMLButtonElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -131,11 +130,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
     const editedTextHasMentions = () => {
         const editedMentions = allAtMentions(editText);
-        const originalMentions = allAtMentions(originalText.current);
-
-        const doesAlreadyContainMentions = originalMentions.length > 0;
-
-        return doesAlreadyContainMentions && editedMentions.length > originalMentions.length;
+        return editedMentions.length > 0;
     };
 
     useEffect(() => saveDraft, [saveDraft]);
@@ -528,12 +523,15 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             </div>
             {
                 showMentionHelper && (
-                <div className='post-body__info'>
-                    <span className='info-icon__container'>
-                        <InformationOutlineIcon size={18} color='currentColor' />
-                    </span>
-                    <span>Editing this message with an '@mention' will not notify the recipient.</span>
-                </div>)
+                    <div className='post-body__info'>
+                        <span className='info-icon__container'>
+                            <InformationOutlineIcon
+                                size={18}
+                                color='currentColor'
+                            />
+                        </span>
+                        <span>{"Editing this message with an '@mention' will not notify the recipient."}</span>
+                    </div>)
             }
             <EditPostFooter
                 onSave={handleEdit}
