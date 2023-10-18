@@ -66,13 +66,13 @@ export type Props = {
     currentTeamId: string;
 
     // The channel for which this comment is a part of
-    channelId: string;
+    channelId?: string;
 
     // The id of the current user
     currentUserId: string;
 
     // The id of the parent post
-    rootId: string;
+    rootId?: string;
 
     // The root message is deleted
     rootDeleted: boolean;
@@ -197,6 +197,7 @@ export type Props = {
     isFormattingBarHidden: boolean;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
     postEditorActions: PluginComponent[];
+    placeholder?: string;
 }
 
 type State = {
@@ -1308,6 +1309,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     fileUploadRef={this.fileUploadRef}
                     isThreadView={this.props.isThreadView}
                     additionalControls={pluginItems.filter(Boolean)}
+                    placeholder={this.props.placeholder}
                 />
             </form>
         );

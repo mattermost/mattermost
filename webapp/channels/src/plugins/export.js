@@ -16,7 +16,7 @@ import Timestamp from 'components/timestamp';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 import ThreadViewer from 'components/threading/thread_viewer';
-import AdvancedCreateComment from 'components/advanced_create_comment';
+import CreatePost from './exported_create_post';
 
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
@@ -89,7 +89,7 @@ window.Components = {
     BotBadge: BotTag,
     StartTrialFormModal,
     ThreadViewer,
-    AdvancedCreateComment,
+    CreatePost,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture
