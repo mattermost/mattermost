@@ -10,7 +10,7 @@ import {getImageSrc} from 'utils/post_utils';
 import {isSVGImage} from './external_image_isSVGImage';
 
 type Props = {
-    children: (src: string) => ReactElement | null;
+    children: (src: string) => ReactElement;
     enableSVGs: boolean;
     hasImageProxy: boolean;
     imageMetadata?: PostImage;
@@ -18,9 +18,9 @@ type Props = {
 }
 
 const ExternalImage = (props: Props) => {
-    const shouldRenderImage = () => props.enableSVGs || !isSVGImage(props.imageMetadata, props.src);
+    const shouldRenderImage = props.enableSVGs || !isSVGImage(props.imageMetadata, props.src);
     let src = getImageSrc(props.src, props.hasImageProxy);
-    if (!shouldRenderImage()) {
+    if (!shouldRenderImage) {
         src = '';
     }
     return props.children(src);
