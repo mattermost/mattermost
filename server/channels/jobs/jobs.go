@@ -21,6 +21,19 @@ const (
 	CancelWatcherPollingInterval = 5000
 )
 
+// JobLoggerFields returns the logger annotations reflecting the given job metadata.
+func JobLoggerFields(job *model.Job) []mlog.Field {
+	if job == nil {
+		return nil
+	}
+
+	return []mlog.Field{
+		mlog.String("job_id", job.Id),
+		mlog.String("job_type", job.Type),
+		mlog.Millis("job_create_at", job.CreateAt),
+	}
+}
+
 func (srv *JobServer) CreateJob(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job, appErr := srv._createJob(c, jobType, jobData)
 	if appErr != nil {
@@ -55,8 +68,6 @@ func (srv *JobServer) _createJob(c *request.Context, jobType string, jobData map
 		Status:   model.JobStatusPending,
 		Data:     jobData,
 	}
-
-	job.InitLogger(c.Logger())
 
 	if err := job.IsValid(); err != nil {
 		return nil, err
@@ -208,16 +219,10 @@ func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
 
 // HandleJobPanic is used to handle panics during the execution of a job. It logs the panic and sets the status for the job.
 // After handling, the method repanics! This method is supposed to be `defer`'d at the start of the job.
-func (srv *JobServer) HandleJobPanic(job *model.Job) {
+func (srv *JobServer) HandleJobPanic(logger mlog.LoggerIFace, job *model.Job) {
 	r := recover()
 	if r == nil {
 		return
-	}
-
-	var logger mlog.LoggerIFace = job.Logger
-	if job.Logger == nil {
-		// Fall back to JobServer logger
-		logger = srv.logger
 	}
 
 	sb := &strings.Builder{}

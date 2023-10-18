@@ -4,12 +4,11 @@
 package sqlstore
 
 import (
-	"context"
-
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -53,13 +52,12 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) error {
 	}
 
 	return nil
-
 }
 
 // Get obtains the license with the provided id parameter from the database.
 // If the license doesn't exist it returns a model.AppError with
 // http.StatusNotFound in the StatusCode field.
-func (ls SqlLicenseStore) Get(ctx context.Context, id string) (*model.LicenseRecord, error) {
+func (ls SqlLicenseStore) Get(c request.CTX, id string) (*model.LicenseRecord, error) {
 	query := ls.getQueryBuilder().
 		Select("Id, CreateAt, Bytes").
 		From("Licenses").
@@ -71,7 +69,7 @@ func (ls SqlLicenseStore) Get(ctx context.Context, id string) (*model.LicenseRec
 	}
 
 	license := &model.LicenseRecord{}
-	if err := ls.DBXFromContext(ctx).Get(license, queryString, args...); err != nil {
+	if err := ls.DBXFromContext(c.Context()).Get(license, queryString, args...); err != nil {
 		return nil, store.NewErrNotFound("License", id)
 	}
 	return license, nil

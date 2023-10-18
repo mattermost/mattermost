@@ -51,20 +51,15 @@ function getDefaultChannelId(state: GlobalState) {
 }
 
 export function checkUserInCall(state: GlobalState, userId: string) {
-    let isUserInCall = false;
-
-    const profilesInCalls = getProfilesInCalls(state);
-    Object.keys(profilesInCalls).forEach((channelId) => {
-        const profiles = profilesInCalls[channelId] || [];
-
-        for (const user of profiles) {
-            if (user.id === userId) {
-                isUserInCall = true;
-                break;
+    for (const profilesMap of Object.values(getProfilesInCalls(state))) {
+        for (const profile of Object.values(profilesMap || {})) {
+            if (profile?.id === userId) {
+                return true;
             }
         }
-    });
-    return isUserInCall;
+    }
+
+    return false;
 }
 
 function makeMapStateToProps() {
