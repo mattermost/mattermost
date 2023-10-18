@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {mount} from 'enzyme';
 import React from 'react';
 
 import LoadingWrapper from './loading_wrapper';
@@ -43,7 +43,7 @@ describe('components/widgets/loading/LoadingWrapper', () => {
     ];
     for (const testCase of testCases) {
         test(testCase.name, () => {
-            const wrapper = shallow(
+            const wrapper = mount(
                 <LoadingWrapper
                     loading={testCase.loading}
                     text={testCase.text}
@@ -51,7 +51,7 @@ describe('components/widgets/loading/LoadingWrapper', () => {
                     {testCase.children}
                 </LoadingWrapper>,
             );
-            expect(wrapper).toMatchInlineSnapshot(testCase.snapshot);
+            expect(wrapper).toMatchSnapshot(testCase.snapshot);
         });
     }
 });

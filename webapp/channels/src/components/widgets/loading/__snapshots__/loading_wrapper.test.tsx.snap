@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/widgets/loading/LoadingWrapper showing content with children: "text" 1`] = `
+<Memo(LoadingWrapper)
+  loading={false}
+>
+  text
+</Memo(LoadingWrapper)>
+`;
+
+exports[`components/widgets/loading/LoadingWrapper showing content without children: "" 1`] = `
+<Memo(LoadingWrapper)
+  loading={false}
+/>
+`;
+
+exports[`components/widgets/loading/LoadingWrapper showing spinner with text: 
+<LoadingSpinner
+  text="test"
+/>
+ 1`] = `
+<Memo(LoadingWrapper)
+  loading={true}
+  text="test"
+>
+  <LoadingSpinner
+    text="test"
+  >
+    <span
+      className="LoadingSpinner with-text"
+      data-testid="loadingSpinner"
+      id="loadingSpinner"
+    >
+      <LocalizedIcon
+        className="fa fa-spinner fa-fw fa-pulse spinner"
+        component="span"
+        title={
+          Object {
+            "defaultMessage": "Loading Icon",
+            "id": "generic_icons.loading",
+          }
+        }
+      >
+        <span
+          className="fa fa-spinner fa-fw fa-pulse spinner"
+          title="Loading Icon"
+        />
+      </LocalizedIcon>
+      test
+    </span>
+  </LoadingSpinner>
+</Memo(LoadingWrapper)>
+`;
+
+exports[`components/widgets/loading/LoadingWrapper showing spinner without text: 
+<LoadingSpinner
+  text={null}
+/>
+ 1`] = `
+<Memo(LoadingWrapper)
+  loading={true}
+>
+  <LoadingSpinner
+    text={null}
+  >
+    <span
+      className="LoadingSpinner"
+      data-testid="loadingSpinner"
+      id="loadingSpinner"
+    >
+      <LocalizedIcon
+        className="fa fa-spinner fa-fw fa-pulse spinner"
+        component="span"
+        title={
+          Object {
+            "defaultMessage": "Loading Icon",
+            "id": "generic_icons.loading",
+          }
+        }
+      >
+        <span
+          className="fa fa-spinner fa-fw fa-pulse spinner"
+          title="Loading Icon"
+        />
+      </LocalizedIcon>
+    </span>
+  </LoadingSpinner>
+</Memo(LoadingWrapper)>
+`;
