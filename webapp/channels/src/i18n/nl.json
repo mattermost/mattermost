@@ -240,7 +240,6 @@
   "admin.billing.company_info.city": "Gemeente",
   "admin.billing.company_info.companyAddress": "Bedrijfsadres",
   "admin.billing.company_info.companyName": "Bedrijfsnaam",
-  "admin.billing.company_info.country": "Land",
   "admin.billing.company_info.employees": "{employees} medewerkers",
   "admin.billing.company_info.numEmployees": "Aantal medewerkers (vrijblijvend)",
   "admin.billing.company_info.title": "Bedrijfsinformatie",
