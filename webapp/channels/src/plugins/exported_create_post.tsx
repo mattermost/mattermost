@@ -1,11 +1,14 @@
-import React from 'react';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
-import type {PostDraft} from 'types/store/draft';
+import React from 'react';
 
 import AdvancedCreateComment from 'components/advanced_create_comment';
 
+import type {PostDraft} from 'types/store/draft';
+
 type Props = {
-    placeholder?: string,
+    placeholder?: string;
     onSubmit: (draft: PostDraft) => void;
 }
 
@@ -24,7 +27,7 @@ const ExportedCreatePost = ({placeholder, onSubmit}: Props) => {
             onMoveHistoryIndexForward={() => null}
             onEditLatestPost={() => ({data: true})}
         />
-    )
-}
+    );
+};
 
 export default ExportedCreatePost;

@@ -12,11 +12,10 @@ import {openPricingModal} from 'components/global_header/right_controls/plan_upg
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import PurchaseModal from 'components/purchase_modal';
 import StartTrialFormModal from 'components/start_trial_form_modal';
+import ThreadViewer from 'components/threading/thread_viewer';
 import Timestamp from 'components/timestamp';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
-import ThreadViewer from 'components/threading/thread_viewer';
-import CreatePost from './exported_create_post';
 
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
@@ -26,6 +25,7 @@ import {formatText} from 'utils/text_formatting';
 import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
 import {imageURLForUser} from 'utils/utils';
 
+import CreatePost from './exported_create_post';
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
 import Textbox from './textbox';
 
