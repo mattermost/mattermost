@@ -2,7 +2,6 @@
 set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
-. .e2erc_setup
 
 if [ "$TEST" != "cypress" ] && [ "$TEST" != "playwright" ] && [ "$TEST" != "server" ]; then
   mme2e_log "Invalid TEST='$TEST', expected: 'cypress', 'playwright' or 'server'"
