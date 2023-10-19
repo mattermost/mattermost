@@ -3,7 +3,6 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
@@ -15,6 +14,7 @@ import AdvancedCreateComment from 'components/advanced_create_comment/advanced_c
 import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
+import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {execCommandInsertText} from 'utils/exec_commands';
 import {TestHelper} from 'utils/test_helper';

@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as lineBreakHelpers from 'tests/helpers/line_break_helpers';
-
 import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 
 import store from 'stores/redux_store';
 
+import * as lineBreakHelpers from 'tests/helpers/line_break_helpers';
 import * as ua from 'tests/helpers/user_agent_mocks';
 import Constants, {ValidationErrors} from 'utils/constants';
 import * as Utils from 'utils/utils';
