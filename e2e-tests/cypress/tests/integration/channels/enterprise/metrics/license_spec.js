@@ -12,6 +12,7 @@
 
 describe('Metrics > License', () => {
     before(() => {
+        cy.shouldNotRunOnCloudEdition();
         cy.apiUpdateConfig({
             MetricsSettings: {
                 Enable: true,
