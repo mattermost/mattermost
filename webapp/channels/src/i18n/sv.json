@@ -240,7 +240,6 @@
   "admin.billing.company_info.city": "Postadress",
   "admin.billing.company_info.companyAddress": "Företagsadress",
   "admin.billing.company_info.companyName": "Företagsnamn",
-  "admin.billing.company_info.country": "Land",
   "admin.billing.company_info.employees": "{employees} anställda",
   "admin.billing.company_info.numEmployees": "Antal anställda (valfritt)",
   "admin.billing.company_info.title": "Företagsinformation",
