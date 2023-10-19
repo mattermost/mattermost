@@ -514,7 +514,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                     >
                                       <DMButton
                                         aria-label="Send message to Name0 Surname0"
-                                        className="btn-icon"
+                                        className="btn btn-icon btn-xs"
                                         onBlur={[Function]}
                                         onClick={[Function]}
                                         onFocus={[Function]}
@@ -523,27 +523,27 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       >
                                         <button
                                           aria-label="Send message to Name0 Surname0"
-                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
                                           onBlur={[Function]}
                                           onClick={[Function]}
                                           onFocus={[Function]}
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <SendIcon>
-                                            <svg
-                                              fill="currentColor"
-                                              height="1em"
-                                              version="1.1"
-                                              viewBox="0 0 24 24"
-                                              width="1em"
-                                              xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                              <path
-                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
-                                              />
-                                            </svg>
-                                          </SendIcon>
+                                          <LocalizedIcon
+                                            ariaLabel={
+                                              Object {
+                                                "defaultMessage": "Close",
+                                                "id": "user_group_popover.close",
+                                              }
+                                            }
+                                            className="icon icon-send"
+                                          >
+                                            <i
+                                              aria-label="Close"
+                                              className="icon icon-send"
+                                            />
+                                          </LocalizedIcon>
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>
@@ -733,7 +733,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                     >
                                       <DMButton
                                         aria-label="Send message to Name1 Surname1"
-                                        className="btn-icon"
+                                        className="btn btn-icon btn-xs"
                                         onBlur={[Function]}
                                         onClick={[Function]}
                                         onFocus={[Function]}
@@ -742,27 +742,27 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       >
                                         <button
                                           aria-label="Send message to Name1 Surname1"
-                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
                                           onBlur={[Function]}
                                           onClick={[Function]}
                                           onFocus={[Function]}
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <SendIcon>
-                                            <svg
-                                              fill="currentColor"
-                                              height="1em"
-                                              version="1.1"
-                                              viewBox="0 0 24 24"
-                                              width="1em"
-                                              xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                              <path
-                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
-                                              />
-                                            </svg>
-                                          </SendIcon>
+                                          <LocalizedIcon
+                                            ariaLabel={
+                                              Object {
+                                                "defaultMessage": "Close",
+                                                "id": "user_group_popover.close",
+                                              }
+                                            }
+                                            className="icon icon-send"
+                                          >
+                                            <i
+                                              aria-label="Close"
+                                              className="icon icon-send"
+                                            />
+                                          </LocalizedIcon>
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>
@@ -952,7 +952,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                     >
                                       <DMButton
                                         aria-label="Send message to Name2 Surname2"
-                                        className="btn-icon"
+                                        className="btn btn-icon btn-xs"
                                         onBlur={[Function]}
                                         onClick={[Function]}
                                         onFocus={[Function]}
@@ -961,27 +961,27 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       >
                                         <button
                                           aria-label="Send message to Name2 Surname2"
-                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
                                           onBlur={[Function]}
                                           onClick={[Function]}
                                           onFocus={[Function]}
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <SendIcon>
-                                            <svg
-                                              fill="currentColor"
-                                              height="1em"
-                                              version="1.1"
-                                              viewBox="0 0 24 24"
-                                              width="1em"
-                                              xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                              <path
-                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
-                                              />
-                                            </svg>
-                                          </SendIcon>
+                                          <LocalizedIcon
+                                            ariaLabel={
+                                              Object {
+                                                "defaultMessage": "Close",
+                                                "id": "user_group_popover.close",
+                                              }
+                                            }
+                                            className="icon icon-send"
+                                          >
+                                            <i
+                                              aria-label="Close"
+                                              className="icon icon-send"
+                                            />
+                                          </LocalizedIcon>
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>
@@ -1171,7 +1171,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                     >
                                       <DMButton
                                         aria-label="Send message to Name3 Surname3"
-                                        className="btn-icon"
+                                        className="btn btn-icon btn-xs"
                                         onBlur={[Function]}
                                         onClick={[Function]}
                                         onFocus={[Function]}
@@ -1180,27 +1180,27 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       >
                                         <button
                                           aria-label="Send message to Name3 Surname3"
-                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
                                           onBlur={[Function]}
                                           onClick={[Function]}
                                           onFocus={[Function]}
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <SendIcon>
-                                            <svg
-                                              fill="currentColor"
-                                              height="1em"
-                                              version="1.1"
-                                              viewBox="0 0 24 24"
-                                              width="1em"
-                                              xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                              <path
-                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
-                                              />
-                                            </svg>
-                                          </SendIcon>
+                                          <LocalizedIcon
+                                            ariaLabel={
+                                              Object {
+                                                "defaultMessage": "Close",
+                                                "id": "user_group_popover.close",
+                                              }
+                                            }
+                                            className="icon icon-send"
+                                          >
+                                            <i
+                                              aria-label="Close"
+                                              className="icon icon-send"
+                                            />
+                                          </LocalizedIcon>
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>
@@ -1390,7 +1390,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                     >
                                       <DMButton
                                         aria-label="Send message to Name4 Surname4"
-                                        className="btn-icon"
+                                        className="btn btn-icon btn-xs"
                                         onBlur={[Function]}
                                         onClick={[Function]}
                                         onFocus={[Function]}
@@ -1399,27 +1399,27 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       >
                                         <button
                                           aria-label="Send message to Name4 Surname4"
-                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
                                           onBlur={[Function]}
                                           onClick={[Function]}
                                           onFocus={[Function]}
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <SendIcon>
-                                            <svg
-                                              fill="currentColor"
-                                              height="1em"
-                                              version="1.1"
-                                              viewBox="0 0 24 24"
-                                              width="1em"
-                                              xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                              <path
-                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
-                                              />
-                                            </svg>
-                                          </SendIcon>
+                                          <LocalizedIcon
+                                            ariaLabel={
+                                              Object {
+                                                "defaultMessage": "Close",
+                                                "id": "user_group_popover.close",
+                                              }
+                                            }
+                                            className="icon icon-send"
+                                          >
+                                            <i
+                                              aria-label="Close"
+                                              className="icon icon-send"
+                                            />
+                                          </LocalizedIcon>
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>

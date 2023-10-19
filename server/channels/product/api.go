@@ -45,8 +45,8 @@ type PostService interface {
 // The service shall be registered via app.PermissionKey service key.
 type PermissionService interface {
 	HasPermissionTo(userID string, permission *model.Permission) bool
-	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
-	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
+	HasPermissionToTeam(c *request.Context, userID, teamID string, permission *model.Permission) bool
+	HasPermissionToChannel(c *request.Context, askingUserID string, channelID string, permission *model.Permission) bool
 	RolesGrantPermission(roleNames []string, permissionID string) bool
 }
 
@@ -107,7 +107,7 @@ type UserService interface {
 //
 // The service shall be registered via app.TeamKey service key.
 type TeamService interface {
-	GetMember(teamID, userID string) (*model.TeamMember, *model.AppError)
+	GetMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError)
 	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
 	GetGroup(groupId string) (*model.Group, *model.AppError)
 	GetTeam(teamID string) (*model.Team, *model.AppError)
@@ -224,14 +224,6 @@ type SessionService interface {
 // The service shall be registered via app.FrontendKey service key.
 type FrontendService interface {
 	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
-}
-
-// CommandService is the API for interacting with front end.
-//
-// The service shall be registered via app.CommandKey service key.
-type CommandService interface {
-	ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
-	RegisterProductCommand(productID string, command *model.Command) error
 }
 
 // ThreadsService is the API for interacting with threads anywhere.

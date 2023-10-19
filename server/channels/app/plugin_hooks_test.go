@@ -1473,14 +1473,14 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			var userSessions []userSession
 			for i := 0; i < 3; i++ {
 				u := th.CreateUser()
-				sess, err := th.App.CreateSession(&model.Session{
+				sess, err := th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,
 					DeviceId:  "deviceID" + u.Id,
 					ExpiresAt: model.GetMillis() + 100000,
 				})
 				require.Nil(t, err)
 				// We don't need to track the 2nd session.
-				_, err = th.App.CreateSession(&model.Session{
+				_, err = th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,
 					DeviceId:  "deviceID" + u.Id,
 					ExpiresAt: model.GetMillis() + 100000,

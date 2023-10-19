@@ -58,7 +58,7 @@ func (*ExportLinkProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.C
 	}
 }
 
-func (*ExportLinkProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*ExportLinkProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.permission.app_error")}
 	}
