@@ -952,8 +952,8 @@ func TestCreatePost(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				post := previewPost.Clone()
-				rctx := th.Context.Clone()
-				th.App.UpdatePost(rctx, post, false)
+				crctx := th.Context.Clone()
+				th.App.UpdatePost(crctx, post, false)
 			}()
 		}
 

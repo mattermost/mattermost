@@ -1668,8 +1668,8 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 			return nil, err
 		}
 	} else {
+		crctx := c.Clone()
 		a.Srv().Go(func() {
-			crctx := c.Clone()
 			if err := a.PostAddToChannelMessage(crctx, userRequestor, user, channel, opts.PostRootID); err != nil {
 				crctx.Logger().Error("Failed to post AddToChannel message", mlog.Err(err))
 			}
@@ -2368,8 +2368,8 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		return nil
 	}
 
+	crctx := c.Clone()
 	a.Srv().Go(func() {
-		crctx := c.Clone()
 		if err := a.postLeaveChannelMessage(crctx, user, channel); err != nil {
 			crctx.Logger().Error("Failed to post LeaveChannel message", mlog.Err(err))
 		}
