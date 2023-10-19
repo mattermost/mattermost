@@ -1485,25 +1485,25 @@ describe('components/advanced_create_post', () => {
     );
 
     it('should match snapshot, can post; preview enabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: true, isMarkdownPreviewEnabled: true}));
+        const wrapper = shallow(advancedCreatePost({canPost: true}));
 
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should match snapshot, can post; preview disabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: true, isMarkdownPreviewEnabled: false}));
+        const wrapper = shallow(advancedCreatePost({canPost: true}));
 
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should match snapshot, cannot post; preview enabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: false, isMarkdownPreviewEnabled: true}));
+        const wrapper = shallow(advancedCreatePost({canPost: false}));
 
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should match snapshot, cannot post; preview disabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: false, isMarkdownPreviewEnabled: false}));
+        const wrapper = shallow(advancedCreatePost({canPost: false}));
 
         expect(wrapper).toMatchSnapshot();
     });
