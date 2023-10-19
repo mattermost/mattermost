@@ -25,8 +25,8 @@ export const BASE_EVENT: KeyboardEvent = {...new KeyboardEvent('keyDown'),
     ctrlKey: true,
     key: Constants.KeyCodes.ENTER[0],
     keyCode: Constants.KeyCodes.ENTER[1],
-    currentTarget: new HTMLInputElement(),
-    target: new HTMLInputElement(),
+    currentTarget: document.createElement('input'),
+    target: document.createElement('input'),
 };
 
 /**
