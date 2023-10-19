@@ -862,7 +862,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             this.setState({
                 draft: {
                     ...this.state.draft!,
-                    message: Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>),
+                    message: Utils.insertLineBreakFromKeyEvent(e.nativeEvent),
                 },
             });
             return;

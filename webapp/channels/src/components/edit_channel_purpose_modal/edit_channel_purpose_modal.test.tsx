@@ -261,5 +261,5 @@ describe('comoponents/EditChannelPurposeModal', () => {
             onExited={jest.fn()}
             actions={{patchChannel: jest.fn()}}
         />
-    ), (instance: EditChannelPurposeModalClass) => instance.state.purpose);
+    ), (instance: React.Component<any, any>) => instance.state.purpose);
 });

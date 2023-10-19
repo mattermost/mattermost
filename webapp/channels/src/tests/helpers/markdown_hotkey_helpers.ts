@@ -6,10 +6,21 @@
  * consolidate testing of similar behavior across components
  */
 
+import type {ShallowWrapper} from 'enzyme';
 import {shallow} from 'enzyme';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants from 'utils/constants';
+
+export const BASE_EVENT: KeyboardEvent = {...new KeyboardEvent('keyDown'),
+    preventDefault: jest.fn(),
+    stopPropagation: jest.fn(),
+    ctrlKey: true,
+    key: Constants.KeyCodes.ENTER[0],
+    keyCode: Constants.KeyCodes.ENTER[1],
+    currentTarget: new HTMLInputElement(),
+    target: new HTMLInputElement(),
+};
 
 /**
  * @param  {string} [input] text input
@@ -19,31 +30,33 @@ import Constants from 'utils/constants';
  * @return {object} keydown event object
  */
 
-export function makeSelectionEvent(input, start, end) {
+export function makeSelectionEvent(input: string, start: number, end: number): KeyboardEvent {
     return {
+        ...BASE_EVENT,
         preventDefault: jest.fn(),
-        target: {
+        target: {...BASE_EVENT.target,
             selectionStart: start,
             selectionEnd: end,
             value: input,
-        },
+        } as EventTarget,
     };
 }
 
-function makeMarkdownHotkeyEvent(input, start, end, keycode, altKey = false, targetId = 'root') {
+function makeMarkdownHotkeyEvent(input: string, start: number, end: number, keycode: [string, number], altKey = false, targetId = 'root'): KeyboardEvent {
     return {
+        ...BASE_EVENT,
         preventDefault: jest.fn(),
         stopPropagation: jest.fn(),
         ctrlKey: true,
         altKey,
         key: keycode[0],
         keyCode: keycode[1],
-        target: {
+        target: {...BASE_EVENT.target,
             selectionStart: start,
             selectionEnd: end,
             value: input,
             id: targetId,
-        },
+        } as EventTarget,
     };
 }
 
@@ -53,7 +66,7 @@ function makeMarkdownHotkeyEvent(input, start, end, keycode, altKey = false, tar
  * @param  {int} [end] selection's end index
  * @return {object} keydown event object
  */
-export function makeBoldHotkeyEvent(input, start, end) {
+export function makeBoldHotkeyEvent(input: string, start: number, end: number): KeyboardEvent {
     return makeMarkdownHotkeyEvent(input, start, end, Constants.KeyCodes.B);
 }
 
@@ -63,15 +76,15 @@ export function makeBoldHotkeyEvent(input, start, end) {
  * @param  {int} [end] selection's end index
  * @return {object} keydown event object
  */
-export function makeItalicHotkeyEvent(input, start, end) {
+export function makeItalicHotkeyEvent(input: string, start: number, end: number): KeyboardEvent {
     return makeMarkdownHotkeyEvent(input, start, end, Constants.KeyCodes.I);
 }
 
-function makeLinkHotKeyWithoutAltKeyEvent(input, start, end, targetId) {
+function makeLinkHotKeyWithoutAltKeyEvent(input: string, start: number, end: number, targetId: string): KeyboardEvent {
     return makeMarkdownHotkeyEvent(input, start, end, Constants.KeyCodes.K, false, targetId);
 }
 
-function makeLinkHotKeyEvent(input, start, end) {
+function makeLinkHotKeyEvent(input: string, start: number, end: number): KeyboardEvent {
     return makeMarkdownHotkeyEvent(input, start, end, Constants.KeyCodes.K, true);
 }
 
@@ -82,8 +95,9 @@ function makeLinkHotKeyEvent(input, start, end) {
  * @param  {function} getValue - single parameter for the React Component instance
  * NOTE: runs Jest tests
  */
-export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find, getValue, intlInjected = true, targetId) {
-    const shallowRender = intlInjected ? shallowWithIntl : shallow;
+export function testComponentForMarkdownHotkeys(generateInstance: (input: string) => JSX.Element, initRefs: (instance: ShallowWrapper, setSelectionRange: (start: number, end: number) => void) => void, find: (instance: ShallowWrapper) => JSX.Element, getValue: (instance: React.Component<any, any>) => string, intlInjected = true, targetId: string) {
+    const shallowRender: (instance: JSX.Element) => ShallowWrapper = intlInjected ? shallowWithIntl : shallow;
+
     test('component adds bold markdown', () => {
         // "Fafda" is selected with ctrl + B hotkey
         const input = 'Jalebi Fafda & Sambharo';
@@ -96,7 +110,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi **Fafda** & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi **Fafda** & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
     });
 
@@ -112,7 +126,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi *Fafda* & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi *Fafda* & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
     });
 
@@ -128,7 +142,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi ****Fafda & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi ****Fafda & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
     });
 
@@ -144,7 +158,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi **Fafda & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi **Fafda & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
     });
 
@@ -165,7 +179,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi [Fafda](url) & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi [Fafda](url) & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
         expect(selectionStart).toBe(15);
         expect(selectionEnd).toBe(18);
@@ -188,7 +202,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi [Fafda](url) & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi [Fafda](url) & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
         expect(selectionStart).toBe(15);
         expect(selectionEnd).toBe(18);
@@ -211,7 +225,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi [Fafda](url) & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi [Fafda](url) & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
         expect(selectionStart).toBe(15);
         expect(selectionEnd).toBe(18);
@@ -234,7 +248,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi [Fafda](url) & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi [Fafda](url) & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
         expect(selectionStart).toBe(15);
         expect(selectionEnd).toBe(18);
@@ -257,7 +271,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi [Fafda](url) & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi [Fafda](url) & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
         expect(selectionStart).toBe(15);
         expect(selectionEnd).toBe(18);
@@ -280,7 +294,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi Fafda & Sambharo [](url)');
+        expect(getValue(instance.instance())).toBe('Jalebi Fafda & Sambharo [](url)');
         expect(setSelectionRange).toHaveBeenCalled();
         expect(selectionStart).toBe(25);
         expect(selectionEnd).toBe(25);
@@ -303,7 +317,7 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
 
         find(instance).props().onKeyDown?.(e);
         find(instance).props().handleKeyDown?.(e);
-        expect(getValue(instance)).toBe('Jalebi Fafda & Sambharo');
+        expect(getValue(instance.instance())).toBe('Jalebi Fafda & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
         expect(selectionStart).toBe(7);
         expect(selectionEnd).toBe(12);

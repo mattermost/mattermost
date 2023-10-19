@@ -1165,7 +1165,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
-            this.setState({message: Utils.insertLineBreakFromKeyEvent(e)});
+            this.setState({message: Utils.insertLineBreakFromKeyEvent(e.nativeEvent)});
             return;
         }
 
