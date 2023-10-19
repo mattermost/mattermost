@@ -1408,9 +1408,11 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := c.Params.UserId
+	permanent := c.Params.Permanent
 
 	auditRec := c.MakeAuditRecord("deleteUser", audit.Fail)
-	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
+	audit.AddEventParameter(auditRec, "user_id", userId)
+	audit.AddEventParameter(auditRec, "permanent", permanent)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), userId) {
@@ -1438,7 +1440,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.Params.Permanent {
+	if permanent {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
 			err = c.App.PermanentDeleteUser(c.AppContext, user)
 		} else {
