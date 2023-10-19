@@ -26,10 +26,6 @@ describe('components/DatabaseSettings', () => {
         },
     };
     test('should match snapshot', () => {
-        const props = {
-            ...baseProps,
-            value: [],
-        };
         const config = {
             SqlSettings: {
                 MaxIdleConns: 10,
@@ -45,10 +41,15 @@ describe('components/DatabaseSettings', () => {
                 MinimumHashtagLength: 10,
             },
         };
+        const props = {
+            ...baseProps,
+            value: [],
+            config,
+            isDisabled: false,
+        };
         const wrapper = shallow(
             <DatabaseSettings
                 {...props}
-                config={config}
             />,
         );
         expect(wrapper).toMatchSnapshot();
