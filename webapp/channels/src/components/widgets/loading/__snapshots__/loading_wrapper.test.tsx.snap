@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/widgets/loading/LoadingWrapper showing content with children: "text" 1`] = `
+exports[`components/widgets/loading/LoadingWrapper showing content with children 1`] = `
 <Memo(LoadingWrapper)
   loading={false}
 >
@@ -8,17 +8,13 @@ exports[`components/widgets/loading/LoadingWrapper showing content with children
 </Memo(LoadingWrapper)>
 `;
 
-exports[`components/widgets/loading/LoadingWrapper showing content without children: "" 1`] = `
+exports[`components/widgets/loading/LoadingWrapper showing content without children 1`] = `
 <Memo(LoadingWrapper)
   loading={false}
 />
 `;
 
-exports[`components/widgets/loading/LoadingWrapper showing spinner with text: 
-<LoadingSpinner
-  text="test"
-/>
- 1`] = `
+exports[`components/widgets/loading/LoadingWrapper showing spinner with text 1`] = `
 <Memo(LoadingWrapper)
   loading={true}
   text="test"
@@ -52,11 +48,7 @@ exports[`components/widgets/loading/LoadingWrapper showing spinner with text:
 </Memo(LoadingWrapper)>
 `;
 
-exports[`components/widgets/loading/LoadingWrapper showing spinner without text: 
-<LoadingSpinner
-  text={null}
-/>
- 1`] = `
+exports[`components/widgets/loading/LoadingWrapper showing spinner without text 1`] = `
 <Memo(LoadingWrapper)
   loading={true}
 >

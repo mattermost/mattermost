@@ -17,6 +17,6 @@ const LoadingWrapper = ({loading = true, text = null, children = null}: Props) =
             {loading ? <LoadingSpinner text={text}/> : children}
         </>
     );
-}
+};
 
 export default React.memo(LoadingWrapper);
