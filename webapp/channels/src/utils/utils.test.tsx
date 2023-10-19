@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as lineBreakHelpers from 'tests/helpers/line_break_helpers.js';
+import * as lineBreakHelpers from 'tests/helpers/line_break_helpers';
 
 import type {UserProfile} from '@mattermost/types/users';
 

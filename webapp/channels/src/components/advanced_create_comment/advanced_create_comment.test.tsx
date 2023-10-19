@@ -3,7 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers.js';
+import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
