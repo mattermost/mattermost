@@ -51,12 +51,12 @@ type OwnProps = {
     channelId?: string;
     latestPostId?: string;
     rootDeleted: boolean;
-    onSubmit: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
-    onUpdateCommentDraft: (draft?: PostDraft, save?: boolean) => void;
-    updateCommentDraftWithRootId: (rootID: string, draft: PostDraft, save?: boolean) => void;
-    onMoveHistoryIndexBack: () => void;
-    onMoveHistoryIndexForward: () => void;
-    onEditLatestPost: () => ActionResult;
+    onSubmit?: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
+    onUpdateCommentDraft?: (draft?: PostDraft, save?: boolean) => void;
+    updateCommentDraftWithRootId?: (rootID: string, draft: PostDraft, save?: boolean) => void;
+    onMoveHistoryIndexBack?: () => void;
+    onMoveHistoryIndexForward?: () => void;
+    onEditLatestPost?: () => ActionResult;
 };
 
 function makeMapStateToProps() {
