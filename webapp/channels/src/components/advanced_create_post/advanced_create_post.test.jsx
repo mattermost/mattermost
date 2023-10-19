@@ -12,7 +12,7 @@ import AdvancedCreatePost from 'components/advanced_create_post/advanced_create_
 import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
-import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers.js';
+import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers';
 import Constants, {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
 import {execCommandInsertText} from 'utils/exec_commands';
