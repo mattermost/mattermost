@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, MouseEvent, ReactNode} from 'react';
-import {FormattedMessage, FormattedDate, injectIntl} from 'react-intl';
+import {FormattedMessage, FormattedDate, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -21,7 +21,7 @@ import type {PropsFromRedux, OwnProps} from '.';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 
-type Props = PropsFromRedux & OwnProps;
+type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
 
 type State = {
     name?: Team['display_name'];

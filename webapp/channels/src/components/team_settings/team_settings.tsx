@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -25,8 +24,6 @@ const TeamSettings = ({
     collapseModal,
     team,
 }: Props): JSX.Element | null => {
-    const intl = useIntl();
-
     if (!team) {
         return null;
     }
@@ -39,7 +36,6 @@ const TeamSettings = ({
                 <GeneralTab
                     team={team}
                     activeSection={activeSection}
-                    intl={intl}
                     updateSection={updateSection}
                     closeModal={closeModal}
                     collapseModal={collapseModal}
