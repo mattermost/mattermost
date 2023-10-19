@@ -155,7 +155,6 @@ func getTranslationsBySystemLocale() (TranslateFunc, error) {
 
 	mlog.Info("Loaded system translations", mlog.String("for locale", locale))
 	return translations, nil
-
 }
 
 // GetUserTranslations get the translation function for an specific locale

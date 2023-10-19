@@ -139,6 +139,9 @@ func TestInitTranslationsWithDir(t *testing.T) {
 		err := initTranslationsWithDir(b, tempDir)
 		require.NoError(t, err)
 
+		// need to set the bundle
+		bundle = b
+
 		locales := GetSupportedLocales()
 		_, found := locales["en"]
 		require.True(t, found, "should have found en locale")
