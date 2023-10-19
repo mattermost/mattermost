@@ -233,7 +233,6 @@
   "admin.billing.company_info.city": "Město",
   "admin.billing.company_info.companyAddress": "Adresa společnosti",
   "admin.billing.company_info.companyName": "Název společnosti",
-  "admin.billing.company_info.country": "Země",
   "admin.billing.company_info.employees": "{employees} zaměstnanců",
   "admin.billing.company_info.numEmployees": "Počet zaměstnanců (volitelné)",
   "admin.billing.company_info.title": "Informace o společnosti",
