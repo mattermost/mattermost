@@ -17,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
@@ -102,7 +101,6 @@ type ServerIface interface {
 	License() *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
-	HooksManager() *product.HooksManager
 }
 
 type TelemetryService struct {
@@ -199,7 +197,6 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 		ts.trackGroups()
 		ts.trackChannelModeration()
 		ts.trackWarnMetrics()
-		ts.trackProducts()
 	}
 }
 
@@ -981,18 +978,6 @@ func (ts *TelemetryService) trackPlugins() {
 	})
 
 	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-		hooks.OnSendDailyTelemetry()
-		return true
-	}, plugin.OnSendDailyTelemetryID)
-}
-
-func (ts *TelemetryService) trackProducts() {
-	hm := ts.srv.HooksManager()
-	if hm == nil {
-		return
-	}
-
-	hm.RunMultiHook(func(hooks plugin.Hooks) bool {
 		hooks.OnSendDailyTelemetry()
 		return true
 	}, plugin.OnSendDailyTelemetryID)

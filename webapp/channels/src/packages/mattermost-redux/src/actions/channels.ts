@@ -497,7 +497,7 @@ export function getChannelTimezones(channelId: string): ActionFunc {
     };
 }
 
-export function fetchMyChannelsAndMembersREST(teamId: string): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
+export function fetchChannelsAndMembers(teamId: string): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let channels;
         let channelMembers;
@@ -1503,7 +1503,7 @@ export default {
     patchChannel,
     updateChannelNotifyProps,
     getChannel,
-    fetchMyChannelsAndMembersREST,
+    fetchChannelsAndMembers,
     getChannelTimezones,
     getChannelMembersByIds,
     leaveChannel,
