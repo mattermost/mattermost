@@ -20,6 +20,7 @@ describe('Metrics > License', () => {
                 Enable: true,
             },
         });
+        cy.apiRequireLicense();
     });
 
     it('should enable metrics in BUILD_NUMBER == dev environments', () => {
@@ -29,7 +30,6 @@ describe('Metrics > License', () => {
                 return;
             }
 
-            cy.apiRequireLicense();
             checkMetrics(200);
         });
     });
@@ -41,7 +41,6 @@ describe('Metrics > License', () => {
                 return;
             }
 
-            cy.apiRequireLicense();
             checkMetrics(200);
         });
     });

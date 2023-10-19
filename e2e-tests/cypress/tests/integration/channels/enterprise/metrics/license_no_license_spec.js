@@ -20,6 +20,7 @@ describe('Metrics > No license', () => {
                 Enable: true,
             },
         });
+        cy.apiDeleteLicense();
     });
 
     it('should enable metrics in BUILD_NUMBER == dev environments', () => {
@@ -29,7 +30,6 @@ describe('Metrics > No license', () => {
                 return;
             }
 
-            cy.apiDeleteLicense();
             checkMetrics(200);
         });
     });
@@ -41,7 +41,6 @@ describe('Metrics > No license', () => {
                 return;
             }
 
-            cy.apiDeleteLicense();
             checkMetrics(404);
         });
     });
