@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+
+import type {DialogElement as TDialogElement} from '@mattermost/types/integrations';
 
 import {
     checkDialogElementForError,
@@ -13,39 +14,48 @@ import {
 
 import SpinnerButton from 'components/spinner_button';
 
+import type EmojiMap from 'utils/emoji_map';
 import {localizeMessage} from 'utils/utils';
 
-import DialogElement from './dialog_element';
+import DialogElement from './dialog_element/dialog_element';
 import DialogIntroductionText from './dialog_introduction_text';
 
-export default class InteractiveDialog extends React.PureComponent {
-    static propTypes = {
-        url: PropTypes.string.isRequired,
-        callbackId: PropTypes.string,
-        elements: PropTypes.arrayOf(PropTypes.object),
-        title: PropTypes.string.isRequired,
-        introductionText: PropTypes.string,
-        iconUrl: PropTypes.string,
-        submitLabel: PropTypes.string,
-        notifyOnCancel: PropTypes.bool,
-        state: PropTypes.string,
-        onExited: PropTypes.func,
-        actions: PropTypes.shape({
-            submitInteractiveDialog: PropTypes.func.isRequired,
-        }).isRequired,
-        emojiMap: PropTypes.object.isRequired,
+export type Props = {
+    url: string;
+    callbackId?: string;
+    elements: TDialogElement[];
+    title: string;
+    introductionText?: string;
+    iconUrl?: string;
+    submitLabel?: string;
+    notifyOnCancel?: boolean;
+    state?: string;
+    onExited: () => void;
+    actions: {
+        submitInteractiveDialog: any;
     };
+    emojiMap: EmojiMap;
+}
 
-    constructor(props) {
+type State = {
+    show: boolean;
+    values: {
+        [x: string]: string;
+    };
+    error: string | null;
+    errors: Record<string, unknown>;
+    submitting: boolean;
+}
+
+export default class InteractiveDialog extends React.PureComponent<Props, State> {
+    constructor(props: Props) {
         super(props);
 
-        const values = {};
+        const values: Record<string, unknown> = {};
         if (props.elements != null) {
             props.elements.forEach((e) => {
                 if (e.type === 'bool') {
-                    values[e.name] =
-                        e.default === true ||
-                        String(e.default).toLowerCase() === 'true';
+                    values[e.name] = String(e.default).toLowerCase() === 'true';
                 } else {
                     values[e.name] = e.default || null;
                 }
@@ -54,19 +64,22 @@ export default class InteractiveDialog extends React.PureComponent {
 
         this.state = {
             show: true,
-            values,
+            values: (values as unknown as {
+                [x: string]: string;
+            }),
             error: null,
             errors: {},
             submitting: false,
         };
     }
 
-    handleSubmit = async (e) => {
+    handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const {elements} = this.props;
         const values = this.state.values;
-        const errors = {};
+        const errors: ReturnType<typeof checkDialogElementForError> | Record<string, unknown> = {};
+
         if (elements) {
             elements.forEach((elem) => {
                 const error = checkDialogElementForError(
@@ -87,7 +100,7 @@ export default class InteractiveDialog extends React.PureComponent {
 
         this.setState({errors});
 
-        if (Object.keys(errors).length !== 0) {
+        if (Object.keys(errors!).length !== 0) {
             return;
         }
 
@@ -102,9 +115,7 @@ export default class InteractiveDialog extends React.PureComponent {
 
         this.setState({submitting: true});
 
-        const {data} = await this.props.actions.submitInteractiveDialog(
-            dialog,
-        );
+        const {data} = await this.props.actions.submitInteractiveDialog(dialog);
 
         this.setState({submitting: false});
 
@@ -152,7 +163,7 @@ export default class InteractiveDialog extends React.PureComponent {
         this.setState({show: false});
     };
 
-    onChange = (name, value) => {
+    onChange = (name: string, value: string) => {
         const values = {...this.state.values, [name]: value};
         this.setState({values});
     };
@@ -166,15 +177,12 @@ export default class InteractiveDialog extends React.PureComponent {
             elements,
         } = this.props;
 
-        let submitText = (
+        const submitText = (
             <FormattedMessage
                 id='interactive_dialog.submit'
-                defaultMessage='Submit'
+                defaultMessage={submitLabel ?? 'Submit'}
             />
         );
-        if (submitLabel) {
-            submitText = submitLabel;
-        }
 
         let icon;
         if (iconUrl) {
@@ -207,7 +215,7 @@ export default class InteractiveDialog extends React.PureComponent {
                 >
                     <Modal.Header
                         closeButton={true}
-                        style={{borderBottom: elements == null && '0px'}}
+                        style={{borderBottom: elements == null ? '0px' : undefined}}
                     >
                         <Modal.Title
                             componentClass='h1'
@@ -239,12 +247,11 @@ export default class InteractiveDialog extends React.PureComponent {
                                         helpText={e.help_text}
                                         errorText={this.state.errors[e.name]}
                                         placeholder={e.placeholder}
-                                        minLength={e.min_length}
                                         maxLength={e.max_length}
                                         dataSource={e.data_source}
                                         optional={e.optional}
                                         options={e.options}
-                                        value={this.state.values[e.name]}
+                                        value={this.state.values[e.name] as string | number | boolean | undefined}
                                         onChange={this.onChange}
                                     />
                                 );
