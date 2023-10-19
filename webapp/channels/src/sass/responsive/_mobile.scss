@@ -160,14 +160,6 @@
 
         .modal {
             .settings-modal {
-                &:not(.settings-modal--tabless) {
-                    &:not(.display--content) {
-                        .modal-content {
-                            background: var(--sidebar-bg);
-                        }
-                    }
-                }
-
                 .modal-body {
                     min-height: 100%;
                 }
@@ -195,11 +187,21 @@
                                 padding-right: 15px;
                             }
 
+                            .section-min {
+                                .d-flex {
+                                    flex-direction: column;
+                                }
+                            }
+
                             .section-min__edit {
                                 position: relative;
                                 top: 0;
                                 right: 0;
                                 text-align: left;
+
+                                button {
+                                    opacity: 1;
+                                }
                             }
 
                             .appearance-section {
@@ -235,7 +237,7 @@
                             position: absolute;
                             z-index: 5;
                             top: 0;
-                            display: block;
+                            display: flex;
                             width: 100%;
 
                             .modal-title {
@@ -247,6 +249,8 @@
                                 >span {
                                     display: block;
                                     overflow: hidden;
+                                    font-family: Metropolis, sans-serif;
+                                    font-weight: 600;
                                     text-overflow: ellipsis;
                                     white-space: nowrap;
                                 }
@@ -289,13 +293,7 @@
                             }
 
                             > button {
-                                color: var(--sidebar-text);
-                            }
-
-                            &.active {
-                                > button {
-                                    color: var(--sidebar-text);
-                                }
+                                height: 48px;
                             }
                         }
                     }
@@ -303,9 +301,13 @@
                     .settings-content {
                         .section-min__edit {
                             text-align: left;
+                            text-decoration: none;
 
                             button {
+                                display: flex;
                                 width: 100%;
+                                align-items: center;
+                                color: rgba(var(--center-channel-color-rgb), 0.75);
                                 text-align: left;
                             }
 
@@ -319,7 +321,7 @@
                             padding: 0;
 
                             .user-settings {
-                                padding: 70px 20px 30px;
+                                padding: 100px 20px 30px;
                             }
                         }
 
@@ -347,11 +349,6 @@
                                 display: none;
                             }
                         }
-                    }
-
-                    button {
-                        padding: 15px;
-                        border-bottom: 1px solid;
                     }
                 }
             }
