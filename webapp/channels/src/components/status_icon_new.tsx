@@ -8,7 +8,7 @@ type Props = {
     status: string;
 }
 
-const StatusIconNew = ({className="",status=""}:Props) => {
+const StatusIconNew = ({className = '', status = ''}: Props) => {
     if (!status) {
         return null;
     }
@@ -22,7 +22,7 @@ const StatusIconNew = ({className="",status=""}:Props) => {
         iconName = 'icon-minus-circle';
     }
 
-    return <i className={`${iconName} ${className}`}/>
-}
+    return <i className={`${iconName} ${className}`}/>;
+};
 
-export default React.memo(StatusIconNew)
+export default React.memo(StatusIconNew);
