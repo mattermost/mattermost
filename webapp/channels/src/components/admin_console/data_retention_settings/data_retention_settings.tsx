@@ -235,7 +235,7 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 ),
                 files: (
                     <div data-testid='global_file_retention_cell'>
-                        {this.getMessageRetentionSetting(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionDays)}
+                        {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionHours)}
                     </div>
                 ),
                 actions: (

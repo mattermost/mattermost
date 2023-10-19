@@ -207,6 +207,7 @@ const (
 	DataRetentionSettingsDefaultMessageRetentionDays           = 365
 	DataRetentionSettingsDefaultMessageRetentionHours          = 8760
 	DataRetentionSettingsDefaultFileRetentionDays              = 365
+	DataRetentionSettingsDefaultFileRetentionHours             = 8760
 	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
 	DataRetentionSettingsDefaultBatchSize                      = 3000
@@ -2870,6 +2871,7 @@ type DataRetentionSettings struct {
 	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"`
 	MessageRetentionHours          *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays              *int    `access:"compliance_data_retention_policy"`
+	FileRetentionHours             *int    `access:"compliance_data_retention_policy"`
 	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
@@ -2900,6 +2902,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.FileRetentionDays == nil {
 		s.FileRetentionDays = NewInt(DataRetentionSettingsDefaultFileRetentionDays)
+	}
+
+	if s.FileRetentionHours == nil {
+		s.FileRetentionHours = NewInt(DataRetentionSettingsDefaultFileRetentionHours)
 	}
 
 	if s.BoardsRetentionDays == nil {
@@ -4045,6 +4051,10 @@ func (s *DataRetentionSettings) isValid() *AppError {
 
 	if *s.FileRetentionDays <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.FileRetentionHours <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if _, err := time.Parse("15:04", *s.DeletionJobStartTime); err != nil {

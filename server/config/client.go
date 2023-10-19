@@ -127,6 +127,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionMessageRetentionHours"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
+	props["DataRetentionFileRetentionHours"] = "0"
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
 	props["MaxMarkdownNodes"] = strconv.FormatInt(int64(*c.DisplaySettings.MaxMarkdownNodes), 10)
@@ -201,6 +202,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionMessageRetentionHours"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionHours), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
+			props["DataRetentionFileRetentionHours"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionHours), 10)
 		}
 
 		if license.HasSharedChannels() {

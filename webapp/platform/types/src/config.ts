@@ -34,7 +34,9 @@ export type ClientConfig = {
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
     DataRetentionFileRetentionDays: string;
+    DataRetentionFileRetentionHours: string;
     DataRetentionMessageRetentionDays: string;
+    DataRetentionMessageRetentionHours: string;
     DefaultClientLocale: string;
     DefaultTheme: string;
     DiagnosticId: string;
@@ -811,6 +813,7 @@ export type DataRetentionSettings = {
     MessageRetentionDays: number;
     MessageRetentionHours: number;
     FileRetentionDays: number;
+    FileRetentionHours: number;
     DeletionJobStartTime: string;
     BatchSize: number;
     EnableBoardsDeletion: boolean,

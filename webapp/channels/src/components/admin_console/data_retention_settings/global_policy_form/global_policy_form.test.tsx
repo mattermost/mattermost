@@ -12,8 +12,8 @@ describe('components/PluginManagement', () => {
             DataRetentionSettings: {
                 EnableMessageDeletion: true,
                 EnableFileDeletion: true,
-                MessageRetentionDays: 60,
-                FileRetentionDays: 40,
+                MessageRetentionHours: 1440,
+                FileRetentionHours: 960,
                 DeletionJobStartTime: '10:00',
             },
         },

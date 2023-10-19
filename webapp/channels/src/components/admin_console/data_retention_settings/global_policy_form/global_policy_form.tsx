@@ -53,8 +53,8 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
             formErrorText: '',
             messageRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableMessageDeletion, DataRetentionSettings?.MessageRetentionHours),
             messageRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableMessageDeletion, DataRetentionSettings?.MessageRetentionHours),
-            fileRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionDays),
-            fileRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionDays),
+            fileRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionHours),
+            fileRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionHours),
         };
     }
 
@@ -109,9 +109,9 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
 
         newConfig.DataRetentionSettings.EnableFileDeletion = this.setDeletionEnabled(fileRetentionDropdownValue.value);
 
-        const fileDays = this.setRetentionDays(fileRetentionDropdownValue.value, fileRetentionInputValue);
-        if (fileDays >= 1) {
-            newConfig.DataRetentionSettings.FileRetentionDays = fileDays;
+        const fileHours = this.setRetentionHours(fileRetentionDropdownValue.value, fileRetentionInputValue);
+        if (fileHours >= 1) {
+            newConfig.DataRetentionSettings.FileRetentionHours = fileHours;
         }
 
         const {error} = await this.props.actions.updateConfig(newConfig);
@@ -129,18 +129,6 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
             return false;
         }
         return true;
-    };
-
-    setRetentionDays = (dropdownValue: string, value: string): number => {
-        if (dropdownValue === YEARS) {
-            return parseInt(value, 10) * 365;
-        }
-
-        if (dropdownValue === DAYS) {
-            return parseInt(value, 10);
-        }
-
-        return 0;
     };
 
     setRetentionHours = (dropdownValue: string, value: string): number => {

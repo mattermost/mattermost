@@ -12,8 +12,8 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             DataRetentionSettings: {
                 EnableMessageDeletion: true,
                 EnableFileDeletion: true,
-                MessageRetentionDays: 100,
-                FileRetentionDays: 100,
+                MessageRetentionHours: 2400,
+                FileRetentionHours: 2400,
                 DeletionJobStartTime: '00:15',
             },
         },
