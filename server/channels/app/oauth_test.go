@@ -463,7 +463,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		})
 
 		providerMock := &mocks.OAuthProvider{}
-		providerMock.On("GetSSOSettings", mock.AnythingOfType("request.CTX"), mock.Anything, model.ServiceOpenid).Return(nil, errors.New("error"))
+		providerMock.On("GetSSOSettings", mock.AnythingOfType("*request.Context"), mock.Anything, model.ServiceOpenid).Return(nil, errors.New("error"))
 		einterfaces.RegisterOAuthProvider(model.ServiceOpenid, providerMock)
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(th.Context, nil, nil, model.ServiceOpenid, "", "", "")

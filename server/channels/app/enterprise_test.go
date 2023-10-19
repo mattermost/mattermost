@@ -55,8 +55,8 @@ func TestSAMLSettings(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			saml2 := &mocks.SamlInterface{}
-			saml2.Mock.On("ConfigureSP", mock.AnythingOfType("request.CTX")).Return(nil)
-			saml2.Mock.On("GetMetadata", mock.AnythingOfType("request.CTX")).Return("samlTwo", nil)
+			saml2.Mock.On("ConfigureSP", mock.AnythingOfType("*request.Context")).Return(nil)
+			saml2.Mock.On("GetMetadata", mock.AnythingOfType("*request.Context")).Return("samlTwo", nil)
 			if tc.setNewInterface {
 				RegisterNewSamlInterface(func(_ *App) einterfaces.SamlInterface {
 					return saml2

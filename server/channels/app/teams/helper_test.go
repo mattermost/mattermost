@@ -22,7 +22,7 @@ type TestHelper struct {
 	dbStore     store.Store
 	workspace   string
 
-	Context   request.CTX
+	Context   *request.Context
 	LogBuffer *bytes.Buffer
 }
 

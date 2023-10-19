@@ -23,7 +23,7 @@ import (
 
 type TestHelper struct {
 	App          *app.App
-	Context      request.CTX
+	Context      *request.Context
 	Server       *app.Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User

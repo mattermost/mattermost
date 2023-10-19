@@ -576,7 +576,7 @@ func TestRequestCancellation(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
 		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(true, nil)
-		mockStore.JobStore.On("Get", mock.AnythingOfType("request.CTX"), "job_id").Return(nil, &store.ErrNotFound{})
+		mockStore.JobStore.On("Get", mock.AnythingOfType("*request.Context"), "job_id").Return(nil, &store.ErrNotFound{})
 
 		err := jobServer.RequestCancellation(ctx, "job_id")
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -591,7 +591,7 @@ func TestRequestCancellation(t *testing.T) {
 		}
 
 		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(true, nil)
-		mockStore.JobStore.On("Get", mock.AnythingOfType("request.CTX"), "job_id").Return(job, nil)
+		mockStore.JobStore.On("Get", mock.AnythingOfType("*request.Context"), "job_id").Return(job, nil)
 		mockMetrics.On("DecrementJobActive", "job_type")
 
 		err := jobServer.RequestCancellation(ctx, "job_id")
