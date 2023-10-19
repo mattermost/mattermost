@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {type IntlShape} from 'react-intl';
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -24,6 +25,7 @@ export type OwnProps = {
     updateSection: (section: string) => void;
     team?: Team & { last_team_icon_update?: number };
     activeSection: string;
+    intl: IntlShape;
     closeModal: () => void;
     collapseModal: () => void;
 };
