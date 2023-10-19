@@ -124,14 +124,15 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	var allActivityPushUserIds []string
 	if channel.Type != model.ChannelTypeDirect {
 		// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
-		for _, group := range mentions.GroupMentions {
+		for groupID := range mentions.GroupMentions {
+			group := groups[groupID]
 			anyUsersMentionedByGroup, err := a.insertGroupMentions(group, channel, profileMap, mentions)
 			if err != nil {
 				return nil, err
 			}
 
 			if !anyUsersMentionedByGroup {
-				a.sendNoUsersNotifiedByGroupInChannel(c, sender, post, channel, group)
+				a.sendNoUsersNotifiedByGroupInChannel(c, sender, post, channel, groups[groupID])
 			}
 		}
 
@@ -170,7 +171,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				threadParticipants[rootPost.UserId] = true
 			}
 			if channel.Type != model.ChannelTypeDirect {
-				rootMentions = getExplicitMentions(rootPost, keywords, groups)
+				rootMentions = getExplicitMentions(rootPost, keywords)
 				for id := range rootMentions.Mentions {
 					threadParticipants[id] = true
 				}
@@ -674,9 +675,9 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 		mentions, _ := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, nil)
 
 		userIDs := []string{}
-		for _, group := range mentions.GroupMentions {
+		for groupID := range mentions.GroupMentions {
 			for page := 0; ; page++ {
-				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(group.Id, page, 100, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
+				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(groupID, page, 100, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
 				if appErr != nil {
 					return appErr
 				}
@@ -750,10 +751,10 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 	return nil
 }
 
-func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*MentionResults, map[string][]string) {
+func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*MentionResults, MentionKeywords) {
 	mentions := &MentionResults{}
 	var allowChannelMentions bool
-	var keywords map[string][]string
+	var keywords MentionKeywords
 
 	if channel.Type == model.ChannelTypeDirect {
 		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
@@ -768,9 +769,9 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		}
 	} else {
 		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
-		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
+		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups)
 
-		mentions = getExplicitMentions(post, keywords, groups)
+		mentions = getExplicitMentions(post, keywords)
 
 		// Add a GM mention to all members of a GM channel
 		if channel.Type == model.ChannelTypeGroup {
@@ -1045,8 +1046,8 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(post *model.Post, keywords map[string][]string, groups map[string]*model.Group) *MentionResults {
-	parser := makeStandardMentionParser(keywords, groups)
+func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionResults {
+	parser := makeStandardMentionParser(keywords)
 
 	buf := ""
 	mentionsEnabledFields := getMentionsEnabledFields(post)
@@ -1147,7 +1148,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 		}
 		for _, group := range groups {
 			if group.Group.Name != nil {
-				groupsMap[*group.Group.Name] = &group.Group
+				groupsMap[group.Id] = &group.Group
 			}
 		}
 		return groupsMap, nil
@@ -1159,7 +1160,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 	}
 	for _, group := range groups {
 		if group.Name != nil {
-			groupsMap[*group.Name] = group
+			groupsMap[group.Id] = group
 		}
 	}
 
@@ -1168,18 +1169,19 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
-	keywords := make(map[string][]string)
+func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap, groups map[string]*model.Group) MentionKeywords {
+	keywords := make(MentionKeywords)
 
 	for _, profile := range profiles {
-		addMentionKeywordsForUser(
-			keywords,
+		keywords.AddUser(
 			profile,
 			channelMemberNotifyPropsMap[profile.Id],
 			a.GetStatusFromCache(profile.Id),
 			allowChannelMentions,
 		)
 	}
+
+	keywords.AddGroupsMap(groups)
 
 	return keywords
 }
@@ -1225,44 +1227,6 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	}
 
 	return isGroupOrDirect || len(groupMembers) > 0, nil
-}
-
-// addMentionKeywordsForUser adds the mention keywords for a given user to the given keyword map. Returns the provided keyword map.
-func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User, channelNotifyProps map[string]string, status *model.Status, allowChannelMentions bool) map[string][]string {
-	userMention := "@" + strings.ToLower(profile.Username)
-	keywords[userMention] = append(keywords[userMention], profile.Id)
-
-	// Add all the user's mention keys
-	for _, k := range profile.GetMentionKeys() {
-		// note that these are made lower case so that we can do a case insensitive check for them
-		key := strings.ToLower(k)
-
-		if key != "" {
-			keywords[key] = append(keywords[key], profile.Id)
-		}
-	}
-
-	// If turned on, add the user's case sensitive first name
-	if profile.NotifyProps[model.FirstNameNotifyProp] == "true" && profile.FirstName != "" {
-		keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
-	}
-
-	// Add @channel and @all to keywords if user has them turned on and the server allows them
-	if allowChannelMentions {
-		// Ignore channel mentions if channel is muted and channel mention setting is default
-		ignoreChannelMentions := channelNotifyProps[model.IgnoreChannelMentionsNotifyProp] == model.IgnoreChannelMentionsOn || (channelNotifyProps[model.MarkUnreadNotifyProp] == model.UserNotifyMention && channelNotifyProps[model.IgnoreChannelMentionsNotifyProp] == model.IgnoreChannelMentionsDefault)
-
-		if profile.NotifyProps[model.ChannelMentionsNotifyProp] == "true" && !ignoreChannelMentions {
-			keywords["@channel"] = append(keywords["@channel"], profile.Id)
-			keywords["@all"] = append(keywords["@all"], profile.Id)
-
-			if status != nil && status.Status == model.StatusOnline {
-				keywords["@here"] = append(keywords["@here"], profile.Id)
-			}
-		}
-	}
-
-	return keywords
 }
 
 // Represents either an email or push notification and contains the fields required to send it to any user.
