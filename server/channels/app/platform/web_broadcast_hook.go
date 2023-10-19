@@ -25,7 +25,7 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 		hook := h.broadcastHooks[hookID]
 		args := hookArgs[i]
 		if hook == nil {
-			mlog.Error("runBroadcastHooks: Unable to find broadcast hook", mlog.String("hook_id", hookID))
+			mlog.Warn("runBroadcastHooks: Unable to find broadcast hook", mlog.String("hook_id", hookID))
 			continue
 		}
 

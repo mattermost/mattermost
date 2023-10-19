@@ -228,11 +228,6 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	th.LinkUserToTeam(sender, th.BasicTeam)
 	member := th.AddUserToChannel(sender, th.BasicChannel)
 
-	// Make the sender a channel_admin because that's needed for group mentions
-	member.Roles = "channel_user channel_admin"
-	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, member.ChannelId, member.UserId, member.Roles)
-	require.Nil(t, appErr)
-
 	t.Run("should inform each user if they were mentioned by a post", func(t *testing.T) {
 		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
 		defer closeWS1()
@@ -246,7 +241,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   "@channel",
 		}
-		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
 		require.NoError(t, err)
 
 		received1 := <-messages1
@@ -263,7 +258,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("@%s @%s", th.BasicUser.Username, th.BasicUser2.Username),
 		}
-		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
+		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
 		require.NoError(t, err)
 
 		received1 = <-messages1
@@ -280,7 +275,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   "@" + th.BasicUser.Username,
 		}
-		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
+		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
 		require.NoError(t, err)
 
 		received1 = <-messages1
@@ -293,6 +288,16 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	})
 
 	t.Run("should inform each user in a group if they were mentioned by a post", func(t *testing.T) {
+		// Make the sender a channel_admin because that's needed for group mentions
+		originalRoles := member.Roles
+		member.Roles = "channel_user channel_admin"
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, member.ChannelId, member.UserId, member.Roles)
+		require.Nil(t, appErr)
+
+		defer func() {
+			th.App.UpdateChannelMemberRoles(th.Context, member.ChannelId, member.UserId, originalRoles)
+		}()
+
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuEnterprise))
 
 		// Make a group and add users
@@ -322,7 +327,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		require.True(t, th.App.allowGroupMentions(th.Context, post))
 
 		// Test sending notifications
-		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
 		require.NoError(t, err)
 
 		received1 := <-messages1
@@ -377,7 +382,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("@%s", th.BasicUser.Username),
 		}
-		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, false)
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
 		require.NoError(t, err)
 
 		received1 := <-messages1
