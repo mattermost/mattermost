@@ -8,11 +8,11 @@
 // ***************************************************************
 
 // Stage: @prod
-// Group: @channels @enterprise @metrics @not_cloud
+// Group: @channels @enterprise @metrics @not_cloud @license_removal
 
 import {checkMetrics} from './helper';
 
-describe('Metrics > License', () => {
+describe('Metrics > No license', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
         cy.apiUpdateConfig({
@@ -29,20 +29,20 @@ describe('Metrics > License', () => {
                 return;
             }
 
-            cy.apiRequireLicense();
+            cy.apiDeleteLicense();
             checkMetrics(200);
         });
     });
 
-    it('should enable metrics in BUILD_NUMBER != dev environments', () => {
+    it('should disable metrics in BUILD_NUMBER != dev environments', () => {
         cy.apiGetConfig(true).then(({config}) => {
             if (config.BuildNumber === 'dev') {
                 Cypress.log({name: 'Metrics License', message: `Skipping test since BUILD_NUMBER = ${config.BuildNumber}`});
                 return;
             }
 
-            cy.apiRequireLicense();
-            checkMetrics(200);
+            cy.apiDeleteLicense();
+            checkMetrics(404);
         });
     });
 });
