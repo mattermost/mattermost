@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
+
 import FileThumbnail from 'components/file_attachment/file_thumbnail';
 import FilePreviewModal from 'components/file_preview_modal';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -191,7 +193,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                     >
                         <a
                             className='action-icon download-icon'
-                            href={`/api/v4/files/${fileInfo.id}?download=1`}
+                            href={getFileDownloadUrl(fileInfo.id)}
                             onClick={this.stopPropagation}
                         >
                             <i className='icon icon-download-outline'/>
