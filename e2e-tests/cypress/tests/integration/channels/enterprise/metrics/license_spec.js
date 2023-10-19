@@ -23,7 +23,7 @@ describe('Metrics > License', () => {
     const checkMetrics = (expectedStatusCode) => {
         cy.apiGetConfig().then(({config}) => {
             const baseURL = new URL(Cypress.config('baseUrl'));
-            baseURL.port = config.MetricsSettings.ListenAddress.replace(/^.+:/, '');
+            baseURL.port = config.MetricsSettings.ListenAddress.replace(/^.*:/, '');
             baseURL.pathname = '/metrics';
 
             Cypress.log({name: 'Metrics License', message: `Checking metrics at ${baseURL.toString()}`});
