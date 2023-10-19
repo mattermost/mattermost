@@ -8,7 +8,7 @@
 // ***************************************************************
 
 // Stage: @prod
-// Group: @channels @enterprise @metrics @not_cloud
+// Group: @channels @enterprise @metrics @not_cloud @license_removal
 
 describe('Metrics > License', () => {
     before(() => {
