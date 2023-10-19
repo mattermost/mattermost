@@ -21,6 +21,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import {ServerError} from '@mattermost/types/errors';
 import {Team} from '@mattermost/types/teams';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
@@ -221,17 +222,17 @@ function TeamController(props: Props) {
     return (
         <Switch>
             <Route
-                path={'/:team/integrations'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/integrations`}
                 component={BackstageController}
             />
             <Route
-                path={'/:team/emoji'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/emoji`}
                 component={BackstageController}
             />
             {props.plugins?.map((plugin) => (
                 <Route
                     key={plugin.id}
-                    path={'/:team/' + (plugin as any).route}
+                    path={`/:team(${TEAM_NAME_PATH_PATTERN})/` + (plugin as any).route}
                     render={() => (
                         <Pluggable
                             pluggableName={'NeedsTeamComponent'}

@@ -11,6 +11,8 @@ import ChannelIdentifierRouter from 'components/channel_layout/channel_identifie
 import PlaybookRunner from 'components/channel_layout/playbook_runner';
 import {makeAsyncComponent} from 'components/async_load';
 
+import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from 'utils/path';
+
 import type {OwnProps, PropsFromRedux} from './index';
 
 const LazyChannelHeaderMobile = makeAsyncComponent(
@@ -102,7 +104,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                 <div className='row main'>
                     <Switch>
                         <Route
-                            path={`${url}/pl/:postid`}
+                            path={`${url}/pl/:postid(${ID_PATH_PATTERN})`}
                             render={(props) => (
                                 <PermalinkView
                                     {...props}
@@ -111,22 +113,22 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             )}
                         />
                         <Route
-                            path='/:team/:path(channels|messages)/:identifier/:postid?'
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
                             component={ChannelIdentifierRouter}
                         />
                         <Route
-                            path='/:team/_playbooks/:playbookId/run'
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/_playbooks/:playbookId(${ID_PATH_PATTERN})/run`}
                         >
                             <PlaybookRunner/>
                         </Route>
                         {isCollapsedThreadsEnabled ? (
                             <Route
-                                path='/:team/threads/:threadIdentifier?'
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
                                 component={LazyGlobalThreads}
                             />
                         ) : null}
                         <Route
-                            path='/:team/drafts'
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
                             component={LazyDrafts}
                         />
                         {insightsAreEnabled ? (
