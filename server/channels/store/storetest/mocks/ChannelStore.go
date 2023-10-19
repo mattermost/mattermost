@@ -1314,6 +1314,32 @@ func (_m *ChannelStore) GetMemberForPost(postID string, userID string) (*model.C
 	return r0, r1
 }
 
+// GetMemberOnly provides a mock function with given fields: ctx, channelID, userID
+func (_m *ChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+	ret := _m.Called(ctx, channelID, userID)
+
+	var r0 *model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*model.ChannelMember, error)); ok {
+		return rf(ctx, channelID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *model.ChannelMember); ok {
+		r0 = rf(ctx, channelID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, channelID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMembers provides a mock function with given fields: channelID, offset, limit
 func (_m *ChannelStore) GetMembers(channelID string, offset int, limit int) (model.ChannelMembers, error) {
 	ret := _m.Called(channelID, offset, limit)
