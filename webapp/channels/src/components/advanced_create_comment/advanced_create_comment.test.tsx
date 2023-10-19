@@ -734,29 +734,6 @@ describe('components/AdvancedCreateComment', () => {
                 });
             });
 
-            it(`should show Confirm Modal for @${mention} mentions when needed`, () => {
-                const props: any = {
-                    ...baseProps,
-                    draft: {
-                        message: `Test message @${mention}`,
-                        uploadsInProgress: [],
-                        fileInfos: [{}, {}, {}],
-                    },
-                    onSubmit,
-                    channelMembersCount: 8,
-                    enableConfirmNotificationsToChannel: true,
-                };
-
-                const wrapper = shallow<AdvancedCreateComment>(
-                    <AdvancedCreateComment {...props}/>,
-                );
-
-                wrapper.instance().handleSubmit(submitEvent);
-                expect(onSubmit).not.toHaveBeenCalled();
-                expect(preventDefault).toHaveBeenCalled();
-                expect(props.openModal).toHaveBeenCalled();
-            });
-
             it(`should show Confirm Modal for @${mention} mentions when needed and timezone notification`, async () => {
                 const props: any = {
                     ...baseProps,
