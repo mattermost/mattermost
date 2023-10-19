@@ -1364,10 +1364,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link-ul avanpremiera s-au dezactivat de către administratorul de sistem."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nu se poate actualiza o postare într-un canal șters."
   },
@@ -5698,10 +5694,6 @@
   {
     "id": "api.command_invite.user_not_in_team.app_error",
     "translation": "@{{.Username}} nu este un membru al acestui canal."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Acest canal este gestionat de grupuri.  Acest utilizator nu face parte dintr-un grup sincronizat cu acest canal."
   },
   {
     "id": "api.command.execute_command.format.app_error",

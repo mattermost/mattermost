@@ -58,7 +58,7 @@ type MetricsInterface interface {
 	IncrementFilesSearchCounter()
 	ObserveFilesSearchDuration(elapsed float64)
 	ObserveStoreMethodDuration(method, success string, elapsed float64)
-	ObserveAPIEndpointDuration(endpoint, method, statusCode string, elapsed float64)
+	ObserveAPIEndpointDuration(endpoint, method, statusCode, originClient, pageLoadContext string, elapsed float64)
 	IncrementPostIndexCounter()
 	IncrementFileIndexCounter()
 	IncrementUserIndexCounter()

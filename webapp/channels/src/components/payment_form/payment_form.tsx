@@ -11,16 +11,14 @@ import type {CloudCustomer, PaymentMethod} from '@mattermost/types/cloud';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
-import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
-
-import {COUNTRIES} from 'utils/countries';
 
 import type {BillingDetails} from 'types/cloud/sku';
 
 import CardImage from './card_image';
 import CardInput from './card_input';
 import type {CardInputType} from './card_input';
+import CountrySelector from './country_selector';
 import {GatherIntent, GatherIntentModal} from './gather_intent';
 import StateSelector from './state_selector';
 
@@ -165,18 +163,9 @@ const PaymentForm: React.FC<Props> = (props: Props) => {
                         defaultMessage='Billing address'
                     />
                 </div>
-                <DropdownInput
+                <CountrySelector
                     onChange={handleCountryChange}
-                    value={
-                        state.country ? {value: state.country, label: state.country} : undefined
-                    }
-                    options={COUNTRIES.map((country) => ({
-                        value: country.name,
-                        label: country.name,
-                    }))}
-                    legend={formatMessage({id: 'payment_form.country', defaultMessage: 'Country'})}
-                    placeholder={formatMessage({id: 'payment_form.country', defaultMessage: 'Country'})}
-                    name={'billing_dropdown'}
+                    value={state.country}
                 />
                 <div className='form-row'>
                     <Input
