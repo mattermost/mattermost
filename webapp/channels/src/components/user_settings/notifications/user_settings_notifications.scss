@@ -13,6 +13,7 @@
 
         a {
             display: flex;
+            align-items: center;
 
             &:hover,
             &:active,
@@ -34,16 +35,16 @@
                     text-decoration: underline;
                 }
             }
-        }
-    }
 
-    .icon--in-a-circle {
-        background: rgba(var(--button-bg-rgb), 0.12);
-        width: 18px;
-        height: 18px;
-        margin-right: 4px;
-        text-align: center;
-        padding-left: 1px;
-        border-radius: 50%;
+            > svg {
+                width: 18px;
+                height: 18px;
+                padding: 2px;
+                margin-right: 4px;
+                background: rgba(var(--button-bg-rgb), 0.12);
+                border-radius: 50%;
+                text-align: center;
+            }
+        }
     }
 }
