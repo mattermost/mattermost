@@ -205,9 +205,7 @@ const (
 	BleveSettingsDefaultBatchSize = 10000
 
 	DataRetentionSettingsDefaultMessageRetentionDays           = 365
-	DataRetentionSettingsDefaultMessageRetentionHours          = 8760
 	DataRetentionSettingsDefaultFileRetentionDays              = 365
-	DataRetentionSettingsDefaultFileRetentionHours             = 8760
 	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
 	DataRetentionSettingsDefaultBatchSize                      = 3000
@@ -2897,7 +2895,11 @@ func (s *DataRetentionSettings) SetDefaults() {
 	}
 
 	if s.MessageRetentionHours == nil {
-		s.MessageRetentionHours = NewInt(DataRetentionSettingsDefaultMessageRetentionHours)
+		if s.MessageRetentionDays != nil {
+			s.MessageRetentionHours = NewInt(*s.MessageRetentionDays * 24)
+		} else {
+			s.MessageRetentionHours = NewInt(DataRetentionSettingsDefaultMessageRetentionDays * 24)
+		}
 	}
 
 	if s.FileRetentionDays == nil {
@@ -2905,7 +2907,11 @@ func (s *DataRetentionSettings) SetDefaults() {
 	}
 
 	if s.FileRetentionHours == nil {
-		s.FileRetentionHours = NewInt(DataRetentionSettingsDefaultFileRetentionHours)
+		if s.FileRetentionDays != nil {
+			s.FileRetentionHours = NewInt(*s.FileRetentionDays * 24)
+		} else {
+			s.FileRetentionHours = NewInt(DataRetentionSettingsDefaultFileRetentionDays * 24)
+		}
 	}
 
 	if s.BoardsRetentionDays == nil {
