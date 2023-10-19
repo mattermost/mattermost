@@ -36,4 +36,14 @@
             }
         }
     }
+
+    .icon--in-a-circle {
+        background: rgba(var(--button-bg-rgb), 0.12);
+        width: 18px;
+        height: 18px;
+        margin-right: 4px;
+        text-align: center;
+        padding-left: 1px;
+        border-radius: 50%;
+    }
 }

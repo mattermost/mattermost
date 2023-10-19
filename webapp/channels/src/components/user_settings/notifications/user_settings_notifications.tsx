@@ -1102,7 +1102,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             values={{
                                 a: (chunks: string) => ((
                                     <ExternalLink href='https://mattermost.com/pl/about-notifications'>
-                                        <i className='icon icon-help-circle-outline'/>
+                                        <i className='icon icon-lightbulb-outline icon--in-a-circle'/>
                                         <span>{chunks}</span>
                                     </ExternalLink>
                                 )),
