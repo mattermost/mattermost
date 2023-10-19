@@ -825,6 +825,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
 		"message_retention_days":        *cfg.DataRetentionSettings.MessageRetentionDays,
+		"message_retention_hours":       *cfg.DataRetentionSettings.MessageRetentionHours,
 		"file_retention_days":           *cfg.DataRetentionSettings.FileRetentionDays,
 		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,

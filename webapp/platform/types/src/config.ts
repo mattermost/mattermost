@@ -809,6 +809,7 @@ export type DataRetentionSettings = {
     EnableMessageDeletion: boolean;
     EnableFileDeletion: boolean;
     MessageRetentionDays: number;
+    MessageRetentionHours: number;
     FileRetentionDays: number;
     DeletionJobStartTime: string;
     BatchSize: number;

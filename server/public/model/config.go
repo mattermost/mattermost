@@ -205,6 +205,7 @@ const (
 	BleveSettingsDefaultBatchSize = 10000
 
 	DataRetentionSettingsDefaultMessageRetentionDays           = 365
+	DataRetentionSettingsDefaultMessageRetentionHours          = 8760
 	DataRetentionSettingsDefaultFileRetentionDays              = 365
 	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
@@ -2867,6 +2868,7 @@ type DataRetentionSettings struct {
 	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
 	EnableBoardsDeletion           *bool   `access:"compliance_data_retention_policy"`
 	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"`
+	MessageRetentionHours          *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays              *int    `access:"compliance_data_retention_policy"`
 	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
@@ -2890,6 +2892,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.MessageRetentionDays == nil {
 		s.MessageRetentionDays = NewInt(DataRetentionSettingsDefaultMessageRetentionDays)
+	}
+
+	if s.MessageRetentionHours == nil {
+		s.MessageRetentionHours = NewInt(DataRetentionSettingsDefaultMessageRetentionHours)
 	}
 
 	if s.FileRetentionDays == nil {
@@ -4031,6 +4037,10 @@ func (bs *BleveSettings) isValid() *AppError {
 func (s *DataRetentionSettings) isValid() *AppError {
 	if *s.MessageRetentionDays <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MessageRetentionHours <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.FileRetentionDays <= 0 {

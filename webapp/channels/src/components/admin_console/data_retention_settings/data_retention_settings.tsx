@@ -147,6 +147,51 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
         ];
         return columns;
     };
+
+    getGlobalRetentionSetting = (enabled: boolean | undefined, hours: number | undefined): JSX.Element => {
+        if (!enabled) {
+            return (
+                <FormattedMessage
+                    id='admin.data_retention.form.keepForever'
+                    defaultMessage='Keep forever'
+                />
+            );
+        }
+        if (hours && hours % 8760 === 0) {
+            const years = hours / 8760;
+            return (
+                <FormattedMessage
+                    id='admin.data_retention.retention_years'
+                    defaultMessage='{count} {count, plural, one {year} other {years}}'
+                    values={{
+                        count: `${years}`,
+                    }}
+                />
+            );
+        }
+        if (hours && hours % 24 === 0) {
+            const days = hours / 24;
+            return (
+                <FormattedMessage
+                    id='admin.data_retention.retention_days'
+                    defaultMessage='{count} {count, plural, one {day} other {days}}'
+                    values={{
+                        count: `${days}`,
+                    }}
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='admin.data_retention.retention_hours'
+                defaultMessage='{count} {count, plural, one {hour} other {hours}}'
+                values={{
+                    count: `${hours}`,
+                }}
+            />
+        );
+    };
     getMessageRetentionSetting = (enabled: boolean | undefined, days: number | undefined): JSX.Element => {
         if (!enabled) {
             return (
@@ -185,7 +230,7 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 description: Utils.localizeMessage('admin.data_retention.form.text', 'Applies to all teams and channels, but does not apply to custom retention policies.'),
                 channel_messages: (
                     <div data-testid='global_message_retention_cell'>
-                        {this.getMessageRetentionSetting(DataRetentionSettings?.EnableMessageDeletion, DataRetentionSettings?.MessageRetentionDays)}
+                        {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableMessageDeletion, DataRetentionSettings?.MessageRetentionHours)}
                     </div>
                 ),
                 files: (

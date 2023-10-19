@@ -124,6 +124,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["AllowedThemes"] = ""
 	props["DataRetentionEnableMessageDeletion"] = "false"
 	props["DataRetentionMessageRetentionDays"] = "0"
+	props["DataRetentionMessageRetentionHours"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
 
@@ -197,6 +198,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		if *license.Features.DataRetention {
 			props["DataRetentionEnableMessageDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableMessageDeletion)
 			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
+			props["DataRetentionMessageRetentionHours"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionHours), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
 		}
