@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import ColorInput from 'components/color_input';
 
@@ -16,12 +16,12 @@ type Props = {
     disabled?: boolean;
 }
 
-const ColorSetting: React.FC<Props> = (props) => {
-    const handleChange = (color: string) => {
+const ColorSetting = (props: Props) => {
+    const handleChange = useCallback((color: string) => {
         if (props.onChange) {
             props.onChange(props.id, color);
         }
-    };
+    }, [props.id, props.onChange]);
 
 return (
         <Setting
@@ -39,4 +39,4 @@ return (
     );
 };
 
-export default ColorSetting;
+export default React.memo(ColorSetting);
