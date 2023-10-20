@@ -19,21 +19,16 @@ interface RevokeTokenButtonProps {
 const RevokeTokenButton: React.FC<RevokeTokenButtonProps> = (props) => {
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (error) {
-            props.onError(error);
-        }
-    }, [error, props]);
-
     const handleClick = async (e: React.MouseEvent) => {
         e.preventDefault();
 
-            const response = await props.actions.revokeUserAccessToken(props.tokenId);
-            trackEvent('system_console', 'revoke_user_access_token');
+        const response = await props.actions.revokeUserAccessToken(props.tokenId);
+        trackEvent('system_console', 'revoke_user_access_token');
 
-            if ('error' in response) {
-                setError(response.error.message);
-            }
+        if ('error' in response) {
+            setError(response.error.message);
+            props.onError(response.error.message);
+        }
     };
 
     return (
