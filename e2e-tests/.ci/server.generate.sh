@@ -8,20 +8,20 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
-is_service_in_list () {
+is_service_in_list() {
   local SERVICE_NAME=$1
   local SERVICE_LIST=$2
   grep -qE "(^| )$SERVICE_NAME( |$)" <<<"$SERVICE_LIST"
 }
 
-enable_docker_service () {
+enable_docker_service() {
   local SERVICE_TO_ENABLE="$1"
   if ! is_service_in_list "$SERVICE_TO_ENABLE" "$ENABLED_DOCKER_SERVICES"; then
     ENABLED_DOCKER_SERVICES="$ENABLED_DOCKER_SERVICES $SERVICE_TO_ENABLE"
   fi
 }
 
-assert_services_validity () {
+assert_services_validity() {
   local SERVICES_TO_CHECK="$*"
   local SERVICES_VALID="postgres minio inbucket openldap elasticsearch keycloak cypress webhook-interactions playwright"
   local SERVICES_REQUIRED="postgres inbucket"
@@ -41,13 +41,13 @@ assert_services_validity () {
   fi
 }
 
-ensure_optional_files_exist () {
+ensure_optional_files_exist() {
   # Create files required to exist, but whose existence depends on optional services (e.g. dashboard)
   touch .env.dashboard
   touch .env.server.cloud
 }
 
-echo_docker_compose_textblock_for_service () {
+echo_docker_compose_textblock_for_service() {
   local SERVICE_NAME="$1"
   local SERVICE_VARIABLE_NAME="$SERVICE_NAME"
 
@@ -56,12 +56,12 @@ echo_docker_compose_textblock_for_service () {
   # for variable names).
   # If required, rewrite the variable name before printing the variable's value
   case $SERVICE_NAME in
-    elasticsearch)
-      [ "$MME2E_ARCHTYPE" = "arm64" ] && SERVICE_VARIABLE_NAME="elasticsearch_arm64"
-      ;;
-    webhook-interactions)
-      SERVICE_VARIABLE_NAME="webhook_interactions"
-      ;;
+  elasticsearch)
+    [ "$MME2E_ARCHTYPE" = "arm64" ] && SERVICE_VARIABLE_NAME="elasticsearch_arm64"
+    ;;
+  webhook-interactions)
+    SERVICE_VARIABLE_NAME="webhook_interactions"
+    ;;
   esac
 
   echo "${!SERVICE_VARIABLE_NAME}"
@@ -197,6 +197,7 @@ cypress='
     volumes:
       - "../../e2e-tests/cypress/:/cypress"'
 
+# shellcheck disable=SC2016
 webhook_interactions='
   webhook-interactions:
     image: mattermostdevelopment/mirrored-node:${NODE_VERSION_REQUIRED}
@@ -246,7 +247,6 @@ playwright='
     volumes:
       - "../../:/mattermost"'
 
-
 # File to be used for overriding docker compose
 DC_FILE="server.override.yml"
 
@@ -265,7 +265,7 @@ mme2e_log "Generating $DC_FILE using the following parameters:"
 mme2e_log "TEST: ${TEST}"
 mme2e_log "SERVER: ${SERVER}"
 mme2e_log "ENABLED_DOCKER_SERVICES: ${ENABLED_DOCKER_SERVICES}"
-assert_services_validity $ENABLED_DOCKER_SERVICES
+assert_services_validity "$ENABLED_DOCKER_SERVICES"
 ensure_optional_files_exist
 
 # Generate the docker compose override file

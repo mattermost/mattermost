@@ -106,8 +106,8 @@ mme2e_legacy_setup () {
 
 # Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
 # NB: this won't work in the script
-alias docker-compose-mmserver="${MME2E_DC_SERVER}"
-alias docker-compose-mmdashboard="${MME2E_DC_DASHBOARD}"
+alias docker-compose-mmserver='${MME2E_DC_SERVER}'
+alias docker-compose-mmdashboard='${MME2E_DC_DASHBOARD}'
 
 # Call prerequisite utility functions
 mme2e_load_env_file
