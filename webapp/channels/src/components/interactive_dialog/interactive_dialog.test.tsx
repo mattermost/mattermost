@@ -46,9 +46,9 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                     }),
                 },
             };
-            const wrapper = shallow(<InteractiveDialog {...props}/>);
+            const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...props}/>);
 
-            await (wrapper.instance() as InteractiveDialog).handleSubmit(submitEvent);
+            await wrapper.instance().handleSubmit(submitEvent);
 
             const expected = (
                 <div className='error-text'>
@@ -59,8 +59,8 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         });
 
         test('should not appear when submit does not return an error', async () => {
-            const wrapper = shallow(<InteractiveDialog {...baseProps}/>);
-            await (wrapper.instance() as InteractiveDialog).handleSubmit(submitEvent);
+            const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...baseProps}/>);
+            await wrapper.instance().handleSubmit(submitEvent);
 
             expect(wrapper.find(Modal.Footer).exists('.error-text')).toBe(false);
         });
@@ -139,7 +139,11 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         ];
 
         testCases.forEach((testCase) => test(`should interpret ${testCase.description}`, () => {
-            element.default = `${testCase.default}`;
+            if (testCase.default === undefined) {
+                delete element.default;
+            } else {
+                element.default = testCase.default;
+            }
 
             const store = mockStore({});
             const wrapper = mountWithIntl(

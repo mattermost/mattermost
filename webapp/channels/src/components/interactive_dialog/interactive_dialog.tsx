@@ -30,7 +30,7 @@ export type Props = {
     submitLabel?: string;
     notifyOnCancel?: boolean;
     state?: string;
-    onExited: () => void;
+    onExited?: () => void;
     actions: {
         submitInteractiveDialog: any;
     };
@@ -39,11 +39,9 @@ export type Props = {
 
 type State = {
     show: boolean;
-    values: {
-        [x: string]: string;
-    };
+    values: Record<string, string | number | boolean>;
     error: string | null;
-    errors: Record<string, unknown>;
+    errors: Record<string, JSX.Element>;
     submitting: boolean;
 }
 
@@ -51,22 +49,20 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
     constructor(props: Props) {
         super(props);
 
-        const values: Record<string, unknown> = {};
+        const values: Record<string, string | number | boolean> = {};
         if (props.elements != null) {
             props.elements.forEach((e) => {
                 if (e.type === 'bool') {
                     values[e.name] = String(e.default).toLowerCase() === 'true';
                 } else {
-                    values[e.name] = e.default || null;
+                    values[e.name] = e.default ?? null;
                 }
             });
         }
 
         this.state = {
             show: true,
-            values: (values as unknown as {
-                [x: string]: string;
-            }),
+            values,
             error: null,
             errors: {},
             submitting: false,
@@ -78,7 +74,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
 
         const {elements} = this.props;
         const values = this.state.values;
-        const errors: ReturnType<typeof checkDialogElementForError> | Record<string, unknown> = {};
+        const errors: Record<string, JSX.Element> = {};
 
         if (elements) {
             elements.forEach((elem) => {
@@ -100,7 +96,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
 
         this.setState({errors});
 
-        if (Object.keys(errors!).length !== 0) {
+        if (Object.keys(errors).length !== 0) {
             return;
         }
 
@@ -177,12 +173,16 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
             elements,
         } = this.props;
 
-        const submitText = (
+        let submitText: JSX.Element | string = (
             <FormattedMessage
                 id='interactive_dialog.submit'
-                defaultMessage={submitLabel ?? 'Submit'}
+                defaultMessage='Submit'
             />
         );
+
+        if (submitLabel) {
+            submitText = submitLabel;
+        }
 
         let icon;
         if (iconUrl) {
@@ -251,7 +251,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                                         dataSource={e.data_source}
                                         optional={e.optional}
                                         options={e.options}
-                                        value={this.state.values[e.name] as string | number | boolean | undefined}
+                                        value={this.state.values[e.name]}
                                         onChange={this.onChange}
                                     />
                                 );
