@@ -515,7 +515,7 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: run-server inject-test-data ## start a local instance and add test data to it.
+test-data: run-server inject-test-data stop-server ## start a local instance and add test data to it.
 
 inject-test-data: # add test data to the local instance.
 	@if ! ./scripts/wait-for-system-start.sh; then \
@@ -532,8 +532,6 @@ inject-test-data: # add test data to the local instance.
 	@echo Login with a system admin account username=sysadmin password=Sys@dmin-sample1
 	@echo Login with a regular account username=user-1 password=SampleUs@r-1
 	@echo ========================================================================
-
-	make stop-server
 
 test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
