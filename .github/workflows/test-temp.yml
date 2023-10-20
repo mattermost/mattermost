@@ -1,0 +1,29 @@
+name: Run update
+
+on:
+  schedule:
+    - cron: '0 12 * * *' 
+  pull_request:
+    branches: [ test_session ]
+
+jobs:
+  build:
+    runs-on: ubunto-latest
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node-version: [16]
+
+    steps:
+
+    - name: Add start comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+            github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `/update-branch`,
+            });
