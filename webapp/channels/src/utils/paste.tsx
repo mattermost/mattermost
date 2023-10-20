@@ -10,6 +10,7 @@ export function parseHtmlTable(html: string): HTMLTableElement | null {
 }
 
 export function getHtmlTable(clipboardData: DataTransfer): HTMLTableElement | null {
+    // Check if clipboard data has html as one of its types
     if (Array.from(clipboardData.types).indexOf('text/html') === -1) {
         return null;
     }
@@ -40,6 +41,18 @@ export function isGitHubCodeBlock(tableClassName: string): boolean {
 export function isTextUrl(clipboardData: DataTransfer): boolean {
     const clipboardText = clipboardData.getData('text/plain');
     return clipboardText.startsWith('http://') || clipboardText.startsWith('https://');
+}
+
+/**
+ * Checks if the clipboard data contains plain text from list of types.
+**/
+export function hasPlainText(clipboardData: DataTransfer): boolean {
+    if (Array.from(clipboardData.types).includes('text/plain')) {
+        const clipboardText = clipboardData.getData('text/plain');
+
+        return clipboardText.trim().length > 0;
+    }
+    return false;
 }
 
 function isTableWithoutHeaderRow(table: HTMLTableElement): boolean {
@@ -139,4 +152,35 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
 
     const markdownLink = `[${selectedText}](${clipboardUrl})`;
     return markdownLink;
+}
+
+export function createFileFromClipboardDataItem(item: DataTransferItem, fileNamePrefixIfNoName: string): File | null {
+    const file = item.getAsFile();
+
+    if (!file) {
+        return null;
+    }
+
+    let ext = '';
+    if (file.name && file.name.includes('.')) {
+        ext = file.name.slice(file.name.lastIndexOf('.'));
+    } else if (item.type.includes('/')) {
+        ext = '.' + item.type.slice(item.type.lastIndexOf('/') + 1).toLowerCase();
+    }
+
+    let name = '';
+    if (file.name) {
+        name = file.name;
+    } else {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const hour = now.getHours().toString().padStart(2, '0');
+        const minute = now.getMinutes().toString().padStart(2, '0');
+
+        name = `${fileNamePrefixIfNoName}${year}-${month}-${date} ${hour}-${minute}${ext}`;
+    }
+
+    return new File([file as Blob], name, {type: file.type});
 }
