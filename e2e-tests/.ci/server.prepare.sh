@@ -22,12 +22,16 @@ ${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/matterm
 ${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz | ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress tee tests/fixtures/com.mattermost.demo-plugin-0.8.0.tar.gz >/dev/null
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress tee tests/fixtures/keycloak.crt >/dev/null <../../server/build/docker/keycloak/keycloak.crt
 
-if [[ $ENABLED_DOCKER_SERVICES == *"openldap"* ]]; then
-  ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
-fi
-
-if [[ $ENABLED_DOCKER_SERVICES == *"minio"* ]]; then
-  ${MME2E_DC_SERVER} exec -T -- minio sh -c 'mkdir -p /data/mattermost-test'
-fi
+# Run service-specific initialization steps
+for SERVICE in $ENABLED_DOCKER_SERVICES; do
+  case "$SERVICE" in
+  openldap)
+    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
+    ;;
+  minio)
+    ${MME2E_DC_SERVER} exec -T -- minio sh -c 'mkdir -p /data/mattermost-test'
+    ;;
+  esac
+done
 
 mme2e_log "Mattermost is running and ready for E2E testing"

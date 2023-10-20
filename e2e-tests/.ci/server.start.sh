@@ -8,7 +8,6 @@ export BRANCH=${BRANCH:-$BRANCH_DEFAULT}
 BUILD_ID_DEFAULT=$(date +%s)
 export BUILD_ID=${BUILD_ID:-$BUILD_ID_DEFAULT}
 export CI_BASE_URL="${CI_BASE_URL:-localhost}"
-export SITE_URL="${SITE_URL:-http://server:8065}"
 
 # Cleanup old containers, if any
 mme2e_log "Stopping leftover E2E containers, if any are running"
