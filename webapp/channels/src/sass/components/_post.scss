@@ -1776,22 +1776,6 @@
         color: #d58a8a;
     }
 
-    .post-waiting {
-        position: relative;
-        color: #999;
-
-        .spinner {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            width: 20px;
-        }
-
-        .post-message {
-            padding-right: 24px;
-        }
-    }
-
     .permalink-icon {
         display: inline-block;
         color: $primary-color;
