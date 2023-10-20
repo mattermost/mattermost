@@ -4248,7 +4248,7 @@ func (a *OpenTracingAppLayer) ExtendSessionExpiryIfNeeded(session *model.Session
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+func (a *OpenTracingAppLayer) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExtractContentFromFileInfo")
 
@@ -4260,7 +4260,7 @@ func (a *OpenTracingAppLayer) ExtractContentFromFileInfo(fileInfo *model.FileInf
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.ExtractContentFromFileInfo(fileInfo)
+	resultVar0 := a.app.ExtractContentFromFileInfo(rctx, fileInfo)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
