@@ -161,6 +161,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                         value={this.state.selectedOption}
                         isSearchable={false}
                         ref={this.dropdownSoundRef}
+                        components={{SingleValue: (props) => <div data-testid='displaySoundNotificationValue'>{props.children}</div>}}
                     /></div>);
             }
 
@@ -189,6 +190,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                             value={this.state.callsSelectedOption}
                             isSearchable={false}
                             ref={this.callsDropdownRef}
+                            components={{SingleValue: (props) => <div data-testid='displayCallsSoundNotificationValue'>{props.children}</div>}}
                         /></div>);
                 }
 

@@ -64,24 +64,16 @@ describe('Notifications', () => {
         switch (type) {
         case 'desktopNotification':
             // # Change Notification sound selection value is set to Down
-            cy.get('#displaySoundNotification').
-                find('.react-select__dropdown-indicator').
-                click().
-                get('.react-select__menu').
-                contains('Down').
-                click();
+            cy.get('#displaySoundNotification').click();
+            cy.findByText('Down').click();
 
             // * Verify Notification display changed to Down
             verifyNotificationSelectionValue(type, 'Down');
             break;
         case 'callsDesktopSound':
             // # Change Notification Notification sound for incoming calls selection value is set to Down
-            cy.get('#displayCallsSoundNotification').
-                find('.react-select__dropdown-indicator').
-                click().
-                get('.react-select__menu').
-                contains('Cheerful').
-                click();
+            cy.get('#displayCallsSoundNotification').click();
+            cy.findByText('Cheerful').click();
 
             // * Verify Notification display changed to Cheerful
             verifyNotificationSelectionValue(type, 'Cheerful');
@@ -114,15 +106,11 @@ describe('Notifications', () => {
         switch (type) {
         case 'desktopNotification':
             // * Verify that the Notification sound is set to certain value
-            cy.get('#displaySoundNotification').
-                find('.react-select__single-value').
-                should('contain', value);
+            cy.get('#displaySoundNotification').findByTestId('displaySoundNotificationValue').should('contain', value);
             break;
         case 'callsDesktopSound':
             // * Verify that the Notification sound for incoming calls is set to certain value
-            cy.get('#displayCallsSoundNotification').
-                find('.react-select__single-value').
-                should('contain', value);
+            cy.get('#displayCallsSoundNotification').findByTestId('displayCallsSoundNotificationValue').should('contain', value);
             break;
         default:
             break;
