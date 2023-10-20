@@ -88,7 +88,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
             };
 
             const {elements, ...rest} = baseProps;
-            elements.push(selectElement);
+            elements?.push(selectElement);
             const props = {
                 ...rest,
                 elements,
@@ -123,7 +123,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         const props = {
             ...rest,
             elements: [
-                ...elements,
+                ...(elements as []),
                 element,
             ],
         };

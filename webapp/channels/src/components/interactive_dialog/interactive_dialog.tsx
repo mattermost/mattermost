@@ -17,13 +17,13 @@ import SpinnerButton from 'components/spinner_button';
 import type EmojiMap from 'utils/emoji_map';
 import {localizeMessage} from 'utils/utils';
 
-import DialogElement from './dialog_element/dialog_element';
+import DialogElement from './dialog_element';
 import DialogIntroductionText from './dialog_introduction_text';
 
 export type Props = {
     url: string;
     callbackId?: string;
-    elements: TDialogElement[];
+    elements?: TDialogElement[];
     title: string;
     introductionText?: string;
     iconUrl?: string;
