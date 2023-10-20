@@ -17,7 +17,7 @@
     background: var(--center-channel-bg);
     border-radius: $border-rad * 2;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    color: lighten($black, 25%);
+    color: var(--center-channel-color);
     font-family: inherit;
 
     .app__body & {
