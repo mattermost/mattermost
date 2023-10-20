@@ -77,9 +77,3 @@ export const testPlugin = {
     version: '0.1.0',
     url: 'https://github.com/mattermost/mattermost-plugin-test/releases/download/v0.1.0/com.mattermost.test-plugin-0.1.0.tar.gz',
 };
-
-export const callsPlugin = {
-    id: 'com.mattermost.calls',
-    version: '0.20.0',
-    url: 'https://github.com/mattermost/mattermost-plugin-calls/releases/download/v0.20.0/com.mattermost.calls-0.20.0.tar.gz',
-};

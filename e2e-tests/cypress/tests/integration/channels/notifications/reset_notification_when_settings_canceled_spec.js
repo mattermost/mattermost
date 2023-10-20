@@ -9,14 +9,23 @@
 
 // Stage: @prod
 // Group: @channels @notifications
-import {callsPlugin} from '../../../utils/plugins';
 
 describe('Notifications', () => {
     before(() => {
         // # Upload and enable Calls plugin
         cy.shouldNotRunOnCloudEdition();
-        cy.shouldHavePluginUploadEnabled();
-        cy.apiUploadAndEnablePlugin(callsPlugin);
+        cy.apiUpdateConfig({
+            PluginSettings: {
+                Enable: true,
+                EnableUploads: true,
+                PluginStates: {
+                    'com.mattermost.calls': {
+                        Enable: true,
+                        enableringing: true,
+                    },
+                },
+            },
+        });
 
         cy.apiInitSetup().then(({team, user, channel}) => {
             // # Login as user and visit channel
@@ -40,17 +49,18 @@ describe('Notifications', () => {
             navigateToDesktopNotificationSettings(type);
 
             // # Change Notification selection
-            setNotificationToDown(type);
+            setNotificationSound(type);
 
             // # Click Cancel button
             cy.uiCancelButton().click();
 
             // # Navigate to Desktop Notification Settings
             navigateToDesktopNotificationSettings(type);
+            cy.uiClose();
         });
     }
 
-    function setNotificationToDown(type) {
+    function setNotificationSound(type) {
         switch (type) {
         case 'desktopNotification':
             // # Change Notification sound selection value is set to Down
@@ -60,6 +70,9 @@ describe('Notifications', () => {
                 get('.react-select__menu').
                 contains('Down').
                 click();
+
+            // * Verify Notification display changed to Down
+            verifyNotificationSelectionValue(type, 'Down');
             break;
         case 'callsDesktopSound':
             // # Change Notification Notification sound for incoming calls selection value is set to Down
@@ -67,37 +80,30 @@ describe('Notifications', () => {
                 find('.react-select__dropdown-indicator').
                 click().
                 get('.react-select__menu').
-                contains('Down').
+                contains('Cheerful').
                 click();
+
+            // * Verify Notification display changed to Cheerful
+            verifyNotificationSelectionValue(type, 'Cheerful');
             break;
         default:
             break;
         }
-
-        // * Verify Notification display changed to Down
-        verifyNotificationSelectionValue(type, 'Down');
     }
 
     function navigateToDesktopNotificationSettings(type) {
         // # Click on the 'Edit' button next to Desktop Notifications
         cy.get('#desktopEdit').should('be.visible').click();
 
-        // * Verify that the Notification is set to On
-        verifyNotificationIsOn(type);
-
-        // * Verify Notification selection display default value (Bing)
-        verifyNotificationSelectionValue(type, 'Bing');
-    }
-
-    function verifyNotificationIsOn(type) {
+        // * Verify Notification selection display default value
         switch (type) {
         case 'desktopNotification':
-            // * Verify that the Notification sound is set to On
-            cy.get('#soundOn').should('be.visible').and('be.checked');
+            // * Verify that the Notification sound is set to certain value
+            verifyNotificationSelectionValue(type, 'Bing');
             break;
         case 'callsDesktopSound':
-            // * Verify that the Notification sound for incoming calls is set to On
-            cy.get('#callsSoundOn').should('be.visible').and('be.checked');
+            // * Verify that the Notification sound for incoming calls is set to certain value
+            verifyNotificationSelectionValue(type, 'Calm');
             break;
         default:
             break;

@@ -507,7 +507,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
             this.setState({selectedOption: {value: this.props.selectedSound, label: this.props.selectedSound}});
         }
         if (this.props.callsSelectedSound !== prevProps.callsSelectedSound) {
-            this.setState({selectedOption: {value: this.props.callsSelectedSound, label: this.props.callsSelectedSound}});
+            this.setState({callsSelectedOption: {value: this.props.callsSelectedSound, label: this.props.callsSelectedSound}});
         }
     }
 
