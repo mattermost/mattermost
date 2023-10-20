@@ -283,8 +283,6 @@ generate_env_files() {
   mme2e_log "Generating .env.server"
   mme2e_generate_envfile_from_var_names >.env.server <<-EOF
 	MM_LICENSE
-	MM_ELASTICSEARCHSETTINGS_CONNECTIONURL
-	MM_LDAPSETTINGS_LDAPSERVER
 	EOF
 
   # Setting SERVER-specific variables
@@ -303,6 +301,11 @@ generate_env_files() {
   done
 
   # Generating TEST-specific env files
+  BRANCH_DEFAULT=$(git branch --show-current)
+  BUILD_ID_DEFAULT=$(date +%s)
+  export BRANCH=${BRANCH:-$BRANCH_DEFAULT}
+  export BUILD_ID=${BUILD_ID:-$BUILD_ID_DEFAULT}
+  export CI_BASE_URL="${CI_BASE_URL:-localhost}"
   case "$TEST" in
   cypress)
     mme2e_log "Cypress: Generating .env.cypress"
@@ -314,7 +317,7 @@ generate_env_files() {
 	AUTOMATION_DASHBOARD_URL
 	AUTOMATION_DASHBOARD_TOKEN
 	EOF
-    # Adding SERVICE-specific cypress variables
+    # Adding service-specific cypress variables
     for SERVICE in $ENABLED_DOCKER_SERVICES; do
       case $SERVICE in
       openldap)

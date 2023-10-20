@@ -13,9 +13,9 @@ export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
 # Default values for optional variables
 export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --short=7 HEAD)"
 export BROWSER_DEFAULT="chrome"
-export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
 export SERVER_DEFAULT="self-hosted"
 export TEST_DEFAULT="cypress"
+export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
 # OS specific defaults overrides
 case $MME2E_OSTYPE in
   darwin )
@@ -26,9 +26,9 @@ esac
 # Populate the optional variables that are used in the docker-compose file
 export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
 export BROWSER=${BROWSER:-$BROWSER_DEFAULT}
-export ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES:-$ENABLED_DOCKER_SERVICES_DEFAULT}
 export SERVER=${SERVER:-$SERVER_DEFAULT}
 export TEST=${TEST:-$TEST_DEFAULT}
+export ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES:-$ENABLED_DOCKER_SERVICES_DEFAULT}
 
 # Function definitions
 mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%Z)]" "$@"; }
