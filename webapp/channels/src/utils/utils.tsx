@@ -321,7 +321,6 @@ export function toRgbValues(hexStr: string): string {
 
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
-        changeCss('.app__body .shortcut-key', 'background:' + theme.centerChannelColor);
         changeCss('.app__body .post__body hr', 'background:' + theme.centerChannelColor);
         changeCss('.app__body .loading-screen .loading__content .round', 'background:' + theme.centerChannelColor);
         changeCss('.app__body .tutorial__circles .circle', 'background:' + theme.centerChannelColor);
