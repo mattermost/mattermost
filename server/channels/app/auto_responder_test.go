@@ -49,7 +49,6 @@ func TestSetAutoResponderStatus(t *testing.T) {
 	status, err = th.App.GetStatus(userUpdated2.Id)
 	require.Nil(t, err)
 	assert.Equal(t, model.StatusOnline, status.Status)
-
 }
 
 func TestDisableAutoResponder(t *testing.T) {

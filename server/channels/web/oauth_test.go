@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -686,7 +687,7 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJSON(data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromJSON(_ *request.Context, data io.Reader, tokenUser *model.User) (*model.User, error) {
 	var user model.User
 	if err := json.NewDecoder(data).Decode(&user); err != nil {
 		return nil, err
@@ -695,15 +696,15 @@ func (m *MattermostTestProvider) GetUserFromJSON(data io.Reader, tokenUser *mode
 	return &user, nil
 }
 
-func (m *MattermostTestProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+func (m *MattermostTestProvider) GetSSOSettings(_ *request.Context, config *model.Config, service string) (*model.SSOSettings, error) {
 	return &config.GitLabSettings, nil
 }
 
-func (m *MattermostTestProvider) GetUserFromIdToken(token string) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromIdToken(_ *request.Context, token string) (*model.User, error) {
 	return nil, nil
 }
 
-func (m *MattermostTestProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+func (m *MattermostTestProvider) IsSameUser(_ *request.Context, dbUser, oauthUser *model.User) bool {
 	return dbUser.AuthData == oauthUser.AuthData
 }
 
@@ -745,7 +746,7 @@ func (th *TestHelper) Login(client *model.Client4, user *model.User) {
 		Roles:   user.GetRawRoles(),
 		IsOAuth: false,
 	}
-	session, _ = th.App.CreateSession(session)
+	session, _ = th.App.CreateSession(th.Context, session)
 	client.AuthToken = session.Token
 	client.AuthType = model.HeaderBearer
 }

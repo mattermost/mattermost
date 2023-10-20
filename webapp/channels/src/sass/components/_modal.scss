@@ -48,6 +48,7 @@
         }
 
         .modal-header {
+            border-color: rgba(var(--center-channel-color-rgb), 0.16);
             background: var(--sidebar-header-bg);
 
             .close {
@@ -239,7 +240,7 @@
         display: flex;
         min-height: 56px;
         padding: 14px 48px 11px 15px;
-        border: 1px solid $light-gray;
+        border-bottom: 1px solid $light-gray;
         background: #333;
         border-radius: 0;
         border-radius: 3px 3px 0 0;

@@ -7,7 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import * as lineBreakHelpers from 'tests/helpers/line_break_helpers.js';
 import * as ua from 'tests/helpers/user_agent_mocks';
