@@ -321,7 +321,6 @@ export function toRgbValues(hexStr: string): string {
 
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
-        changeCss('.app__body .tip-overlay', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .form-control[disabled]', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .form-control[readonly]', 'color:' + theme.centerChannelColor);
         changeCss('.app__body fieldset[disabled] .form-control', 'color:' + theme.centerChannelColor);
