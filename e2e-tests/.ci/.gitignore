@@ -1,4 +1,4 @@
 dashboard
-server.override.yml
+server.yml
 env
 .env.*

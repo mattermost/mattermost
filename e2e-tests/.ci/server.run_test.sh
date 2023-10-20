@@ -11,7 +11,7 @@ playwright)
   ./server.run_playwright.sh
   ;;
 none)
-  mme2e_log "Running with TEST=$TEST. no tests to run."
+  mme2e_log "Running with TEST=$TEST. No tests to run."
   exit 0
   ;;
 *)

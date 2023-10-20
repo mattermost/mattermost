@@ -45,5 +45,5 @@ fmt-shell: requirecmd-shfmt requirecmd-shellcheck
 	shellcheck ./.ci/*.sh ./.ci/.e2erc* # Install with https://webinstall.dev/shfmt/
 fmt: fmt-node fmt-shell
 clean: stop
-	rm -fv .ci/server.override.yml
+	rm -fv .ci/server.yml
 	rm -fv .ci/.env*

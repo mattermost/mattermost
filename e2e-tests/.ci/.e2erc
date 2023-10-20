@@ -3,7 +3,7 @@
 # Utility variables
 # NB: these assume you `source` them from the directory this file is in
 # Set up base docker compose file and export
-export MME2E_DC_SERVER="docker compose -p mmserver -f ./server.override.yml"
+export MME2E_DC_SERVER="docker compose -p mmserver -f ./server.yml"
 export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f ./dashboard/docker/docker-compose.yml -f ./dashboard.override.yml"
 export MME2E_UID=$(id -u)
 export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
