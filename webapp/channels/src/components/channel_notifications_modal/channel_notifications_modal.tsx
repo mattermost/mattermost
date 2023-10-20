@@ -105,11 +105,16 @@ const getDefaultPushNotifyLevel = (currentUserNotifyProps: UserNotifyProps, isGM
     return NotificationLevels.ALL;
 };
 
-const getDefaultPushThreadsNotifyLevel = (currentUserNotifyProps: UserNotifyProps): Exclude<ChannelMemberNotifyProps['push_threads'], undefined> => {
+const getDefaultPushThreadsNotifyLevel = (currentUserNotifyProps: UserNotifyProps, isGM: boolean): Exclude<ChannelMemberNotifyProps['push_threads'], undefined> => {
     if (currentUserNotifyProps?.push_threads) {
         if (currentUserNotifyProps.push_threads === 'default') {
             return NotificationLevels.ALL;
         }
+
+        if (isGM && currentUserNotifyProps.push_threads === NotificationLevels.MENTION) {
+            return NotificationLevels.ALL;
+        }
+
         return currentUserNotifyProps.push_threads;
     }
     return NotificationLevels.ALL;
@@ -119,7 +124,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
     constructor(props: Props) {
         super(props);
 
-        const channelNotifyProps = props.channelMember && props.channelMember.notify_props;
+        const channelNotifyProps = props.channelMember?.notify_props;
 
         this.state = {
             show: true,
@@ -173,7 +178,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
 
         if (
             pushNotifyLevel === getDefaultPushNotifyLevel(currentUserNotifyProps, this.isGM()) &&
-            pushThreadsNotifyLevel === getDefaultPushThreadsNotifyLevel(currentUserNotifyProps)
+            pushThreadsNotifyLevel === getDefaultPushThreadsNotifyLevel(currentUserNotifyProps, this.isGM())
         ) {
             return true;
         }
@@ -183,28 +188,26 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
     getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channelMemberNotifyProps?: ChannelMemberNotifyProps) {
         let ignoreChannelMentionsDefault: ChannelNotifyProps['ignore_channel_mentions'] = IgnoreChannelMentions.OFF;
 
-        let desktopNotifyLevelDefault: ChannelNotifyProps['desktop'] = getDefaultDesktopNotificationLevel(currentUserNotifyProps, this.isGM());
-        let pushNotifyLevelDefault: ChannelMemberNotifyProps['push'] = getDefaultPushNotifyLevel(currentUserNotifyProps, this.isGM());
-        let pushThreadsNotifyLevelDefault: ChannelMemberNotifyProps['push_threads'] = getDefaultPushThreadsNotifyLevel(currentUserNotifyProps);
+        const desktopNotifyLevelDefault: ChannelNotifyProps['desktop'] = getDefaultDesktopNotificationLevel(currentUserNotifyProps, this.isGM());
+        const pushNotifyLevelDefault: ChannelMemberNotifyProps['push'] = getDefaultPushNotifyLevel(currentUserNotifyProps, this.isGM());
+        const pushThreadsNotifyLevelDefault: ChannelMemberNotifyProps['push_threads'] = getDefaultPushThreadsNotifyLevel(currentUserNotifyProps, this.isGM());
 
-        if (channelMemberNotifyProps?.desktop) {
-            if (channelMemberNotifyProps.desktop !== 'default') {
-                desktopNotifyLevelDefault = channelMemberNotifyProps.desktop;
-            } else if (this.isGM()) {
-                desktopNotifyLevelDefault = NotificationLevels.ALL;
-            }
+        const channelDesktopNotifyProps = channelMemberNotifyProps?.desktop || NotificationLevels.DEFAULT;
+        let desktopNotifyLevel = desktopNotifyLevelDefault;
+        if (channelDesktopNotifyProps !== NotificationLevels.DEFAULT) {
+            desktopNotifyLevel = channelDesktopNotifyProps;
         }
-        if (channelMemberNotifyProps?.push) {
-            if (channelMemberNotifyProps.push !== 'default') {
-                pushNotifyLevelDefault = channelMemberNotifyProps.push;
-            }
+
+        const channelPushNotifyProps = channelMemberNotifyProps?.push || NotificationLevels.DEFAULT;
+        let pushNotifyLevel = pushNotifyLevelDefault;
+        if (channelPushNotifyProps !== 'default') {
+            pushNotifyLevel = channelPushNotifyProps;
         }
-        if (channelMemberNotifyProps?.push_threads) {
-            if (channelMemberNotifyProps.push_threads !== 'default') {
-                pushThreadsNotifyLevelDefault = channelMemberNotifyProps.push_threads;
-            } else if (this.isGM()) {
-                pushThreadsNotifyLevelDefault = NotificationLevels.ALL;
-            }
+
+        const channelPushThreadsNotifyProps = channelMemberNotifyProps?.push_threads || NotificationLevels.DEFAULT;
+        let pushThreadsNotifyLevel = pushThreadsNotifyLevelDefault;
+        if (channelPushThreadsNotifyProps !== 'default') {
+            pushThreadsNotifyLevel = channelPushThreadsNotifyProps;
         }
 
         if (channelMemberNotifyProps?.mark_unread === NotificationLevels.MENTION || (currentUserNotifyProps.channel && currentUserNotifyProps.channel === 'false')) {
@@ -217,13 +220,13 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         }
 
         return {
-            desktopNotifyLevel: desktopNotifyLevelDefault,
+            desktopNotifyLevel,
             desktopSound: channelMemberNotifyProps?.desktop_sound || getDefaultDesktopSound(currentUserNotifyProps),
             desktopNotifySound: channelMemberNotifyProps?.desktop_notification_sound || getDefaultDesktopNotificationSound(currentUserNotifyProps),
             desktopThreadsNotifyLevel: channelMemberNotifyProps?.desktop_threads || getDefaultDesktopThreadsNotifyLevel(currentUserNotifyProps),
             markUnreadNotifyLevel: channelMemberNotifyProps?.mark_unread || NotificationLevels.ALL,
-            pushNotifyLevel: pushNotifyLevelDefault,
-            pushThreadsNotifyLevel: pushThreadsNotifyLevelDefault,
+            pushNotifyLevel,
+            pushThreadsNotifyLevel,
             ignoreChannelMentions,
             channelAutoFollowThreads: channelMemberNotifyProps?.channel_auto_follow_threads || ChannelAutoFollowThreads.OFF,
         };
@@ -277,7 +280,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
 
         const userPushNotificationDefaults = {
             pushNotifyLevel: getDefaultPushNotifyLevel(currentUserNotifyProps, this.isGM()),
-            pushThreadsNotifyLevel: getDefaultPushThreadsNotifyLevel(currentUserNotifyProps),
+            pushThreadsNotifyLevel: getDefaultPushThreadsNotifyLevel(currentUserNotifyProps, this.isGM()),
         };
 
         this.setState(userPushNotificationDefaults);
