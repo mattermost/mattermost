@@ -323,7 +323,6 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 			b, err := io.ReadAll(fr)
 			require.NoError(t, err)
 			assert.Equal(t, []byte("content1"), b)
-
 		})
 		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{
 			{
