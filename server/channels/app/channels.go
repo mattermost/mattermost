@@ -51,9 +51,6 @@ type Channels struct {
 	pluginConfigListenerID        string
 	pluginClusterLeaderListenerID string
 
-	productCommandsLock sync.RWMutex
-	productCommands     []*ProductCommand
-
 	imageProxy *imageproxy.ImageProxy
 
 	// cached counts that are used during notice condition validation
@@ -181,12 +178,12 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	}
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
-		if err := ch.Saml.ConfigureSP(); err != nil {
+		if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
 			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
-			if err := ch.Saml.ConfigureSP(); err != nil {
+			if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
 				s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
@@ -239,10 +236,6 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		app: &App{ch: ch},
 	}
 
-	services[product.HooksKey] = &hooksService{
-		ch: ch,
-	}
-
 	services[product.UserKey] = &App{ch: ch}
 
 	services[product.PreferencesKey] = &preferencesServiceWrapper{
@@ -287,7 +280,6 @@ func (ch *Channels) Start() error {
 				ch.ShutDownPlugins()
 			}
 		}
-
 	})
 
 	// TODO: This should be moved to the platform service.
@@ -335,28 +327,10 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		receiveEmailsAccepted)
 }
 
-func (a *App) HooksManager() *product.HooksManager {
-	return a.ch.srv.hooksManager
-}
-
-// Ensure hooksService implements `product.HooksService`
-var _ product.HooksService = (*hooksService)(nil)
-
-type hooksService struct {
-	ch *Channels
-}
-
-func (s *hooksService) RegisterHooks(productID string, hooks any) error {
-	return s.ch.srv.hooksManager.AddProduct(productID, hooks)
-}
-
 func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
-
-	// run hook for the products
-	ch.srv.hooksManager.RunMultiHook(hookRunnerFunc, hookId)
 }
 
 func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
@@ -368,11 +342,6 @@ func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
 		if hooks != nil {
 			return hooks, nil
 		}
-	}
-
-	hooks = ch.srv.hooksManager.HooksForProduct(id)
-	if hooks != nil {
-		return hooks, nil
 	}
 
 	return nil, fmt.Errorf("could not find hooks for id %s", id)

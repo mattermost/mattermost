@@ -216,18 +216,6 @@
     "translation": "Optimiraj tok tvog rada pomoću alata kao što su GitHub, Jira i Zoom. Istraži sve naše integracije na"
   },
   {
-    "id": "Playbooks",
-    "translation": "Priručnici"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanali"
-  },
-  {
-    "id": "Boards",
-    "translation": "Ploče"
-  },
-  {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP nije dostupan."
   },
@@ -273,19 +261,19 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Nedostaje čvor SSO usluga pružatelja identiteta u XML-u."
+    "translation": "Nedostaje čvor SSO usluga pružatelja usluge identifikacije u XML-u."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Nedostaje ključ SSO deskriptora pružatelja identiteta u XML-u."
+    "translation": "Nedostaje čvor deskriptora ključa pružatelja usluge identifikacije u XML-u."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Nedostaje čvor SSO deskriptora pružatelja identiteta u XML-u."
+    "translation": "Nedostaje čvor SSO deskriptora pružatelja usluge identifikacije u XML-u."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Greška prilikom obrade informacija metapodataka primljenih od pružatelja identiteta za certifikat."
+    "translation": "Greška prilikom obrade informacija metapodataka primljenih od pružatelja usluge identifikacije za certifikat."
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
@@ -449,7 +437,7 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "Stvaranje korisnika je deaktivirano na ovom poslužitelju, nijedna pozivnica nije poslana"
+    "translation": "Stvaranje korisnika je deaktivirano na ovom serveru, nijedna pozivnica nije poslana"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -658,5 +646,41 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Greška u poništavanju predmemorije"
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "Administrator sustava je isključio pružatelja usluge OAuth2."
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "Administrator sustava je isključio pružatelja usluge OAuth2."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Primljen je neipsravan odgovor pružatelja usluge OAuth2."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Slika profila se mora postaviti putem korisničkog pružatelja usluge prijave."
+  },
+  {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "Nije bilo moguće dekodirati informacije XML metapodataka primljenih od pružatelja usluge identifikacije."
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "Nije bilo moguće pročitati primljeni odgovor od pružatelja usluge identifikacije."
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "Došlo je do greške prilikom pokretanja zahtjeva pružatelju usluge identifikacije. Kontaktiraj svog administratora sustava."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "Administrator sustava je isključio pružatelja usluge OAuth2."
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "Administrator sustava je isključio pružatelja usluge OAuth2."
   }
 ]
