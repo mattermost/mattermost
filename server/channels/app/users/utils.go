@@ -11,6 +11,7 @@ import (
 
 // CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
 func CheckUserDomain(user *model.User, domains string) bool {
+	// random comment
 	return CheckEmailDomain(user.Email, domains)
 }
 
