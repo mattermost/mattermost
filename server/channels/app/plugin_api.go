@@ -763,7 +763,7 @@ func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, 
 }
 
 func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfo(fileID)
+	return api.app.GetFileInfo(api.ctx, fileID)
 }
 
 func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *model.AppError {
@@ -771,7 +771,7 @@ func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *m
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfos(page, perPage, opt)
+	return api.app.GetFileInfos(api.ctx, page, perPage, opt)
 }
 
 func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
@@ -779,7 +779,7 @@ func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	info, err := api.app.GetFileInfo(fileID)
+	info, err := api.app.GetFileInfo(api.ctx, fileID)
 	if err != nil {
 		return "", err
 	}
@@ -796,7 +796,7 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
-	return api.app.GetFile(fileID)
+	return api.app.GetFile(api.ctx, fileID)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {

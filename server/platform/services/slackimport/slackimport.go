@@ -91,8 +91,8 @@ type Actions struct {
 	CreateGroupChannel     func(request.CTX, []string) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
-	GenerateThumbnailImage func(image.Image, string, string)
-	GeneratePreviewImage   func(image.Image, string, string)
+	GenerateThumbnailImage func(request.CTX, image.Image, string, string)
+	GeneratePreviewImage   func(request.CTX, image.Image, string, string)
 	InvalidateAllCaches    func()
 	MaxPostSize            func() int
 	PrepareImage           func(fileData []byte) (image.Image, string, func(), error)
@@ -315,7 +315,7 @@ func (si *SlackImporter) slackAddBotUser(teamId string, log *bytes.Buffer) *mode
 	return mUser
 }
 
-func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, posts []slackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User) {
+func (si *SlackImporter) slackAddPosts(rctx request.CTX, teamId string, channel *model.Channel, posts []slackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User) {
 	sort.Slice(posts, func(i, j int) bool {
 		return slackConvertTimeStamp(posts[i].TimeStamp) < slackConvertTimeStamp(posts[j].TimeStamp)
 	})
@@ -339,12 +339,12 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 			}
 			if sPost.Upload {
 				if sPost.File != nil {
-					if fileInfo, ok := si.slackUploadFile(sPost.File, uploads, teamId, newPost.ChannelId, newPost.UserId, sPost.TimeStamp); ok {
+					if fileInfo, ok := si.slackUploadFile(rctx, sPost.File, uploads, teamId, newPost.ChannelId, newPost.UserId, sPost.TimeStamp); ok {
 						newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
 					}
 				} else if sPost.Files != nil {
 					for _, file := range sPost.Files {
-						if fileInfo, ok := si.slackUploadFile(file, uploads, teamId, newPost.ChannelId, newPost.UserId, sPost.TimeStamp); ok {
+						if fileInfo, ok := si.slackUploadFile(rctx, file, uploads, teamId, newPost.ChannelId, newPost.UserId, sPost.TimeStamp); ok {
 							newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
 						}
 					}
@@ -517,27 +517,27 @@ func (si *SlackImporter) slackAddPosts(teamId string, channel *model.Channel, po
 	}
 }
 
-func (si *SlackImporter) slackUploadFile(slackPostFile *slackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool) {
+func (si *SlackImporter) slackUploadFile(rctx request.CTX, slackPostFile *slackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool) {
 	if slackPostFile == nil {
-		mlog.Warn("Slack Import: Unable to attach the file to the post as the latter has no file section present in Slack export.")
+		rctx.Logger().Warn("Slack Import: Unable to attach the file to the post as the latter has no file section present in Slack export.")
 		return nil, false
 	}
 	file, ok := uploads[slackPostFile.Id]
 	if !ok {
-		mlog.Warn("Slack Import: Unable to import file as the file is missing from the Slack export zip file.", mlog.String("file_id", slackPostFile.Id))
+		rctx.Logger().Warn("Slack Import: Unable to import file as the file is missing from the Slack export zip file.", mlog.String("file_id", slackPostFile.Id))
 		return nil, false
 	}
 	openFile, err := file.Open()
 	if err != nil {
-		mlog.Warn("Slack Import: Unable to open the file from the Slack export.", mlog.String("file_id", slackPostFile.Id), mlog.Err(err))
+		rctx.Logger().Warn("Slack Import: Unable to open the file from the Slack export.", mlog.String("file_id", slackPostFile.Id), mlog.Err(err))
 		return nil, false
 	}
 	defer openFile.Close()
 
 	timestamp := utils.TimeFromMillis(slackConvertTimeStamp(slackTimestamp))
-	uploadedFile, err := si.oldImportFile(timestamp, openFile, teamId, channelId, userId, filepath.Base(file.Name))
+	uploadedFile, err := si.oldImportFile(rctx, timestamp, openFile, teamId, channelId, userId, filepath.Base(file.Name))
 	if err != nil {
-		mlog.Warn("Slack Import: An error occurred when uploading file.", mlog.String("file_id", slackPostFile.Id), mlog.Err(err))
+		rctx.Logger().Warn("Slack Import: An error occurred when uploading file.", mlog.String("file_id", slackPostFile.Id), mlog.Err(err))
 		return nil, false
 	}
 
@@ -637,7 +637,7 @@ func (si *SlackImporter) slackAddChannels(c request.CTX, teamId string, slackcha
 		}
 		importerLog.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
-		si.slackAddPosts(teamId, mChannel, posts[sChannel.Name], users, uploads, botUser)
+		si.slackAddPosts(c, teamId, mChannel, posts[sChannel.Name], users, uploads, botUser)
 	}
 
 	return addedChannels
@@ -782,7 +782,7 @@ func (si *SlackImporter) oldImportChannel(c request.CTX, channel *model.Channel,
 	return sc
 }
 
-func (si *SlackImporter) oldImportFile(timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
+func (si *SlackImporter) oldImportFile(rctx request.CTX, timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 	data := buf.Bytes()
@@ -798,8 +798,8 @@ func (si *SlackImporter) oldImportFile(timestamp time.Time, file io.Reader, team
 			return nil, err
 		}
 		defer release()
-		si.actions.GenerateThumbnailImage(img, imgType, fileInfo.ThumbnailPath)
-		si.actions.GeneratePreviewImage(img, imgType, fileInfo.PreviewPath)
+		si.actions.GenerateThumbnailImage(rctx, img, imgType, fileInfo.ThumbnailPath)
+		si.actions.GeneratePreviewImage(rctx, img, imgType, fileInfo.PreviewPath)
 	}
 
 	return fileInfo, nil

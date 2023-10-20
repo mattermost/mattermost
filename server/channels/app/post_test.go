@@ -221,7 +221,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		appErr := th.App.attachFilesToPost(post)
 		assert.Nil(t, appErr)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
@@ -249,7 +249,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		appErr := th.App.attachFilesToPost(post)
 		assert.Nil(t, appErr)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
@@ -673,7 +673,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	// Check that the file can no longer be reached.
-	_, err = th.App.GetFileInfo(info1.Id)
+	_, err = th.App.GetFileInfo(th.Context, info1.Id)
 	assert.NotNil(t, err)
 }
 

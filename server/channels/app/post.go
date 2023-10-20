@@ -1634,7 +1634,7 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 	return postSearchResults, nil
 }
 
-func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
@@ -1642,7 +1642,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 		close(pchan)
 	}()
 
-	infos, firstInaccessibleFileTime, err := a.GetFileInfosForPost(postID, false, includeDeleted)
+	infos, firstInaccessibleFileTime, err := a.GetFileInfosForPost(rctx, postID, false, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -1665,7 +1665,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 			// The post has Filenames that need to be replaced with FileInfos
-			infos = a.MigrateFilenamesToFileInfos(post)
+			infos = a.MigrateFilenamesToFileInfos(rctx, post)
 		}
 	}
 
@@ -1673,7 +1673,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 }
 
 // GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) GetFileInfosForPost(rctx request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1684,18 +1684,18 @@ func (a *App) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted
 		return nil, 0, appErr
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
 	return fileInfos, firstInaccessibleFileTime, nil
 }
 
-func (a *App) getFileInfosForPostIgnoreCloudLimit(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) getFileInfosForPostIgnoreCloudLimit(rctx request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
 	if err != nil {
 		return nil, model.NewAppError("getFileInfosForPostIgnoreCloudLimit", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
 	return fileInfos, nil
 }

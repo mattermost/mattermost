@@ -1300,7 +1300,7 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 
 	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
 	if post.Id != "" {
-		oldFiles, err := a.getFileInfosForPostIgnoreCloudLimit(post.Id, true, false)
+		oldFiles, err := a.getFileInfosForPostIgnoreCloudLimit(c, post.Id, true, false)
 		if err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}
@@ -1311,29 +1311,29 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 
 			// check sha1
 			newHash := sha1.Sum(fileData)
-			oldFileData, err := a.getFileIgnoreCloudLimit(oldFile.Id)
+			oldFileData, err := a.getFileIgnoreCloudLimit(c, oldFile.Id)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
 			oldHash := sha1.Sum(oldFileData)
 
 			if bytes.Equal(oldHash[:], newHash[:]) {
-				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", name))
+				c.Logger().Info("Skipping uploading of file because name already exists", mlog.Any("file_name", name))
 				return oldFile, nil
 			}
 		}
 	}
 
-	mlog.Info("Uploading file with name", mlog.String("file_name", name))
+	c.Logger().Info("Uploading file with name", mlog.String("file_name", name))
 
 	fileInfo, appErr := a.DoUploadFile(c, timestamp, teamID, post.ChannelId, post.UserId, name, fileData)
 	if appErr != nil {
-		mlog.Error("Failed to upload file", mlog.Err(appErr), mlog.String("file_name", name))
+		c.Logger().Error("Failed to upload file", mlog.Err(appErr), mlog.String("file_name", name))
 		return nil, appErr
 	}
 
 	if fileInfo.IsImage() && !fileInfo.IsSvg() {
-		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
+		a.HandleImages(c, []string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
 	}
 
 	return fileInfo, nil
