@@ -26,13 +26,24 @@ jobs:
     steps:
       - name: Collect Workflow Telemetry
         uses: runforesight/workflow-telemetry-action@v1
+        with:
+          comment_on_pr: false
+      - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        with:
+          path: |
+            ~/go/pkg/mod
+          key: go-test-${{ github.sha }}
+          restore-keys: |
+            go-test-
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run docker compose
         run: |
           cd server/build
