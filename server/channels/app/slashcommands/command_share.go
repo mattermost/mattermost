@@ -72,7 +72,6 @@ func (sp *ShareProvider) GetAutoCompleteListItems(c request.CTX, a *app.App, com
 	case strings.Contains(parsed, " uninvite "):
 
 		return sp.getAutoCompleteUnInviteRemote(a, commandArgs, arg)
-
 	}
 	return nil, errors.New("invalid action")
 }
@@ -120,7 +119,7 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.Comm
 	}
 }
 
-func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (sp *ShareProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PermissionManageSharedChannels) {
 		return responsef(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}

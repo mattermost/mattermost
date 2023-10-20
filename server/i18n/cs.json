@@ -588,10 +588,6 @@
     "translation": "Neplatná hodnota pro create_at."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Nelze dekódovat soubor GIF."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "Neplatné ID autora."
   },
@@ -738,10 +734,6 @@
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Nepodařilo se vytvořit Elasticsearch dávkový procesor."
-  },
-  {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch už běží."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -3428,10 +3420,6 @@
     "translation": "Nepodařilo se upravit zprávu ve smazaném kanálu."
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Náhledy odkazů byly deaktivovány správcem systému."
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "few": "{{.Count}} obrázek odeslán: {{.Filenames}}",
@@ -4382,10 +4370,6 @@
   {
     "id": "api.command_invite.hint",
     "translation": "@[username] ~[channel]"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Tento kanál je spravován skupinami.  Tento uživatel není členem skupiny, která je synchronizována do tohoto kanálu."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -7320,14 +7304,6 @@
     "translation": "Administrátor byl již upozorněn"
   },
   {
-    "id": "Channels",
-    "translation": "Kanály"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Vytvořte transparentní pracovní postupy napříč vývojovými týmy, abyste zajistili bezproblémový proces vývoje funkcí."
-  },
-  {
     "id": "api.admin.syncables_error",
     "translation": "Nepodařilo se přidat uživatele do skupinových týmů a skupinových kanálů"
   },
@@ -7394,14 +7370,6 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "V archivovaném kanálu nelze odebrat potvrzení."
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Scénáře"
-  },
-  {
-    "id": "Boards",
-    "translation": "Nástěnky"
   },
   {
     "id": "api.command_remote.remotes_not_found",
