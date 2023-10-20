@@ -38,8 +38,8 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.NotEmpty(th.t, poir.TriggerId)
 	assert.Equal(th.t, "button", poir.Type)
 	assert.Equal(th.t, "test-value", poir.Context["test-key"])
-	w.Write([]byte("{}"))
 	w.WriteHeader(200)
+	w.Write([]byte("{}"))
 }
 
 func TestPostActionCookies(t *testing.T) {
