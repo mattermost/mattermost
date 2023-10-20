@@ -4,10 +4,13 @@
 package app
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
 	"image"
+	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -282,18 +285,54 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	mockBackend := filesStoreMocks.FileBackend{}
-	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), errors.New("only those who dare to fail greatly can ever achieve greatly"))
+	const (
+		zipName   = "zip-file-name-to-heaven.zip"
+		directory = "directory-to-heaven"
+	)
 
-	err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, "zip-file-name-to-heaven.zip", "directory-to-heaven")
+	t.Run("write file fails", func(t *testing.T) {
+		mockBackend := filesStoreMocks.FileBackend{}
+		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), errors.New("only those who dare to fail greatly can ever achieve greatly"))
 
-	require.Error(t, err)
-	require.Equal(t, err.Error(), "only those who dare to fail greatly can ever achieve greatly")
+		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
 
-	mockBackend = filesStoreMocks.FileBackend{}
-	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), nil)
-	err = th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, "zip-file-name-to-heaven.zip", "directory-to-heaven")
-	require.NoError(t, err)
+		require.Error(t, err)
+		require.Equal(t, err.Error(), "only those who dare to fail greatly can ever achieve greatly")
+	})
+
+	t.Run("write no file", func(t *testing.T) {
+		mockBackend := filesStoreMocks.FileBackend{}
+		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil)
+		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
+		require.NoError(t, err)
+	})
+
+	t.Run("write one file", func(t *testing.T) {
+		mockBackend := filesStoreMocks.FileBackend{}
+		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil).Run(func(args mock.Arguments) {
+			r, err := zip.OpenReader(zipName)
+			require.NoError(t, err)
+			require.Len(t, r.File, 1)
+
+			file := r.File[0]
+			assert.Equal(t, "file1", file.Name)
+			assert.GreaterOrEqual(t, file.Modified, time.Now().Add(-1*time.Second))
+
+			fr, err := file.Open()
+			require.NoError(t, err)
+			b, err := io.ReadAll(fr)
+			require.NoError(t, err)
+			assert.Equal(t, []byte("content1"), b)
+
+		})
+		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{
+			{
+				Filename: "file1",
+				Body:     []byte("content1"),
+			},
+		}, zipName, directory)
+		require.NoError(t, err)
+	})
 }
 
 func TestCopyFileInfos(t *testing.T) {

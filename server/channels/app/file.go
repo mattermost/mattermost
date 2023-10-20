@@ -1383,7 +1383,11 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	defer w.Close()
 	for _, fd := range fileDatas {
-		f, err := w.Create(fd.Filename)
+		f, err := w.CreateHeader(&zip.FileHeader{
+			Name:     fd.Filename,
+			Modified: time.Now(),
+		})
+
 		if err != nil {
 			return err
 		}
