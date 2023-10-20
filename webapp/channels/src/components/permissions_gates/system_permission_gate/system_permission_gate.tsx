@@ -17,7 +17,7 @@ type Props = {
     /**
      * Invert the permission (used for else)
      */
-    invert: boolean;
+    invert?: boolean;
 
     /**
      * Content protected by the permissions gate
@@ -26,16 +26,12 @@ type Props = {
 };
 
 const SystemPermissionGate = ({
-        permissions,
-        hasPermission,
-        invert = false,
-        children,
-    }: Props) => {
-    if (hasPermission && !invert) {
-        return children;
-    }
-    if (!hasPermission && invert) {
-        return children;
+    invert = false,
+    hasPermission,
+    children,
+}: Props) => {
+    if (hasPermission !== invert) {
+        return <>{children}</>;
     }
     return null;
 };
