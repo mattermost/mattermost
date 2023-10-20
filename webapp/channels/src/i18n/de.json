@@ -240,7 +240,6 @@
   "admin.billing.company_info.city": "Ort",
   "admin.billing.company_info.companyAddress": "Firmenadresse",
   "admin.billing.company_info.companyName": "Firmenname",
-  "admin.billing.company_info.country": "Land",
   "admin.billing.company_info.employees": "{employees} Mitarbeitende",
   "admin.billing.company_info.numEmployees": "Anzahl Mitarbeitende (optional)",
   "admin.billing.company_info.title": "Unternehmensinformationen",
