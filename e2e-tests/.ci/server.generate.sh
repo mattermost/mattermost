@@ -312,11 +312,6 @@ $(for service in $ENABLED_DOCKER_SERVICES; do
   # Print all dependent services' docker-compose text blocks
   echo_docker_compose_textblock_for_service "$service"
 done)
-
-networks:
-  default:
-    name: \${COMPOSE_PROJECT_NAME}
-    external: true
 EOL
 
 mme2e_log "Configuration generated in $DC_FILE"
