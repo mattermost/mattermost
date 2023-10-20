@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type { ComponentProps } from 'react';
+import type {ComponentProps} from 'react';
 import styled from 'styled-components';
 
 import OverlayTrigger from 'components/overlay_trigger';
-import type { BaseOverlayTrigger } from 'components/overlay_trigger';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ProfilePopover from 'components/profile_popover';
 import StatusIcon from 'components/status_icon';
 import StatusIconNew from 'components/status_icon_new';
-import Avatar, { getAvatarWidth } from 'components/widgets/users/avatar';
-import type { TAvatarSizeToken } from 'components/widgets/users/avatar';
+import Avatar, {getAvatarWidth} from 'components/widgets/users/avatar';
+import type {TAvatarSizeToken} from 'components/widgets/users/avatar';
 
 import './profile_picture.scss';
 
@@ -108,7 +108,7 @@ export default class ProfilePicture extends React.PureComponent<Props> {
                             </span>
                         </RoundButton>
 
-                        <StatusIcon status={this.props.status} />
+                        <StatusIcon status={this.props.status}/>
                     </span>
                 </OverlayTrigger>
             );
@@ -123,10 +123,10 @@ export default class ProfilePicture extends React.PureComponent<Props> {
                 </span>
                 {this.props.newStatusIcon ? (
                     <StatusIconNew
-                        className={this.props.statusClass || ''}
-                        status={this.props.status || ''}
+                        className={this.props.statusClass}
+                        status={this.props.status}
                     />
-                ) : <StatusIcon status={this.props.status} />}
+                ) : <StatusIcon status={this.props.status}/>}
             </span>
         );
     }

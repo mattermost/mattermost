@@ -4,8 +4,8 @@
 import React from 'react';
 
 type Props = {
-    className: string;
-    status: string;
+    className?: string;
+    status?: string;
 }
 
 const StatusIconNew = ({className = '', status = ''}: Props) => {
