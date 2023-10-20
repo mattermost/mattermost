@@ -11,25 +11,9 @@ import './image_preview.scss';
 
 interface Props {
     fileInfo: FileInfo;
-    canDownloadFiles: boolean;
 }
 
-export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
-    const isExternalFile = !fileInfo.id;
-
-    let fileUrl;
-    let previewUrl;
-    if (isExternalFile) {
-        fileUrl = fileInfo.link;
-        previewUrl = fileInfo.link;
-    } else {
-        fileUrl = getFileDownloadUrl(fileInfo.id);
-        previewUrl = fileInfo.has_preview_image ? getFilePreviewUrl(fileInfo.id) : fileUrl;
-    }
-
-    if (!canDownloadFiles) {
-        return <img src={previewUrl}/>;
-    }
+export default function ImagePreview({fileInfo}: Props) {
 
     return (
         <a
@@ -41,7 +25,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
                 loading='lazy'
                 data-testid='imagePreview'
                 alt={'preview url image'}
-                src={previewUrl}
+                src={fileInfo.link}
             />
         </a>
     );

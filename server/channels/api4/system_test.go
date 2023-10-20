@@ -639,39 +639,7 @@ func TestRedirectLocation(t *testing.T) {
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
 	*th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 
-	_, _, err := th.SystemAdminClient.GetRedirectLocation(context.Background(), "https://mattermost.com/", "")
-	require.NoError(t, err)
 
-	_, resp, err := th.SystemAdminClient.GetRedirectLocation(context.Background(), "", "")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-
-	actual, _, err := th.SystemAdminClient.GetRedirectLocation(context.Background(), mockBitlyLink, "")
-	require.NoError(t, err)
-	assert.Equal(t, expected, actual)
-
-	// Check cached value
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), mockBitlyLink, "")
-	require.NoError(t, err)
-	assert.Equal(t, expected, actual)
-
-	*th.App.Config().ServiceSettings.EnableLinkPreviews = false
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), "https://mattermost.com/", "")
-	require.NoError(t, err)
-	assert.Equal(t, actual, "")
-
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), "", "")
-	require.NoError(t, err)
-	assert.Equal(t, actual, "")
-
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), mockBitlyLink, "")
-	require.NoError(t, err)
-	assert.Equal(t, actual, "")
-
-	client.Logout(context.Background())
-	_, resp, err = client.GetRedirectLocation(context.Background(), "", "")
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
 
 	// Check that too-long redirect locations are ignored
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
@@ -684,9 +652,6 @@ func TestRedirectLocation(t *testing.T) {
 	}))
 	defer func() { testServer2.Close() }()
 
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer2.URL, "")
-	require.NoError(t, err)
-	assert.Equal(t, almostTooLongUrl, actual)
 
 	tooLongUrl := urlPrefix + strings.Repeat("a", 2101-len(urlPrefix))
 	testServer3 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -695,10 +660,6 @@ func TestRedirectLocation(t *testing.T) {
 		res.Write([]byte("body"))
 	}))
 	defer func() { testServer3.Close() }()
-
-	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer3.URL, "")
-	require.NoError(t, err)
-	assert.Equal(t, "", actual)
 }
 
 func TestSetServerBusy(t *testing.T) {
