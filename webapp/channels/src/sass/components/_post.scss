@@ -1886,6 +1886,7 @@
         svg {
             width: 14px;
             height: 14px;
+            fill: var(--center-channel-color);
         }
     }
 
@@ -2375,7 +2376,7 @@
 
 .post.current--user {
     &.other--root,
-    &.post--root, {
+    &.post--root {
         .post__header-set-custom-status {
             display: revert;
             padding: 0 6px;
