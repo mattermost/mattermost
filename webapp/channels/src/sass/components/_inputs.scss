@@ -66,6 +66,12 @@ fieldset {
     }
 }
 
+.app__body {
+    fieldset[disabled] {
+        color: var(--center-channel-color);
+    }
+}
+
 .admin-textarea {
     resize: none;
 }
