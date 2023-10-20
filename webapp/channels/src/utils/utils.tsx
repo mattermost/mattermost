@@ -321,7 +321,6 @@ export function toRgbValues(hexStr: string): string {
 
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
-        changeCss('.app__body .app__content', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .post-create__container .post-create-body .btn-file', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .post-create__container .post-create-footer .msg-typing', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .dropdown-menu', 'color:' + theme.centerChannelColor);
