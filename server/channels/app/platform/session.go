@@ -228,6 +228,16 @@ func (ps *PlatformService) UpdateSessionsIsGuest(c *request.Context, userID stri
 		return err
 	}
 
+	user, err := ps.Store.User().Get(c.Context(), userID)
+	if err != nil {
+		return err
+	}
+	roles := user.GetRawRoles()
+	_, err = ps.Store.Session().UpdateRoles(userID, roles)
+	if err != nil {
+		mlog.Warn("Unable to update isGuest session roles", mlog.Err(err))
+	}
+
 	for _, session := range sessions {
 		session.AddProp(model.SessionPropIsGuest, fmt.Sprintf("%t", isGuest))
 		err := ps.Store.Session().UpdateProps(session)
