@@ -23,7 +23,7 @@ const AccessProblem = ({
     const history = useHistory();
 
     const handleHeaderBackButtonOnClick = useCallback(() => {
-        trackEvent('signup', 'access_problem__click_back');
+        trackEvent('access_problem', 'click_back');
         history.goBack();
     }, [history]);
 
