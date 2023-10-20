@@ -887,7 +887,7 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(c request.CTX, sender *model.U
 // sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
 // are outside of the post's channel. Returns whether or not an ephemeral post was sent.
 func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
-	outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(sender, post, channel, potentialMentions)
+	outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(c, sender, post, channel, potentialMentions)
 	if err != nil {
 		return false, err
 	}
@@ -901,10 +901,10 @@ func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *
 	return true, nil
 }
 
-func (a *App) FilterUsersByVisible(viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
+func (a *App) FilterUsersByVisible(c request.CTX, viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
 	result := []*model.User{}
 	for _, user := range otherUsers {
-		canSee, err := a.UserCanSeeOtherUser(viewer.Id, user.Id)
+		canSee, err := a.UserCanSeeOtherUser(c, viewer.Id, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -915,7 +915,7 @@ func (a *App) FilterUsersByVisible(viewer *model.User, otherUsers []*model.User)
 	return result, nil
 }
 
-func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
+func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
 	if post.IsSystemMessage() {
 		return nil, nil, nil
 	}
@@ -936,7 +936,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 	// Filter out inactive users and bots
 	allUsers := model.UserSlice(users).FilterByActive(true)
 	allUsers = allUsers.FilterWithoutBots()
-	allUsers, appErr := a.FilterUsersByVisible(sender, allUsers)
+	allUsers, appErr := a.FilterUsersByVisible(c, sender, allUsers)
 	if appErr != nil {
 		return nil, nil, appErr
 	}
@@ -1189,7 +1189,6 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 
 	ret = append(ret, post.Message)
 	for _, attachment := range post.Attachments() {
-
 		if attachment.Pretext != "" {
 			ret = append(ret, attachment.Pretext)
 		}

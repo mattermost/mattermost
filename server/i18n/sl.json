@@ -940,10 +940,6 @@
     "translation": "Elasticsearch je že ustavljen"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch je že zagnan"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Napaka pri dekodiranju rezultatov iskanja"
   },
@@ -1886,10 +1882,6 @@
   {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Neveljavna vrednost za create_at."
-  },
-  {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Gif datoteke ni mogoče dekodirati."
   },
   {
     "id": "model.emoji.user_id.app_error",
@@ -2942,10 +2934,6 @@
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " obvestil kanal."
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Povzetek v emailu je bil izklopljen s strani administratorja."
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",

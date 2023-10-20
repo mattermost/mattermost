@@ -71,6 +71,7 @@ button {
         &.btn-xs {
             width: 24px;
             height: 24px;
+            padding: 0;
 
             &.btn-compact {
                 width: 20px;
@@ -85,6 +86,7 @@ button {
         &.btn-sm {
             width: 32px;
             height: 32px;
+            padding: 0;
 
             &.btn-compact {
                 width: 28px;
@@ -99,6 +101,7 @@ button {
         &.btn-lg {
             width: 48px;
             height: 48px;
+            padding: 0;
 
             &.btn-compact {
                 width: 36px;
@@ -180,14 +183,15 @@ button {
         position: relative;
         border-color: transparent;
         background-color: rgb(var(--button-bg-rgb));
-        color: rgb(var(--button-color-rgb));
+        color: rgb(var(--button-color-rgb)) !important;
 
         // These hover and active values are for things outside the app__body, the correct theme styles for the primary button are applied in utils.jsx
         &:hover {
             background-color: #1a51c8;
         }
 
-        &:active {
+        &:active,
+        &:focus {
             background-color: #184ab6;
         }
 

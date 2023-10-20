@@ -4402,7 +4402,6 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
-
 }
 
 func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Store, s SqlStore) {
@@ -5095,5 +5094,4 @@ func testGetEditHistoryForPost(t *testing.T, ss store.Store) {
 		_, err = ss.Post().GetEditHistoryForPost(savedUpdatedPost.Id)
 		require.NoError(t, err)
 	})
-
 }
