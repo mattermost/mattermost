@@ -47,16 +47,9 @@ import type {GlobalState} from 'types/store/index.js';
 import AdvancedCreateComment from './advanced_create_comment';
 
 type OwnProps = {
-    rootId?: string;
-    channelId?: string;
-    latestPostId?: string;
-    rootDeleted: boolean;
-    onSubmit?: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
-    onUpdateCommentDraft?: (draft?: PostDraft, save?: boolean) => void;
-    updateCommentDraftWithRootId?: (rootID: string, draft: PostDraft, save?: boolean) => void;
-    onMoveHistoryIndexBack?: () => void;
-    onMoveHistoryIndexForward?: () => void;
-    onEditLatestPost?: () => ActionResult;
+    rootId: string;
+    channelId: string;
+    latestPostId: string;
 };
 
 function makeMapStateToProps() {
@@ -65,13 +58,13 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: OwnProps) => {
         const err = state.requests.posts.createPost.error || {};
 
-        const draft = getPostDraft(state, StoragePrefixes.COMMENT_DRAFT, ownProps.rootId || '');
+        const draft = getPostDraft(state, StoragePrefixes.COMMENT_DRAFT, ownProps.rootId);
         const isRemoteDraft = state.views.drafts.remotes[`${StoragePrefixes.COMMENT_DRAFT}${ownProps.rootId}`] || false;
 
-        const channelMembersCount = getAllChannelStats(state)[ownProps.channelId || ''] ? getAllChannelStats(state)[ownProps.channelId || ''].member_count : 1;
+        const channelMembersCount = getAllChannelStats(state)[ownProps.channelId] ? getAllChannelStats(state)[ownProps.channelId].member_count : 1;
         const messageInHistory = getMessageInHistoryItem(state);
 
-        const channel = state.entities.channels.channels[ownProps.channelId || ''] || {};
+        const channel = state.entities.channels.channels[ownProps.channelId] || {};
 
         const config = getConfig(state);
         const license = getLicense(state);
@@ -86,7 +79,7 @@ function makeMapStateToProps() {
         const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
         const useCustomGroupMentions = isCustomGroupsEnabled(state) && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
         const useLDAPGroupMentions = isLDAPEnabled && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
-        const channelMemberCountsByGroup = selectChannelMemberCountsByGroup(state, ownProps.channelId || '');
+        const channelMemberCountsByGroup = selectChannelMemberCountsByGroup(state, ownProps.channelId);
         const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
         const isFormattingBarHidden = getBool(state, Constants.Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.COMMENT);
         const currentTeamId = getCurrentTeamId(state);
@@ -173,27 +166,27 @@ function makeMapDispatchToProps() {
         return resetHistoryIndex(Posts.MESSAGE_TYPES.COMMENT);
     }
 
-    let rootId: string|undefined;
-    let channelId: string|undefined;
-    let latestPostId: string|undefined;
+    let rootId: string;
+    let channelId: string;
+    let latestPostId: string;
 
     return (dispatch: Dispatch, ownProps: OwnProps) => {
         if (rootId !== ownProps.rootId) {
-            onUpdateCommentDraft = makeOnUpdateCommentDraft(ownProps.rootId || '', ownProps.channelId || '');
-            onMoveHistoryIndexBack = makeOnMoveHistoryIndex(ownProps.rootId || '', -1);
-            onMoveHistoryIndexForward = makeOnMoveHistoryIndex(ownProps.rootId || '', 1);
+            onUpdateCommentDraft = makeOnUpdateCommentDraft(ownProps.rootId, ownProps.channelId);
+            onMoveHistoryIndexBack = makeOnMoveHistoryIndex(ownProps.rootId, -1);
+            onMoveHistoryIndexForward = makeOnMoveHistoryIndex(ownProps.rootId, 1);
         }
 
         if (channelId !== ownProps.channelId) {
-            updateCommentDraftWithRootId = makeUpdateCommentDraftWithRootId(ownProps.channelId || '');
+            updateCommentDraftWithRootId = makeUpdateCommentDraftWithRootId(ownProps.channelId);
         }
 
         if (rootId !== ownProps.rootId) {
-            onEditLatestPost = makeOnEditLatestPost(ownProps.rootId || '');
+            onEditLatestPost = makeOnEditLatestPost(ownProps.rootId);
         }
 
         if (rootId !== ownProps.rootId || channelId !== ownProps.channelId || latestPostId !== ownProps.latestPostId) {
-            onSubmit = makeOnSubmit(ownProps.channelId || '', ownProps.rootId || '', ownProps.latestPostId || '');
+            onSubmit = makeOnSubmit(ownProps.channelId, ownProps.rootId, ownProps.latestPostId);
         }
 
         rootId = ownProps.rootId;

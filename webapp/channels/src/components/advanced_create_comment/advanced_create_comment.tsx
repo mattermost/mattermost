@@ -66,13 +66,13 @@ export type Props = {
     currentTeamId: string;
 
     // The channel for which this comment is a part of
-    channelId?: string;
+    channelId: string;
 
     // The id of the current user
     currentUserId: string;
 
     // The id of the parent post
-    rootId?: string;
+    rootId: string;
 
     // The root message is deleted
     rootDeleted: boolean;
@@ -645,7 +645,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             }
 
             if (isTimezoneEnabled) {
-                const {data} = await this.props.getChannelTimezones(this.props.channelId || '');
+                const {data} = await this.props.getChannelTimezones(this.props.channelId);
                 channelTimezoneCount = data ? data.length : 0;
             }
         }
@@ -740,7 +740,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         this.isDraftSubmitting = false;
         this.setState({draft: {...this.props.draft, uploadsInProgress: []}});
-        this.draftsForPost[this.props.rootId || ''] = null;
+        this.draftsForPost[this.props.rootId] = null;
     };
 
     commentMsgKeyPress = (e: React.KeyboardEvent<TextboxElement>) => {
@@ -784,7 +784,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     emitTypingEvent = () => {
         const {channelId, rootId} = this.props;
-        GlobalActions.emitLocalUserTypingEvent(channelId || '', rootId || '');
+        GlobalActions.emitLocalUserTypingEvent(channelId, rootId);
     };
 
     handleChange = (e: React.ChangeEvent<TextboxElement>) => {
@@ -806,7 +806,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 this.props.scrollToBottom();
             }
         });
-        this.draftsForPost[this.props.rootId || ''] = updatedDraft;
+        this.draftsForPost[this.props.rootId] = updatedDraft;
     };
 
     handleDraftChange = (draft: PostDraft, rootId?: string, save = false, instant = false) => {
@@ -831,7 +831,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 saveDraft();
             }, Constants.SAVE_DRAFT_TIMEOUT);
         }
-        this.draftsForPost[this.props.rootId || ''] = draft;
+        this.draftsForPost[this.props.rootId] = draft;
     };
 
     handleMouseUpKeyUp = (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -1058,7 +1058,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         };
         this.props.onUpdateCommentDraft(modifiedDraft);
         this.setState({draft: modifiedDraft});
-        this.draftsForPost[this.props.rootId || ''] = modifiedDraft;
+        this.draftsForPost[this.props.rootId] = modifiedDraft;
 
         // this is a bit redundant with the code that sets focus when the file input is clicked,
         // but this also resets the focus after a drag and drop
@@ -1157,7 +1157,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         this.props.onUpdateCommentDraft(modifiedDraft);
         this.setState({draft: modifiedDraft});
-        this.draftsForPost[this.props.rootId || ''] = modifiedDraft;
+        this.draftsForPost[this.props.rootId] = modifiedDraft;
 
         this.handleFileUploadChange();
 
@@ -1269,8 +1269,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     message={draft.message}
                     showEmojiPicker={this.state.showEmojiPicker}
                     uploadsProgressPercent={this.state.uploadsProgressPercent}
-                    channelId={this.props.channelId || ''}
-                    postId={this.props.rootId || ''}
+                    channelId={this.props.channelId}
+                    postId={this.props.rootId}
                     errorClass={this.state.errorClass}
                     serverError={this.state.serverError}
                     isFormattingBarHidden={this.state.isFormattingBarHidden}
