@@ -13,10 +13,14 @@ services:
       JWT_EXPIRES_IN: 365d
       ALLOWED_USER: cypress-test
       ALLOWED_ROLE: integration
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:4000"]
+      interval: 10s
+      timeout: 15s
+      retries: 12
     volumes:
       - "../:/app"
       - "../../dashboard.entrypoint.sh:/usr/local/bin/dashboard.entrypoint.sh:ro"
-      - "../../.env.dashboard:/var/local/.env.dashboard:rw"
     working_dir: /app
     entrypoint: /usr/local/bin/dashboard.entrypoint.sh
     ports:

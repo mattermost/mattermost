@@ -381,7 +381,7 @@ playwright)
   ;;
 esac
 
-mme2e_log "Generating docker-compose file using the following parameters:"
+mme2e_log "Generating docker-compose file using the following parameters..."
 mme2e_log "TEST: ${TEST}"
 mme2e_log "SERVER: ${SERVER}"
 mme2e_log "ENABLED_DOCKER_SERVICES: ${ENABLED_DOCKER_SERVICES}"

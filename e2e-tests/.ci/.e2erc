@@ -78,10 +78,11 @@ mme2e_wait_command_success () {
   fi
 }
 mme2e_wait_service_healthy () {
+  DC_COMMAND="${DC_COMMAND:-$MME2E_DC_SERVER}"
   SERVICE_NAME=${1?}
   RETRIES_LEFT=${2:-1}
   RETRIES_INTERVAL=${3:-10}
-  mme2e_wait_command_success "${MME2E_DC_SERVER} ps ${SERVICE_NAME} | grep -q '\(healthy\)'" "Waiting for ${SERVICE_NAME} container to be healthy" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+  mme2e_wait_command_success "${DC_COMMAND} ps ${SERVICE_NAME} | grep -q '\(healthy\)'" "Waiting for ${SERVICE_NAME} container to be healthy" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
 }
 mme2e_wait_image () {
   IMAGE_NAME=${1?}

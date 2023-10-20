@@ -26,9 +26,11 @@ ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress tee tests/fixtures/keycloa
 for SERVICE in $ENABLED_DOCKER_SERVICES; do
   case "$SERVICE" in
   openldap)
+    mme2e_log "Configuring the $SERVICE container"
     ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
     ;;
   minio)
+    mme2e_log "Configuring the $SERVICE container"
     ${MME2E_DC_SERVER} exec -T -- minio sh -c 'mkdir -p /data/mattermost-test'
     ;;
   esac
