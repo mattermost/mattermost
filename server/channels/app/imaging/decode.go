@@ -13,7 +13,6 @@ import (
 	"io"
 	"sync"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	_ "github.com/oov/psd"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
@@ -115,7 +114,6 @@ func (d *Decoder) DecodeConfig(rd io.Reader) (image.Config, string, error) {
 func GetDimensions(imageData io.Reader) (int, int, error) {
 	cfg, _, err := image.DecodeConfig(imageData)
 	if seeker, ok := imageData.(io.Seeker); ok {
-		mlog.Debug("MOVE TO 0,0")
 		defer seeker.Seek(0, 0)
 	}
 	return cfg.Width, cfg.Height, err
