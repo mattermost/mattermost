@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 . .e2erc
 
 if [ "$SERVER" != "cloud" ]; then
-  mme2e_log "Skipping cloud customer deletion: operation supported only for cloud server, but running with SERVER='$SERVER'"
+  mme2e_log "Skipping cloud instance teardown: operation supported only for cloud server, but running with SERVER='$SERVER'"
   exit 0
 fi
 

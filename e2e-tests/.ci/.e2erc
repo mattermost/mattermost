@@ -89,6 +89,11 @@ mme2e_wait_image () {
   RETRIES_INTERVAL=${3:-10}
   mme2e_wait_command_success "docker pull $IMAGE_NAME" "Waiting for docker image ${IMAGE_NAME} to be available" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
 }
+mme2e_is_token_in_list() {
+  local TOKEN=$1
+  local LIST=$2
+  grep -qE "(^| )$TOKEN( |$)" <<<"$LIST"
+}
 
 # Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
 # NB: this won't work in the script

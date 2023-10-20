@@ -17,7 +17,7 @@ Instructions, tl;dr: create a local branch with your E2E test changes, then open
 Instructions, detailed:
 1. (optional, undefined variables are set to sane defaults) Create the `.ci/env` file, and populate it with the variables you need out of the following list:
   * The following variables will be passed over to the server container: `MM_LICENSE` (no enterprise features will be available if this is unset), and the exploded `MM_ENV` (a comma-separated list of env var specifications)
-  * `TEST` either `cypress` (default) or `playwright`.
+  * `TEST` either `cypress` (default), `playwright`, or `none` (to avoid creating the cypress/playwright sidecar containers, e.g. if you only want to launch a server instance)
   * `SERVER` either `self-hosted` (default) or `cloud`.
   * The `ENABLED_DOCKER_SERVICES` is by default set to `postgres` and `inbucket` for smoke tests purpose, and for lightweight and faster start up time. Depending on the test requirement being worked on, you may want to override as needed, as such:
     * Cypress full tests require full services with `postgres`, `inbucket`, `minio`, `openldap`, `elasticsearch` and `keycloak`.

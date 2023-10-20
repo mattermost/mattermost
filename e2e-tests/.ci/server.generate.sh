@@ -8,25 +8,19 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
-is_service_in_list() {
-  local SERVICE_NAME=$1
-  local SERVICE_LIST=$2
-  grep -qE "(^| )$SERVICE_NAME( |$)" <<<"$SERVICE_LIST"
-}
-
 enable_docker_service() {
   local SERVICE_TO_ENABLE="$1"
-  if ! is_service_in_list "$SERVICE_TO_ENABLE" "$ENABLED_DOCKER_SERVICES"; then
+  if ! mme2e_is_token_in_list "$SERVICE_TO_ENABLE" "$ENABLED_DOCKER_SERVICES"; then
     ENABLED_DOCKER_SERVICES="$ENABLED_DOCKER_SERVICES $SERVICE_TO_ENABLE"
   fi
 }
 
-assert_services_validity() {
+assert_docker_services_validity() {
   local SERVICES_TO_CHECK="$*"
   local SERVICES_VALID="postgres minio inbucket openldap elasticsearch keycloak cypress webhook-interactions playwright"
   local SERVICES_REQUIRED="postgres inbucket"
   for SERVICE_NAME in $SERVICES_TO_CHECK; do
-    if ! is_service_in_list "$SERVICE_NAME" "$SERVICES_VALID"; then
+    if ! mme2e_is_token_in_list "$SERVICE_NAME" "$SERVICES_VALID"; then
       mme2e_log "Error, requested invalid service: $SERVICE_NAME" >&2
       mme2e_log "Valid services are: $SERVICES_VALID" >&2
       mme2e_log "Aborting" >&2
@@ -41,34 +35,13 @@ assert_services_validity() {
   fi
 }
 
-ensure_optional_files_exist() {
-  # Create files required to exist, but whose existence depends on optional services (e.g. dashboard)
-  touch .env.dashboard
-  touch .env.server.cloud
-}
+generate_docker_compose_file() {
+  # File to be used for overriding docker compose
+  local DC_FILE="server.override.yml"
+  mme2e_log "Generating docker-compose file in: $DC_FILE"
 
-echo_docker_compose_textblock_for_service() {
-  local SERVICE_NAME="$1"
-  local SERVICE_VARIABLE_NAME="$SERVICE_NAME"
-
-  # The variable containing the docker-compose text block for a certain service is not always named
-  # the same as the service (e.g. characters that are valid for docker-compose services, but not allowed
-  # for variable names).
-  # If required, rewrite the variable name before printing the variable's value
-  case $SERVICE_NAME in
-  elasticsearch)
-    [ "$MME2E_ARCHTYPE" = "arm64" ] && SERVICE_VARIABLE_NAME="elasticsearch_arm64"
-    ;;
-  webhook-interactions)
-    SERVICE_VARIABLE_NAME="webhook_interactions"
-    ;;
-  esac
-
-  echo "${!SERVICE_VARIABLE_NAME}"
-}
-
-# Define each service's docker-compose text block values
-postgres='
+  # Define each service's docker-compose text block values
+  local postgres='
   postgres:
     image: mattermostdevelopment/mirrored-postgres:12
     restart: always
@@ -89,7 +62,7 @@ postgres='
         aliases:
         - postgres'
 
-inbucket='
+  local inbucket='
   inbucket:
     restart: "no"
     container_name: mattermost-inbucket
@@ -101,7 +74,7 @@ inbucket='
         file: ../../server/build/gitlab-dc.common.yml
         service: inbucket'
 
-minio='
+  local minio='
   minio:
     restart: "no"
     container_name: mattermost-minio
@@ -111,7 +84,7 @@ minio='
       file: ../../server/build/gitlab-dc.common.yml
       service: minio'
 
-openldap='
+  local openldap='
   openldap:
     restart: "no"
     container_name: mattermost-openldap
@@ -122,7 +95,7 @@ openldap='
         file: ../../server/build/gitlab-dc.common.yml
         service: openldap'
 
-elasticsearch='
+  local elasticsearch='
   elasticsearch:
     restart: "no"
     container_name: mattermost-elasticsearch
@@ -133,7 +106,7 @@ elasticsearch='
         file: ../../server/build/gitlab-dc.common.yml
         service: elasticsearch'
 
-elasticsearch_arm64='
+  local elasticsearch_arm64='
   elasticsearch:
     image: mattermostdevelopment/mattermost-elasticsearch:7.17.10
     platform: linux/arm64/v8
@@ -146,7 +119,7 @@ elasticsearch_arm64='
         file: ../../server/build/gitlab-dc.common.yml
         service: elasticsearch'
 
-keycloak='
+  local keycloak='
   keycloak:
     restart: "no"
     container_name: mattermost-keycloak
@@ -156,7 +129,7 @@ keycloak='
         file: ../../server/build/gitlab-dc.common.yml
         service: keycloak'
 
-cypress='
+  local cypress='
   cypress:
     image: "cypress/browsers:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1"
     ### Temporarily disabling this image, until both the amd64 and arm64 version are mirrored
@@ -197,8 +170,8 @@ cypress='
     volumes:
       - "../../e2e-tests/cypress/:/cypress"'
 
-# shellcheck disable=SC2016
-webhook_interactions='
+  # shellcheck disable=SC2016
+  local webhook_interactions='
   webhook-interactions:
     image: mattermostdevelopment/mirrored-node:${NODE_VERSION_REQUIRED}
     command: sh -c "npm install --legacy-peer-deps && exec node webhook_serve.js"
@@ -217,7 +190,7 @@ webhook_interactions='
         aliases:
           - webhook-interactions'
 
-playwright='
+  local playwright='
   playwright:
     image: mcr.microsoft.com/playwright:v1.38.1-jammy
     entrypoint: ["/bin/bash", "-c"]
@@ -247,29 +220,8 @@ playwright='
     volumes:
       - "../../:/mattermost"'
 
-# File to be used for overriding docker compose
-DC_FILE="server.override.yml"
-
-# If the TEST type requires other services, also enable them
-case $TEST in
-cypress)
-  enable_docker_service cypress
-  enable_docker_service webhook-interactions
-  ;;
-playwright)
-  enable_docker_service playwright
-  ;;
-esac
-
-mme2e_log "Generating $DC_FILE using the following parameters:"
-mme2e_log "TEST: ${TEST}"
-mme2e_log "SERVER: ${SERVER}"
-mme2e_log "ENABLED_DOCKER_SERVICES: ${ENABLED_DOCKER_SERVICES}"
-assert_services_validity "$ENABLED_DOCKER_SERVICES"
-ensure_optional_files_exist
-
-# Generate the docker compose override file
-cat <<EOL >"$DC_FILE"
+  # Generate the docker compose override file
+  cat <<EOL >"$DC_FILE"
 # Image hashes in this file are for amd64 systems
 # NB:  May include paths relative to the "server/build" directory, which contains the original compose file that this yaml is overriding
 
@@ -299,19 +251,148 @@ services:
       - "8065:8065"
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do
-  # The server container will start only if all other dependent services are healthy
-  # Skip creating the dependency for containers that don't have or need a healthcheck
-  if grep -qE "^(cypress|webhook-interactions|playwright)" <<<"$service"; then
-    continue
-  fi
-  echo "      $service:"
-  echo "        condition: service_healthy"
-done)
+    # The server container will start only if all other dependent services are healthy
+    # Skip creating the dependency for containers that don't need a healthcheck
+    if grep -qE "^(cypress|webhook-interactions|playwright)" <<<"$service"; then
+      continue
+    fi
+    echo "      $service:"
+    echo "        condition: service_healthy"
+  done)
 
 $(for service in $ENABLED_DOCKER_SERVICES; do
-  # Print all dependent services' docker-compose text blocks
-  echo_docker_compose_textblock_for_service "$service"
-done)
+    # Print all dependent services' docker-compose text blocks
+    #
+    # Note: the variable containing the docker-compose text block for a certain service is not always named
+    # the same as the service (e.g. characters that are valid for docker-compose services, but not allowed
+    # for variable names).
+    # If required, rewrite the variable name before printing the variable's value
+    service_varname=$service
+    if [ "$service" = "elasticsearch" ]; then
+      [ "$MME2E_ARCHTYPE" = "arm64" ] && service_varname="elasticsearch_arm64"
+    elif [ "$service" = "webhook-interactions" ]; then
+      service_varname="webhook_interactions"
+    fi
+    echo "${!service_varname}"
+  done)
 EOL
 
-mme2e_log "Configuration generated in $DC_FILE"
+  mme2e_log "docker-compose file generated."
+}
+
+generate_env_files() {
+  # Create files required to exist, but whose existence depends on optional previous steps (e.g. dashboard)
+  touch .env.dashboard
+  touch .env.server.cloud
+
+  # Generate .env.server
+  mme2e_log "Generating .env.server"
+  mme2e_generate_envfile_from_var_names >.env.server <<-EOF
+	MM_LICENSE
+	MM_ELASTICSEARCHSETTINGS_CONNECTIONURL
+	MM_LDAPSETTINGS_LDAPSERVER
+	EOF
+
+  # Setting SERVER-specific variables
+  case "$SERVER" in
+  cloud)
+    echo "MM_NOTIFY_ADMIN_COOL_OFF_DAYS=0.00000001" >>.env.server
+    echo 'MM_FEATUREFLAGS_ANNUALSUBSCRIPTION="true"' >>.env.server
+    ;;
+  esac
+
+  # Setting MM_ENV-injected variables
+  # shellcheck disable=SC2086
+  envarr=$(echo ${MM_ENV:-} | tr "," "\n")
+  for env in $envarr; do
+    echo "$env" >>.env.server
+  done
+
+  # Generating TEST-specific env files
+  case "$TEST" in
+  cypress)
+    mme2e_log "Cypress: Generating .env.cypress"
+    mme2e_generate_envfile_from_var_names >.env.cypress <<-EOF
+	BRANCH
+	BUILD_ID
+	CI_BASE_URL
+	BROWSER
+	AUTOMATION_DASHBOARD_URL
+	AUTOMATION_DASHBOARD_TOKEN
+	EOF
+    # Adding SERVICE-specific cypress variables
+    for SERVICE in $ENABLED_DOCKER_SERVICES; do
+      case $SERVICE in
+      openldap)
+        echo "CYPRESS_ldapServer=openldap" >>.env.cypress
+        echo "CYPRESS_runLDAPSync=true" >>.env.cypress
+        ;;
+      minio)
+        echo "CYPRESS_minioS3Endpoint=minio:9000" >>.env.cypress
+        ;;
+      keycloak)
+        echo "CYPRESS_keycloakBaseUrl=http://keycloak:8484" >>.env.cypress
+        ;;
+      elasticsearch)
+        echo "CYPRESS_elasticsearchConnectionURL=http://elasticsearch:9200" >>.env.cypress
+        ;;
+      esac
+    done
+    # Adding SERVER-specific cypress variables
+    case "$SERVER" in
+    cloud)
+      echo "CYPRESS_serverEdition=Cloud" >>.env.cypress
+      ;;
+    *)
+      echo "CYPRESS_serverEdition=E20" >>.env.cypress
+      ;;
+    esac
+    ;;
+  playwright)
+    mme2e_log "Playwright: Generating .env.playwright"
+    mme2e_generate_envfile_from_var_names >.env.playwright <<-EOF
+	BRANCH
+	BUILD_ID
+	EOF
+    ;;
+  none)
+    mme2e_log "Requested TEST=$TEST. Skipping generation of test-specific env files."
+    ;;
+  esac
+}
+
+# Perform SERVER-specific checks/customizations
+case "$SERVER" in
+cloud)
+  if ! [ -f .env.server.cloud ]; then
+    mme2e_log "Error: when using SERVER=$SERVER, the .env.server.cloud file is expected to exist, before generating the docker-compose file. Aborting." >&2
+    exit 1
+  fi
+  if [ -z "$MM_LICENSE" ]; then
+    mme2e_log "Error: when using SERVER=$SERVER, the MM_LICENSE variable is expected to be set. Aborting." >&2
+    exit 1
+  fi
+  ;;
+esac
+
+# Perform TEST-specific checks/customizations
+case $TEST in
+cypress)
+  enable_docker_service cypress
+  enable_docker_service webhook-interactions
+  ;;
+playwright)
+  enable_docker_service playwright
+  ;;
+none)
+  mme2e_log "Requested TEST=$TEST. No additional containers required."
+  ;;
+esac
+
+mme2e_log "Generating docker-compose file using the following parameters:"
+mme2e_log "TEST: ${TEST}"
+mme2e_log "SERVER: ${SERVER}"
+mme2e_log "ENABLED_DOCKER_SERVICES: ${ENABLED_DOCKER_SERVICES}"
+assert_docker_services_validity "$ENABLED_DOCKER_SERVICES"
+generate_docker_compose_file
+generate_env_files

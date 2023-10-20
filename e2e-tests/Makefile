@@ -6,13 +6,13 @@ SHELL := /bin/bash
 
 .PHONY: all run stop
 all: run
-run: generate-server create-cloud-customer start-server prepare-server run-test delete-cloud-customer
+run: cloud-init generate-server start-server prepare-server run-test cloud-teardown
 stop: stop-server stop-dashboard
 
 .PHONY: generate-server start-server prepare-server run-test stop-server restart-server
 generate-server:
 	bash ./.ci/server.generate.sh
-start-server:
+start-server: generate-server
 	bash ./.ci/server.start.sh
 prepare-server:
 	bash ./.ci/server.prepare.sh
@@ -28,15 +28,15 @@ start-dashboard:
 stop-dashboard:
 	bash ./.ci/dashboard.stop.sh
 
-.PHONY: create-cloud-customer delete-cloud-customer
-create-cloud-customer:
-	bash ./.ci/server.cloud_customer_create.sh
-delete-cloud-customer:
-	bash ./.ci/server.cloud_customer_delete.sh
+.PHONY: cloud-init cloud-teardown
+cloud-init: requirecmd-jq requirecmd-curl
+	bash ./.ci/server.cloud_init.sh
+cloud-teardown:
+	bash ./.ci/server.cloud_teardown.sh
 
-.PHONY: fmt-node fmt-shell fmt
+.PHONY: fmt-node fmt-shell fmt clean
 requirecmd-%:
-	@which "$(*)" >/dev/null || { echo "Missing required command: "$(*)". Aborting." >&2; exit 1; }
+	@which "$(*)" >/dev/null || { echo "Error, missing required CLI tool: $(*). Aborting." >&2; exit 1; }
 fmt-node: requirecmd-npx
 	# Formats yaml files
 	npx prettier ./.ci "!./.ci/dashboard" --write --cache
@@ -44,3 +44,6 @@ fmt-shell: requirecmd-shfmt requirecmd-shellcheck
 	shfmt -w -s -i 2 ./.ci/*.sh         # Install with https://webinstall.dev/shellcheck/
 	shellcheck ./.ci/*.sh ./.ci/.e2erc* # Install with https://webinstall.dev/shfmt/
 fmt: fmt-node fmt-shell
+clean: stop
+	rm -fv .ci/server.override.yml
+	rm -fv .ci/.env*

@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 . .e2erc
 
 if [ "$SERVER" != "cloud" ]; then
-  mme2e_log "Skipping cloud customer creation: operation supported only for cloud server, but running with SERVER='$SERVER'"
+  mme2e_log "Skipping cloud instance initialization: operation supported only for cloud server, but running with SERVER='$SERVER'"
   exit 0
 fi
 
