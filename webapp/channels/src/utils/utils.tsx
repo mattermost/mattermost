@@ -321,7 +321,6 @@ export function toRgbValues(hexStr: string): string {
 
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
-        changeCss('.app__body .dropdown-menu', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .popover', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .suggestion-list__item .suggestion-list__ellipsis .suggestion-list__main', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .tip-overlay', 'color:' + theme.centerChannelColor);
