@@ -621,18 +621,25 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 	}
 
 	if data.ProfileImage != nil {
-		var file io.ReadCloser
+		var file io.ReadSeeker
 		var err error
 		if data.ProfileImageData != nil {
-			file, err = data.ProfileImageData.Open()
+			// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
+			f, _ := data.ProfileImageData.Open()
+			limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
+			b, _ := io.ReadAll(limitedReader)
+			file = bytes.NewReader(b)
 		} else {
-			file, err = os.Open(*data.ProfileImage)
+			f, err := os.Open(*data.ProfileImage)
+			if err == nil {
+				defer f.Close()
+			}
+			file = f
 		}
 
 		if err != nil {
 			c.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
 		} else {
-			defer file.Close()
 			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -1992,4 +1999,12 @@ func (a *App) importEmoji(c request.CTX, data *imports.EmojiImportData, dryRun b
 	}
 
 	return nil
+}
+
+type nopSeeker struct {
+	io.ReadCloser
+}
+
+func (nopSeeker) Seek(offset int64, whence int) (int64, error) {
+	return 0, nil
 }
