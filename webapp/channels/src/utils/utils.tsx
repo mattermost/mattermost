@@ -321,7 +321,6 @@ export function toRgbValues(hexStr: string): string {
 
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
-        changeCss('.app__body .system-notice', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.12));
         changeCss('.app__body .file-view--single .file__image .image-loaded', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.12));
         changeCss('.app__body .post .MenuWrapper .dropdown-menu button', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.12));
         changeCss('.app__body .member-list__popover .more-modal__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.12));
