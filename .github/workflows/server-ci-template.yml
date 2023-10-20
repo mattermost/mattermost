@@ -282,6 +282,8 @@ jobs:
         working-directory: server
     needs: check-mattermost-vet
     steps:
+      - name: Collect Workflow Telemetry
+        uses: runforesight/workflow-telemetry-action@v1
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
