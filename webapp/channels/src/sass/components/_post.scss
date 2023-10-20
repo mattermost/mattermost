@@ -326,7 +326,7 @@
     width: 40px;
     height: 40px;
     background-repeat: no-repeat;
-    fill: #444;
+    fill: rgba(var(--center-channel-color-rgb), 0.3);
     opacity: 0;
     text-align: center;
     transition: all 0.6s;
