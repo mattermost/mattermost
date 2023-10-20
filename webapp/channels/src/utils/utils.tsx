@@ -321,7 +321,6 @@ export function toRgbValues(hexStr: string): string {
 
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
-        changeCss('.app__body .post.post--system .post__body', 'color:' + changeOpacity(theme.centerChannelColor, 0.6));
         changeCss('.app__body .nav-tabs, .app__body .nav-tabs > li.active > a, pp__body .input-group-addon, .app__body .app__content, .app__body .post-create__container .post-create-body .btn-file, .app__body .post-create__container .post-create-footer .msg-typing, .app__body .dropdown-menu, .app__body .popover, .app__body .suggestion-list__item .suggestion-list__ellipsis .suggestion-list__main, .app__body .tip-overlay, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .post .post__link', 'color:' + changeOpacity(theme.centerChannelColor, 0.65));
         changeCss('.app__body #archive-link-home, .video-div .video-thumbnail__error', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));

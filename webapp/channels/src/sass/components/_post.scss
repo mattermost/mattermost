@@ -714,6 +714,10 @@
                 min-width: 0;
             }
         }
+
+        .post__body {
+            color: rbga(var(--center-channel-color-rgb), 0.6);
+        }
     }
 
     &:hover,
