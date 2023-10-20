@@ -8,7 +8,7 @@ import type {ChannelNotifyProps} from '@mattermost/types/channels';
 import {NotificationLevels} from 'utils/constants';
 
 type Actions = {
-    updateChannelNotifyProps: (userId: string, channelId: string, props: ChannelNotifyProps) => void;
+    updateChannelNotifyProps: (userId: string, channelId: string, props: Pick<ChannelNotifyProps, 'mark_unread'>) => void;
 };
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
 
 const UnmuteChannelButton = ({user, channel, actions}: Props) => {
     const handleClick = () => {
-        actions.updateChannelNotifyProps(user.id, channel.id, {mark_unread: NotificationLevels.ALL} as ChannelNotifyProps);
+        actions.updateChannelNotifyProps(user.id, channel.id, {mark_unread: NotificationLevels.ALL});
     };
 
     return (
