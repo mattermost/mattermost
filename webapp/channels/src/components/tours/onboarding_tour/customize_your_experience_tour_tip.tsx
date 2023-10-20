@@ -10,7 +10,7 @@ import CustomImg from 'images/Customize-Your-Experience.gif';
 
 import OnboardingTourTip from './onboarding_tour_tip';
 
-const translate = {x: 20, y: -6};
+const translate = {x: -56, y: -12};
 const offset: [number, number] = [18, 4];
 
 export const CustomizeYourExperienceTour = () => {
@@ -37,7 +37,7 @@ export const CustomizeYourExperienceTour = () => {
             screen={screen}
             imageURL={CustomImg}
             placement='bottom-start'
-            pulsatingDotPlacement='bottom'
+            pulsatingDotPlacement='right-end'
             pulsatingDotTranslate={translate}
             offset={offset}
             width={352}
