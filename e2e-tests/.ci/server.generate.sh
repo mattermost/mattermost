@@ -282,7 +282,6 @@ services:
       - "./.env.server"
       - "./.env.server.cloud"
     environment:
-      MM_LICENSE: \${MM_LICENSE}
       MM_SERVICESETTINGS_SITEURL: http://server:8065
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
       MM_PLUGINSETTINGS_ENABLED: "true"
