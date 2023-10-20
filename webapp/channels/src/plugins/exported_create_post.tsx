@@ -13,8 +13,10 @@ type Props = {
 }
 
 const ExportedCreatePost = ({placeholder, onSubmit}: Props) => {
+    const Component = AdvancedCreateComment as any
+
     return (
-        <AdvancedCreateComment
+        <Component
             placeholder={placeholder}
             rootDeleted={false}
             channelId={undefined}
