@@ -328,7 +328,8 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 			userLine := ImportLineFromUser(user, exportedPrefs)
 
 			if includeProfilePictures {
-				pp, err := a.GetProfileImagePath(user)
+				var pp string
+				pp, err = a.GetProfileImagePath(user)
 				if err != nil {
 					return profilePictures, err
 				}

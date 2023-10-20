@@ -625,21 +625,30 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 		var err error
 		if data.ProfileImageData != nil {
 			// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
-			f, _ := data.ProfileImageData.Open()
-			limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
-			b, _ := io.ReadAll(limitedReader)
-			file = bytes.NewReader(b)
-		} else {
-			f, err := os.Open(*data.ProfileImage)
-			if err == nil {
-				defer f.Close()
+			var f io.ReadCloser
+			f, err = data.ProfileImageData.Open()
+			if err != nil {
+				c.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
+			} else {
+				limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
+				var b []byte
+				b, err = io.ReadAll(limitedReader)
+				if err != nil {
+					c.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
+				} else {
+					file = bytes.NewReader(b)
+				}
 			}
-			file = f
+		} else {
+			file, err = os.Open(*data.ProfileImage)
+			if err != nil {
+				c.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
+			} else {
+				defer file.(*os.File).Close()
+			}
 		}
 
-		if err != nil {
-			c.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
-		} else {
+		if file != nil {
 			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 			}
