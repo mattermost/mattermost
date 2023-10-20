@@ -666,7 +666,7 @@ const defaultServerConfig: AdminConfig = {
     },
     DisplaySettings: {
         CustomURLSchemes: [],
-        MaxMarkdownNodes: 0
+        MaxMarkdownNodes: 0,
     },
     GuestAccountsSettings: {
         Enable: false,
