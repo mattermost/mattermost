@@ -13,7 +13,7 @@ type Props = {
 }
 
 const ExportedCreatePost = ({placeholder, onSubmit}: Props) => {
-    const Component = AdvancedCreateComment as any
+    const Component = AdvancedCreateComment as any;
 
     return (
         <Component
