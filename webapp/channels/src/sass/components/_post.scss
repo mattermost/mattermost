@@ -399,57 +399,6 @@
         }
     }
 
-    .post-create-body {
-        position: relative;
-        padding: 0 0 2px;
-
-        .post-body__cell {
-            position: relative;
-            vertical-align: top;
-        }
-
-        .send-button {
-            display: none;
-            width: 45px;
-            height: 100%;
-            padding-right: 4px;
-            border-left: 1px solid transparent;
-            cursor: pointer;
-            font-size: 17px;
-            line-height: 49px;
-            text-align: center;
-            transition: all 0.15s;
-            vertical-align: bottom;
-
-            &:active {
-                opacity: 0.75;
-            }
-
-            &.disabled {
-                i {
-                    color: inherit;
-                }
-            }
-
-            .android &,
-            .ios & {
-                display: block;
-            }
-        }
-
-        .icon--emoji-picker {
-            cursor: pointer;
-            opacity: 0.5;
-            transition: all 0.15s;
-
-            &:hover,
-            &:active {
-                box-shadow: none;
-                opacity: 0.9;
-            }
-        }
-    }
-
     .msg-typing {
         display: block;
         overflow: hidden;
