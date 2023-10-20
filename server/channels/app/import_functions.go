@@ -2000,11 +2000,3 @@ func (a *App) importEmoji(c request.CTX, data *imports.EmojiImportData, dryRun b
 
 	return nil
 }
-
-type nopSeeker struct {
-	io.ReadCloser
-}
-
-func (nopSeeker) Seek(offset int64, whence int) (int64, error) {
-	return 0, nil
-}
