@@ -321,7 +321,10 @@ export function toRgbValues(hexStr: string): string {
 
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
-        changeCss('.app__body .shortcut-key, .app__body .post__body hr, .app__body .loading-screen .loading__content .round, .app__body .tutorial__circles .circle', 'background:' + theme.centerChannelColor);
+        changeCss('.app__body .shortcut-key', 'background:' + theme.centerChannelColor);
+        changeCss('.app__body .post__body hr', 'background:' + theme.centerChannelColor);
+        changeCss('.app__body .loading-screen .loading__content .round', 'background:' + theme.centerChannelColor);
+        changeCss('.app__body .tutorial__circles .circle', 'background:' + theme.centerChannelColor);
         changeCss('.app__body .channel-header .heading', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
