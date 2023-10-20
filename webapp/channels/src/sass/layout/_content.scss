@@ -61,24 +61,6 @@
     }
 }
 
-#archive-link-home {
-    flex: 0 0 auto;
-    cursor: pointer;
-    font-size: 13px;
-
-    .fa {
-        font-size: 11px;
-        opacity: 0.7;
-    }
-
-    a {
-        display: block;
-        width: 100%;
-        padding: 10px 20px;
-        color: inherit;
-    }
-}
-
 .delete-message-text {
     margin-top: 10px;
 }
