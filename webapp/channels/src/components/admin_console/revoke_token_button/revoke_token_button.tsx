@@ -28,16 +28,12 @@ const RevokeTokenButton: React.FC<RevokeTokenButtonProps> = (props) => {
     const handleClick = async (e: React.MouseEvent) => {
         e.preventDefault();
 
-        try {
             const response = await props.actions.revokeUserAccessToken(props.tokenId);
             trackEvent('system_console', 'revoke_user_access_token');
 
             if ('error' in response) {
                 setError(response.error.message);
             }
-        } catch (err) {
-            setError(err.message);
-        }
     };
 
     return (
@@ -54,4 +50,4 @@ const RevokeTokenButton: React.FC<RevokeTokenButtonProps> = (props) => {
     );
 };
 
-export default RevokeTokenButton;
+export default React.memo(RevokeTokenButton);
