@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 
 import ColorInput from 'components/color_input';
 
@@ -23,7 +23,7 @@ const ColorSetting = (props: Props) => {
         }
     }, [props.id, props.onChange]);
 
-return (
+    return (
         <Setting
             label={props.label}
             helpText={props.helpText}
