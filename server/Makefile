@@ -34,12 +34,6 @@ BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 
-# treestate
-GIT_TREESTATE = clean
-DIFF = $(shell git diff --quiet >/dev/null 2>&1; if [ $$? -eq 1 ]; then echo "1"; fi)
-ifeq ($(DIFF), 1)
-    GIT_TREESTATE = dirty
-endif
 
 # Docker
 export COMPOSE_PROJECT_NAME=mattermost-server
@@ -62,9 +56,8 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 MMCTL_BUILD_TAGS =
 MMCTL_TESTFLAGS ?= -timeout 30m
 MMCTL_PKG = github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands
-LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(BUILD_HASH)"
-LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(GIT_TREESTATE)"
-LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(BUILD_DATE)"
+MMCTL_BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+MMCTL_LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(MMCTL_BUILD_DATE)"
 
 # Enterprise
 BUILD_ENTERPRISE_DIR ?= ../../enterprise
@@ -91,18 +84,6 @@ endif
 
 # Webapp
 BUILD_WEBAPP_DIR ?= ../webapp
-BUILD_CLIENT = false
-BUILD_HASH_CLIENT = independent
-ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
-  ifeq ($(BUILD_CLIENT),true)
-    BUILD_CLIENT = true
-    BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
-  else
-    BUILD_CLIENT = false
-  endif
-else
-    BUILD_CLIENT = false
-endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
@@ -813,7 +794,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 mmctl-build: ## Compiles and generates the mmctl binary
-	go build -trimpath -ldflags '$(LDFLAGS)' -o bin/mmctl ./cmd/mmctl
+	go build -trimpath -ldflags '$(MMCTL_LDFLAGS)' -o bin/mmctl ./cmd/mmctl
 
 mmctl-docs: ## Generate the mmctl docs
 	rm -rf ./cmd/mmctl/docs
