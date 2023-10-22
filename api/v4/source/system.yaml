@@ -935,6 +935,37 @@
                 $ref: "#/components/schemas/PushNotification"
         "404":
           $ref: "#/components/responses/NotFound"
+  /api/v4/redirect_location:
+    get:
+      tags:
+        - system
+      summary: Get redirect location
+      description: >
+        __Minimum server version__: 3.10
+
+        ##### Permissions
+
+        Must be logged in.
+      operationId: GetRedirectLocation
+      parameters:
+        - name: url
+          in: query
+          required: true
+          description: Url to check
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Got redirect location
+          content:
+            image/*:
+              schema:
+                type: object
+                properties:
+                  location:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/v4/image:
     get:
       tags:
