@@ -60,7 +60,7 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
             />,
         );
 
-        wrapper.instance().onBlur();
+        (wrapper.instance() as AutocompleteSelector).onBlur();
 
         expect(wrapper).toMatchInlineSnapshot(`
             <div
@@ -96,8 +96,8 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
             </div>
         `);
 
-        wrapper.instance().onChange({target: {value: 'value from input'}});
-        wrapper.instance().onFocus();
+        (wrapper.instance() as AutocompleteSelector).onChange(({target: {value: 'value from input'} as HTMLInputElement}));
+        (wrapper.instance() as AutocompleteSelector).onFocus();
 
         expect(wrapper).toMatchInlineSnapshot(`
             <div
@@ -145,8 +145,8 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
             />,
         );
 
-        const selected = {text: 'sometext', value: 'somevalue'};
-        wrapper.instance().handleSelected(selected);
+        const selected = {text: 'sometext', value: 'somevalue', id: '', username: '', display_name: ''};
+        (wrapper.instance() as AutocompleteSelector).handleSelected(selected);
 
         expect(onSelected).toHaveBeenCalledTimes(1);
         expect(onSelected).toHaveBeenCalledWith(selected);

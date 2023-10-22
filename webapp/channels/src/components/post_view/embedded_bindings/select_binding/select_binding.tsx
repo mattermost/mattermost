@@ -171,7 +171,7 @@ class SelectBinding extends React.PureComponent<Props, State> {
                         onSelected={this.handleSelected}
                         placeholder={label}
                         inputClassName='post-attachment-dropdown'
-                        value={this.state.selected?.text}
+                        value={this.state.selected?.text ?? ''}
                         toggleFocus={handlePopupOpened}
                     />
                 )}

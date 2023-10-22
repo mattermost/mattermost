@@ -1,47 +1,78 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
 
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
-export default class AutocompleteSelector extends React.PureComponent {
-    static propTypes = {
-        providers: PropTypes.array.isRequired,
-        value: PropTypes.string.isRequired,
-        onSelected: PropTypes.func,
-        label: PropTypes.node,
-        labelClassName: PropTypes.string,
-        inputClassName: PropTypes.string,
-        helpText: PropTypes.node,
-        placeholder: PropTypes.string,
-        footer: PropTypes.node,
-        disabled: PropTypes.bool,
-        toggleFocus: PropTypes.func,
-        listComponent: PropTypes.elementType,
-        listPosition: PropTypes.string,
-    };
+import type ModalSuggestionList from './suggestion/modal_suggestion_list';
+import type Provider from './suggestion/provider';
 
-    static defaultProps = {
-        value: '',
-        id: '',
-        labelClassName: '',
-        inputClassName: '',
-        listComponent: SuggestionList,
-        listPosition: 'top',
-    };
+type Props = {
+    id?: string;
+    providers: Provider[];
+    value: string;
+    onSelected?: (selected: Selected) => void;
+    label?: React.ReactNode | string;
+    labelClassName?: string;
+    inputClassName?: string;
+    helpText?: React.ReactNode | string;
+    placeholder?: string;
+    footer?: Node;
+    disabled?: boolean;
+    toggleFocus?: ((focus: boolean) => void) | null;
+    listComponent?: typeof SuggestionList | typeof ModalSuggestionList;
+    listPosition?: string;
+};
 
-    constructor(props) {
+type State = {
+    input: string;
+    focused?: boolean;
+};
+
+type Selected = {
+    id: string;
+    username: string;
+    display_name: string;
+    value: string;
+    text: string;
+}
+
+type ChangeEvent = {
+    target: HTMLInputElement;
+}
+
+export default class AutocompleteSelector extends React.PureComponent<Props, State> {
+    suggestionRef?: HTMLElement;
+
+    constructor(props: Props) {
         super(props);
+
+        /*
+        if (!props.id) {
+            props.id = '';
+        }
+        if (!props.labelClassName) {
+            props.labelClassName = '';
+        }
+        if (!props.inputClassName) {
+            props.inputClassName = '';
+        }
+        if (!props.listPosition) {
+            props.listPosition = 'top';
+        }
+        if (!props.listComponent) {
+            props.listComponent = SuggestionList;
+        }
+        */
 
         this.state = {
             input: '',
         };
     }
 
-    onChange = (e) => {
+    onChange = (e: ChangeEvent) => {
         if (!e || !e.target) {
             return;
         }
@@ -49,7 +80,7 @@ export default class AutocompleteSelector extends React.PureComponent {
         this.setState({input: e.target.value});
     };
 
-    handleSelected = (selected) => {
+    handleSelected = (selected: Selected) => {
         this.setState({input: ''});
 
         if (this.props.onSelected) {
@@ -63,7 +94,7 @@ export default class AutocompleteSelector extends React.PureComponent {
         });
     };
 
-    setSuggestionRef = (ref) => {
+    setSuggestionRef = (ref: HTMLElement) => {
         this.suggestionRef = ref;
     };
 
@@ -96,7 +127,13 @@ export default class AutocompleteSelector extends React.PureComponent {
             disabled,
             listComponent,
             listPosition,
-        } = this.props;
+        } = {
+            labelClassName: '',
+            inputClassName: '',
+            listComponent: SuggestionList,
+            listPosition: 'top',
+            ...this.props,
+        };
 
         const {focused} = this.state;
         let {input} = this.state;
@@ -108,9 +145,7 @@ export default class AutocompleteSelector extends React.PureComponent {
         let labelContent;
         if (label) {
             labelContent = (
-                <label
-                    className={'control-label ' + labelClassName}
-                >
+                <label className={'control-label ' + labelClassName}>
                     {label}
                 </label>
             );
@@ -118,12 +153,9 @@ export default class AutocompleteSelector extends React.PureComponent {
 
         let helpTextContent;
         if (helpText) {
-            helpTextContent = (
-                <div className='help-text'>
-                    {helpText}
-                </div>
-            );
+            helpTextContent = <div className='help-text'>{helpText}</div>;
         }
+        React.createRef;
 
         return (
             <div
