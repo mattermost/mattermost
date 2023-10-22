@@ -33,6 +33,16 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should match snapshot when isStarterFree is true', () => {
+        const props = {...defaultProps, isStarterFree: true};
+
+        const wrapper = renderWithFullContext(
+            <UserSettingsNotifications {...props}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
     test('should show reply notifications section when CRT off', () => {
         const props = {...defaultProps, isCollapsedThreadsEnabled: false};
 

@@ -1022,11 +1022,11 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 tooltipMessageBlocked={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipTitle',
                     defaultMessage:
-                    'This feature is available on the professional plan',
+                    'This feature is available on the Professional plan',
                 })}
                 ctaExtraContent={
                     <FormattedMessage
-                        id='user.settings.notifications.keywordsWithHighlight.professioal'
+                        id='user.settings.notifications.keywordsWithHighlight.professional'
                         defaultMessage='Professional'
                     />
                 }
