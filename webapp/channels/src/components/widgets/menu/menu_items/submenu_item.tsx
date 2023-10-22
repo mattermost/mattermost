@@ -95,7 +95,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
         this.setState({show: false});
     };
 
-    private onClick = (event: React.SyntheticEvent<HTMLElement>) => {
+    private onClick = (event: React.SyntheticEvent<HTMLElement> | React.BaseSyntheticEvent<HTMLElement>) => {
         event.preventDefault();
         const {id, postId, subMenu, action, root, isHeader} = this.props;
         const isMobile = isMobileViewHack();
@@ -112,8 +112,13 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
             } else if (action) { // leaf node in the tree handles action only
                 action(postId);
             }
-        } else if (event.currentTarget.id === id && action) {
-            action(postId);
+        } else {
+            const shouldCallAction =
+                (event.type === 'keydown' && event.currentTarget.id === id) ||
+                event.target.parentElement.id === id;
+            if (shouldCallAction && action) {
+                action(postId);
+            }
         }
     };
 
