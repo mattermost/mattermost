@@ -39,7 +39,11 @@ const RightControlsContainer = styled.div`
         margin-left: 8px;
     }
 `;
-
+const CustomizeYourExperienceTourWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    height: 100%
+`;
 export type Props = {
     productId?: ProductIdentifier;
 }
@@ -68,7 +72,7 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                     pluggableId={productId}
                 />
             )}
-            <div id='CustomizeYourExperienceTour' style={{display:'flex'}}>
+            <CustomizeYourExperienceTourWrapper id='CustomizeYourExperienceTour'>
                 {
                     isChannels(productId) ? (
                         <>
@@ -77,10 +81,10 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                         </>
                     ) : null
                 }
-                <div style={{marginLeft:'8px'}}>
+                <div style={{marginLeft: '8px'}}>
                     <StatusDropdown/>
                 </div>
-            </div>
+            </CustomizeYourExperienceTourWrapper>
 
         </RightControlsContainer>
     );
