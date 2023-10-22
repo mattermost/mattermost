@@ -5,12 +5,15 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import type {DialogElement as TDialogElement} from '@mattermost/types/integrations';
+import type {DialogSubmission, DialogElement as TDialogElement} from '@mattermost/types/integrations';
 
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {
     checkDialogElementForError,
     checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
+
+import store from 'stores/redux_store';
 
 import SpinnerButton from 'components/spinner_button';
 
@@ -32,7 +35,7 @@ export type Props = {
     state?: string;
     onExited?: () => void;
     actions: {
-        submitInteractiveDialog: any;
+        submitInteractiveDialog: (submission: DialogSubmission) => ActionFunc;
     };
     emojiMap: EmojiMap;
 }
@@ -107,11 +110,11 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
             callback_id: callbackId,
             state,
             submission: values,
-        };
+        } as unknown as DialogSubmission;
 
         this.setState({submitting: true});
 
-        const {data} = await this.props.actions.submitInteractiveDialog(dialog);
+        const {data}: any = await this.props.actions.submitInteractiveDialog(dialog)(store.dispatch, store.getState);
 
         this.setState({submitting: false});
 
@@ -151,7 +154,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                 callback_id: callbackId,
                 state,
                 cancelled: true,
-            };
+            }as unknown as DialogSubmission;
 
             this.props.actions.submitInteractiveDialog(dialog);
         }

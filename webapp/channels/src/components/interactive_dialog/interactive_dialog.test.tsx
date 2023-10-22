@@ -31,7 +31,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         state: 'some state',
         onExited: () => {},
         actions: {
-            submitInteractiveDialog: () => ({}),
+            submitInteractiveDialog: jest.fn(),
         },
         emojiMap: new EmojiMap(new Map()),
     };
@@ -41,7 +41,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
             const props = {
                 ...baseProps,
                 actions: {
-                    submitInteractiveDialog: () => ({
+                    submitInteractiveDialog: jest.fn().mockRejectedValue({
                         data: {error: 'This is an error.'},
                     }),
                 },
