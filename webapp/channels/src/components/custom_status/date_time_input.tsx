@@ -29,11 +29,18 @@ import {getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
+const CUSTOM_TIME_PICKER_ROUND_DOWN_CUT_OFF_IN_MINUTES = 15;
 
 export function getRoundedTime(value: Moment) {
     const roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
     const start = moment(value);
-    const diff = start.minute() % roundedTo;
+    const minutes = start.minute();
+
+    if (minutes <= CUSTOM_TIME_PICKER_ROUND_DOWN_CUT_OFF_IN_MINUTES) {
+        return start.minutes(0).seconds(0).milliseconds(0);
+    }
+
+    const diff = minutes % roundedTo;
     if (diff === 0) {
         return value;
     }
