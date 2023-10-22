@@ -525,7 +525,7 @@ Object {
 }
 `;
 
-exports[`components/user_settings/display/UserSettingsDisplay should match snapshot when isStarterFree is true 1`] = `
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot when areFeaturesDisabled is true 1`] = `
 Object {
   "asFragment": [Function],
   "baseElement": <body>

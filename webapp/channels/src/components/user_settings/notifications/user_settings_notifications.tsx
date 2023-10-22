@@ -1012,7 +1012,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         const collapsedEditButtonWhenDisabled = (
             <RestrictedIndicator
-                blocked={this.props.isStarterFree}
+                blocked={this.props.areFeaturesDisabled}
                 feature={MattermostFeatures.HIGHLIGHT_WITHOUT_NOTIFICATION}
                 minimumPlanRequiredForFeature={LicenseSkus.Professional}
                 tooltipTitle={this.props.intl.formatMessage({
@@ -1067,7 +1067,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 describe={collapsedDescription}
                 updateSection={this.handleUpdateSection}
                 max={expandedSection}
-                isDisabled={this.props.isStarterFree}
+                isDisabled={this.props.areFeaturesDisabled}
                 collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
             />);
     };
@@ -1354,7 +1354,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     {pushNotificationSection}
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
-                    {!this.props.isStarterFree && (
+                    {!this.props.areFeaturesDisabled && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}
@@ -1375,7 +1375,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     )}
 
                     {/*  We placed the disabled items in the last */}
-                    {this.props.isStarterFree && (
+                    {this.props.areFeaturesDisabled && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}

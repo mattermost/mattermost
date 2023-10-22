@@ -22,7 +22,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         enableAutoResponder: false,
         isCallsRingingEnabled: true,
         intl: {} as IntlShape,
-        isStarterFree: false,
+        areFeaturesDisabled: false,
     };
 
     test('should match snapshot', () => {
@@ -33,8 +33,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when isStarterFree is true', () => {
-        const props = {...defaultProps, isStarterFree: true};
+    test('should match snapshot when areFeaturesDisabled is true', () => {
+        const props = {...defaultProps, areFeaturesDisabled: true};
 
         const wrapper = renderWithFullContext(
             <UserSettingsNotifications {...props}/>,
