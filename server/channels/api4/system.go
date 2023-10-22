@@ -56,8 +56,6 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/latest_version", api.APISessionRequired(getLatestVersion)).Methods("GET")
 
-	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
-
 	api.BaseRoutes.APIRoot.Handle("/notifications/ack", api.APISessionRequired(pushNotificationAck)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(setServerBusy)).Methods("POST")
@@ -561,62 +559,6 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
-	m := make(map[string]string)
-	m["location"] = ""
-
-	if !*c.App.Config().ServiceSettings.EnableLinkPreviews {
-		w.Write([]byte(model.MapToJSON(m)))
-		return
-	}
-
-	url := r.URL.Query().Get("url")
-	if url == "" {
-		c.SetInvalidParam("url")
-		return
-	}
-
-	var location string
-	if err := redirectLocationDataCache.Get(url, &location); err == nil {
-		m["location"] = location
-		w.Write([]byte(model.MapToJSON(m)))
-		return
-	}
-
-	client := c.App.HTTPService().MakeClient(false)
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	}
-
-	res, err := client.Head(url)
-	if err != nil {
-		// Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
-		// Always return a success status and a JSON string to limit information returned to client.
-		w.Write([]byte(model.MapToJSON(m)))
-		return
-	}
-	defer func() {
-		io.Copy(io.Discard, res.Body)
-		res.Body.Close()
-	}()
-
-	location = res.Header.Get("Location")
-
-	// If the location length is > 2100, we can probably ignore. Fixes https://mattermost.atlassian.net/browse/MM-54219
-	if len(location) > RedirectLocationMaximumLength {
-		// Treating as a "failure". Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
-		// Always return a success status and a JSON string to limit information returned to client.
-		w.Write([]byte(model.MapToJSON(m)))
-		return
-	}
-
-	redirectLocationDataCache.SetWithExpiry(url, location, RedirectLocationCacheExpiry)
-	m["location"] = location
-
-	w.Write([]byte(model.MapToJSON(m)))
-}
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ack model.PushNotificationAck

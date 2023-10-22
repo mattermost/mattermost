@@ -7293,17 +7293,6 @@ func (c *Client4) UpdateTeamScheme(ctx context.Context, teamId, schemeId string)
 	return BuildResponse(r), nil
 }
 
-// GetRedirectLocation retrieves the value of the 'Location' header of an HTTP response for a given URL.
-func (c *Client4) GetRedirectLocation(ctx context.Context, urlParam, etag string) (string, *Response, error) {
-	url := fmt.Sprintf("%s?url=%s", c.redirectLocationRoute(), url.QueryEscape(urlParam))
-	r, err := c.DoAPIGet(ctx, url, etag)
-	if err != nil {
-		return "", BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body)["location"], BuildResponse(r), nil
-}
-
 // SetServerBusy will mark the server as busy, which disables non-critical services for `secs` seconds.
 func (c *Client4) SetServerBusy(ctx context.Context, secs int) (*Response, error) {
 	url := fmt.Sprintf("%s?seconds=%d", c.serverBusyRoute(), secs)
