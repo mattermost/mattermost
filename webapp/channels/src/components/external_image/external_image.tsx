@@ -7,7 +7,7 @@ import type {PostImage} from '@mattermost/types/posts';
 
 import {getImageSrc} from 'utils/post_utils';
 
-import {isSVGImage} from './external_image_isSVGImage';
+import {isSVGImage} from './is_svg_image';
 
 type Props = {
     children: (src: string) => React.ReactNode;

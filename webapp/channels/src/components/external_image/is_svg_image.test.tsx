@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isSVGImage} from './external_image_isSVGImage';
+import {isSVGImage} from './is_svg_image';
 
 describe('ExternalIImage isSVGImage', () => {
     for (const testCase of [
