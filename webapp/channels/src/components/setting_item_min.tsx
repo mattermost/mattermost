@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode} from 'react';
+import classNames from 'classnames';
+import React, {type ReactNode, type MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import EditIcon from 'components/widgets/icons/fa_edit_icon';
@@ -14,12 +14,12 @@ interface Props {
     /**
      * Settings title
      */
-    title: ReactNode | string;
+    title: ReactNode;
 
     /**
      * Option to disable opening the setting
      */
-    disableOpen?: boolean;
+    isDisabled?: boolean;
 
     /**
      * Settings or tab section
@@ -36,13 +36,16 @@ interface Props {
      */
     describe?: ReactNode;
 
-    isMobileView: boolean;
+    /**
+     * Replacement in place of edit button when the setting (in collapsed mode) is disabled
+     */
+    collapsedEditButtonWhenDisabled?: ReactNode;
 }
 
 export default class SettingItemMin extends React.PureComponent<Props> {
     private edit: HTMLButtonElement | null = null;
 
-    focus(): void {
+    focus() {
         a11yFocus(this.edit);
     }
 
@@ -50,81 +53,63 @@ export default class SettingItemMin extends React.PureComponent<Props> {
         this.edit = node;
     };
 
-    handleUpdateSection = (e: React.MouseEvent<HTMLElement>) => {
+    handleClick = (e: MouseEvent<HTMLDivElement | HTMLButtonElement>) => {
+        if (this.props.isDisabled) {
+            return;
+        }
+
         e.preventDefault();
         this.props.updateSection(this.props.section);
     };
 
-    render(): JSX.Element {
-        let editButton = null;
-        let describeSection = null;
+    render() {
+        let editButtonComponent: ReactNode;
 
-        if (!this.props.disableOpen && this.props.isMobileView) {
-            editButton = (
-                <div className='section-min__edit'>
-                    <button
-                        id={this.props.section + 'Edit'}
-                        className='color--link cursor--pointer style--none'
-                        onClick={this.handleUpdateSection}
-                        ref={this.getEdit}
-                        aria-labelledby={this.props.section + 'Title ' + this.props.section + 'Edit'}
-                        aria-expanded={false}
-                    >
-                        {this.props.describe ? this.props.describe : (
-                            <FormattedMessage
-                                id='setting_item_min.edit'
-                                defaultMessage='Edit'
-                            />
-                        )}
-                        <i className='icon icon-chevron-down'/>
-                    </button>
-                </div>
-            );
-        } else if (!this.props.disableOpen) {
-            editButton = (
-                <div className='section-min__edit'>
-                    <button
-                        id={this.props.section + 'Edit'}
-                        className='color--link cursor--pointer style--none text-left'
-                        onClick={this.handleUpdateSection}
-                        ref={this.getEdit}
-                        aria-labelledby={this.props.section + 'Title ' + this.props.section + 'Edit'}
-                        aria-expanded={false}
-                    >
-                        <EditIcon/>
-                        <FormattedMessage
-                            id='setting_item_min.edit'
-                            defaultMessage='Edit'
-                        />
-                    </button>
-                </div>
-            );
-
-            describeSection = (
-                <div
-                    id={this.props.section + 'Desc'}
-                    className='section-min__describe'
+        if (this.props.isDisabled) {
+            if (this.props.collapsedEditButtonWhenDisabled) {
+                editButtonComponent = this.props.collapsedEditButtonWhenDisabled;
+            } else {
+                editButtonComponent = null;
+            }
+        } else {
+            editButtonComponent = (
+                <button
+                    ref={this.getEdit}
+                    id={this.props.section + 'Edit'}
+                    className='color--link style--none section-min__edit'
+                    onClick={this.handleClick}
+                    aria-labelledby={this.props.section + 'Title ' + this.props.section + 'Edit'}
+                    aria-expanded={false}
                 >
-                    {this.props.describe}
-                </div>
+                    <EditIcon/>
+                    <FormattedMessage
+                        id='setting_item_min.edit'
+                        defaultMessage='Edit'
+                    />
+                </button>
             );
         }
 
         return (
             <div
-                className='section-min'
-                onClick={this.handleUpdateSection}
+                className={classNames('section-min', {isDisabled: this.props.isDisabled})}
+                onClick={this.handleClick}
             >
-                <div className='d-flex'>
+                <div>
                     <h4
                         id={this.props.section + 'Title'}
-                        className='section-min__title'
+                        className={classNames('section-min__title', {isDisabled: this.props.isDisabled})}
                     >
                         {this.props.title}
                     </h4>
-                    {editButton}
+                    {editButtonComponent}
                 </div>
-                {describeSection}
+                <div
+                    id={this.props.section + 'Desc'}
+                    className={classNames('section-min__describe', {isDisabled: this.props.isDisabled})}
+                >
+                    {this.props.describe}
+                </div>
             </div>
         );
     }
