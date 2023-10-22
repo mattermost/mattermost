@@ -49,24 +49,6 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
     constructor(props: Props) {
         super(props);
 
-        /*
-        if (!props.id) {
-            props.id = '';
-        }
-        if (!props.labelClassName) {
-            props.labelClassName = '';
-        }
-        if (!props.inputClassName) {
-            props.inputClassName = '';
-        }
-        if (!props.listPosition) {
-            props.listPosition = 'top';
-        }
-        if (!props.listComponent) {
-            props.listComponent = SuggestionList;
-        }
-        */
-
         this.state = {
             input: '',
         };
