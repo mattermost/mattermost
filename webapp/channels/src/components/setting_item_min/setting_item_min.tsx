@@ -70,8 +70,13 @@ export default class SettingItemMin extends React.PureComponent<Props> {
                         aria-labelledby={this.props.section + 'Title ' + this.props.section + 'Edit'}
                         aria-expanded={false}
                     >
-                        <EditIcon/>
-                        {this.props.describe}
+                        {this.props.describe ? this.props.describe : (
+                            <FormattedMessage
+                                id='setting_item_min.edit'
+                                defaultMessage='Edit'
+                            />
+                        )}
+                        <i className='icon icon-chevron-down'/>
                     </button>
                 </div>
             );
