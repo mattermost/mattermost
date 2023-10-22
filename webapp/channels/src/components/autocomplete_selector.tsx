@@ -137,7 +137,6 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         if (helpText) {
             helpTextContent = <div className='help-text'>{helpText}</div>;
         }
-        React.createRef;
 
         return (
             <div
