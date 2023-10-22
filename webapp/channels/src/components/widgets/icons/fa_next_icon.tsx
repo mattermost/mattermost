@@ -11,6 +11,7 @@ type Props = {
 
 const NextIcon = ({additionalClassName}: Props) => {
     const {formatMessage} = useIntl();
+
     return (
         <i
             className={classNames('icon icon-chevron-right', additionalClassName)}
