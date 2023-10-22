@@ -29,14 +29,14 @@ export const CustomizeYourExperienceTour = () => {
         </p>
     );
 
-    const overlayPunchOut = useMeasurePunchouts(['RightControlsContainer'], []);
+    const overlayPunchOut = useMeasurePunchouts(['CustomizeYourExperienceTour'], []);
 
     return (
         <OnboardingTourTip
             title={title}
             screen={screen}
             imageURL={CustomImg}
-            placement='bottom-start'
+            placement='bottom-end'
             pulsatingDotPlacement='right-end'
             pulsatingDotTranslate={translate}
             offset={offset}

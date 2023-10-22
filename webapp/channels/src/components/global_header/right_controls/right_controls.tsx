@@ -60,8 +60,6 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                 <>
                     <AtMentionsButton/>
                     <SavedPostsButton/>
-                    <SettingsButton/>
-                    {showCustomizeTip && <CustomizeYourExperienceTour/>}
                 </>
             ) : (
                 <Pluggable
@@ -70,7 +68,20 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                     pluggableId={productId}
                 />
             )}
-            <StatusDropdown/>
+            <div id='CustomizeYourExperienceTour' style={{display:'flex'}}>
+                {
+                    isChannels(productId) ? (
+                        <>
+                            <SettingsButton/>
+                            {showCustomizeTip && <CustomizeYourExperienceTour/>}
+                        </>
+                    ) : null
+                }
+                <div style={{marginLeft:'8px'}}>
+                    <StatusDropdown/>
+                </div>
+            </div>
+
         </RightControlsContainer>
     );
 };
