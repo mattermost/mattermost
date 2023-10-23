@@ -679,9 +679,9 @@
 
             button {
                 display: flex;
+                flex-direction: row;
                 align-items: center;
                 justify-content: center;
-                flex-direction: row;
                 padding: 0 6px;
                 background-color: rgba(var(--button-bg-rgb), 0.08);
                 border-radius: 12px;
