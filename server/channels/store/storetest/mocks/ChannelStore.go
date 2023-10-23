@@ -215,23 +215,23 @@ func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, exclu
 	return r0, r1, r2
 }
 
-// CountUrgentPostsAfter provides a mock function with given fields: channelID, timestamp, userID
-func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, userID string) (int, error) {
-	ret := _m.Called(channelID, timestamp, userID)
+// CountUrgentPostsAfter provides a mock function with given fields: channelID, timestamp, excludedUserID
+func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error) {
+	ret := _m.Called(channelID, timestamp, excludedUserID)
 
 	var r0 int
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int64, string) (int, error)); ok {
-		return rf(channelID, timestamp, userID)
+		return rf(channelID, timestamp, excludedUserID)
 	}
 	if rf, ok := ret.Get(0).(func(string, int64, string) int); ok {
-		r0 = rf(channelID, timestamp, userID)
+		r0 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int64, string) error); ok {
-		r1 = rf(channelID, timestamp, userID)
+		r1 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r1 = ret.Error(1)
 	}
