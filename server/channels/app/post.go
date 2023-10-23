@@ -199,7 +199,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// Validate recipients counts in case it's not DM
 	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
-		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 			if maxRecipients := *a.Config().ServiceSettings.PersistentNotificationMaxRecipients; len(mentions.Mentions) > maxRecipients {
 				return model.NewAppError("CreatePost", "api.post.post_priority.max_recipients_persistent_notification_post.request_error", map[string]any{"MaxRecipients": maxRecipients}, "", http.StatusBadRequest)
 			} else if len(mentions.Mentions) == 0 {
@@ -1780,8 +1780,8 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		return 0, err
 	}
 
-	keywords := addMentionKeywordsForUser(
-		map[string][]string{},
+	keywords := MentionKeywords{}
+	keywords.AddUser(
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
@@ -1820,9 +1820,11 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		return 0, model.NewAppError("countThreadMentions", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
+	keywords.AddGroupsMap(groups)
+
 	for _, p := range posts {
 		if p.CreateAt >= timestamp {
-			mentions := getExplicitMentions(p, keywords, groups)
+			mentions := getExplicitMentions(p, keywords)
 			if _, ok := mentions.Mentions[user.Id]; ok {
 				count += 1
 			}
@@ -1863,8 +1865,8 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		return 0, 0, 0, err
 	}
 
-	keywords := addMentionKeywordsForUser(
-		map[string][]string{},
+	keywords := MentionKeywords{}
+	keywords.AddUser(
 		user,
 		channelMember.NotifyProps,
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
@@ -1989,14 +1991,14 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	return mentioned
 }
 
-func isPostMention(user *model.User, post *model.Post, keywords map[string][]string, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
+func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
 	// Prevent the user from mentioning themselves
 	if post.UserId == user.Id && post.GetProp("from_webhook") != "true" {
 		return false
 	}
 
 	// Check for keyword mentions
-	mentions := getExplicitMentions(post, keywords, make(map[string]*model.Group))
+	mentions := getExplicitMentions(post, keywords)
 	if _, ok := mentions.Mentions[user.Id]; ok {
 		return true
 	}
