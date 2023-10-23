@@ -21,18 +21,39 @@ import type {GlobalState} from '@mattermost/types/store';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {
+    getChannel as getChannelAction,
+    getChannelByNameAndTeamName,
+    getChannelMember,
+    joinChannel,
+} from 'mattermost-redux/actions/channels';
+import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
+import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences, General} from 'mattermost-redux/constants';
-import {getBool, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getChannel,
+    getChannelsNameMapInTeam,
+    getMyChannelMemberships,
+} from 'mattermost-redux/selectors/entities/channels';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getBool, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getTeamByName,
+    getTeamMemberships,
+    isTeamSameWithCurrentTeam,
+} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {searchForTerm} from 'actions/post_actions';
+import {addUserToTeam} from 'actions/team_actions';
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 import store from 'stores/redux_store';
 
+import {focusPost} from 'components/permalink_view/actions';
 import type {TextboxElement} from 'components/textbox';
 
 import {getHistory} from 'utils/browser_history';
@@ -41,6 +62,8 @@ import type {A11yFocusEventDetail} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
+
+import {joinPrivateChannelPrompt} from './channel_utils';
 
 const CLICKABLE_ELEMENTS = [
     'a',
@@ -1309,6 +1332,26 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
     return {valid, error, telemetryErrorIds};
 }
 
+function isChannelOrPermalink(link: string) {
+    let match = (/\/([a-z0-9\-_]+)\/channels\/([a-z0-9\-__][a-z0-9\-__.]+)/).exec(link);
+    if (match) {
+        return {
+            type: 'channel',
+            teamName: match[1],
+            channelName: match[2],
+        };
+    }
+    match = (/\/([a-z0-9\-__]+)\/pl\/([a-z0-9]+)/).exec(link);
+    if (match) {
+        return {
+            type: 'permalink',
+            teamName: match[1],
+            postId: match[2],
+        };
+    }
+    return match;
+}
+
 export async function handleFormattedTextClick(e: React.MouseEvent, currentRelativeTeamUrl = '') {
     const hashtagAttribute = (e.target as any).getAttributeNode('data-hashtag');
     const linkAttribute = (e.target as any).getAttributeNode('data-link');
@@ -1323,8 +1366,86 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
 
         if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
             e.preventDefault();
+
+            const state = store.getState();
+            const user = getCurrentUser(state);
+            const match = isChannelOrPermalink(linkAttribute.value);
+            const crtEnabled = isCollapsedThreadsEnabled(state);
+
+            let isReply = false;
+
+            if (isSystemAdmin(user.roles)) {
+                if (match) {
+                    // Get team by name
+                    const {teamName} = match;
+                    let team = getTeamByName(state, teamName);
+                    if (!team) {
+                        const {data: teamData} = await store.dispatch(getTeamByNameAction(teamName));
+                        team = teamData;
+                    }
+                    if (team && team.delete_at === 0) {
+                        let channel;
+
+                        // Handle channel url - Get channel data from channel name
+                        if (match.type === 'channel') {
+                            const {channelName} = match;
+                            channel = getChannelsNameMapInTeam(state, team.id)[channelName as string];
+                            if (!channel) {
+                                const {data: channelData} = await store.dispatch(getChannelByNameAndTeamName(teamName, channelName!, true));
+                                channel = channelData;
+                            }
+                        } else { // Handle permalink - Get channel data from post
+                            const {postId} = match;
+                            let post = getPost(state, postId!);
+                            if (!post) {
+                                const {data: postData} = await store.dispatch(getPostAction(match.postId!));
+                                post = postData;
+                            }
+                            if (post) {
+                                isReply = Boolean(post.root_id);
+
+                                channel = getChannel(state, post.channel_id);
+                                if (!channel) {
+                                    const {data: channelData} = await store.dispatch(getChannelAction(post.channel_id));
+                                    channel = channelData;
+                                }
+                            }
+                        }
+                        if (channel && channel.type === Constants.PRIVATE_CHANNEL) {
+                            let member = getMyChannelMemberships(state)[channel.id];
+                            if (!member) {
+                                const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
+                                if ('data' in membership) {
+                                    member = membership.data;
+                                }
+                            }
+                            if (!member) {
+                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel, false));
+                                if (data.join) {
+                                    let error = false;
+                                    if (!getTeamMemberships(state)[team.id]) {
+                                        const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
+                                        error = joinTeamResult.error;
+                                    }
+                                    if (!error) {
+                                        await store.dispatch(joinChannel(user.id, team.id, channel.id, channel.name));
+                                    }
+                                } else {
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             e.stopPropagation();
-            getHistory().push(linkAttribute.value);
+
+            if (match && match.type === 'permalink' && isTeamSameWithCurrentTeam(state, match.teamName) && isReply && crtEnabled) {
+                focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true})(store.dispatch, store.getState);
+            } else {
+                getHistory().push(linkAttribute.value);
+            }
         }
     } else if (channelMentionAttribute) {
         e.preventDefault();
