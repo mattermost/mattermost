@@ -34,7 +34,13 @@ function makeGetChannelNamesMap() {
         (state: GlobalState, props: Props) => props && props.channelNamesMap,
         (channelNamesMap, channelMentions) => {
             if (channelMentions) {
-                return Object.assign({}, channelNamesMap, channelMentions);
+                const mention = Object.keys(channelMentions)[0];
+                const displayName = (channelMentions[mention] as { display_name: string; }).display_name;
+                if(displayName!==channelNamesMap[mention]) {
+                    return channelNamesMap;
+                } else {
+                    return channelMentions;
+                }
             }
 
             return channelNamesMap;
