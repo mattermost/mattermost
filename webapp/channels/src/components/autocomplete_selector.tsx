@@ -12,7 +12,7 @@ import type Provider from './suggestion/provider';
 type Props = {
     id?: string;
     providers: Provider[];
-    value: string;
+    value?: string;
     onSelected?: (selected: Selected) => void;
     label?: React.ReactNode | string;
     labelClassName?: string;
@@ -44,6 +44,15 @@ type ChangeEvent = {
 }
 
 export default class AutocompleteSelector extends React.PureComponent<Props, State> {
+    static defaultProps = {
+        value: '',
+        id: '',
+        labelClassName: '',
+        inputClassName: '',
+        listComponent: SuggestionList,
+        listPosition: 'top',
+    };
+
     suggestionRef?: HTMLElement;
 
     constructor(props: Props) {
@@ -105,17 +114,11 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
             labelClassName,
             helpText,
             inputClassName,
-            value,
+            value = AutocompleteSelector.defaultProps.value, // because of input = value assignment (types)
             disabled,
             listComponent,
             listPosition,
-        } = {
-            labelClassName: '',
-            inputClassName: '',
-            listComponent: SuggestionList,
-            listPosition: 'top',
-            ...this.props,
-        };
+        } = this.props;
 
         const {focused} = this.state;
         let {input} = this.state;
@@ -127,7 +130,9 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         let labelContent;
         if (label) {
             labelContent = (
-                <label className={'control-label ' + labelClassName}>
+                <label
+                    className={'control-label ' + labelClassName}
+                >
                     {label}
                 </label>
             );

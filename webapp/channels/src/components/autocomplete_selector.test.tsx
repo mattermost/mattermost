@@ -52,7 +52,7 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
     });
 
     test('check snapshot with value prop and changing focus', () => {
-        const wrapper = shallow(
+        const wrapper = shallow<AutocompleteSelector>(
             <AutocompleteSelector
                 providers={[]}
                 label='some label'
@@ -60,7 +60,7 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
             />,
         );
 
-        (wrapper.instance() as AutocompleteSelector).onBlur();
+        wrapper.instance().onBlur();
 
         expect(wrapper).toMatchInlineSnapshot(`
             <div
@@ -96,8 +96,8 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
             </div>
         `);
 
-        (wrapper.instance() as AutocompleteSelector).onChange(({target: {value: 'value from input'} as HTMLInputElement}));
-        (wrapper.instance() as AutocompleteSelector).onFocus();
+        wrapper.instance().onChange(({target: {value: 'value from input'} as HTMLInputElement}));
+        wrapper.instance().onFocus();
 
         expect(wrapper).toMatchInlineSnapshot(`
             <div
@@ -136,7 +136,7 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
 
     test('onSelected', () => {
         const onSelected = jest.fn();
-        const wrapper = shallow(
+        const wrapper = shallow<AutocompleteSelector>(
             <AutocompleteSelector
                 label='some label'
                 value='some value'
@@ -146,7 +146,7 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
         );
 
         const selected = {text: 'sometext', value: 'somevalue', id: '', username: '', display_name: ''};
-        (wrapper.instance() as AutocompleteSelector).handleSelected(selected);
+        wrapper.instance().handleSelected(selected);
 
         expect(onSelected).toHaveBeenCalledTimes(1);
         expect(onSelected).toHaveBeenCalledWith(selected);
