@@ -35,6 +35,7 @@ import Constants, {Locations} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {pasteHandler} from 'utils/paste';
+import {isWithinCodeBlock} from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -435,6 +436,7 @@ const AdvanceTextEditor = ({
         const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
         const messageIsEmpty = message.length === 0;
         const draftMessageIsEmpty = draft.message.length === 0;
+        const caretIsWithinCodeBlock = caretPosition && isWithinCodeBlock(message, caretPosition);
 
         if (upKeyOnly && messageIsEmpty) {
             e.preventDefault();
@@ -451,7 +453,7 @@ const AdvanceTextEditor = ({
             value,
         } = e.target as TextboxElement;
 
-        if (ctrlKeyCombo) {
+        if (ctrlKeyCombo && !caretIsWithinCodeBlock) {
             if (draftMessageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -488,7 +490,7 @@ const AdvanceTextEditor = ({
                     message: value,
                 });
             }
-        } else if (ctrlAltCombo) {
+        } else if (ctrlAltCombo && !caretIsWithinCodeBlock) {
             if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -520,7 +522,7 @@ const AdvanceTextEditor = ({
                 e.preventDefault();
                 setShowPreview(!shouldShowPreview);
             }
-        } else if (shiftAltCombo) {
+        } else if (shiftAltCombo && !caretIsWithinCodeBlock) {
             if (Keyboard.isKeyPressed(e, KeyCodes.X)) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -555,7 +557,7 @@ const AdvanceTextEditor = ({
                     message: value,
                 });
             }
-        } else if (ctrlShiftCombo) {
+        } else if (ctrlShiftCombo && !caretIsWithinCodeBlock) {
             if (Keyboard.isKeyPressed(e, KeyCodes.P) && message.length && UserAgent.isMac()) {
                 e.stopPropagation();
                 e.preventDefault();
