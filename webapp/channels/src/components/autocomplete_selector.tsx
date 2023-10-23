@@ -114,7 +114,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
             labelClassName,
             helpText,
             inputClassName,
-            value = AutocompleteSelector.defaultProps.value, // because of input = value assignment (types)
+            value,
             disabled,
             listComponent,
             listPosition,
@@ -123,7 +123,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         const {focused} = this.state;
         let {input} = this.state;
 
-        if (!focused) {
+        if (!focused && value !== undefined) {
             input = value;
         }
 
