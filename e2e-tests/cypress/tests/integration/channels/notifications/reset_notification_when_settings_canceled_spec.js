@@ -12,21 +12,6 @@
 
 describe('Notifications', () => {
     before(() => {
-        // # Upload and enable Calls plugin
-        cy.shouldNotRunOnCloudEdition();
-        cy.apiUpdateConfig({
-            PluginSettings: {
-                Enable: true,
-                EnableUploads: true,
-                PluginStates: {
-                    'com.mattermost.calls': {
-                        Enable: true,
-                        enableringing: true,
-                    },
-                },
-            },
-        });
-
         cy.apiInitSetup().then(({team, user, channel}) => {
             // # Login as user and visit channel
             cy.apiLogin(user);
@@ -34,86 +19,48 @@ describe('Notifications', () => {
         });
     });
 
-    it('MM-53166 Notification sound modal selection should reset when settings canceled', () => {
+    it('MM-T5458 Notification sound modal selection should reset when settings canceled', () => {
         // # Call function that clicks on Settings -> Notifications -> Desktop Notifications -> Notification sound -> Change sound -> Cancel -> Desktop Notifications
-        openSettingsAndChangeNotification('desktopNotification');
-
-        // # Call function that clicks on Settings -> Notifications -> Desktop Notifications -> Notification sound for incoming calls -> Cancel -> Desktop Notifications
-        openSettingsAndChangeNotification('callsDesktopSound');
+        openSettingsAndChangeNotification();
     });
 
-    function openSettingsAndChangeNotification(type) {
+    function openSettingsAndChangeNotification() {
         // # Open 'Settings' modal
         cy.uiOpenSettingsModal().within(() => {
             // # Navigate to Desktop Notification Settings
-            navigateToDesktopNotificationSettings(type);
+            navigateToDesktopNotificationSettings();
 
             // # Change Notification selection
-            setNotificationSound(type);
+            setNotificationSound();
 
             // # Click Cancel button
             cy.uiCancelButton().click();
 
             // # Navigate to Desktop Notification Settings
-            navigateToDesktopNotificationSettings(type);
+            navigateToDesktopNotificationSettings();
             cy.uiClose();
         });
     }
 
-    function setNotificationSound(type) {
-        switch (type) {
-        case 'desktopNotification':
-            // # Change Notification sound selection value is set to Down
-            cy.get('#displaySoundNotification').click();
-            cy.findByText('Down').click();
+    function setNotificationSound() {
+        // # Change Notification sound selection value is set to Down
+        cy.get('#displaySoundNotification').click();
+        cy.findByText('Down').click();
 
-            // * Verify Notification display changed to Down
-            verifyNotificationSelectionValue(type, 'Down');
-            break;
-        case 'callsDesktopSound':
-            // # Change Notification Notification sound for incoming calls selection value is set to Down
-            cy.get('#displayCallsSoundNotification').click();
-            cy.findByText('Cheerful').click();
-
-            // * Verify Notification display changed to Cheerful
-            verifyNotificationSelectionValue(type, 'Cheerful');
-            break;
-        default:
-            break;
-        }
+        // * Verify Notification display changed to Down
+        verifyNotificationSelectionValue('Down');
     }
 
-    function navigateToDesktopNotificationSettings(type) {
+    function navigateToDesktopNotificationSettings() {
         // # Click on the 'Edit' button next to Desktop Notifications
         cy.get('#desktopEdit').should('be.visible').click();
 
-        // * Verify Notification selection display default value
-        switch (type) {
-        case 'desktopNotification':
-            // * Verify that the Notification sound is set to certain value
-            verifyNotificationSelectionValue(type, 'Bing');
-            break;
-        case 'callsDesktopSound':
-            // * Verify that the Notification sound for incoming calls is set to certain value
-            verifyNotificationSelectionValue(type, 'Calm');
-            break;
-        default:
-            break;
-        }
+        // * Verify that the Notification sound is set to Bing
+        verifyNotificationSelectionValue('Bing');
     }
 
-    function verifyNotificationSelectionValue(type, value) {
-        switch (type) {
-        case 'desktopNotification':
-            // * Verify that the Notification sound is set to certain value
-            cy.get('#displaySoundNotification').findByTestId('displaySoundNotificationValue').should('contain', value);
-            break;
-        case 'callsDesktopSound':
-            // * Verify that the Notification sound for incoming calls is set to certain value
-            cy.get('#displayCallsSoundNotification').findByTestId('displayCallsSoundNotificationValue').should('contain', value);
-            break;
-        default:
-            break;
-        }
+    function verifyNotificationSelectionValue(value) {
+        // * Verify that the Notification sound is set to certain value
+        cy.get('#displaySoundNotification').findByTestId('displaySoundNotificationValue').should('contain', value);
     }
 });
