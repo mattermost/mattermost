@@ -55,6 +55,7 @@ services:
       - "./.env.server.cloud"
     environment:
       MM_SERVICESETTINGS_SITEURL: http://server:8065
+      MM_SERVICESETTINGS_ALLOWCORSFROM: http://localhost:8065   # Required for making websockets work when running locally
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
       MM_PLUGINSETTINGS_ENABLED: "true"
       MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
