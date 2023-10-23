@@ -415,7 +415,7 @@ check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 
 gotestsum:
-	$(GO) install gotest.tools/gotestsum@v1.7.0
+	$(GO) install gotest.tools/gotestsum@v1.11.0
 
 test-compile: gotestsum ## Compile tests.
 	@echo COMPILE TESTS
