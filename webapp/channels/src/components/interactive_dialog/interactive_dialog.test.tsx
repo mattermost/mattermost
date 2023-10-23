@@ -123,7 +123,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         const props = {
             ...rest,
             elements: [
-                ...(elements as []),
+                ...elements || [],
                 element,
             ],
         };
