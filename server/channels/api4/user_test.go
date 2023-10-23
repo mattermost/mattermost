@@ -3475,7 +3475,7 @@ func TestRevokeSessions(t *testing.T) {
 
 	th.LoginBasic()
 
-	sessions, _ = th.App.GetSessions(th.SystemAdminUser.Id)
+	sessions, _ = th.App.GetSessions(th.Context, th.SystemAdminUser.Id)
 	session = sessions[0]
 
 	resp, err = th.Client.RevokeSession(context.Background(), user.Id, session.Id)
@@ -3559,10 +3559,10 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	th.Client.Login(context.Background(), user.Email, user.Password)
 	admin := th.SystemAdminUser
 	th.Client.Login(context.Background(), admin.Email, admin.Password)
-	sessions, err := th.Server.Store().Session().GetSessions(user.Id)
+	sessions, err := th.Server.Store().Session().GetSessions(th.Context, user.Id)
 	require.NotEmpty(t, sessions)
 	require.NoError(t, err)
-	sessions, err = th.Server.Store().Session().GetSessions(admin.Id)
+	sessions, err = th.Server.Store().Session().GetSessions(th.Context, admin.Id)
 	require.NotEmpty(t, sessions)
 	require.NoError(t, err)
 	_, err = th.Client.RevokeSessionsFromAllUsers(context.Background())
@@ -3574,11 +3574,11 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	sessions, err = th.Server.Store().Session().GetSessions(user.Id)
+	sessions, err = th.Server.Store().Session().GetSessions(th.Context, user.Id)
 	require.Empty(t, sessions)
 	require.NoError(t, err)
 
-	sessions, err = th.Server.Store().Session().GetSessions(admin.Id)
+	sessions, err = th.Server.Store().Session().GetSessions(th.Context, admin.Id)
 	require.Empty(t, sessions)
 	require.NoError(t, err)
 }
@@ -3611,7 +3611,7 @@ func TestAttachDeviceId(t *testing.T) {
 				cookies := resp.Header.Get("Set-Cookie")
 				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
 
-				sessions, appErr := th.App.GetSessions(th.BasicUser.Id)
+				sessions, appErr := th.App.GetSessions(th.Context, th.BasicUser.Id)
 				require.Nil(t, appErr)
 				assert.Equal(t, deviceId, sessions[0].DeviceId, "Missing device Id")
 			})
@@ -3889,7 +3889,7 @@ func TestLoginWithLag(t *testing.T) {
 		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("ldap"))
 		mainHelper.ToggleReplicasOff()
 
-		appErr := th.App.RevokeAllSessions(th.BasicUser.Id)
+		appErr := th.App.RevokeAllSessions(th.Context, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		mainHelper.ToggleReplicasOn()

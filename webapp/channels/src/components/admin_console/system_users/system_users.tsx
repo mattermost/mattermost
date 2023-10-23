@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
@@ -17,13 +17,11 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import LocalizedInput from 'components/localized_input/localized_input';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import SystemUsersList from './list';
@@ -32,6 +30,8 @@ const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
 
 type Props = {
+
+    intl: IntlShape;
 
     /**
      * Array of team objects
@@ -114,7 +114,7 @@ type State = {
     term?: string;
 };
 
-export default class SystemUsers extends React.PureComponent<Props, State> {
+export class SystemUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -318,10 +318,10 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
         return (
             <div className='system-users__filter-row'>
                 <div className='system-users__filter'>
-                    <LocalizedInput
+                    <input
                         id='searchUsers'
                         className='form-control filter-textbox'
-                        placeholder={{id: t('filtered_user_list.search'), defaultMessage: 'Search users'}}
+                        placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
                         onInput={doSearch}
                     />
                 </div>
@@ -424,3 +424,5 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SystemUsers);
