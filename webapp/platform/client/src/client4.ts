@@ -2344,13 +2344,15 @@ export default class Client4 {
 
     // General Routes
 
-    ping = () => {
+    ping = (getServerStatus: boolean, deviceId?: string) => {
         return this.doFetch<{
             status: string;
             ActiveSearchBackend: string;
+            database_status: string;
+            filestore_status: string;
         }>(
-            `${this.getBaseRoute()}/system/ping?time=${Date.now()}`,
-            {method: 'get'},
+            `${this.getBaseRoute()}/system/ping${buildQueryString({get_server_status: getServerStatus, device_id: deviceId})}`,
+            {method: 'get', ignoreStatus: true},
         );
     };
 
@@ -4087,7 +4089,7 @@ export default class Client4 {
             }
         }
 
-        if (response.ok) {
+        if (response.ok || options.ignoreStatus) {
             return {
                 response,
                 headers,
