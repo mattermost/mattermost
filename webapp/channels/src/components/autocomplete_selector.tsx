@@ -3,11 +3,20 @@
 
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
 import type ModalSuggestionList from './suggestion/modal_suggestion_list';
 import type Provider from './suggestion/provider';
+
+export type Option = {
+    text: string;
+    value: string;
+};
+export type Selected = Option | UserProfile | Channel
 
 type Props = {
     id: string;
@@ -30,14 +39,6 @@ type State = {
     input: string;
     focused?: boolean;
 };
-
-type Selected = {
-    id: string;
-    username: string;
-    display_name: string;
-    value: string;
-    text: string;
-}
 
 type ChangeEvent = {
     target: HTMLInputElement;
