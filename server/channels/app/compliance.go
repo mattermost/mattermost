@@ -27,12 +27,14 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 	return compliances, nil
 }
 
-func (a *App) SaveComplianceReport(c *request.Context, job *model.Compliance) (*model.Compliance, *model.AppError) {
+func (a *App) SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError) {
 	if license := a.Srv().License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	job.Type = model.ComplianceTypeAdhoc
+
+	rctx.SetLogger(rctx.Logger().With(job.LoggerFields()...))
 
 	job, err := a.Srv().Store().Compliance().Save(job)
 	if err != nil {
@@ -46,11 +48,11 @@ func (a *App) SaveComplianceReport(c *request.Context, job *model.Compliance) (*
 	}
 
 	jCopy := job.DeepCopy()
+	crctx := rctx.Clone()
 	a.Srv().Go(func() {
-		c.SetLogger(c.Logger().With(job.LoggerFields()...))
-		err := a.Compliance().RunComplianceJob(c, jCopy)
+		err := a.Compliance().RunComplianceJob(crctx, jCopy)
 		if err != nil {
-			c.Logger().Warn("Error running compliance job", mlog.Err(err))
+			crctx.Logger().Warn("Error running compliance job", mlog.Err(err))
 		}
 	})
 

@@ -15,13 +15,13 @@ type ComplianceInterface struct {
 	mock.Mock
 }
 
-// RunComplianceJob provides a mock function with given fields: c, job
-func (_m *ComplianceInterface) RunComplianceJob(c *request.Context, job *model.Compliance) *model.AppError {
-	ret := _m.Called(c, job)
+// RunComplianceJob provides a mock function with given fields: rctx, job
+func (_m *ComplianceInterface) RunComplianceJob(rctx request.CTX, job *model.Compliance) *model.AppError {
+	ret := _m.Called(rctx, job)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Compliance) *model.AppError); ok {
-		r0 = rf(c, job)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Compliance) *model.AppError); ok {
+		r0 = rf(rctx, job)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

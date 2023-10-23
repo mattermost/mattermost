@@ -10,5 +10,5 @@ import (
 
 type ComplianceInterface interface {
 	StartComplianceDailyJob()
-	RunComplianceJob(c *request.Context, job *model.Compliance) *model.AppError
+	RunComplianceJob(rctx request.CTX, job *model.Compliance) *model.AppError
 }
