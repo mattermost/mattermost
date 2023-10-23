@@ -3,19 +3,24 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage} from 'react-intl';
+
+import LocalizedIcon from 'components/localized_icon';
 
 type Props = {
     additionalClassName?: string;
 }
 
-const NextIcon = ({additionalClassName}: Props) => {
-    const {formatMessage} = useIntl();
+const iconTitle = defineMessage({
+    id: 'generic_icons.next',
+    defaultMessage: 'Next Icon',
+});
 
+const NextIcon = ({additionalClassName}: Props) => {
     return (
-        <i
+        <LocalizedIcon
             className={classNames('icon icon-chevron-right', additionalClassName)}
-            title={formatMessage({id: 'generic_icons.next', defaultMessage: 'Next Icon'})}
+            title={iconTitle}
         />
     );
 };
