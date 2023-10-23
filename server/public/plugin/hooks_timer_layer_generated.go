@@ -113,6 +113,13 @@ func (hooks *hooksTimerLayer) MessageHasBeenUpdated(c *Context, newPost, oldPost
 	hooks.recordTime(startTime, "MessageHasBeenUpdated", true)
 }
 
+func (hooks *hooksTimerLayer) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.MessagesWillBeConsumed(posts)
+	hooks.recordTime(startTime, "MessagesWillBeConsumed", true)
+	return _returnsA
+}
+
 func (hooks *hooksTimerLayer) MessageHasBeenDeleted(c *Context, post *model.Post) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.MessageHasBeenDeleted(c, post)
