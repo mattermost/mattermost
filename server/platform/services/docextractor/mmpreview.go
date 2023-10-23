@@ -37,7 +37,7 @@ func newMMPreviewExtractor(url string, secret string, pdfExtractor pdfExtractor)
 }
 
 func (mpe *mmPreviewExtractor) Name() string {
-	return "newMMPreviewExtractor"
+	return "MMPreviewExtractor"
 }
 
 func (mpe *mmPreviewExtractor) Match(filename string) bool {
