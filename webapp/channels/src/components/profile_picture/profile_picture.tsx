@@ -132,7 +132,7 @@ export default class ProfilePicture extends React.PureComponent<Props> {
     }
 }
 
-const RoundButton = styled.button<{ size: TAvatarSizeToken }>`
+const RoundButton = styled.button<{size: TAvatarSizeToken}>`
     border-radius: 50%;
 
     width: ${(p) => getAvatarWidth(p.size)}px;
