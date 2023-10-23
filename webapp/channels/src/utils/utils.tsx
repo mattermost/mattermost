@@ -1212,6 +1212,9 @@ export function clearFileInput(elm: HTMLInputElement) {
     }
 }
 
+/**
+ * @deprecated Use react-intl instead, only place its usage can be justified is in the redux actions
+ */
 export function localizeMessage(id: string, defaultMessage?: string) {
     const state = store.getState();
 
