@@ -9972,5 +9972,9 @@
   {
     "id": "app.channel.group_message_conversion.incorrect_team",
     "translation": "Dönüştürme isteğinde belirtilen takım kimliğinde tüm grup iletisi üyeleri bulunmuyor"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Ada göre bu kadar çok emoji alınamıyor. Aynı anda yalnızca {{.MaxNames}} emoji istenebilir."
   }
 ]
