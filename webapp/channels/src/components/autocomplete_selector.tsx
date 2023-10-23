@@ -10,20 +10,20 @@ import type ModalSuggestionList from './suggestion/modal_suggestion_list';
 import type Provider from './suggestion/provider';
 
 type Props = {
-    id?: string;
+    id: string;
     providers: Provider[];
-    value?: string;
+    value: string;
     onSelected?: (selected: Selected) => void;
     label?: React.ReactNode | string;
-    labelClassName?: string;
-    inputClassName?: string;
+    labelClassName: string;
+    inputClassName: string;
     helpText?: React.ReactNode | string;
     placeholder?: string;
     footer?: Node;
     disabled?: boolean;
     toggleFocus?: ((focus: boolean) => void) | null;
-    listComponent?: typeof SuggestionList | typeof ModalSuggestionList;
-    listPosition?: string;
+    listComponent: typeof SuggestionList | typeof ModalSuggestionList;
+    listPosition: string;
 };
 
 type State = {
@@ -45,8 +45,8 @@ type ChangeEvent = {
 
 export default class AutocompleteSelector extends React.PureComponent<Props, State> {
     static defaultProps = {
-        value: '',
         id: '',
+        value: '',
         labelClassName: '',
         inputClassName: '',
         listComponent: SuggestionList,
@@ -123,7 +123,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         const {focused} = this.state;
         let {input} = this.state;
 
-        if (!focused && value !== undefined) {
+        if (!focused) {
             input = value;
         }
 
