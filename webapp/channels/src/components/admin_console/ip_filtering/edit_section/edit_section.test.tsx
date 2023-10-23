@@ -23,21 +23,19 @@ describe('EditSection', () => {
     const handleConfirmDeleteFilter = jest.fn();
     const currentIPIsInRange = true;
 
-    beforeEach(() => {
-        setShowAddModal.mockClear();
-        setEditFilter.mockClear();
-        handleConfirmDeleteFilter.mockClear();
-    });
+    const baseProps = {
+        ipFilters,
+        currentUsersIP,
+        setShowAddModal,
+        setEditFilter,
+        handleConfirmDeleteFilter,
+        currentIPIsInRange,
+    };
 
     test('renders the component', () => {
         renderWithIntl(
             <EditSection
-                ipFilters={ipFilters}
-                currentUsersIP={currentUsersIP}
-                setShowAddModal={setShowAddModal}
-                setEditFilter={setEditFilter}
-                handleConfirmDeleteFilter={handleConfirmDeleteFilter}
-                currentIPIsInRange={currentIPIsInRange}
+                {...baseProps}
             />,
         );
 
@@ -54,12 +52,7 @@ describe('EditSection', () => {
     test('clicking the Add Filter button calls setShowAddModal', () => {
         renderWithIntl(
             <EditSection
-                ipFilters={ipFilters}
-                currentUsersIP={currentUsersIP}
-                setShowAddModal={setShowAddModal}
-                setEditFilter={setEditFilter}
-                handleConfirmDeleteFilter={handleConfirmDeleteFilter}
-                currentIPIsInRange={currentIPIsInRange}
+                {...baseProps}
             />,
         );
 
@@ -72,12 +65,7 @@ describe('EditSection', () => {
     test('clicking the Edit button calls setEditFilter', () => {
         renderWithIntl(
             <EditSection
-                ipFilters={ipFilters}
-                currentUsersIP={currentUsersIP}
-                setShowAddModal={setShowAddModal}
-                setEditFilter={setEditFilter}
-                handleConfirmDeleteFilter={handleConfirmDeleteFilter}
-                currentIPIsInRange={currentIPIsInRange}
+                {...baseProps}
             />,
         );
 
@@ -93,12 +81,7 @@ describe('EditSection', () => {
     test('clicking the Delete button calls handleConfirmDeleteFilter', () => {
         renderWithIntl(
             <EditSection
-                ipFilters={ipFilters}
-                currentUsersIP={currentUsersIP}
-                setShowAddModal={setShowAddModal}
-                setEditFilter={setEditFilter}
-                handleConfirmDeleteFilter={handleConfirmDeleteFilter}
-                currentIPIsInRange={currentIPIsInRange}
+                {...baseProps}
             />,
         );
 
@@ -114,11 +97,8 @@ describe('EditSection', () => {
     test('displays an error panel if current IP is not in range', () => {
         renderWithIntl(
             <EditSection
-                ipFilters={ipFilters}
+                {...baseProps}
                 currentUsersIP='192.168.1.1'
-                setShowAddModal={setShowAddModal}
-                setEditFilter={setEditFilter}
-                handleConfirmDeleteFilter={handleConfirmDeleteFilter}
                 currentIPIsInRange={false}
             />,
         );
@@ -131,12 +111,8 @@ describe('EditSection', () => {
     test('displays a message if no filters are added', () => {
         renderWithIntl(
             <EditSection
+                {...baseProps}
                 ipFilters={[]}
-                currentUsersIP={currentUsersIP}
-                setShowAddModal={setShowAddModal}
-                setEditFilter={setEditFilter}
-                handleConfirmDeleteFilter={handleConfirmDeleteFilter}
-                currentIPIsInRange={currentIPIsInRange}
             />,
         );
 

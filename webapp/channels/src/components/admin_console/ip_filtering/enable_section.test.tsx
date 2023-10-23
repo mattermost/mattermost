@@ -17,15 +17,15 @@ describe('EnableSectionContent', () => {
     const filterToggle = true;
     const setFilterToggle = jest.fn();
 
-    beforeEach(() => {
-        setFilterToggle.mockClear();
-    });
+    const baseProps = {
+        filterToggle,
+        setFilterToggle,
+    };
 
     test('renders the component', () => {
         renderWithIntl(
             <EnableSectionContent
-                filterToggle={filterToggle}
-                setFilterToggle={setFilterToggle}
+                {...baseProps}
             />,
         );
 
@@ -38,8 +38,7 @@ describe('EnableSectionContent', () => {
     test('clicking the toggle calls setFilterToggle', () => {
         renderWithIntl(
             <EnableSectionContent
-                filterToggle={filterToggle}
-                setFilterToggle={setFilterToggle}
+                {...baseProps}
             />,
         );
 
@@ -52,8 +51,8 @@ describe('EnableSectionContent', () => {
     test('renders the component, with toggle not pressed if filterToggle is false', () => {
         renderWithIntl(
             <EnableSectionContent
+                {...baseProps}
                 filterToggle={false}
-                setFilterToggle={setFilterToggle}
             />,
         );
 

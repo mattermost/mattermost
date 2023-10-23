@@ -16,16 +16,16 @@ describe('DeleteConfirmationModal', () => {
         OwnerID: '',
     };
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
+    const baseProps = {
+        onClose,
+        onConfirm,
+        filterToDelete,
+    };
 
     test('renders the modal with the correct title', () => {
         const {getByText} = render(
             <DeleteConfirmationModal
-                onClose={onClose}
-                onConfirm={onConfirm}
-                filterToDelete={filterToDelete}
+                {...baseProps}
             />,
         );
 
@@ -35,9 +35,7 @@ describe('DeleteConfirmationModal', () => {
     test('renders the modal with the correct filter name in description', () => {
         const {getByText} = render(
             <DeleteConfirmationModal
-                onClose={onClose}
-                onConfirm={onConfirm}
-                filterToDelete={filterToDelete}
+                {...baseProps}
             />,
         );
         expect(getByText('Test IP Filter')).toBeInTheDocument();
@@ -46,9 +44,7 @@ describe('DeleteConfirmationModal', () => {
     test('calls the onClose function when the Cancel button is clicked', () => {
         const {getByText} = render(
             <DeleteConfirmationModal
-                onClose={onClose}
-                onConfirm={onConfirm}
-                filterToDelete={filterToDelete}
+                {...baseProps}
             />,
         );
 
@@ -61,9 +57,7 @@ describe('DeleteConfirmationModal', () => {
     test('calls the onConfirm function with the correct filter when the Delete filter button is clicked', async () => {
         const {getByText} = render(
             <DeleteConfirmationModal
-                onClose={onClose}
-                onConfirm={onConfirm}
-                filterToDelete={filterToDelete}
+                {...baseProps}
             />,
         );
 

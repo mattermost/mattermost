@@ -25,17 +25,17 @@ describe('IPFilteringAddOrEditModal', () => {
     };
     const currentIP = '192.168.0.1';
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
+    const baseProps = {
+        onClose,
+        onSave,
+        existingRange,
+        currentIP,
+    };
 
     test('renders the modal with the correct title when an existingRange is provided', () => {
         const {getByText} = render(
             <IPFilteringAddOrEditModal
-                onClose={onClose}
-                onSave={onSave}
-                existingRange={existingRange}
-                currentIP={currentIP}
+                {...baseProps}
             />,
         );
 
@@ -45,9 +45,8 @@ describe('IPFilteringAddOrEditModal', () => {
     test('renders the modal with the correct title when an existingRange is omitted (ie, Add Modal)', () => {
         const {getByText} = render(
             <IPFilteringAddOrEditModal
-                onClose={onClose}
-                onSave={onSave}
-                currentIP={currentIP}
+                {...baseProps}
+                existingRange={undefined}
             />,
         );
 
@@ -57,10 +56,7 @@ describe('IPFilteringAddOrEditModal', () => {
     test('renders the modal with the correct inputs and values', () => {
         const {getByLabelText} = render(
             <IPFilteringAddOrEditModal
-                onClose={onClose}
-                onSave={onSave}
-                existingRange={existingRange}
-                currentIP={currentIP}
+                {...baseProps}
             />,
         );
 
@@ -71,10 +67,7 @@ describe('IPFilteringAddOrEditModal', () => {
     test('calls the onSave function with the correct values when the Save button is clicked', async () => {
         const {getByLabelText, getByTestId} = render(
             <IPFilteringAddOrEditModal
-                onClose={onClose}
-                onSave={onSave}
-                existingRange={existingRange}
-                currentIP={currentIP}
+                {...baseProps}
             />,
         );
 
@@ -96,9 +89,8 @@ describe('IPFilteringAddOrEditModal', () => {
     test('calls the onSave function with the correct values when the Save button is clicked for a new IP filter', async () => {
         const {getByLabelText, getByTestId} = render(
             <IPFilteringAddOrEditModal
-                onClose={onClose}
-                onSave={onSave}
-                currentIP={currentIP}
+                {...baseProps}
+                existingRange={undefined}
             />,
         );
 
@@ -120,10 +112,7 @@ describe('IPFilteringAddOrEditModal', () => {
     test('displays an error message when an invalid CIDR is entered', async () => {
         const {getByLabelText, getByTestId, getByText} = render(
             <IPFilteringAddOrEditModal
-                onClose={onClose}
-                onSave={onSave}
-                existingRange={existingRange}
-                currentIP={currentIP}
+                {...baseProps}
             />,
         );
 
@@ -141,10 +130,7 @@ describe('IPFilteringAddOrEditModal', () => {
     test('disables the Save button when an invalid CIDR is entered', () => {
         const {getByLabelText, getByTestId} = render(
             <IPFilteringAddOrEditModal
-                onClose={onClose}
-                onSave={onSave}
-                existingRange={existingRange}
-                currentIP={currentIP}
+                {...baseProps}
             />,
         );
 

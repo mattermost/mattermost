@@ -41,10 +41,6 @@ describe('IPFiltering', () => {
         Client4.getCurrentIP = getCurrentIPMock;
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     const mockedStore = testConfigureStore({
         entities: {
             users: {

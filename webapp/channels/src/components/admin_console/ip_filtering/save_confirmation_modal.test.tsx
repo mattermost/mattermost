@@ -19,18 +19,18 @@ describe('SaveConfirmationModal', () => {
     const subtitle = 'Test Subtitle';
     const buttonText = 'Test Button Text';
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
+    const baseProps = {
+        onClose: onCloseMock,
+        onConfirm: onConfirmMock,
+        title,
+        subtitle,
+        buttonText,
+    };
 
     test('renders the title and subtitle', () => {
         const {getByText} = render(
             <SaveConfirmationModal
-                onClose={onCloseMock}
-                onConfirm={onConfirmMock}
-                title={title}
-                subtitle={subtitle}
-                buttonText={buttonText}
+                {...baseProps}
             />,
         );
 
@@ -41,11 +41,7 @@ describe('SaveConfirmationModal', () => {
     test('renders the disclaimer if includeDisclaimer is true', () => {
         const {getByText} = render(
             <SaveConfirmationModal
-                onClose={onCloseMock}
-                onConfirm={onConfirmMock}
-                title={title}
-                subtitle={subtitle}
-                buttonText={buttonText}
+                {...baseProps}
                 includeDisclaimer={true}
             />,
         );
@@ -56,11 +52,7 @@ describe('SaveConfirmationModal', () => {
     test('calls onClose when the cancel button is clicked', () => {
         const {getByText} = render(
             <SaveConfirmationModal
-                onClose={onCloseMock}
-                onConfirm={onConfirmMock}
-                title={title}
-                subtitle={subtitle}
-                buttonText={buttonText}
+                {...baseProps}
             />,
         );
 
@@ -72,11 +64,7 @@ describe('SaveConfirmationModal', () => {
     test('calls onConfirm when the confirm button is clicked', () => {
         const {getByText} = render(
             <SaveConfirmationModal
-                onClose={onCloseMock}
-                onConfirm={onConfirmMock}
-                title={title}
-                subtitle={subtitle}
-                buttonText={buttonText}
+                {...baseProps}
             />,
         );
 
