@@ -233,7 +233,6 @@
   "admin.billing.company_info.city": "град",
   "admin.billing.company_info.companyAddress": "адреса компаније",
   "admin.billing.company_info.companyName": "Назив компаније",
-  "admin.billing.company_info.country": "држава",
   "admin.billing.company_info.employees": "{employees} запослени",
   "admin.billing.company_info.numEmployees": "број запослених (опционо)",
   "admin.billing.company_info.title": "информације о компанији",
