@@ -2443,38 +2443,6 @@ describe('getCurrentUsersLatestPost', () => {
     });
 });
 
-describe('getExpandedLink', () => {
-    it('should get the expanded link from the state', () => {
-        const state = {
-            entities: {
-                posts: {
-                    expandedURLs: {
-                        a: 'b',
-                        c: 'd',
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-        expect(Selectors.getExpandedLink(state, 'a')).toEqual('b');
-        expect(Selectors.getExpandedLink(state, 'c')).toEqual('d');
-    });
-
-    it('should return undefined if it is not saved', () => {
-        const state = {
-            entities: {
-                posts: {
-                    expandedURLs: {
-                        a: 'b',
-                        c: 'd',
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-        expect(Selectors.getExpandedLink(state, 'b')).toEqual(undefined);
-        expect(Selectors.getExpandedLink(state, '')).toEqual(undefined);
-    });
-});
-
 describe('makeGetProfilesForThread', () => {
     it('should return profiles for threads in the right order and exclude current user', () => {
         const getProfilesForThread = Selectors.makeGetProfilesForThread();

@@ -6,12 +6,13 @@ import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import {CloseIcon, MagnifyIcon} from '@mattermost/compass-icons/components';
+import {MagnifyIcon} from '@mattermost/compass-icons/components';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import LocalizedIcon from 'components/localized_icon';
 import {QuickInput} from 'components/quick_input/quick_input';
 import GroupMemberList from 'components/user_group_popover/group_member_list';
 import UserGroupsModal from 'components/user_groups_modal';
@@ -20,6 +21,7 @@ import Popover from 'components/widgets/popover';
 
 import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
+import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
 
@@ -202,17 +204,20 @@ const UserGroupPopover = (props: Props) => {
                             {group.display_name}
                         </Title>
                         <CloseButton
-                            className='btn-icon'
+                            className='btn btn-sm btn-compact btn-icon'
                             aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close'})}
                             onClick={handleClose}
                             ref={closeRef}
                         >
-                            <CloseIcon/>
+                            <LocalizedIcon
+                                className='icon icon-close'
+                                ariaLabel={{id: t('user_group_popover.close'), defaultMessage: 'Close'}}
+                            />
                         </CloseButton>
                     </Heading>
                     <Subtitle>
                         <span className='overflow--ellipsis text-nowrap'>{'@'}{group.name}</span>
-                        <Dot>{' • '}</Dot>
+                        <Dot>{'•'}</Dot>
                         <FormattedMessage
                             id='user_group_popover.memberCount'
                             defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'

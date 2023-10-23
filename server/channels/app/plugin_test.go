@@ -27,7 +27,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -394,7 +393,6 @@ func TestPrivateServePluginRequest(t *testing.T) {
 			th.App.ch.servePluginRequest(recorder, request, handler)
 		})
 	}
-
 }
 
 func TestHandlePluginRequest(t *testing.T) {
@@ -506,7 +504,6 @@ func TestPluginSync(t *testing.T) {
 				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
 				cfg.FileSettings.AmazonS3Region = model.NewString("")
 				cfg.FileSettings.AmazonS3SSL = model.NewBool(false)
-
 			},
 		},
 	}
@@ -639,11 +636,10 @@ func TestChannelsPluginsInit(t *testing.T) {
 	defer th.TearDown()
 
 	runNoPanicTest := func(t *testing.T) {
-		ctx := request.EmptyContext(th.TestLogger)
 		path, _ := fileutils.FindDir("tests")
 
 		require.NotPanics(t, func() {
-			th.Server.Channels().initPlugins(ctx, path, path)
+			th.Server.Channels().initPlugins(th.Context, path, path)
 		})
 	}
 

@@ -4,7 +4,6 @@
 import {Page} from '@playwright/test';
 
 import {components} from '@e2e-support/ui/components';
-import {isSmallScreen} from '@e2e-support/util';
 
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -50,10 +49,6 @@ export default class ChannelsPage {
     }
 
     async toBeVisible() {
-        if (!isSmallScreen(this.page.viewportSize())) {
-            await this.globalHeader.toBeVisible(this.channels);
-        }
-
         await this.centerView.toBeVisible();
     }
 

@@ -310,7 +310,6 @@ func TestGetReplica(t *testing.T) {
 				for replica := range replicas {
 					assert.NotSame(t, store.GetMasterX(), replica)
 				}
-
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
@@ -382,7 +381,6 @@ func TestGetReplica(t *testing.T) {
 				for replica := range replicas {
 					assert.Same(t, store.GetMasterX(), replica)
 				}
-
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
@@ -397,7 +395,6 @@ func TestGetReplica(t *testing.T) {
 				for searchReplica := range searchReplicas {
 					assert.Same(t, store.GetMasterX(), searchReplica)
 				}
-
 			} else if testCase.DataSourceReplicaNum > 0 {
 				assert.Equal(t, len(replicas), len(searchReplicas))
 				for k := range replicas {
@@ -567,7 +564,6 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, tests[i].expected, ok)
 	}
-
 }
 
 func TestGetAllConns(t *testing.T) {

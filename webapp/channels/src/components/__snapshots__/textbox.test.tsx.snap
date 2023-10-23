@@ -35,8 +35,24 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "className": [Function],
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
     listComponent={[Function]}
@@ -126,8 +142,24 @@ exports[`components/TextBox should throw error when new property is too long 1`]
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "className": [Function],
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
     listComponent={[Function]}
@@ -217,8 +249,24 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "className": [Function],
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
     listComponent={[Function]}

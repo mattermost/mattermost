@@ -9,7 +9,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   >
     <div>
       <button
-        className="btn btn-default"
+        className="btn btn-tertiary"
         disabled={false}
         onClick={[Function]}
         type="button"
@@ -92,7 +92,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
@@ -229,7 +229,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
@@ -358,7 +358,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
@@ -488,7 +488,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"

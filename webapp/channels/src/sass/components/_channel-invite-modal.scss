@@ -66,14 +66,6 @@
         text-align: right;
     }
 
-    .btn-primary {
-        height: 40px;
-        padding: 0 36px;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
     .no-channel-message {
         padding: 1rem;
         font-size: 1.4rem;
@@ -176,31 +168,15 @@
     }
 
     .invite-as-guest {
-        width: fit-content;
-        order: 1;
-        padding-top: 8px;
+        margin-top: 8px;
         margin-right: 2.4rem;
         margin-bottom: 22px;
         margin-left: auto;
-        font-weight: 600;
     }
 
     .multi-select__footer {
         order: 2;
         margin-top: 10px;
-
-        .btn-cancel {
-            @include tertiary-button;
-
-            width: auto;
-            height: 40px;
-            margin-right: 10px;
-        }
-
-        .save-button {
-            width: 67px;
-            padding: 0;
-        }
     }
 
     .custom-no-options-message {

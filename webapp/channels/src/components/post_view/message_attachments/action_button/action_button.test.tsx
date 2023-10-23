@@ -49,8 +49,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         const button = screen.getByRole('button');
 
-        expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.25)}`);
-        expect(button).toHaveStyle('borderWidth: 2');
+        expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.08)}`);
         expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
     });
 
@@ -65,8 +64,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         const button = screen.getByRole('button');
 
-        expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.indigo.errorTextColor, 0.25)}`);
-        expect(button).toHaveStyle('borderWidth: 2');
+        expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.indigo.errorTextColor, 0.08)}`);
         expect(button).toHaveStyle(`color: ${Preferences.THEMES.indigo.errorTextColor}`);
     });
 
@@ -79,9 +77,8 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         render(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
-        expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.25)}`);
-        expect(button).toHaveStyle('borderWidth: 2');
-        expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
+        expect(button).toHaveStyle(`background-color: ${changeOpacity('#339970', 0.08)}`);
+        expect(button).toHaveStyle(`color: ${'#339970'}`);
     });
 
     test('should have correct styles when provided hex color', () => {
@@ -93,8 +90,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         render(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
-        expect(button).toHaveStyle(`borderColor: ${changeOpacity(props.action.style, 0.25)}`);
-        expect(button).toHaveStyle('borderWidth: 2');
+        expect(button).toHaveStyle(`background-color: ${changeOpacity(props.action.style, 0.08)}`);
         expect(button).toHaveStyle(`color: ${props.action.style}`);
     });
 

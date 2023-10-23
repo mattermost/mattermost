@@ -89,7 +89,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             />
           </div>
           <div
-            className="btn btn-sm btn-primary btn-file sel-btn"
+            className="btn btn-sm btn-primary btn-file"
           >
             <MemoizedFormattedMessage
               defaultMessage="Upload Image"
@@ -329,7 +329,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/DN/integrations/bots"
         >
           <MemoizedFormattedMessage

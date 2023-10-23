@@ -68,7 +68,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -141,7 +141,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -304,7 +304,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -378,7 +378,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -542,7 +542,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -622,7 +622,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -786,7 +786,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -860,7 +860,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -1024,7 +1024,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -1097,7 +1097,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -1260,7 +1260,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -1334,7 +1334,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
