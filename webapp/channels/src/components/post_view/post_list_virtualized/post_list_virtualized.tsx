@@ -527,8 +527,15 @@ export default class PostList extends React.PureComponent<Props, State> {
         });
     };
 
+    hideScrollToBottomToast = () => {
+        this.setState({
+            showScrollToBottomToast: false,
+        });
+    };
+
     /*
      * - Show the scroll-to-bottom toast at the same time as the search-hint toast.
+     * - Only show if the user hasn't dismissed it before, within a session.
      * - Hide it if the user is at the bottom of the list.
      */
     updateScrollToBottomToastVisibility = (scrollOffset: number, scrollHeight: number, clientHeight: number) => {
@@ -664,6 +671,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                 showSearchHintToast={this.state.showSearchHint}
                 showScrollToBottomToast={this.state.showScrollToBottomToast}
                 onScrollToBottomToastDismiss={this.handleScrollToBottomToastDismiss}
+                hideScrollToBottomToast={this.hideScrollToBottomToast}
             />
         );
     };

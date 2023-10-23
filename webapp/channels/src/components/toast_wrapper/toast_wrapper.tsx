@@ -47,6 +47,7 @@ export type Props = WrappedComponentProps & RouteComponentProps<{team: string}> 
     onSearchHintDismiss: () => void;
     showScrollToBottomToast: boolean;
     onScrollToBottomToastDismiss: () => void;
+    hideScrollToBottomToast: () => void;
     shouldStartFromBottomWhenUnread: boolean;
     isNewMessageLineReached: boolean;
     rootPosts: Record<string, boolean>;
@@ -287,8 +288,6 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         }
     };
 
-    hideScrollToBottomToast = () => this.props.onScrollToBottomToastDismiss?.();
-
     newMessagesToastText = (count: number | undefined, since: number) => {
         if (this.props.width > TOAST_TEXT_COLLAPSE_WIDTH && typeof since !== 'undefined') {
             return (
@@ -376,7 +375,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
 
         scrollToLatestMessages();
         this.hideUnreadToast();
-        this.hideScrollToBottomToast();
+        this.props.hideScrollToBottomToast?.();
     };
 
     scrollToUnreadMessages = () => {
