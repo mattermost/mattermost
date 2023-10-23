@@ -366,10 +366,6 @@ cloud)
     mme2e_log "Error: when using SERVER=$SERVER, the .env.server.cloud file is expected to exist, before generating the docker-compose file. Aborting." >&2
     exit 1
   fi
-  if [ -z "$MM_LICENSE" ]; then
-    mme2e_log "Error: when using SERVER=$SERVER, the MM_LICENSE variable is expected to be set. Aborting." >&2
-    exit 1
-  fi
   ;;
 esac
 

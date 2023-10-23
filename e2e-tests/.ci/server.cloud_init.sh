@@ -8,13 +8,12 @@ if [ "$SERVER" != "cloud" ]; then
   exit 0
 fi
 
-# Check if CWS_URL is set or not
-if [ -n "${CWS_URL-}" ] && [ -n "$CWS_URL" ]; then
-  mme2e_log "CWS_URL is set."
-else
-  mme2e_log "Environment variable CWS_URL is empty or unset. It must be set to create test cloud customer."
-  exit 1
-fi
+mme2e_log "Initializing cloud tests"
+
+# Assert that required variables are set
+MME2E_ENVCHECK_MSG="variable required for initializing cloud tests, but is empty or unset."
+: ${CWS_URL:?$MME2E_ENVCHECK_MSG}
+: ${MM_LICENSE:?$MME2E_ENVCHECK_MSG}
 
 response=$(curl -X POST "${CWS_URL}/api/v1/internal/tests/create-customer?sku=cloud-enterprise&is_paid=true")
 MM_CUSTOMER_ID=$(echo "$response" | jq -r .customer_id)

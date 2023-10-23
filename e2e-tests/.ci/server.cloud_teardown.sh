@@ -8,16 +8,15 @@ if [ "$SERVER" != "cloud" ]; then
   exit 0
 fi
 
+mme2e_log "Tearing down cloud tests"
+
 mme2e_log "Loading .env.server.cloud"
 . .env.server.cloud
 
-# Check if CWS_URL is set or not
-if [ -n "${CWS_URL-}" ] && [ -n "$CWS_URL" ]; then
-  mme2e_log "CWS_URL is set."
-else
-  mme2e_log "Environment variable CWS_URL is empty or unset. It must be set to delete test cloud customer."
-  exit 1
-fi
+# Assert that required variables are set
+MME2E_ENVCHECK_MSG="variable required for tearing down cloud tests, but is empty or unset."
+: ${CWS_URL:?$MME2E_ENVCHECK_MSG}
+: ${MM_CUSTOMER_ID:?$MME2E_ENVCHECK_MSG}
 
 mme2e_log "Deleting customer $MM_CUSTOMER_ID."
 curl -X DELETE "${CWS_URL}/api/v1/internal/tests/customers/$MM_CUSTOMER_ID/payment-customer"
