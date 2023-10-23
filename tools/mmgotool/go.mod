@@ -3,7 +3,7 @@ module github.com/mattermost/mattermost/tools/mmgotool
 go 1.20
 
 require (
-	github.com/nicksnyder/go-i18n/v2 v2.2.1
+	github.com/nicksnyder/go-i18n/v2 v2.2.2
 	github.com/spf13/cobra v1.7.0
 )
 
