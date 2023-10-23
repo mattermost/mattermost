@@ -144,6 +144,9 @@ func TestLocalizeDefaultMessage(t *testing.T) {
 			},
 		})
 		api.On("GetBundlePath").Return(".", nil)
+		api.On("LogWarn", mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"), mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return()
 		defer api.AssertExpectations(t)
 
 		b, err := i18n.InitBundle(api, ".")
@@ -212,6 +215,8 @@ func TestLocalizeWithConfig(t *testing.T) {
 			},
 		})
 		api.On("GetBundlePath").Return(".", nil)
+		api.On("LogWarn", mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return()
 		defer api.AssertExpectations(t)
 
 		b, err := i18n.InitBundle(api, ".")

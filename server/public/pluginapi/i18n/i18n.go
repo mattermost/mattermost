@@ -120,6 +120,10 @@ func (b *Bundle) LocalizeDefaultMessage(l *Localizer, m *Message) string {
 		b.api.LogWarn("Failed to localize message", "message ID", m.ID, "error", err.Error())
 		return ""
 	}
+	// FIXME: This should not be needed anymore once https://github.com/nicksnyder/go-i18n/pull/305 is merged and released
+	if s == "" {
+		b.api.LogWarn("Failed to localize message", "message ID", m.ID, "error", "Empty message")
+	}
 
 	return s
 }
@@ -131,6 +135,10 @@ func (b *Bundle) LocalizeWithConfig(l *Localizer, lc *LocalizeConfig) string {
 	if err != nil {
 		b.api.LogWarn("Failed to localize with config", "error", err.Error())
 		return ""
+	}
+	// FIXME: This should not be needed anymore once https://github.com/nicksnyder/go-i18n/pull/305 is merged and released
+	if s == "" {
+		b.api.LogWarn("Failed to localize with config", "error", "Empty message")
 	}
 	return s
 }
