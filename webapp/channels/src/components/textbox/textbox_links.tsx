@@ -4,7 +4,8 @@
 import React from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
+
+import ExternalLink from 'components/external_link';
 
 type Props = {
     showPreview?: boolean;
@@ -12,7 +13,6 @@ type Props = {
     hasText?: boolean;
     hasExceededCharacterLimit?: boolean;
     isMarkdownPreviewEnabled: boolean;
-    currentLocale: string;
     updatePreview?: (showPreview: boolean) => void;
 };
 
@@ -22,7 +22,6 @@ function TextboxLinks({
     hasText = false,
     hasExceededCharacterLimit = false,
     isMarkdownPreviewEnabled,
-    currentLocale,
     updatePreview,
 }: Props) {
     const togglePreview = (e: MouseEvent) => {
@@ -125,17 +124,16 @@ function TextboxLinks({
         <div className={'help__text ' + helpTextClass}>
             {helpText}
             {previewLink}
-            <Link
-                target='_blank'
-                rel='noopener noreferrer'
-                to={`/help/messaging?locale=${currentLocale}`}
+            <ExternalLink
+                location='textbox_links'
+                href={'https://docs.mattermost.com/collaborate/format-messages.html'}
                 className='textbox-help-link'
             >
                 <FormattedMessage
                     id='textbox.help'
                     defaultMessage='Help'
                 />
-            </Link>
+            </ExternalLink>
         </div>
     );
 }
