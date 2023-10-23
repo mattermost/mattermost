@@ -13,7 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import * as GlobalActions from 'actions/global_actions';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import Root from 'components/root/root';
 
