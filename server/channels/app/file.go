@@ -1385,6 +1385,7 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	for _, fd := range fileDatas {
 		f, err := w.CreateHeader(&zip.FileHeader{
 			Name:     fd.Filename,
+			Method:   zip.Deflate,
 			Modified: time.Now(),
 		})
 
