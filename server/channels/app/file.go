@@ -757,7 +757,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 	if written > t.maxFileSize {
 		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			c.Logger().Error("Failed to remove file", mlog.Err(fileErr))
 		}
 		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
@@ -796,10 +796,11 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
+		crctx := c.Clone()
 		a.Srv().GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+			err := a.ExtractContentFromFileInfo(crctx, &infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				crctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -1047,10 +1048,11 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
+		crctx := c.Clone()
 		a.Srv().GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+			err := a.ExtractContentFromFileInfo(crctx, &infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				crctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -1447,7 +1449,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
 }
 
-func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error {
 	// We don't process images.
 	if fileInfo.IsImage() {
 		return nil
@@ -1458,7 +1460,7 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
 	}
 	defer file.Close()
-	text, err := docextractor.Extract(fileInfo.Name, file, docextractor.ExtractSettings{
+	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 	})
 	if err != nil {
