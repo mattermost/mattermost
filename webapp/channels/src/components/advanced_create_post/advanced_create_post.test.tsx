@@ -877,7 +877,7 @@ describe('components/advanced_create_post', () => {
             }),
         );
 
-        const instance = wrapper.instance() as AdvancedCreatePost;
+        const instance: any = wrapper.instance();
         const clientIds = ['a'];
         const uploadsInProgressDraft = {
             ...draftProp,
@@ -917,7 +917,7 @@ describe('components/advanced_create_post', () => {
             }),
         );
 
-        const instance = wrapper.instance() as AdvancedCreatePost;
+        const instance: any = wrapper.instance();
         const uploadsInProgressDraft = {
             ...draftProp,
             uploadsInProgress: [
@@ -991,7 +991,7 @@ describe('components/advanced_create_post', () => {
             ctrlSend: true,
         }));
 
-        const instance = wrapper.instance() as AdvancedCreatePost;
+        const instance: any = wrapper.instance();
         instance.textboxRef.current = {blur: jest.fn()};
 
         const target = {
@@ -1301,7 +1301,7 @@ describe('components/advanced_create_post', () => {
                 focus: jest.fn(),
             };
         };
-        (wrapper.instance() as AdvancedCreatePost).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
+        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
 
         const event = {
             target: {
@@ -1331,7 +1331,7 @@ describe('components/advanced_create_post', () => {
                 focus: jest.fn(),
             };
         };
-        (wrapper.instance() as AdvancedCreatePost).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
+        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
 
         const event = {
             target: {
@@ -1361,7 +1361,7 @@ describe('components/advanced_create_post', () => {
                 focus: jest.fn(),
             };
         };
-        (wrapper.instance() as AdvancedCreatePost).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
+        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
 
         const event = {
             target: {
@@ -1391,7 +1391,7 @@ describe('components/advanced_create_post', () => {
                 focus: jest.fn(),
             };
         };
-        (wrapper.instance() as AdvancedCreatePost).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
+        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
 
         const event = {
             target: {
@@ -1467,7 +1467,7 @@ describe('components/advanced_create_post', () => {
     testComponentForMarkdownHotkeys(
         (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
         (wrapper: ReturnType<typeof shallow>, setSelectionRangeFn: any) => {
-            (wrapper.instance() as AdvancedCreatePost).textboxRef = {
+            (wrapper.instance() as any).textboxRef = {
                 current: {
                     getInputBox: jest.fn(() => {
                         return {
