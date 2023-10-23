@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
+import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
+
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 import EnableSectionContent from './enable_section';
 jest.mock('components/external_link', () => {
@@ -20,7 +22,7 @@ describe('EnableSectionContent', () => {
     });
 
     test('renders the component', () => {
-        render(
+        renderWithIntl(
             <EnableSectionContent
                 filterToggle={filterToggle}
                 setFilterToggle={setFilterToggle}
@@ -34,7 +36,7 @@ describe('EnableSectionContent', () => {
     });
 
     test('clicking the toggle calls setFilterToggle', () => {
-        render(
+        renderWithIntl(
             <EnableSectionContent
                 filterToggle={filterToggle}
                 setFilterToggle={setFilterToggle}
@@ -48,7 +50,7 @@ describe('EnableSectionContent', () => {
     });
 
     test('renders the component, with toggle not pressed if filterToggle is false', () => {
-        render(
+        renderWithIntl(
             <EnableSectionContent
                 filterToggle={false}
                 setFilterToggle={setFilterToggle}

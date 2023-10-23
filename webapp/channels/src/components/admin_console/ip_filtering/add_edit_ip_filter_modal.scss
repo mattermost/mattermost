@@ -178,12 +178,22 @@
 
         .btn-cancel {
             padding: 10px 20px;
+            border: none;
             background: var(--button-bg-8, rgba(28, 88, 217, 0.08));
             border-radius: 4px;
             color: var(--button-bg, #1c58d9);
         }
 
         .btn-save {
+            &:disabled {
+                background: rgba(63, 67, 80, 0.08);
+                color: rgba(63, 67, 80, 0.32);
+                cursor: not-allowed;
+            }
+
+            padding: 10px 20px;
+            border: none;
+            margin-left: 8px;
             background: var(--button-bg, #1c58d9);
             border-radius: 4px;
             color: var(--button-color, #fff);

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import Toggle from 'components/toggle';
@@ -17,34 +17,26 @@ const EnableSectionContent: React.FC<Props> = ({filterToggle, setFilterToggle}) 
 
     return (
         <div className='EnableSectionContent'>
-            <div className='Frame1281'>
+            <div className='TitleSubtitleContent'>
                 <div className='TitleSubtitle'>
-                    <div className='Frame1286'>
-                        <div className='Title'>
-                            {formatMessage({id: 'admin.ip_filtering.enable_ip_filtering', defaultMessage: 'Enable IP Filtering'})}
-                        </div>
-                        <div className='Subtitle'>
-                            {
-                                formatMessage(
-                                    {
-                                        id: 'admin.ip_filtering.enable_ip_filtering_description',
-                                        defaultMessage: 'Limit access to your workspace by IP address. {learnmore}',
-                                    },
-                                    {
-                                        learnmore: (
-                                            <ExternalLink
-                                                href='https://docs.mattermost.com/guides/cloud-workspace-management.html'
-                                                target='_blank'
-                                                rel='noreferrer'
-                                                location={'ip_filtering_enable_section'}
-                                            >
-                                                {formatMessage({id: 'admin.ip_filtering.learn_more', defaultMessage: 'Learn more in the docs'})}
-                                            </ExternalLink>
-                                        ),
-                                    },
-                                )
-                            }
-                        </div>
+                    <div className='Title'>
+                        {formatMessage({id: 'admin.ip_filtering.enable_ip_filtering', defaultMessage: 'Enable IP Filtering'})}
+                    </div>
+                    <div className='Subtitle'>
+                        <FormattedMessage
+                            id={'admin.ip_filtering.enable_ip_filtering_description'}
+                            defaultMessage={'Limit access to your workspace by IP address. <learnmore>Learn more in the docs</learnmore>'}
+                            values={{
+                                learnmore: (msg) => (
+                                    <ExternalLink
+                                        href='https://docs.mattermost.com/guides/cloud-workspace-management.html'
+                                        location={'ip_filtering_enable_section'}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            }}
+                        />
                     </div>
                 </div>
                 <div className='SwitchSelector'>

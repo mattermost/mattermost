@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
@@ -145,17 +145,41 @@ const IPFiltering = () => {
         } as any;
         if (!ipFilters?.length && filterToggle) {
             saveConfirmModalProps.title = formatMessage({id: 'admin.ip_filtering.apply_ip_filter_changes', defaultMessage: 'Apply IP Filter Changes'});
-            saveConfirmModalProps.subtitle = <>{formatMessage({id: 'admin.ip_filtering.no_filters_added', defaultMessage: 'Are you sure you want to apply these IP filter changes? There are currently no filters added, so {strong}'}, {strong: (<strong>{formatMessage({id: 'admin.ip_filtering.all_ip_addresses_will_have_access_midsentence', defaultMessage: 'all IP addresses will have access to the workspace.'})}</strong>)})}</>;
+            saveConfirmModalProps.subtitle = (
+                <FormattedMessage
+                    id={'admin.ip_filtering.no_filters_added'}
+                    defaultMessage={'Are you sure you want to apply these IP filter changes? There are currently no filters added, so <strong>all IP addresses will have access to the workspace.</strong>'}
+                    values={{
+                        strong: (content: string) => <strong>{content}</strong>,
+                    }}
+                />
+            );
             saveConfirmModalProps.buttonText = formatMessage({id: 'admin.ip_filtering.apply_changes', defaultMessage: 'Yes, apply changes'});
             saveConfirmModalProps.includeDisclaimer = false;
         } else if ((ipFilters?.length && !filterToggle) || (!ipFilters?.length && !filterToggle)) {
             saveConfirmModalProps.title = formatMessage({id: 'admin.ip_filtering.disable_ip_filtering', defaultMessage: 'Disable IP Filtering'});
-            saveConfirmModalProps.subtitle = <>{formatMessage({id: 'admin.ip_filtering.turn_off_ip_filtering', defaultMessage: 'Are you sure you want to turn off IP Filtering? {strong}'}, {strong: (<strong>{formatMessage({id: 'admin.ip_filtering.all_ip_addresses_will_have_access', defaultMessage: 'All IP addresses will have access to the workspace.'})}</strong>)})}</>;
+            saveConfirmModalProps.subtitle = (
+                <FormattedMessage
+                    id={'admin.ip_filtering.turn_off_ip_filtering'}
+                    defaultMessage={'Are you sure you want to turn off IP Filtering? <strong>All IP addresses will have access to the workspace.</strong>'}
+                    values={{
+                        strong: (content: string) => <strong>{content}</strong>,
+                    }}
+                />
+            );
             saveConfirmModalProps.buttonText = formatMessage({id: 'admin.ip_filtering.yes_disable_ip_filtering', defaultMessage: 'Yes, disable IP Filtering'});
             saveConfirmModalProps.includeDisclaimer = false;
         } else {
             saveConfirmModalProps.title = formatMessage({id: 'admin.ip_filtering.apply_ip_filter_changes', defaultMessage: 'Apply IP Filter Changes'});
-            saveConfirmModalProps.subtitle = <>{formatMessage({id: 'admin.ip_filtering.apply_ip_filter_changes_are_you_sure', defaultMessage: 'Are you sure you want to apply these IP Filter changes? {strong}'}, {strong: (<strong>{formatMessage({id: 'admin.ip_filtering.users_with_ip_addresses_outside_ip_ranges', defaultMessage: 'Users with IP addresses outside of the IP ranges provided will no longer have access to the workspace.'})}</strong>)})}</>;
+            saveConfirmModalProps.subtitle = (
+                <FormattedMessage
+                    id={'admin.ip_filtering.apply_ip_filter_changes_are_you_sure'}
+                    defaultMessage={'Are you sure you want to apply these IP Filter changes? <strong>Users with IP addresses outside of the IP ranges provided will no longer have access to the workspace.</strong>'}
+                    values={{
+                        strong: (content: string) => <strong>{content}</strong>,
+                    }}
+                />
+            );
             saveConfirmModalProps.buttonText = formatMessage({id: 'admin.ip_filtering.apply_changes', defaultMessage: 'Yes, apply changes'});
             saveConfirmModalProps.includeDisclaimer = true;
         }

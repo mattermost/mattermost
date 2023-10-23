@@ -3,7 +3,7 @@
 
 import cidrRegex from 'cidr-regex';
 import React, {useState} from 'react';
-import {Button, Modal} from 'react-bootstrap';
+import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
@@ -16,8 +16,8 @@ import Input from 'components/widgets/inputs/input/input';
 import './add_edit_ip_filter_modal.scss';
 
 type Props = {
-    onClose?: () => void;
-    onSave?: (allowedIPRange: AllowedIPRange, oldIPRange?: AllowedIPRange) => void;
+    onClose: () => void;
+    onSave: (allowedIPRange: AllowedIPRange, oldIPRange?: AllowedIPRange) => void;
     existingRange?: AllowedIPRange;
     currentIP?: string;
 }
@@ -29,36 +29,36 @@ function validateCIDR(cidr: string) {
 export default function IPFilteringAddOrEditModal({onClose, onSave, existingRange, currentIP}: Props) {
     const {formatMessage} = useIntl();
     const [name, setName] = useState(existingRange?.Description || '');
-    const [cidr, setCIDR] = useState(existingRange?.CIDRBlock || '');
+    const [CIDR, setCIDR] = useState(existingRange?.CIDRBlock || '');
 
-    const [cidrError, setCidrError] = useState<CustomMessageInputType>(null);
+    const [CIDRError, setCIDRError] = useState<CustomMessageInputType>(null);
 
     const handleSave = () => {
         const allowedIPRange: AllowedIPRange = {
-            CIDRBlock: cidr,
+            CIDRBlock: CIDR,
             Description: name,
             Enabled: true,
             OwnerID: '',
         };
 
         if (existingRange) {
-            onSave?.(allowedIPRange, existingRange);
+            onSave(allowedIPRange, existingRange);
         } else {
-            onSave?.(allowedIPRange);
+            onSave(allowedIPRange);
         }
 
-        onClose?.();
+        onClose();
     };
 
     const handleCIDRChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const cidr = e.target.value;
         setCIDR(cidr);
-        setCidrError(null);
+        setCIDRError(null);
     };
 
     const validateCIDRInput = () => {
-        if (!validateCIDR(cidr)) {
-            setCidrError({type: 'error', value: 'Invalid CIDR address range'});
+        if (!validateCIDR(CIDR)) {
+            setCIDRError({type: 'error', value: 'Invalid CIDR address range'});
         }
     };
 
@@ -67,7 +67,8 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
             className={'IPFilteringAddOrEditModal'}
             dialogClassName={'IPFilteringAddOrEditModal__dialog'}
             show={true}
-            onHide={() => onClose?.()}
+            onExited={onClose}
+            onHide={onClose}
         >
             <Modal.Header closeButton={true}>
                 <div className='title'>
@@ -89,7 +90,7 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
                                 name='name'
                                 onChange={(e) => setName(e.target.value)}
                                 value={name}
-                                placeholder={'Enter a name for this rule'}
+                                placeholder={formatMessage({id: 'admin.ip_filtering.rule_name_placeholder', defaultMessage: 'Enter a name for this rule'})}
                                 required={true}
                                 useLegend={false}
                             />
@@ -100,11 +101,11 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
                                 name='ip_address_range'
                                 onChange={handleCIDRChange}
                                 onBlur={validateCIDRInput}
-                                value={cidr}
+                                value={CIDR}
                                 placeholder={'Enter IP Range'}
                                 required={true}
                                 useLegend={false}
-                                customMessage={cidrError}
+                                customMessage={CIDRError}
                             />
                         </div>
                         {/* TODO: get proper PL for more info link out */}
@@ -119,8 +120,6 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
                                         link: (
                                             <ExternalLink
                                                 href='https://docs.mattermost.com/guides/cloud-workspace-management.html'
-                                                target='_blank'
-                                                rel='noopener noreferrer'
                                                 location={'ip_filtering_add_edit_rule_modal'}
                                             >
                                                 {formatMessage({id: 'admin.ip_filtering.more_info_link', defaultMessage: 'More info'})}
@@ -134,22 +133,22 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <Button
+                <button
                     type='button'
                     className='btn-cancel'
-                    onClick={() => onClose?.()}
+                    onClick={onClose}
                 >
-                    {'Cancel'}
-                </Button>
-                <Button
+                    {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
+                </button>
+                <button
                     data-testid='save-add-edit-button'
                     type='button'
                     className='btn-save'
                     onClick={handleSave}
-                    disabled={Boolean(cidrError) || !cidr.length || !name.length}
+                    disabled={Boolean(CIDRError) || !CIDR.length || !name.length}
                 >
                     {existingRange ? formatMessage({id: 'admin.ip_filtering.update_filter', defaultMessage: 'Update filter'}) : formatMessage({id: 'admin.ip_filtering.save', defaultMessage: 'Save'})}
-                </Button>
+                </button>
             </Modal.Footer>
         </Modal>
     );

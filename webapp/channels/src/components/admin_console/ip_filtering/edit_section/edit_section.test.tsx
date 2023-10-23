@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
+import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-import EditSection from './edit_section';
+import {renderWithIntl} from 'tests/react_testing_utils';
+
+import EditSection from './';
 
 describe('EditSection', () => {
     const ipFilters = [
@@ -28,7 +30,7 @@ describe('EditSection', () => {
     });
 
     test('renders the component', () => {
-        render(
+        renderWithIntl(
             <EditSection
                 ipFilters={ipFilters}
                 currentUsersIP={currentUsersIP}
@@ -50,7 +52,7 @@ describe('EditSection', () => {
     });
 
     test('clicking the Add Filter button calls setShowAddModal', () => {
-        render(
+        renderWithIntl(
             <EditSection
                 ipFilters={ipFilters}
                 currentUsersIP={currentUsersIP}
@@ -68,7 +70,7 @@ describe('EditSection', () => {
     });
 
     test('clicking the Edit button calls setEditFilter', () => {
-        render(
+        renderWithIntl(
             <EditSection
                 ipFilters={ipFilters}
                 currentUsersIP={currentUsersIP}
@@ -89,7 +91,7 @@ describe('EditSection', () => {
     });
 
     test('clicking the Delete button calls handleConfirmDeleteFilter', () => {
-        render(
+        renderWithIntl(
             <EditSection
                 ipFilters={ipFilters}
                 currentUsersIP={currentUsersIP}
@@ -110,7 +112,7 @@ describe('EditSection', () => {
     });
 
     test('displays an error panel if current IP is not in range', () => {
-        render(
+        renderWithIntl(
             <EditSection
                 ipFilters={ipFilters}
                 currentUsersIP='192.168.1.1'
@@ -127,7 +129,7 @@ describe('EditSection', () => {
     });
 
     test('displays a message if no filters are added', () => {
-        render(
+        renderWithIntl(
             <EditSection
                 ipFilters={[]}
                 currentUsersIP={currentUsersIP}

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Button, Modal} from 'react-bootstrap';
+import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
@@ -69,21 +69,21 @@ export default function SaveConfirmationModal({onClose, onConfirm, title, subtit
                 }
             </Modal.Body>
             <Modal.Footer>
-                <Button
+                <button
                     type='button'
                     className='btn-cancel'
                     onClick={() => onClose?.()}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
-                </Button>
-                <Button
+                </button>
+                <button
                     data-testid='save-confirmation-button'
                     type='button'
                     className='btn-delete'
                     onClick={() => onConfirm?.()}
                 >
                     {buttonText}
-                </Button>
+                </button>
             </Modal.Footer>
         </Modal>
     );

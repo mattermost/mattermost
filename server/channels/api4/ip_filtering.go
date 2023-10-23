@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 func (api *API) InitIPFiltering() {
@@ -18,17 +19,17 @@ func (api *API) InitIPFiltering() {
 	api.BaseRoutes.IPFiltering.Handle("/my_ip", api.APISessionRequired(myIP)).Methods("GET")
 }
 
-func ensureIPFilteringInterface(c *Context, where string) bool {
+func ensureIPFilteringInterface(c *Context, where string) (einterfaces.IPFilteringInterface, bool) {
 	if c.App.IPFiltering() == nil || !c.App.Config().FeatureFlags.CloudIPFiltering {
 		c.Err = model.NewAppError(where, "api.context.ip_filtering.not_available.app_error", nil, "", http.StatusNotImplemented)
-		return false
+		return nil, false
 	}
-	return true
+	return c.App.IPFiltering(), true
 }
 
 func getIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
-	ensured := ensureIPFilteringInterface(c, "getIPFilters")
-	if !ensured {
+	ipFiltering, ok := ensureIPFilteringInterface(c, "getIPFilters")
+	if !ok {
 		return
 	}
 
@@ -37,26 +38,21 @@ func getIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ipFiltering := c.App.IPFiltering()
-
 	allowedRanges, err := ipFiltering.GetIPFilters()
 	if err != nil {
 		c.Err = model.NewAppError("getIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json, err := json.Marshal(allowedRanges)
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(allowedRanges); err != nil {
 		c.Err = model.NewAppError("getIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(json)
 }
 
 func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
-	ensured := ensureIPFilteringInterface(c, "applyIPFilters")
-	if !ensured {
+	ipFiltering, ok := ensureIPFilteringInterface(c, "applyIPFilters")
+	if !ok {
 		return
 	}
 
@@ -67,8 +63,6 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("applyIPFilters", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-
-	ipFiltering := c.App.IPFiltering()
 
 	allowedRanges := &model.AllowedIPRanges{} // Initialize the allowedRanges variable
 	if err := json.NewDecoder(r.Body).Decode(allowedRanges); err != nil {
@@ -87,19 +81,16 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	json, err := json.Marshal(updatedAllowedRanges)
-	if err != nil {
-		c.Err = model.NewAppError("applyIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(updatedAllowedRanges); err != nil {
+		c.Err = model.NewAppError("getIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(json)
 }
 
 func myIP(c *Context, w http.ResponseWriter, r *http.Request) {
-	ensured := ensureIPFilteringInterface(c, "myIP")
+	_, ok := ensureIPFilteringInterface(c, "myIP")
 
-	if !ensured {
+	if !ok {
 		return
 	}
 
