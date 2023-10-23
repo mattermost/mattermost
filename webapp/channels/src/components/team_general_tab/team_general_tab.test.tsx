@@ -4,10 +4,15 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {ChangeEvent, ComponentProps} from 'react';
+import {type IntlShape} from 'react-intl';
 
-import GeneralTab from 'components/team_general_tab/team_general_tab';
+import {GeneralTab} from 'components/team_general_tab/team_general_tab';
 
 import {TestHelper} from 'utils/test_helper';
+
+interface MockIntl extends IntlShape {
+    formatMessage: jest.Mock;
+}
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});
@@ -26,6 +31,9 @@ describe('components/TeamSettings', () => {
         team: TestHelper.getTeamMock({id: 'team_id'}),
         maxFileSize: 50,
         activeSection: 'team_icon',
+        intl: {
+            formatMessage: jest.fn(),
+        } as MockIntl,
         updateSection: jest.fn(),
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
