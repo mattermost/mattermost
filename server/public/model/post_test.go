@@ -971,5 +971,4 @@ func TestPostForPlugin(t *testing.T) {
 		pluginPost := p.ForPlugin()
 		require.NotNil(t, pluginPost.GetProp("requested_features"))
 	})
-
 }
