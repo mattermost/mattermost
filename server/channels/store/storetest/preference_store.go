@@ -191,7 +191,6 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 	for i := 0; i < 3; i++ {
 		assert.Falsef(t, result[0] != preferences[i] && result[1] != preferences[i] && result[2] != preferences[i], "got incorrect preferences")
 	}
-
 }
 
 func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {

@@ -12,12 +12,12 @@ import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
+import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getMyTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
@@ -112,7 +112,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const experimentalPrimaryTeamMember = useSelector((state: GlobalState) => getMyTeamMember(state, experimentalPrimaryTeam?.id ?? ''));
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
     const isCloud = useSelector(isCurrentLicenseCloud);
-    const graphQLEnabled = useSelector(isGraphQLEnabled);
 
     const loginIdInput = useRef<HTMLInputElement>(null);
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -630,11 +629,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const postSubmit = async (userProfile: UserProfile) => {
-        if (graphQLEnabled) {
-            await dispatch(loadMe());
-        } else {
-            await dispatch(loadMeREST());
-        }
+        await dispatch(loadMe());
 
         // check for query params brought over from signup_user_complete
         const params = new URLSearchParams(search);

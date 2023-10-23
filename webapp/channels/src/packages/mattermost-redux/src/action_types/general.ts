@@ -24,8 +24,6 @@ export default keyMirror({
     WEBSOCKET_CLOSED: null,
     SET_CONNECTION_ID: null,
 
-    REDIRECT_LOCATION_SUCCESS: null,
-    REDIRECT_LOCATION_FAILURE: null,
     SET_CONFIG_AND_LICENSE: null,
 
     WARN_METRICS_STATUS_RECEIVED: null,

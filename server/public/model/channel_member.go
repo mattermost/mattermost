@@ -88,39 +88,6 @@ func (o *ChannelMember) Auditable() map[string]interface{} {
 	}
 }
 
-// The following are some GraphQL methods necessary to return the
-// data in float64 type. The spec doesn't support 64 bit integers,
-// so we have to pass the data in float64. The _ at the end is
-// a hack to keep the attribute name same in GraphQL schema.
-
-func (o *ChannelMember) LastViewedAt_() float64 {
-	return float64(o.LastViewedAt)
-}
-
-func (o *ChannelMember) MsgCount_() float64 {
-	return float64(o.MsgCount)
-}
-
-func (o *ChannelMember) MentionCount_() float64 {
-	return float64(o.MentionCount)
-}
-
-func (o *ChannelMember) MentionCountRoot_() float64 {
-	return float64(o.MentionCountRoot)
-}
-
-func (o *ChannelMember) UrgentMentionCount_() float64 {
-	return float64(o.UrgentMentionCount)
-}
-
-func (o *ChannelMember) MsgCountRoot_() float64 {
-	return float64(o.MsgCountRoot)
-}
-
-func (o *ChannelMember) LastUpdateAt_() float64 {
-	return float64(o.LastUpdateAt)
-}
-
 // ChannelMemberWithTeamData contains ChannelMember appended with extra team information
 // as well.
 type ChannelMemberWithTeamData struct {

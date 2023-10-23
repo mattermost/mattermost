@@ -10,7 +10,6 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0
-	github.com/graph-gophers/graphql-go v1.5.1-0.20230110080634-edea822f558a
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-plugin v1.4.10
 	github.com/lib/pq v1.10.9
