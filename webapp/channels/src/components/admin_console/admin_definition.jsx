@@ -70,7 +70,7 @@ import FeatureFlags from './feature_flags.tsx';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import LicenseSettings from './license_settings';
-import MessageExportSettings from './message_export_settings.jsx';
+import MessageExportSettings from './message_export_settings';
 import OpenIdConvert from './openid_convert';
 import PasswordSettings from './password_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';

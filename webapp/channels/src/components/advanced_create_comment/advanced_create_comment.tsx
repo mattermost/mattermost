@@ -52,6 +52,7 @@ import {
     splitMessageBasedOnCaretPosition,
     groupsMentionedInText,
     mentionsMinusSpecialMentionsInText,
+    isWithinCodeBlock,
 } from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -874,6 +875,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         const draft = this.state.draft!;
         const {message} = draft;
+        const {caretPosition} = this.state;
+        const caretIsWithinCodeBlock = caretPosition && isWithinCodeBlock(message, caretPosition);
 
         if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
             this.textboxRef.current?.blur();
@@ -904,7 +907,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             value,
         } = e.target as TextboxElement;
 
-        if (ctrlKeyCombo) {
+        if (ctrlKeyCombo && !caretIsWithinCodeBlock) {
             if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                 e.preventDefault();
                 this.props.onMoveHistoryIndexBack();
@@ -939,7 +942,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     message: value,
                 });
             }
-        } else if (ctrlAltCombo) {
+        } else if (ctrlAltCombo && !caretIsWithinCodeBlock) {
             if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -971,7 +974,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 e.preventDefault();
                 this.setShowPreview(!this.props.shouldShowPreview);
             }
-        } else if (shiftAltCombo) {
+        } else if (shiftAltCombo && !caretIsWithinCodeBlock) {
             if (Keyboard.isKeyPressed(e, KeyCodes.X)) {
                 e.stopPropagation();
                 e.preventDefault();
