@@ -681,6 +681,11 @@ func clean(translationDir string, file string, dryRun bool, check bool) (*string
 		return nil, err
 	}
 
+	if strings.TrimSpace(string(oldJSON)) == "{}" {
+		noIssue := ""
+		return &noIssue, err
+	}
+
 	var oldList []Item
 	if err = json.Unmarshal(oldJSON, &oldList); err != nil {
 		return nil, err

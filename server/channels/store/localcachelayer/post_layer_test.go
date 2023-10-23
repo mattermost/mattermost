@@ -190,6 +190,5 @@ func TestPostStoreCache(t *testing.T) {
 
 		_, _ = cachedStore.Post().GetPosts(fakeOptions, true, map[string]bool{})
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetPosts", 1)
-
 	})
 }
