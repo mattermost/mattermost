@@ -1119,6 +1119,149 @@ describe('PostUtils.getPostURL', () => {
     });
 });
 
+describe('PostUtils.isWithinCodeBlock', () => {
+    const CARET_MARKER = '•';
+    const TRIPLE_BACKTICKS = '```';
+
+    const getCaretAndMsg = (textWithCaret: string): [number, string] => {
+        const normalizedText = textWithCaret.split('\n').map((line) => line.replace(/^\s*\|/, '')).join('\n');
+
+        return [normalizedText.indexOf(CARET_MARKER), normalizedText];
+    };
+
+    it('should return true if caret is within a code block', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |This is a line of text
+            |${TRIPLE_BACKTICKS}
+            |    fun main() {
+            |        println("Hello Wo${CARET_MARKER}")
+            |    }
+            |${TRIPLE_BACKTICKS}
+            |This is a line of text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should return false if caret is not within a code block', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |This is a line of text
+            |${TRIPLE_BACKTICKS}
+            |    fun main() {
+            |        println("Hello World")
+            |    }
+            |${TRIPLE_BACKTICKS}
+            |This is a line of t${CARET_MARKER}
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle code blocks with language tags', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |This is a line of text
+            |${TRIPLE_BACKTICKS}kotlin
+            |    fun main() {
+            |        println("Hello Wo${CARET_MARKER}")
+            |    }
+            |${TRIPLE_BACKTICKS}
+            |This is a line of text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle caret in front of code block', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${CARET_MARKER}${TRIPLE_BACKTICKS}kotlin
+            |   fun main() {
+            |       println("Test")
+            |   }
+            |${TRIPLE_BACKTICKS}
+            |This is text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle caret behind code block', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}kotlin
+            |   fun main() {
+            |       println("Test")
+            |   }
+            |${TRIPLE_BACKTICKS}${CARET_MARKER}
+            |This is text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle multiple code blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 1
+            |${TRIPLE_BACKTICKS}
+            |This is text
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 2 ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle empty code blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |${TRIPLE_BACKTICKS}
+            |${CARET_MARKER}
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle consecutive code blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 1
+            |${TRIPLE_BACKTICKS}
+            |This is text
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 2 ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 3
+            |${TRIPLE_BACKTICKS}
+            |This is text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle caret position at 0', () => {
+        const [caretPosition, message] = getCaretAndMsg(`${CARET_MARKER}
+            |This is text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle whitespace within and around code blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}    
+            |   Test text asd 1   
+            |        ${CARET_MARKER}  
+            |${TRIPLE_BACKTICKS}  
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should produce consistent results when called multiple times', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |   Test text asd 1
+            |        ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
+        `);
+
+        const results = Array.from({length: 10}, () => PostUtils.isWithinCodeBlock(message, caretPosition));
+
+        expect(results.every(Boolean)).toBe(true);
+    });
+});
+
 describe('PostUtils.getMentionDetails', () => {
     const user1 = TestHelper.getUserMock({username: 'user1'});
     const user2 = TestHelper.getUserMock({username: 'user2'});
