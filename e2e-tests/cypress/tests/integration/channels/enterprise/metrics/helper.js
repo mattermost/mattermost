@@ -14,7 +14,8 @@ export const checkMetrics = (expectedStatusCode) => {
             method: 'GET',
             failOnStatusCode: false,
         }).then((response) => {
-            expect(response.status).to.equal(expectedStatusCode);
+            expect(response.headers['Content-Type'], 'should not hit webapp').not.to.equal('text/html');
+            expect(response.status, 'should match expected status code').to.equal(expectedStatusCode);
         });
     });
 };
