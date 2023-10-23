@@ -3490,7 +3490,7 @@
   "file_search_result_item.more_actions": "Weitere Aktionen",
   "file_search_result_item.open_in_channel": "Im Kanal öffnen",
   "file_upload.disabled": "Dateianhänge sind deaktiviert.",
-  "file_upload.drag_folder": "Ordner können nicht hochgeladen werden. Bitte ziehe alle Dateien einzeln herein.",
+  "file_upload.drag_folder": "Dieser Anhang kann nicht hochgeladen werden.",
   "file_upload.fileAbove": "Datei über {max}MB kann nicht hochgeladen werden: {filename}",
   "file_upload.filesAbove": "Dateien über {max}MB können nicht hochgeladen werden: {filenames}",
   "file_upload.generic_error": "Es gab ein Problem beim Hochladen deiner Dateien.",
