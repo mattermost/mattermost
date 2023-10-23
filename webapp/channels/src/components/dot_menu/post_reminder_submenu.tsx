@@ -112,7 +112,7 @@ function PostReminderSubmenu(props: Props) {
 
         let trailingElements = null;
         if (postReminder === PostReminders.TOMORROW) {
-            const tomorrow = getCurrentMomentForTimezone(props.timezone).add(1, 'day').toDate();
+            const tomorrow = getCurrentMomentForTimezone(props.timezone).add(1, 'day').hour(9).minute(0).toDate();
 
             trailingElements = (
                 <span className={`postReminder-${postReminder}_timestamp`}>
