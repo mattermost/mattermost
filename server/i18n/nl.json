@@ -9981,5 +9981,9 @@
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
     "translation": "Kan niet alle draadjes markeren als gelezen door kanaal"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Kan niet zoveel emoji's op naam krijgen. Alleen {{.MaxNames}} emoji's kunnen in één keer worden opgevraagd."
   }
 ]
