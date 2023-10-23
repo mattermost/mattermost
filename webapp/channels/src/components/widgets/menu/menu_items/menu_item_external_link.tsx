@@ -11,14 +11,21 @@ type Props = {
     url: string;
     text: React.ReactNode;
     onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+    iconClassName?: string;
 }
-export const MenuItemExternalLinkImpl: React.FC<Props> = ({url, text, onClick}: Props) => (
+export const MenuItemExternalLinkImpl: React.FC<Props> = ({url, text, iconClassName, onClick}: Props) => (
     <ExternalLink
         href={url}
         onClick={onClick}
         location='menu_item_external_link'
     >
-        <span className='MenuItem__primary-text'>
+        {iconClassName && (
+            <i
+                className={`icon ${iconClassName}`}
+                style={{marginRight: '4px'}}
+            />
+        )}
+        <span className='MenuItem__primary-text '>
             {text}
         </span>
     </ExternalLink>

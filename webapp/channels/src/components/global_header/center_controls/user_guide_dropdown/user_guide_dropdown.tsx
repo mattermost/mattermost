@@ -19,6 +19,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
+const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermost.html';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
 type Props = WrappedComponentProps & PropsFromRedux & {
@@ -76,30 +77,40 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
 
         return (
             <Menu.Group>
+                <Menu.ItemExternalLink
+                    id='mattermostUserGuideLink'
+                    iconClassName='icon-file-text-outline'
+                    url={mattermostUserGuideLink}
+                    text={intl.formatMessage({id: 'userGuideHelp.mattermostUserGuide', defaultMessage: 'Mattermost user guide'})}
+                />
+                {this.props.helpLink && (
+                    <Menu.ItemExternalLink
+                        id='trainingResourcesLink'
+                        iconClassName='icon-lightbulb-outline'
+                        url={this.props.helpLink}
+                        text={intl.formatMessage({id: 'userGuideHelp.trainingResources', defaultMessage: 'Training resources'})}
+                    />
+                )}
                 {this.props.enableAskCommunityLink === 'true' && (
                     <Menu.ItemExternalLink
                         id='askTheCommunityLink'
+                        iconClassName='icon-help'
                         url={askTheCommunityUrl}
                         text={intl.formatMessage({id: 'userGuideHelp.askTheCommunity', defaultMessage: 'Ask the community'})}
                         onClick={this.askTheCommunityClick}
                     />
                 )}
-                {this.props.helpLink && (
-                    <Menu.ItemExternalLink
-                        id='helpResourcesLink'
-                        url={this.props.helpLink}
-                        text={intl.formatMessage({id: 'userGuideHelp.helpResources', defaultMessage: 'Help resources'})}
-                    />
-                )}
                 {this.props.reportAProblemLink && (
                     <Menu.ItemExternalLink
                         id='reportAProblemLink'
+                        iconClassName='icon-alert-outline'
                         url={this.props.reportAProblemLink}
                         text={intl.formatMessage({id: 'userGuideHelp.reportAProblem', defaultMessage: 'Report a problem'})}
                     />
                 )}
                 <Menu.ItemAction
                     id='keyboardShortcuts'
+                    iconClassName='icon-keyboard-return'
                     onClick={this.openKeyboardShortcutsModal}
                     text={intl.formatMessage({id: 'userGuideHelp.keyboardShortcuts', defaultMessage: 'Keyboard shortcuts'})}
                 />
