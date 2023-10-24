@@ -161,11 +161,7 @@ class LocalStorageStoreClass {
     // the following flag's setter and getter are used to make sure a user is notified (via aria-label)
     // about a successful login only once (MM-50821)
     setWasNotifiedOfLogIn(wasNotified: boolean) {
-        if (wasNotified) {
-            this.setItem(wasNotifiedOfLogInKey, 'true');
-        } else {
-            this.setItem(wasNotifiedOfLogInKey, 'false');
-        }
+        this.setItem(wasNotifiedOfLogInKey, String(wasNotified));
     }
 
     getWasNotifiedOfLogIn() {

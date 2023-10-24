@@ -121,6 +121,8 @@ type Props = {
     placeholder?: string;
 }
 
+let timeoutId: NodeJS.Timeout;
+
 const AdvanceTextEditor = ({
     location,
     message,
@@ -606,6 +608,10 @@ const AdvanceTextEditor = ({
         }
     }, [handleWidthChange, message]);
 
+    useEffect(() => {
+        return () => clearTimeout(timeoutId);
+    }, []);
+
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
     const ariaLabel = useMemo(() => {
@@ -618,9 +624,8 @@ const AdvanceTextEditor = ({
 
             // set timeout to make sure aria-label is read by a screen reader,
             // and then set the flag to "true" to make sure it's not read again until a user logs back in
-            const timeoutId = setTimeout(() => {
+            timeoutId = setTimeout(() => {
                 LocalStorageStore.setWasNotifiedOfLogIn(true);
-                clearTimeout(timeoutId);
             }, 3000);
         }
         return label ? `${label} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
