@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {defineMessage} from 'react-intl';
 
+import {t} from 'utils/i18n';
 import LocalizedIcon from 'components/localized_icon';
 
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
 }
 
 const iconTitle = defineMessage({
-    id: 'generic_icons.next',
+    id: t('generic_icons.next'),
     defaultMessage: 'Next Icon',
 });
 
