@@ -13,7 +13,7 @@ declare module 'react' {
     }
 }
 
-const PostEmoji = ({ name, imageUrl }: PostEmojiProps): JSX.Element => {
+const PostEmoji = ({name, imageUrl}: PostEmojiProps): JSX.Element => {
     const emojiText = ':' + name + ':';
 
     if (!imageUrl) {
@@ -25,7 +25,7 @@ const PostEmoji = ({ name, imageUrl }: PostEmojiProps): JSX.Element => {
             alt={emojiText}
             className='emoticon'
             title={emojiText}
-            style={{ backgroundImage: 'url(' + imageUrl + ')' }}
+            style={{backgroundImage: 'url(' + imageUrl + ')'}}
         >
             {emojiText}
         </span>
