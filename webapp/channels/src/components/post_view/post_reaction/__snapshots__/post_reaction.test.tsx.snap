@@ -47,7 +47,7 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
       id="CENTER_reaction_post_id_1"
       onClick={[MockFunction]}
     >
-      <EmojiIcon
+      <Memo(EmojiIcon)
         className="icon icon--small"
       />
     </button>
