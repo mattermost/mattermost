@@ -7,25 +7,31 @@ import Menu from 'components/widgets/menu/menu';
 
 import {localizeMessage} from 'utils/utils';
 
-type Props = {
+interface CloseChannelProps {
     isArchived: boolean;
     actions: {
         goToLastViewedChannel: () => void;
     };
 }
 
-export default class CloseChannel extends React.PureComponent<Props> {
-    private handleClose = () => {
-        this.props.actions.goToLastViewedChannel();
+const CloseChannel = ({
+    isArchived,
+    actions,
+}: CloseChannelProps): JSX.Element => {
+    const handleClose = () => {
+        actions.goToLastViewedChannel();
     };
 
-    render() {
-        return (
-            <Menu.ItemAction
-                show={this.props.isArchived}
-                onClick={this.handleClose}
-                text={localizeMessage('center_panel.archived.closeChannel', 'Close Channel')}
-            />
-        );
-    }
-}
+    return (
+        <Menu.ItemAction
+            show={isArchived}
+            onClick={handleClose}
+            text={localizeMessage(
+                "center_panel.archived.closeChannel",
+                "Close Channel"
+            )}
+        />
+    );
+};
+
+export default React.memo(CloseChannel);
