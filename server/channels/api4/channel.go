@@ -1688,8 +1688,8 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			userIds = append(userIds, userId.(string))
 		}
 	} else {
-		userId, ok := props["user_id"].(string)
-		if !ok || !model.IsValidId(userId) {
+		userId, ok2 := props["user_id"].(string)
+		if !ok2 || !model.IsValidId(userId) {
 			c.SetInvalidParam("user_id or user_ids")
 			return
 		}
@@ -1748,7 +1748,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	if channel.IsGroupConstrained() {
 		nonMembers, err := c.App.FilterNonGroupChannelMembers(userIds, channel)
 		if err != nil {
-			if v, ok := err.(*model.AppError); ok {
+			if v, ok2 := err.(*model.AppError); ok2 {
 				c.Err = v
 			} else {
 				c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
@@ -1782,15 +1782,14 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if _, err = c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); err != nil {
-			if err != nil && err.Id != app.MissingChannelMemberError {
+			if err.Id != app.MissingChannelMemberError {
 				c.Logger.Warn("Error adding channel member, error getting channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
 				lastError = err
 				continue
-			} else {
-				// user is already a memeber, go to next
-				c.Logger.Warn("Error adding channel member, user already a channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
-				continue
 			}
+			// user is already a member, go to next
+			c.Logger.Warn("Error adding channel member, user already a channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+			continue
 		}
 
 		if channel.Type == model.ChannelTypeOpen {
