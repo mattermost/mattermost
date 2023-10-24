@@ -5,33 +5,33 @@ import React from 'react';
 
 import LocalizedIcon from 'components/localized_icon';
 
-import {t} from 'utils/i18n';
+import classNames from 'classnames';
+
+import { defineMessage } from 'react-intl';
 
 type Props = {
     text: React.ReactNode;
     style?: React.CSSProperties;
 }
 
-export default class LoadingSpinner extends React.PureComponent<Props> {
-    public static defaultProps: Props = {
-        text: null,
-    };
+const IconTitle = defineMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'});
 
-    public render() {
-        return (
-            <span
-                id='loadingSpinner'
-                className={'LoadingSpinner' + (this.props.text ? ' with-text' : '')}
-                style={this.props.style}
-                data-testid='loadingSpinner'
-            >
-                <LocalizedIcon
-                    className='fa fa-spinner fa-fw fa-pulse spinner'
-                    component='span'
-                    title={{id: t('generic_icons.loading'), defaultMessage: 'Loading Icon'}}
-                />
-                {this.props.text}
-            </span>
-        );
-    }
+const LoadingSpinner = ({ text = null, style }: Props) => {
+    return (
+        <span
+            id='loadingSpinner'
+            className={classNames('LoadingSpinner', {'with-text': Boolean(text)})}
+            style={style}
+            data-testid='loadingSpinner'
+        >
+            <LocalizedIcon
+                className='fa fa-spinner fa-fw fa-pulse spinner'
+                component='span'
+                title={IconTitle}
+            />
+            {text}
+        </span>
+    );
 }
+
+export default React.memo(LoadingSpinner)
