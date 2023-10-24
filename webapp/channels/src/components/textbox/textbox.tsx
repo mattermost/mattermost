@@ -274,16 +274,16 @@ export default class Textbox extends React.PureComponent<Props> {
             textboxClassName += ' textarea--has-labels';
         }
 
-        if (this.props.preview) {
-            return (
+        return (
+            <>
                 <div
                     ref={this.wrapper}
-                    className='textarea-wrapper'
+                    className={classNames('textarea-wrapper', {'display-none': !this.props.preview})}
                 >
                     <div
                         tabIndex={this.props.tabIndex || 0}
                         ref={this.preview}
-                        className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
+                        className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': true})}
                         onKeyPress={this.props.onKeyPress}
                         onKeyDown={this.handleKeyDown}
                         onBlur={this.handleBlur}
@@ -296,45 +296,42 @@ export default class Textbox extends React.PureComponent<Props> {
                         />
                     </div>
                 </div>
-            );
-        }
-
-        return (
-            <div
-                ref={this.wrapper}
-                className='textarea-wrapper'
-            >
-                <SuggestionBox
-                    id={this.props.id}
-                    ref={this.message}
-                    className={textboxClassName}
-                    spellCheck='true'
-                    placeholder={this.props.createMessage}
-                    onChange={this.handleChange}
-                    onKeyPress={this.props.onKeyPress}
-                    onKeyDown={this.handleKeyDown}
-                    onMouseUp={this.handleMouseUp}
-                    onKeyUp={this.handleKeyUp}
-                    onComposition={this.props.onComposition}
-                    onBlur={this.handleBlur}
-                    onFocus={this.props.onFocus}
-                    onHeightChange={this.props.onHeightChange}
-                    onWidthChange={this.props.onWidthChange}
-                    onPaste={this.props.onPaste}
-                    style={this.getStyle()}
-                    inputComponent={this.props.inputComponent}
-                    listComponent={this.props.suggestionList}
-                    listPosition={this.props.suggestionListPosition}
-                    providers={this.suggestionProviders}
-                    channelId={this.props.channelId}
-                    value={this.props.value}
-                    renderDividers={ALL}
-                    disabled={this.props.disabled}
-                    contextId={this.props.channelId}
-                    openWhenEmpty={this.props.openWhenEmpty}
-                    alignWithTextbox={this.props.alignWithTextbox}
-                />
-            </div>
+                <div
+                    ref={this.wrapper}
+                    className={classNames('textarea-wrapper', {'display-none': this.props.preview})}
+                >
+                    <SuggestionBox
+                        id={this.props.id}
+                        ref={this.message}
+                        className={textboxClassName}
+                        spellCheck='true'
+                        placeholder={this.props.createMessage}
+                        onChange={this.handleChange}
+                        onKeyPress={this.props.onKeyPress}
+                        onKeyDown={this.handleKeyDown}
+                        onMouseUp={this.handleMouseUp}
+                        onKeyUp={this.handleKeyUp}
+                        onComposition={this.props.onComposition}
+                        onBlur={this.handleBlur}
+                        onFocus={this.props.onFocus}
+                        onHeightChange={this.props.onHeightChange}
+                        onWidthChange={this.props.onWidthChange}
+                        onPaste={this.props.onPaste}
+                        style={this.getStyle()}
+                        inputComponent={this.props.inputComponent}
+                        listComponent={this.props.suggestionList}
+                        listPosition={this.props.suggestionListPosition}
+                        providers={this.suggestionProviders}
+                        channelId={this.props.channelId}
+                        value={this.props.value}
+                        renderDividers={ALL}
+                        disabled={this.props.disabled}
+                        contextId={this.props.channelId}
+                        openWhenEmpty={this.props.openWhenEmpty}
+                        alignWithTextbox={this.props.alignWithTextbox}
+                    />
+                </div>
+            </>
         );
     }
 }
