@@ -1783,12 +1783,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if _, err = c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); err != nil {
 			if err != nil && err.Id != app.MissingChannelMemberError {
-				c.Logger.Warn("Error adding channel member, error getting channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channelId), mlog.Err(err))
+				c.Logger.Warn("Error adding channel member, error getting channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
 				lastError = err
 				continue
 			} else {
 				// user is already a memeber, go to next
-				c.Logger.Warn("Error adding channel member, user already a channel member", mlog.String("UserId", userId), mlog.String("ChannelId"))
+				c.Logger.Warn("Error adding channel member, user already a channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
 				continue
 			}
 		}
@@ -1796,12 +1796,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		if channel.Type == model.ChannelTypeOpen {
 			isSelfAdd := member.UserId == c.AppContext.Session().UserId
 			if isSelfAdd && !canAddSelf {
-				c.Logger.Warn("Error adding channel member, Invalid Permission to add self", mlog.String("UserId", userId), mlog.String("ChannelId"))
+				c.Logger.Warn("Error adding channel member, Invalid Permission to add self", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
 				c.SetPermissionError(model.PermissionJoinPublicChannels)
 				lastError = c.Err
 				continue
 			} else if !isSelfAdd && !canAddOthers {
-				c.Logger.Warn("Error adding channel member, Invalid Permission to add others", mlog.String("UserId", userId), mlog.String("ChannelId"))
+				c.Logger.Warn("Error adding channel member, Invalid Permission to add others", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
 				c.SetPermissionError(model.PermissionManagePublicChannelMembers)
 				lastError = c.Err
 				continue
@@ -1813,7 +1813,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			PostRootID:      postRootId,
 		})
 		if err != nil {
-			c.Logger.Warn("Error adding channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channelId), mlog.Err(err))
+			c.Logger.Warn("Error adding channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
 			lastError = err
 			continue
 		}
@@ -1822,7 +1822,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		if postRootId != "" {
 			err := c.App.UpdateThreadFollowForUserFromChannelAdd(c.AppContext, cm.UserId, channel.TeamId, postRootId)
 			if err != nil {
-				c.Logger.Warn("Error adding channel member, error updating thread", mlog.String("UserId", userId), mlog.String("ChannelId", channelId), mlog.Err(err))
+				c.Logger.Warn("Error adding channel member, error updating thread", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
 				lastError = err
 				continue
 			}
