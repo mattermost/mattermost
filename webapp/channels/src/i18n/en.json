@@ -110,7 +110,7 @@
   "add_command.username.placeholder": "Username",
   "add_emoji.cancel": "Cancel",
   "add_emoji.customNameTaken": "This name is already in use by a custom emoji. Please choose another name.",
-  "add_emoji.failedToAdd": "Something when wrong when adding the custom emoji.",
+  "add_emoji.failedToAdd": "Something went wrong when adding the custom emoji.",
   "add_emoji.header": "Add",
   "add_emoji.image": "Image",
   "add_emoji.image.button": "Select",

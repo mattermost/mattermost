@@ -318,17 +318,18 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
+		crctx := c.Clone()
 		a.Srv().Go(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+			err := a.ExtractContentFromFileInfo(crctx, &infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				crctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
 
 	// delete upload session
 	if storeErr := a.Srv().Store().UploadSession().Delete(us.Id); storeErr != nil {
-		mlog.Warn("Failed to delete UploadSession", mlog.Err(storeErr))
+		c.Logger().Warn("Failed to delete UploadSession", mlog.Err(storeErr))
 	}
 
 	return info, nil

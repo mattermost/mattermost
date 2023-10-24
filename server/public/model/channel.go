@@ -82,6 +82,10 @@ func (o *Channel) Auditable() map[string]interface{} {
 	}
 }
 
+func (o *Channel) LogClone() any {
+	return o.Auditable()
+}
+
 type ChannelWithTeamData struct {
 	Channel
 	TeamDisplayName string `json:"team_display_name"`
