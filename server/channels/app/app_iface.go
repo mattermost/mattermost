@@ -566,7 +566,7 @@ type AppIface interface {
 	ExportFileExists(path string) (bool, *model.AppError)
 	ExportFileModTime(path string) (time.Time, *model.AppError)
 	ExportPermissions(w io.Writer) error
-	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
+	ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() filestore.FileBackend
 	FileExists(path string) (bool, *model.AppError)
