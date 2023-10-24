@@ -73,17 +73,17 @@ describe('components/submenu_modal', () => {
 
         wrapper.setState({show: true});
         await wrapper.find('#A').at(1).simulate('click');
-        expect(action1).toHaveBeenCalledTimes(1);
+        expect(action1).toHaveBeenCalledTimes(0);
         expect(wrapper.state('show')).toEqual(false);
 
         wrapper.setState({show: true});
         await wrapper.find('#B').at(1).simulate('click');
-        expect(action2).toHaveBeenCalledTimes(1);
+        expect(action2).toHaveBeenCalledTimes(0);
         expect(wrapper.state('show')).toEqual(false);
 
         wrapper.setState({show: true});
         await wrapper.find('#C').at(1).simulate('click');
-        expect(action3).toHaveBeenCalledTimes(1);
+        expect(action3).toHaveBeenCalledTimes(0);
         expect(wrapper.state('show')).toEqual(false);
     });
 

@@ -81,13 +81,13 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
         );
         wrapper.setState({show: true});
         wrapper.find('#Z').at(1).simulate('click');
-        await expect(action1).toHaveBeenCalledTimes(1);
+        await expect(action1).toHaveBeenCalledTimes(0);
         wrapper.setState({show: true});
         wrapper.find('#A').at(1).simulate('click');
-        await expect(action2).toHaveBeenCalledTimes(1);
+        await expect(action2).toHaveBeenCalledTimes(0);
         wrapper.setState({show: true});
         wrapper.find('#B').at(1).simulate('click');
-        await expect(action3).toHaveBeenCalledTimes(1);
+        await expect(action3).toHaveBeenCalledTimes(0);
     });
     test('should show/hide submenu based on keyboard commands', () => {
         const wrapper = mount<SubMenuItem>(

@@ -102,6 +102,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
         text="Away"
       />
       <SubMenuItem
+        action={[Function]}
         ariaLabel="do not disturb. disables desktop, email and push notifications"
         direction="left"
         extraText="Disables all notifications"
@@ -122,7 +123,13 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
               "direction": "right",
               "id": "dndSubMenu-header",
               "isHeader": true,
-              "text": "Disable notifications until:",
+              "text": "Clear after:",
+            },
+            Object {
+              "action": [Function],
+              "direction": "right",
+              "id": "dndTime-dont_clear",
+              "text": "Don't clear",
             },
             Object {
               "action": [Function],
@@ -168,7 +175,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
               "action": [Function],
               "direction": "right",
               "id": "dndTime-custom",
-              "text": "Custom",
+              "text": "Choose date and time",
             },
           ]
         }
@@ -417,6 +424,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
         text="Away"
       />
       <SubMenuItem
+        action={[Function]}
         ariaLabel="do not disturb. disables desktop, email and push notifications"
         direction="left"
         extraText="Disables all notifications"
@@ -437,7 +445,13 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
               "direction": "right",
               "id": "dndSubMenu-header",
               "isHeader": true,
-              "text": "Disable notifications until:",
+              "text": "Clear after:",
+            },
+            Object {
+              "action": [Function],
+              "direction": "right",
+              "id": "dndTime-dont_clear",
+              "text": "Don't clear",
             },
             Object {
               "action": [Function],
@@ -483,7 +497,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
               "action": [Function],
               "direction": "right",
               "id": "dndTime-custom",
-              "text": "Custom",
+              "text": "Choose date and time",
             },
           ]
         }
@@ -684,6 +698,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
         text="Away"
       />
       <SubMenuItem
+        action={[Function]}
         ariaLabel="do not disturb. disables desktop, email and push notifications"
         direction="left"
         extraText="Disables all notifications"
@@ -704,7 +719,13 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
               "direction": "right",
               "id": "dndSubMenu-header",
               "isHeader": true,
-              "text": "Disable notifications until:",
+              "text": "Clear after:",
+            },
+            Object {
+              "action": [Function],
+              "direction": "right",
+              "id": "dndTime-dont_clear",
+              "text": "Don't clear",
             },
             Object {
               "action": [Function],
@@ -750,7 +771,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
               "action": [Function],
               "direction": "right",
               "id": "dndTime-custom",
-              "text": "Custom",
+              "text": "Choose date and time",
             },
           ]
         }
@@ -951,6 +972,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
         text="Away"
       />
       <SubMenuItem
+        action={[Function]}
         ariaLabel="do not disturb. disables desktop, email and push notifications"
         direction="left"
         extraText="Disables all notifications"
@@ -971,7 +993,13 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
               "direction": "right",
               "id": "dndSubMenu-header",
               "isHeader": true,
-              "text": "Disable notifications until:",
+              "text": "Clear after:",
+            },
+            Object {
+              "action": [Function],
+              "direction": "right",
+              "id": "dndTime-dont_clear",
+              "text": "Don't clear",
             },
             Object {
               "action": [Function],
@@ -1017,7 +1045,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
               "action": [Function],
               "direction": "right",
               "id": "dndTime-custom",
-              "text": "Custom",
+              "text": "Choose date and time",
             },
           ]
         }
@@ -1219,6 +1247,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
         text="Away"
       />
       <SubMenuItem
+        action={[Function]}
         ariaLabel="do not disturb. disables desktop, email and push notifications"
         direction="left"
         extraText="Disables all notifications"
@@ -1239,7 +1268,13 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
               "direction": "right",
               "id": "dndSubMenu-header",
               "isHeader": true,
-              "text": "Disable notifications until:",
+              "text": "Clear after:",
+            },
+            Object {
+              "action": [Function],
+              "direction": "right",
+              "id": "dndTime-dont_clear",
+              "text": "Don't clear",
             },
             Object {
               "action": [Function],
@@ -1285,7 +1320,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
               "action": [Function],
               "direction": "right",
               "id": "dndTime-custom",
-              "text": "Custom",
+              "text": "Choose date and time",
             },
           ]
         }
@@ -1461,6 +1496,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
         text="Away"
       />
       <SubMenuItem
+        action={[Function]}
         ariaLabel="do not disturb. disables desktop, email and push notifications"
         direction="left"
         extraText="Disables all notifications"
@@ -1481,7 +1517,13 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
               "direction": "right",
               "id": "dndSubMenu-header",
               "isHeader": true,
-              "text": "Disable notifications until:",
+              "text": "Clear after:",
+            },
+            Object {
+              "action": [Function],
+              "direction": "right",
+              "id": "dndTime-dont_clear",
+              "text": "Don't clear",
             },
             Object {
               "action": [Function],
@@ -1527,7 +1569,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
               "action": [Function],
               "direction": "right",
               "id": "dndTime-custom",
-              "text": "Custom",
+              "text": "Choose date and time",
             },
           ]
         }
@@ -1695,6 +1737,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
         text="Away"
       />
       <SubMenuItem
+        action={[Function]}
         ariaLabel="do not disturb. disables desktop, email and push notifications"
         direction="left"
         extraText="Disables all notifications"
@@ -1715,7 +1758,13 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
               "direction": "right",
               "id": "dndSubMenu-header",
               "isHeader": true,
-              "text": "Disable notifications until:",
+              "text": "Clear after:",
+            },
+            Object {
+              "action": [Function],
+              "direction": "right",
+              "id": "dndTime-dont_clear",
+              "text": "Don't clear",
             },
             Object {
               "action": [Function],
@@ -1761,7 +1810,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
               "action": [Function],
               "direction": "right",
               "id": "dndTime-custom",
-              "text": "Custom",
+              "text": "Choose date and time",
             },
           ]
         }
@@ -1962,6 +2011,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
         text="Away"
       />
       <SubMenuItem
+        action={[Function]}
         ariaLabel="do not disturb. disables desktop, email and push notifications"
         direction="left"
         extraText="Disables all notifications"
@@ -1982,7 +2032,13 @@ exports[`components/StatusDropdown should not show clear status button when cust
               "direction": "right",
               "id": "dndSubMenu-header",
               "isHeader": true,
-              "text": "Disable notifications until:",
+              "text": "Clear after:",
+            },
+            Object {
+              "action": [Function],
+              "direction": "right",
+              "id": "dndTime-dont_clear",
+              "text": "Don't clear",
             },
             Object {
               "action": [Function],
@@ -2028,7 +2084,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
               "action": [Function],
               "direction": "right",
               "id": "dndTime-custom",
-              "text": "Custom",
+              "text": "Choose date and time",
             },
           ]
         }
@@ -2277,6 +2333,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
         text="Away"
       />
       <SubMenuItem
+        action={[Function]}
         ariaLabel="do not disturb. disables desktop, email and push notifications"
         direction="left"
         extraText="Disables all notifications"
@@ -2297,7 +2354,13 @@ exports[`components/StatusDropdown should show clear status button when custom s
               "direction": "right",
               "id": "dndSubMenu-header",
               "isHeader": true,
-              "text": "Disable notifications until:",
+              "text": "Clear after:",
+            },
+            Object {
+              "action": [Function],
+              "direction": "right",
+              "id": "dndTime-dont_clear",
+              "text": "Don't clear",
             },
             Object {
               "action": [Function],
@@ -2343,7 +2406,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
               "action": [Function],
               "direction": "right",
               "id": "dndTime-custom",
-              "text": "Custom",
+              "text": "Choose date and time",
             },
           ]
         }
