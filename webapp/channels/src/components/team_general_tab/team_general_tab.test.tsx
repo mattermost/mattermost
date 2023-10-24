@@ -126,7 +126,10 @@ describe('components/TeamSettings', () => {
         wrapper.instance().handleAllowedDomainsSubmit();
 
         expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith(props.team);
+        expect(actions.patchTeam).toHaveBeenCalledWith({
+            allowed_domains: '',
+            id: props.team?.id,
+        });
     });
 
     test('should call actions.patchTeam on handleNameSubmit', () => {
@@ -141,7 +144,10 @@ describe('components/TeamSettings', () => {
         wrapper.instance().handleNameSubmit();
 
         expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith(props.team);
+        expect(actions.patchTeam).toHaveBeenCalledWith({
+            display_name: props.team?.display_name,
+            id: props.team?.id,
+        });
     });
 
     test('should call actions.patchTeam on handleInviteIdSubmit', () => {
@@ -173,7 +179,10 @@ describe('components/TeamSettings', () => {
         }
 
         expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith(props.team);
+        expect(actions.patchTeam).toHaveBeenCalledWith({
+            description: newDescription,
+            id: props.team?.id,
+        });
     });
 
     test('should match snapshot when team is group constrained', () => {
