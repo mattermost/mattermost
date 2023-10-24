@@ -70,7 +70,7 @@ import FeatureFlags from './feature_flags.tsx';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import LicenseSettings from './license_settings';
-import MessageExportSettings from './message_export_settings.jsx';
+import MessageExportSettings from './message_export_settings';
 import OpenIdConvert from './openid_convert';
 import PasswordSettings from './password_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';
@@ -3236,7 +3236,7 @@ const AdminDefinition = {
                         label: t('admin.notices.enableAdminNoticesTitle'),
                         label_default: 'Enable Admin Notices: ',
                         help_text: t('admin.notices.enableAdminNoticesDescription'),
-                        help_text_default: 'When enabled, System Admins will receive notices about available server upgrades and relevant system administration features. <link>Learn more about notices</link> in our documentation.',
+                        help_text_default: 'When enabled, system admins will receive in-product notices about available server upgrades, relevant administration features, external dependencies, and to gather user feedback to improve the product and user experience. <link>Learn more about notices</link> in our documentation.',
                         help_text_values: {
                             link: (msg) => (
                                 <ExternalLink
@@ -3256,7 +3256,7 @@ const AdminDefinition = {
                         label: t('admin.notices.enableEndUserNoticesTitle'),
                         label_default: 'Enable End User Notices: ',
                         help_text: t('admin.notices.enableEndUserNoticesDescription'),
-                        help_text_default: 'When enabled, all users will receive notices about available client upgrades and relevant end user features to improve user experience. <link>Learn more about notices</link> in our documentation.',
+                        help_text_default: 'When enabled, all users will receive in-product notices about client upgrades, relevant end user features, and to gather user feedback to improve the product and user experience. <link>Learn more about notices</link> in our documentation.',
                         help_text_values: {
                             link: (msg) => (
                                 <ExternalLink

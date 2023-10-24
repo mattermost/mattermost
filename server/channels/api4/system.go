@@ -153,7 +153,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Enhanced ping health check:
 	// If an extra form value is provided then perform extra health checks for
 	// database and file storage backends.
-	if r.FormValue("get_server_status") != "" {
+	if r.FormValue("get_server_status") == "true" {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.StatusOk
 
@@ -857,7 +857,7 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, appErr := c.App.GetWarnMetricsStatus()
+	status, appErr := c.App.GetWarnMetricsStatus(c.AppContext)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -900,7 +900,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	appErr = c.App.NotifyAndSetWarnMetricAck(c.Params.WarnMetricId, user, ack.ForceAck, false)
+	appErr = c.App.NotifyAndSetWarnMetricAck(c.AppContext, c.Params.WarnMetricId, user, ack.ForceAck, false)
 	if appErr != nil {
 		c.Err = appErr
 	}

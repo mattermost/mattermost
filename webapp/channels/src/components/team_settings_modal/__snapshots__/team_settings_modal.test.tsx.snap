@@ -65,7 +65,7 @@ exports[`components/team_settings_modal should match snapshot 1`] = `
             tabs={
               Array [
                 Object {
-                  "icon": "icon fa fa-cog",
+                  "icon": "icon icon-settings-outline",
                   "iconTitle": "Settings Icon",
                   "name": "general",
                   "uiName": "General",
