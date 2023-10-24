@@ -184,6 +184,7 @@ export type Props = {
     isFormattingBarHidden: boolean;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
     postEditorActions: PluginComponent[];
+    placeholder?: string;
 }
 
 type State = {
@@ -1121,6 +1122,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     onEditLatestPost={this.handleEditLatestPost}
                     onMessageChange={this.onMessageChange}
                     caretPosition={this.state.caretPosition}
+                    placeholder={this.props.placeholder}
                 />
             </form>
         );

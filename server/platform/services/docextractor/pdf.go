@@ -17,6 +17,10 @@ import (
 
 type pdfExtractor struct{}
 
+func (pe *pdfExtractor) Name() string {
+	return "pdfExtractor"
+}
+
 func (pe *pdfExtractor) Match(filename string) bool {
 	supportedExtensions := map[string]bool{
 		"pdf": true,

@@ -117,6 +117,7 @@ type Props = {
     loadNextMessage: (e: React.KeyboardEvent) => void;
     replyToLastPost?: (e: React.KeyboardEvent) => void;
     caretPosition: number;
+    placeholder?: string;
 }
 
 const AdvanceTextEditor = ({
@@ -179,6 +180,7 @@ const AdvanceTextEditor = ({
     loadNextMessage,
     replyToLastPost,
     caretPosition,
+    placeholder,
 }: Props) => {
     const readOnlyChannel = !canPost;
     const {formatMessage} = useIntl();
@@ -325,7 +327,9 @@ const AdvanceTextEditor = ({
     );
 
     let createMessage;
-    if (currentChannel && !readOnlyChannel) {
+    if (placeholder) {
+        createMessage = placeholder;
+    } else if (currentChannel && !readOnlyChannel) {
         createMessage = formatMessage(
             {
                 id: 'create_post.write',
