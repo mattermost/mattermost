@@ -81,7 +81,8 @@ $(for service in $ENABLED_DOCKER_SERVICES; do
     echo "        condition: service_healthy"
   done)
 
-$(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then echo '
+$(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
+    echo '
   postgres:
     image: mattermostdevelopment/mirrored-postgres:12
     restart: always
@@ -101,9 +102,10 @@ $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then echo '
       default:
         aliases:
         - postgres'
-fi)
+  fi)
 
-$(if mme2e_is_token_in_list "inbucket" "$ENABLED_DOCKER_SERVICES"; then echo '
+$(if mme2e_is_token_in_list "inbucket" "$ENABLED_DOCKER_SERVICES"; then
+    echo '
   inbucket:
     restart: "no"
     container_name: mattermost-inbucket
@@ -114,9 +116,10 @@ $(if mme2e_is_token_in_list "inbucket" "$ENABLED_DOCKER_SERVICES"; then echo '
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: inbucket'
-fi)
+  fi)
 
-$(if mme2e_is_token_in_list "minio" "$ENABLED_DOCKER_SERVICES"; then echo '
+$(if mme2e_is_token_in_list "minio" "$ENABLED_DOCKER_SERVICES"; then
+    echo '
   minio:
     restart: "no"
     container_name: mattermost-minio
@@ -125,9 +128,10 @@ $(if mme2e_is_token_in_list "minio" "$ENABLED_DOCKER_SERVICES"; then echo '
     extends:
       file: ../../server/build/gitlab-dc.common.yml
       service: minio'
-fi)
+  fi)
 
-$(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then echo '
+$(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then
+    echo '
   openldap:
     restart: "no"
     container_name: mattermost-openldap
@@ -137,10 +141,11 @@ $(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then echo '
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: openldap'
-fi)
+  fi)
 
 $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
-  if [ "$MME2E_ARCHTYPE" = "arm64" ]; then echo '
+    if [ "$MME2E_ARCHTYPE" = "arm64" ]; then
+      echo '
   elasticsearch:
     image: mattermostdevelopment/mattermost-elasticsearch:7.17.10
     platform: linux/arm64/v8
@@ -152,7 +157,8 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: elasticsearch'
-  else echo '
+    else
+      echo '
   elasticsearch:
     restart: "no"
     container_name: mattermost-elasticsearch
@@ -162,10 +168,11 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: elasticsearch'
-  fi
-fi)
+    fi
+  fi)
 
-$(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then echo '
+$(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
+    echo '
   keycloak:
     restart: "no"
     container_name: mattermost-keycloak
@@ -174,9 +181,10 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then echo '
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: keycloak'
-fi)
+  fi)
 
-$(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then echo '
+$(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
+    echo '
   cypress:
     image: "cypress/browsers:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1"
     ### Temporarily disabling this image, until both the amd64 and arm64 version are mirrored
@@ -216,11 +224,11 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then echo '
     working_dir: /cypress
     volumes:
       - "../../e2e-tests/cypress/:/cypress"'
-fi)
+  fi)
 
 $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
-  # shellcheck disable=SC2016
-  echo '
+    # shellcheck disable=SC2016
+    echo '
   webhook-interactions:
     image: mattermostdevelopment/mirrored-node:${NODE_VERSION_REQUIRED}
     command: sh -c "npm install --legacy-peer-deps && exec node webhook_serve.js"
@@ -238,9 +246,10 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
       default:
         aliases:
           - webhook-interactions'
-fi)
+  fi)
 
-$(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then echo '
+$(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
+    echo '
   playwright:
     image: mcr.microsoft.com/playwright:v1.38.1-jammy
     entrypoint: ["/bin/bash", "-c"]
@@ -269,7 +278,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then echo '
     working_dir: /mattermost
     volumes:
       - "../../:/mattermost"'
-fi)
+  fi)
 EOL
 
   mme2e_log "docker-compose file generated."
@@ -358,7 +367,6 @@ generate_env_files() {
     ;;
   esac
 }
-
 
 # Perform SERVER-specific checks/customizations
 case "$SERVER" in

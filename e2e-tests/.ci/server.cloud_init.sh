@@ -12,8 +12,8 @@ mme2e_log "Initializing cloud tests"
 
 # Assert that required variables are set
 MME2E_ENVCHECK_MSG="variable required for initializing cloud tests, but is empty or unset."
-: ${CWS_URL:?$MME2E_ENVCHECK_MSG}
-: ${MM_LICENSE:?$MME2E_ENVCHECK_MSG}
+: "${CWS_URL:?$MME2E_ENVCHECK_MSG}"
+: "${MM_LICENSE:?$MME2E_ENVCHECK_MSG}"
 
 response=$(curl -X POST "${CWS_URL}/api/v1/internal/tests/create-customer?sku=cloud-enterprise&is_paid=true")
 MM_CUSTOMER_ID=$(echo "$response" | jq -r .customer_id)
