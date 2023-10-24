@@ -12,7 +12,7 @@ import (
 type Draft struct {
 	CreateAt  int64  `json:"create_at"`
 	UpdateAt  int64  `json:"update_at"`
-	DeleteAt  int64  `json:"delete_at"`
+	DeleteAt  int64  `json:"delete_at"` // Deprecated, we now just hard delete the rows
 	UserId    string `json:"user_id"`
 	ChannelId string `json:"channel_id"`
 	RootId    string `json:"root_id"`
