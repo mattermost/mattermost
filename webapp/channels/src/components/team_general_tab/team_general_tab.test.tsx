@@ -4,15 +4,11 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {ChangeEvent, ComponentProps} from 'react';
-import {type IntlShape} from 'react-intl';
 
 import {GeneralTab} from 'components/team_general_tab/team_general_tab';
 
+import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
-
-interface MockIntl extends IntlShape {
-    formatMessage: jest.Mock;
-}
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});
