@@ -91,6 +91,11 @@
             text-overflow: ellipsis;
             white-space: nowrap;
 
+            i.MenuItem__link-icon {
+                margin-right: 4px;
+                vertical-align: middle;
+            }
+
             &.MenuItem__with-help {
                 display: block;
                 height: auto;

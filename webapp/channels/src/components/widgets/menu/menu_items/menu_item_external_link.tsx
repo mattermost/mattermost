@@ -20,12 +20,9 @@ export const MenuItemExternalLinkImpl: React.FC<Props> = ({url, text, iconClassN
         location='menu_item_external_link'
     >
         {iconClassName && (
-            <i
-                className={`icon ${iconClassName}`}
-                style={{marginRight: '4px'}}
-            />
+            <i className={`icon ${iconClassName} MenuItem__link-icon`}/>
         )}
-        <span className='MenuItem__primary-text '>
+        <span className='MenuItem__primary-text'>
             {text}
         </span>
     </ExternalLink>

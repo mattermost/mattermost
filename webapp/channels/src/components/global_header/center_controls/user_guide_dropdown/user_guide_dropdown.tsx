@@ -20,6 +20,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {PropsFromRedux} from './index';
 
 const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermost.html';
+const trainingResourcesLink = 'https://academy.mattermost.com/courses';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
 type Props = WrappedComponentProps & PropsFromRedux & {
@@ -87,7 +88,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                     <Menu.ItemExternalLink
                         id='trainingResourcesLink'
                         iconClassName='icon-lightbulb-outline'
-                        url={this.props.helpLink}
+                        url={trainingResourcesLink}
                         text={intl.formatMessage({id: 'userGuideHelp.trainingResources', defaultMessage: 'Training resources'})}
                     />
                 )}

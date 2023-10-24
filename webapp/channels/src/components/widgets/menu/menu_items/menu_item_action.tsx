@@ -47,10 +47,7 @@ export const MenuItemActionImpl = ({
             disabled={disabled}
         >
             {iconClassName && (
-                <i
-                    className={`icon ${iconClassName}`}
-                    style={{marginRight: '4px'}}
-                />
+                <i className={`icon ${iconClassName} MenuItem__link-icon`}/>
             )}
             {text && <span className='MenuItem__primary-text'>{text}{rightDecorator}</span>}
             {extraText && <span className='MenuItem__help-text'>{extraText}</span>}
