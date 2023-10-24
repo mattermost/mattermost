@@ -55,6 +55,7 @@ import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
 import {PageLoadContext, StoragePrefixes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -111,7 +112,7 @@ const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', LazyOnBoardi
 
 type LoggedInRouteProps<T> = {
     component: React.ComponentType<T>;
-    path: string;
+    path: string | string[];
     theme?: Theme; // the routes that send the theme are the ones that will actually need to show the onboarding tasklist
 };
 function LoggedInRoute<T>(props: LoggedInRouteProps<T>) {
@@ -644,7 +645,7 @@ export default class Root extends React.PureComponent<Props, State> {
                             ))}
                             <LoggedInRoute
                                 theme={this.props.theme}
-                                path={'/:team'}
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
                                 component={TeamController}
                             />
                             <RootRedirect/>
