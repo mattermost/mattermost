@@ -214,7 +214,6 @@
   "admin.billing.company_info.city": "Горад",
   "admin.billing.company_info.companyAddress": "Адрас кампаніі",
   "admin.billing.company_info.companyName": "Назва кампаніі",
-  "admin.billing.company_info.country": "Краiна",
   "admin.billing.company_info.employees": "{employees} супрацоўнікаў",
   "admin.billing.company_info.numEmployees": "Колькасць супрацоўнікаў (неабавязкова)",
   "admin.billing.company_info.title": "Інфармацыя аб кампаніі",
