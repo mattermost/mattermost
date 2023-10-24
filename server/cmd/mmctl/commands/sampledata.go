@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -158,17 +157,21 @@ func processProfileImagesDir(profileImagesPath, tmpDir, bulk string) ([]string, 
 	if !profileImagesStat.IsDir() {
 		return nil, fmt.Errorf("profile-images parameters must be a directory")
 	}
-	var profileImagesFiles []os.FileInfo
-	profileImagesFiles, err = ioutil.ReadDir(profileImagesPath)
+	var dirEntries []os.DirEntry
+	dirEntries, err = os.ReadDir(profileImagesPath)
 	if err != nil {
 		return nil, fmt.Errorf("invalid profile-images parameter: %w", err)
 	}
 
 	// we need to copy the images to be part of the import zip
 	if bulk == "" {
-		for _, profileImage := range profileImagesFiles {
-			profileImageSrc := filepath.Join(profileImagesPath, profileImage.Name())
-			profileImagePath := filepath.Join(attachmentsDir, profileImage.Name())
+		for _, dirEntry := range dirEntries {
+			fileInfo, err := dirEntry.Info()
+			if err != nil {
+				return nil, fmt.Errorf("cannot get file info for directory entry %q: %w", fileInfo.Name(), err)
+			}
+			profileImageSrc := filepath.Join(profileImagesPath, fileInfo.Name())
+			profileImagePath := filepath.Join(attachmentsDir, fileInfo.Name())
 			profileImageDst := filepath.Join(tmpDir, profileImagePath)
 			if err := pUtils.CopyFile(profileImageSrc, profileImageDst); err != nil {
 				return nil, fmt.Errorf("cannot copy file %q to %q: %w", profileImageSrc, profileImageDst, err)
@@ -179,8 +182,12 @@ func processProfileImagesDir(profileImagesPath, tmpDir, bulk string) ([]string, 
 		// we're not importing the resulting file, so we keep the
 		// image paths corresponding to the value of the flag
 	} else {
-		for _, profileImage := range profileImagesFiles {
-			profileImages = append(profileImages, filepath.Join(profileImagesPath, profileImage.Name()))
+		for _, dirEntry := range dirEntries {
+			fileInfo, err := dirEntry.Info()
+			if err != nil {
+				return nil, fmt.Errorf("cannot get file info for directory entry %q: %w", fileInfo.Name(), err)
+			}
+			profileImages = append(profileImages, filepath.Join(profileImagesPath, fileInfo.Name()))
 		}
 	}
 
@@ -223,7 +230,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	var err error
 	switch bulk {
 	case "":
-		tmpDir, err = ioutil.TempDir("", "mmctl-sampledata-")
+		tmpDir, err = os.MkdirTemp("", "mmctl-sampledata-")
 		if err != nil {
 			return fmt.Errorf("unable to create temporary directory")
 		}
