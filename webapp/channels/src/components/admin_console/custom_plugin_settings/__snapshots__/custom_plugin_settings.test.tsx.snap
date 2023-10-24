@@ -76,7 +76,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             }
             value={true}
           />
-          <DropdownSetting
+          <Memo(DropdownSetting)
             disabled={false}
             helpText={
               <SchemaText
@@ -85,7 +85,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               />
             }
             id="settingc"
-            isDisabled={false}
             key="testplugin_dropdown_settingc"
             label="Setting Three"
             onChange={[Function]}
@@ -195,7 +194,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -265,7 +264,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -387,7 +386,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             }
             value={false}
           />
-          <DropdownSetting
+          <Memo(DropdownSetting)
             disabled={false}
             helpText={
               <SchemaText
@@ -396,7 +395,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               />
             }
             id="PluginSettings.Plugins.testplugin.settingc"
-            isDisabled={false}
             key="testplugin_dropdown_PluginSettings.Plugins.testplugin.settingc"
             label="Setting Three"
             onChange={[Function]}
@@ -506,7 +504,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"

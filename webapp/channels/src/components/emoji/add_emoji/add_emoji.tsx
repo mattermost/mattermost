@@ -207,7 +207,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         const genericError = (
             <FormattedMessage
                 id='add_emoji.failedToAdd'
-                defaultMessage='Something when wrong when adding the custom emoji.'
+                defaultMessage='Something went wrong when adding the custom emoji.'
             />
         );
 
@@ -376,7 +376,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 error={this.state.error}
                             />
                             <Link
-                                className='btn btn-link btn-sm'
+                                className='btn btn-tertiary'
                                 to={'/' + this.props.team.name + '/emoji'}
                             >
                                 <FormattedMessage
