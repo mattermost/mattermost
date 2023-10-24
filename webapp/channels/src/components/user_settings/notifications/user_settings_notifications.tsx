@@ -22,7 +22,6 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
@@ -1013,7 +1012,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         const collapsedEditButtonWhenDisabled = (
             <RestrictedIndicator
-                blocked={this.props.areFeaturesDisabled}
+                blocked={this.props.isStarterFree}
                 feature={MattermostFeatures.HIGHLIGHT_WITHOUT_NOTIFICATION}
                 minimumPlanRequiredForFeature={LicenseSkus.Professional}
                 tooltipTitle={this.props.intl.formatMessage({
@@ -1021,26 +1020,25 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     defaultMessage: 'Professional feature',
                 })}
                 tooltipMessageBlocked={this.props.intl.formatMessage({
-                    id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipTitle',
+                    id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipMessage',
                     defaultMessage:
                     'This feature is available on the Professional plan',
                 })}
-                ctaExtraContent={
-                    <FormattedMessage
-                        id='user.settings.notifications.keywordsWithHighlight.professional'
-                        defaultMessage='Professional'
-                    />
-                }
                 titleAdminPreTrial={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleAdminPreTrial',
-                    defaultMessage: 'Try unlimited keywords with highlight with a free trial',
+                    defaultMessage: 'Highlight keywords without notifications with Mattermost Professional',
                 })}
                 messageAdminPreTrial={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.userModal.messageAdminPreTrial',
-                    defaultMessage: 'Create unlimited keywords with highlight with one of our paid plans. Get the full experience of Enterprise when you start a free, {trialLength} day trial.',
-                },
-                {
-                    trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS,
+                    defaultMessage: 'Get the ability to passively highlight keywords that you care about. Upgrade to the Professional plan to create unlimited highlight keywords.',
+                })}
+                titleAdminPostTrial={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleAdminPostTrial',
+                    defaultMessage: 'Highlight keywords without notifications with Mattermost Professional',
+                })}
+                messageAdminPostTrial={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.messageAdminPostTrial',
+                    defaultMessage: 'Get the ability to passively highlight keywords that you care about. Upgrade to the Professional plan to create unlimited highlight keywords.',
                 },
                 )}
                 titleEndUser={this.props.intl.formatMessage({
@@ -1056,6 +1054,12 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         br: <br/>,
                     },
                 )}
+                ctaExtraContent={
+                    <FormattedMessage
+                        id='user.settings.notifications.keywordsWithHighlight.professional'
+                        defaultMessage='Professional'
+                    />
+                }
             />
         );
 
@@ -1068,7 +1072,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 describe={collapsedDescription}
                 updateSection={this.handleUpdateSection}
                 max={expandedSection}
-                isDisabled={this.props.areFeaturesDisabled}
+                isDisabled={this.props.isStarterFree}
                 collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
             />);
     };
@@ -1355,7 +1359,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     {pushNotificationSection}
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
-                    {!this.props.areFeaturesDisabled && (
+                    {(!this.props.isStarterFree && this.props.isEnterpriseReady) && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}
@@ -1376,7 +1380,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     )}
 
                     {/*  We placed the disabled items in the last */}
-                    {this.props.areFeaturesDisabled && (
+                    {(this.props.isStarterFree && this.props.isEnterpriseReady) && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}

@@ -18,21 +18,21 @@ import './restricted_indicator.scss';
 
 type Props = {
     useModal?: boolean;
+    blocked?: boolean;
+    feature?: string;
+    minimumPlanRequiredForFeature?: string;
+    tooltipTitle?: ReactNode;
+    tooltipMessage?: ReactNode;
+    tooltipMessageBlocked?: string | MessageDescriptor;
     titleAdminPreTrial?: ReactNode;
     messageAdminPreTrial?: ReactNode;
     titleAdminPostTrial?: ReactNode;
     messageAdminPostTrial?: ReactNode;
     titleEndUser?: ReactNode;
     messageEndUser?: ReactNode;
-    blocked?: boolean;
-    tooltipTitle?: ReactNode;
-    tooltipMessage?: ReactNode;
-    tooltipMessageBlocked?: string | MessageDescriptor;
     ctaExtraContent?: ReactNode;
     clickCallback?: () => void;
     customSecondaryButtonInModal?: {msg: string; action: () => void};
-    feature?: string;
-    minimumPlanRequiredForFeature?: string;
 }
 
 function capitalizeFirstLetter(s: string) {

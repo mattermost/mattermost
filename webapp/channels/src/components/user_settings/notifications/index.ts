@@ -36,14 +36,13 @@ const mapStateToProps = (state: GlobalState) => {
 
     const isStarterFree = isCloudStarterFree || isSelfHostedStarter || isStarterSKULicense;
 
-    const areFeaturesDisabled = isStarterFree || !isEnterpriseReady;
-
     return {
         sendPushNotifications,
         enableAutoResponder,
         isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
         isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabledOnServer(state),
-        areFeaturesDisabled,
+        isStarterFree,
+        isEnterpriseReady,
     };
 };
 
