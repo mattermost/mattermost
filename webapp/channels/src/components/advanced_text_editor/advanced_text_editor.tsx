@@ -50,6 +50,7 @@ import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
 
+
 import './advanced_text_editor.scss';
 
 const KeyCodes = Constants.KeyCodes;
@@ -686,10 +687,8 @@ const AdvanceTextEditor = ({
                             id={`advancedTextEditorLabel-${location}`}
                             className='sr-only'
                         >
-                            {Utils.localizeMessage(
-                                'channelView.login.successfull',
-                                'Login Successfull',
-                            ) + ' ' + ariaLabelMessageInput}</label>
+                            {formatMessage({id: 'channelView.login.successfull', defaultMessage: 'Login Successfull'}) + ' ' + ariaLabelMessageInput}
+                            </label>
                         <Textbox
                             hasLabels={Boolean(labels)}
                             suggestionList={RhsSuggestionList}
