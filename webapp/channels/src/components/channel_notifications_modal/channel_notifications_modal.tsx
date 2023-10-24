@@ -10,13 +10,13 @@ import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import AlertBanner from 'components/alert_banner';
+import CheckboxItemCreator from 'components/widgets/modals/components/checkbox-item-creator';
+import ModalHeader from 'components/widgets/modals/components/modal_header';
+import RadioItemCreator from 'components/widgets/modals/components/radio-item-creator';
+import SectionCreator from 'components/widgets/modals/components/section_creator';
 
 import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
 
-import CheckboxItemCreator from './checkbox-item-creator';
-import ModalHeader from './modal_header';
-import RadioItemCreator from './radio-item-creator';
-import SectionCreator from './section_creator';
 import type {
     ChannelMemberNotifyProps} from './utils';
 import {

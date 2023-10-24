@@ -7,10 +7,10 @@ import {FormattedMessage} from 'react-intl';
 import type {ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
-import {t} from 'utils/i18n';
+import type {FieldsetCheckbox} from 'components/widgets/modals/components/checkbox-item-creator';
+import type {FieldsetRadio} from 'components/widgets/modals/components/radio-item-creator';
 
-import type {FieldsetCheckbox} from './checkbox-item-creator';
-import type {FieldsetRadio} from './radio-item-creator';
+import {t} from 'utils/i18n';
 
 import {NotificationLevels} from '../../utils/constants';
 
