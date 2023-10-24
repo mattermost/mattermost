@@ -6,8 +6,6 @@ import { useIntl } from "react-intl";
 
 import Menu from "components/widgets/menu/menu";
 
-import { localizeMessage } from "utils/utils";
-
 interface CloseChannelProps {
     isArchived: boolean;
     actions: {
@@ -20,14 +18,11 @@ const CloseChannel = ({
     actions,
 }: CloseChannelProps): JSX.Element => {
     const intl = useIntl();
-    const handleClose = () => {
-        actions.goToLastViewedChannel();
-    };
 
     return (
         <Menu.ItemAction
             show={isArchived}
-            onClick={handleClose}
+            onClick={actions.goToLastViewedChannel}
             text={intl.formatMessage({
                 id: "center_panel.archived.closeChannel",
                 defaultMessage: "Close Channel",
