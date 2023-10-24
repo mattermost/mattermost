@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import { useIntl } from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import Menu from 'components/widgets/menu/menu';
 
