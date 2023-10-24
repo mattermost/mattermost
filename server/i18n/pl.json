@@ -9974,5 +9974,9 @@
   {
     "id": "app.file_info.set_searchable_content.app_error",
     "translation": "Nie udało się ustawić zawartości pliku, którą można wyszukać."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Nie można uzyskać takiej liczby emotikonów według nazwy. Jednocześnie można zażądać tylko {{.MaxNames}} emoji."
   }
 ]
