@@ -5,7 +5,6 @@ import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import type {FileInfo} from '@mattermost/types/files';
 import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
@@ -59,9 +58,10 @@ const currentChannelProp = TestHelper.getChannelMock({
 
 const currentChannelMembersCountProp = 9;
 
-const defaultFileInfo: FileInfo = TestHelper.getFileInfoMock();
 const draftProp = TestHelper.getPostDraftMock({
-    fileInfos: [defaultFileInfo, defaultFileInfo, defaultFileInfo],
+    fileInfos: [],
+    message: '',
+    uploadsInProgress: [],
 });
 
 const ctrlSendProp = false;
@@ -832,7 +832,14 @@ describe('components/advanced_create_post', () => {
 
     it('check for handleFileUploadChange callback for focus', () => {
         const wrapper = shallow(advancedCreatePost());
-        const instance = wrapper.instance() as AdvancedCreatePost;
+        const instance: any = wrapper.instance();
+        const mockImpl = () => {
+            return {
+                setSelectionRange: jest.fn(),
+                focus: jest.fn(),
+            };
+        };
+        instance.textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
         instance.focusTextbox = jest.fn();
 
         instance.handleFileUploadChange();
@@ -895,7 +902,7 @@ describe('components/advanced_create_post', () => {
             ...draftProp,
             fileInfos: [
                 ...draftProp.fileInfos,
-                fileInfos,
+                ...fileInfos,
             ],
         };
 
@@ -1251,10 +1258,8 @@ describe('components/advanced_create_post', () => {
             message: 'No command found',
             server_error_id: 'api.command.execute_command.not_found.app_error',
         };
-        const result: ActionResult = {
-            error,
-        };
-        const executeCommand = jest.fn(() => result);
+
+        const executeCommand = jest.fn().mockResolvedValue({error});
         const onSubmitPost = jest.fn();
 
         const wrapper = shallow(
@@ -1277,11 +1282,13 @@ describe('components/advanced_create_post', () => {
         expect(executeCommand).toHaveBeenCalled();
         expect(onSubmitPost).not.toHaveBeenCalled();
 
-        const target = {
-            value: 'some valid text',
+        const event = {
+            target: {
+                value: 'some valid text',
+            },
         } as unknown as React.ChangeEvent<TextboxElement>;
 
-        instance.handleChange(target);
+        instance.handleChange(event);
 
         await instance.handleSubmit(submitEvent);
 
@@ -1460,14 +1467,14 @@ describe('components/advanced_create_post', () => {
 
     testComponentForLineBreak(
         (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
-        (instance: AdvancedCreatePost) => instance.state.message,
+        (instance: any) => instance.state.message,
         false,
     );
 
     testComponentForMarkdownHotkeys(
         (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
-        (wrapper: ReturnType<typeof shallow>, setSelectionRangeFn: any) => {
-            (wrapper.instance() as any).textboxRef = {
+        (wrapper: any, setSelectionRangeFn: any) => {
+            wrapper.instance().textboxRef = {
                 current: {
                     getInputBox: jest.fn(() => {
                         return {
