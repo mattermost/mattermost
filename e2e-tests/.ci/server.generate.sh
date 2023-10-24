@@ -70,6 +70,7 @@ services:
       MM_SERVICEENVIRONMENT: "test"
     ports:
       - "8065:8065"
+      - "8067:8067"
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do
     # The server container will start only if all other dependent services are healthy
@@ -108,7 +109,6 @@ $(if mme2e_is_token_in_list "inbucket" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   inbucket:
     restart: "no"
-    container_name: mattermost-inbucket
     ports:
       - "9001:9001"
       - "10025:10025"
@@ -122,7 +122,6 @@ $(if mme2e_is_token_in_list "minio" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   minio:
     restart: "no"
-    container_name: mattermost-minio
     ports:
       - "9000:9000"
     extends:
@@ -134,7 +133,6 @@ $(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   openldap:
     restart: "no"
-    container_name: mattermost-openldap
     ports:
       - "389:389"
       - "636:636"
@@ -150,7 +148,6 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
     image: mattermostdevelopment/mattermost-elasticsearch:7.17.10
     platform: linux/arm64/v8
     restart: "no"
-    container_name: mattermost-elasticsearch
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -161,7 +158,6 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
       echo '
   elasticsearch:
     restart: "no"
-    container_name: mattermost-elasticsearch
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -175,7 +171,6 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   keycloak:
     restart: "no"
-    container_name: mattermost-keycloak
     ports:
       - "8484:8080"
     extends:
