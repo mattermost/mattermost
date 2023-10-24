@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import { useIntl } from "react-intl";
+import { useIntl } from 'react-intl';
 
-import Menu from "components/widgets/menu/menu";
+import Menu from 'components/widgets/menu/menu';
 
-interface CloseChannelProps {
+type Props = {
     isArchived: boolean;
     actions: {
         goToLastViewedChannel: () => void;
@@ -16,7 +16,7 @@ interface CloseChannelProps {
 const CloseChannel = ({
     isArchived,
     actions,
-}: CloseChannelProps): JSX.Element => {
+}: Props): JSX.Element => {
     const intl = useIntl();
 
     return (
@@ -24,8 +24,8 @@ const CloseChannel = ({
             show={isArchived}
             onClick={actions.goToLastViewedChannel}
             text={intl.formatMessage({
-                id: "center_panel.archived.closeChannel",
-                defaultMessage: "Close Channel",
+                id: 'center_panel.archived.closeChannel',
+                defaultMessage: 'Close Channel',
             })}
         />
     );
