@@ -10,6 +10,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
+import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
@@ -1309,7 +1310,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             values={{
                                 a: (chunks: string) => ((
                                     <ExternalLink href='https://mattermost.com/pl/about-notifications'>
-                                        <i className='icon icon-help-circle-outline'/>
+                                        <LightbulbOutlineIcon/>
                                         <span>{chunks}</span>
                                     </ExternalLink>
                                 )),

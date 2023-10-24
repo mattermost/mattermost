@@ -9969,5 +9969,9 @@
   {
     "id": "app.channel.group_message_conversion.post_message.error",
     "translation": "Misslyckades med att konvertera gruppmeddelande till kanalmeddelande"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Det går inte att få så många emojis med namn. Endast {{.MaxNames}} emojis kan fås per gång."
   }
 ]
