@@ -16,14 +16,14 @@ describe('components/ChannelHeaderDropdown/MenuItem.CloseChannel', () => {
         },
     };
 
-    it("should match snapshot", () => {
+    it('should match snapshot', () => {
         const wrapper = shallow(
             <CloseChannel {...baseProps} />
         );
         expect(wrapper).toMatchSnapshot();
     });
 
-    it("shoud be hidden if the channel is not archived", () => {
+    it('shoud be hidden if the channel is not archived', () => {
         const props = {
             ...baseProps,
             isArchived: false,
@@ -34,7 +34,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.CloseChannel', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    it("should runs goToLastViewedChannel function on click", () => {
+    it('should runs goToLastViewedChannel function on click', () => {
         const props = {
             ...baseProps,
             actions: {
@@ -45,7 +45,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.CloseChannel', () => {
         const wrapper = shallow(
             <CloseChannel {...props} />
         );
-        wrapper.find(Menu.ItemAction).simulate("click");
+        wrapper.find(Menu.ItemAction).simulate('click');
         expect(props.actions.goToLastViewedChannel).toHaveBeenCalled();
     });
 });
