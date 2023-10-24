@@ -166,11 +166,14 @@ describe('Actions.Channel', () => {
         const expectedActions = [{
             type: 'MOCK_ADD_CHANNEL_MEMBER',
             args: ['testid', 'testuserid'],
+        }, {
+            type: 'MOCK_ADD_CHANNEL_MEMBER',
+            args: ['testid', 'testuserid2'],
         }];
 
         const fakeData = {
             channel: 'testid',
-            userIds: ['testuserid'],
+            userIds: ['testuserid', 'testuserid2'],
         };
 
         await testStore.dispatch(addUsersToChannel(fakeData.channel, fakeData.userIds));

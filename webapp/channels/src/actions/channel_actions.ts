@@ -156,13 +156,11 @@ export function autocompleteChannelsForSearch(term: string, success: (channels: 
 
 export function addUsersToChannel(channelId: Channel['id'], userIds: Array<UserProfile['id']>): ActionFunc {
     return async (dispatch) => {
-        try {
-            const requests = userIds.map((uId) => dispatch(ChannelActions.addChannelMember(channelId, uId)));
-
-            return await Promise.all(requests);
-        } catch (error) {
-            return {error};
+        const error = await dispatch(ChannelActions.addChannelMembers(channelId, userIds));
+        if (error) {
+            return error;
         }
+        return {data: true};
     };
 }
 
