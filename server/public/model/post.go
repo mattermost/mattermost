@@ -146,6 +146,10 @@ func (o *Post) Auditable() map[string]interface{} {
 	}
 }
 
+func (o *Post) LogClone() any {
+	return o.Auditable()
+}
+
 type PostEphemeral struct {
 	UserID string `json:"user_id"`
 	Post   *Post  `json:"post"`

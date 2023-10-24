@@ -19,6 +19,7 @@ import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdenti
 
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isIosSafari} from 'utils/user_agent';
 
 import type {OwnProps, PropsFromRedux} from './index';
@@ -208,17 +209,17 @@ function TeamController(props: Props) {
     return (
         <Switch>
             <Route
-                path={'/:team/integrations'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/integrations`}
                 component={BackstageController}
             />
             <Route
-                path={'/:team/emoji'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/emoji`}
                 component={BackstageController}
             />
             {props.plugins?.map((plugin) => (
                 <Route
                     key={plugin.id}
-                    path={'/:team/' + (plugin as any).route}
+                    path={`/:team(${TEAM_NAME_PATH_PATTERN})/` + (plugin as any).route}
                     render={() => (
                         <Pluggable
                             pluggableName={'NeedsTeamComponent'}
