@@ -13,23 +13,23 @@ declare module 'react' {
     }
 }
 
-export default class PostEmoji extends React.PureComponent<PostEmojiProps> {
-    public render() {
-        const emojiText = ':' + this.props.name + ':';
+const PostEmoji = ({ name, imageUrl }: PostEmojiProps): JSX.Element => {
+    const emojiText = ':' + name + ':';
 
-        if (!this.props.imageUrl) {
-            return emojiText;
-        }
-
-        return (
-            <span
-                alt={emojiText}
-                className='emoticon'
-                title={emojiText}
-                style={{backgroundImage: 'url(' + this.props.imageUrl + ')'}}
-            >
-                {emojiText}
-            </span>
-        );
+    if (!imageUrl) {
+        return <span>{emojiText}</span>;
     }
-}
+
+    return (
+        <span
+            alt={emojiText}
+            className='emoticon'
+            title={emojiText}
+            style={{ backgroundImage: 'url(' + imageUrl + ')' }}
+        >
+            {emojiText}
+        </span>
+    );
+};
+
+export default React.memo(PostEmoji);
