@@ -101,6 +101,7 @@ type Props = {
     additionalControls?: React.ReactNodeArray;
     labels?: React.ReactNode;
     disableSend?: boolean;
+    placeholder?: string;
 }
 
 const AdvanceTextEditor = ({
@@ -156,6 +157,7 @@ const AdvanceTextEditor = ({
     additionalControls,
     labels,
     disableSend = false,
+    placeholder,
 }: Props) => {
     const readOnlyChannel = !canPost;
     const {formatMessage} = useIntl();
@@ -295,7 +297,9 @@ const AdvanceTextEditor = ({
     );
 
     let createMessage;
-    if (currentChannel && !readOnlyChannel) {
+    if (placeholder) {
+        createMessage = placeholder;
+    } else if (currentChannel && !readOnlyChannel) {
         createMessage = formatMessage(
             {
                 id: 'create_post.write',
