@@ -13,7 +13,6 @@ import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -30,7 +29,6 @@ type CustomMenuProps = {
     children?: React.ReactNode;
     onClose: () => void;
     rootCloseEvent?: 'click' | 'mousedown';
-    bsRole: string;
 }
 
 class CustomMenu extends React.PureComponent<CustomMenuProps> {
@@ -66,7 +64,6 @@ type CustomToggleProps = {
     children?: React.ReactNode;
     dropdownOpen?: boolean;
     onClick?: (e: React.MouseEvent) => void;
-    bsRole: string;
 }
 
 class CustomToggle extends React.PureComponent<CustomToggleProps> {
@@ -104,7 +101,6 @@ type ChannelHeaderPlugProps = {
     appsEnabled: boolean;
     channel: Channel;
     channelMember?: ChannelMembership;
-    theme: Theme;
     sidebarOpen: boolean;
     shouldShowAppBar: boolean;
     actions: {
@@ -297,7 +293,6 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                     open={this.state.dropdownOpen}
                 >
                     <CustomToggle
-                        bsRole='toggle'
                         dropdownOpen={this.state.dropdownOpen}
                     >
                         <OverlayTrigger
@@ -330,7 +325,6 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                         </OverlayTrigger>
                     </CustomToggle>
                     <CustomMenu
-                        bsRole='menu'
                         open={this.state.dropdownOpen}
                         onClose={this.onClose}
                     >
