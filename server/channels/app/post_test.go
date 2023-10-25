@@ -1312,7 +1312,6 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
-
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1945,6 +1944,49 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
+	})
+
+	t.Run("should return the number of posts made by the other user for a group message", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+		user3 := th.SystemAdminUser
+
+		channel, err := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id})
+		require.Nil(t, err)
+
+		post1, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test2",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user3.Id,
+			ChannelId: channel.Id,
+			Message:   "test3",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+
+		assert.Nil(t, err)
+		assert.Equal(t, 3, count)
+
+		count, _, _, err = th.App.countMentionsFromPost(th.Context, user1, post1)
+
+		assert.Nil(t, err)
+		assert.Equal(t, 1, count)
 	})
 
 	t.Run("should not count mentions from the before the given post", func(t *testing.T) {
@@ -2865,11 +2907,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, post)
 
-	session1, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 	require.NotNil(t, session1)
 
-	session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 	require.NotNil(t, session2)
 

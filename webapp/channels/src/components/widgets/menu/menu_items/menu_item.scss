@@ -110,7 +110,7 @@
                 padding-right: 0 !important;
 
                 &.disabled {
-                    color: rgba(var(--sys-center-channel-color-rgb), 0.48);
+                    color: rgba(var(--center-channel-color-rgb), 0.48);
                     cursor: default;
                     pointer-events: none;
 
@@ -119,7 +119,7 @@
                     }
 
                     .icon {
-                        color: rgba(var(--sys-center-channel-color-rgb), 0.48);
+                        color: rgba(var(--center-channel-color-rgb), 0.48);
                     }
                 }
             }

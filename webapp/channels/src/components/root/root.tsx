@@ -24,7 +24,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {loadRecentlyUsedCustomEmojis} from 'actions/emoji_actions';
 import * as GlobalActions from 'actions/global_actions';
-import {measurePageLoadTelemetry, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
+import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 import store from 'stores/redux_store';
 
@@ -49,12 +49,13 @@ import SystemNotice from 'components/system_notice';
 import TeamSidebar from 'components/team_sidebar';
 import WindowSizeObserver from 'components/window_size_observer/WindowSizeObserver';
 
-import webSocketClient from 'client/web_websocket_client.jsx';
+import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
-import {StoragePrefixes} from 'utils/constants';
+import {PageLoadContext, StoragePrefixes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -111,7 +112,7 @@ const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', LazyOnBoardi
 
 type LoggedInRouteProps<T> = {
     component: React.ComponentType<T>;
-    path: string;
+    path: string | string[];
     theme?: Theme; // the routes that send the theme are the ones that will actually need to show the onboarding tasklist
 };
 function LoggedInRoute<T>(props: LoggedInRouteProps<T>) {
@@ -415,6 +416,8 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     componentDidMount() {
+        temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
+
         this.mounted = true;
 
         this.initiateMeRequests();
@@ -642,7 +645,7 @@ export default class Root extends React.PureComponent<Props, State> {
                             ))}
                             <LoggedInRoute
                                 theme={this.props.theme}
-                                path={'/:team'}
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
                                 component={TeamController}
                             />
                             <RootRedirect/>

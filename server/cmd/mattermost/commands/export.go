@@ -182,7 +182,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(format, startTime, limit)
+		warningsCount, appErr := a.MessageExport().RunExport(request.EmptyContext(a.Log()), format, startTime, limit)
 		if appErr != nil {
 			return appErr
 		}

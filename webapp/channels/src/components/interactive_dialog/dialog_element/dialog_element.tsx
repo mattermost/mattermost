@@ -39,7 +39,7 @@ export type Props = {
         text: string;
         value: string;
     }>;
-    value?: string | boolean;
+    value?: string | number | boolean;
     onChange: (name: string, selected: string) => void;
     autoFocus?: boolean;
     actions: {
@@ -163,15 +163,21 @@ export default class DialogElement extends React.PureComponent<Props, State> {
                 textSettingMaxLength = maxLength || TEXTAREA_DEFAULT_MAX_LENGTH;
             }
 
-            const textValue = value as string;
+            let assertedValue;
+            if (subtype === 'number' && typeof value === 'number') {
+                assertedValue = value as number;
+            } else {
+                assertedValue = value as string || '';
+            }
+
             return (
                 <TextSetting
                     autoFocus={this.props.autoFocus}
                     id={name}
-                    type={subtype as InputTypes || 'text'}
+                    type={(type === 'textarea' ? 'textarea' : subtype) as InputTypes || 'text'}
                     label={displayNameContent}
                     maxLength={textSettingMaxLength}
-                    value={textValue || ''}
+                    value={assertedValue}
                     placeholder={placeholder}
                     helpText={helpTextContent}
                     onChange={onChange}

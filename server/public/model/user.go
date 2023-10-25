@@ -139,6 +139,10 @@ func (u *User) Auditable() map[string]interface{} {
 	}
 }
 
+func (u *User) LogClone() any {
+	return u.Auditable()
+}
+
 //msgp UserMap
 
 // UserMap is a map from a userId to a user object.
@@ -468,47 +472,6 @@ func (u *User) PreSave() {
 	}
 }
 
-// The following are some GraphQL methods necessary to return the
-// data in float64 type. The spec doesn't support 64 bit integers,
-// so we have to pass the data in float64. The _ at the end is
-// a hack to keep the attribute name same in GraphQL schema.
-
-func (u *User) CreateAt_() float64 {
-	return float64(u.CreateAt)
-}
-
-func (u *User) DeleteAt_() float64 {
-	return float64(u.DeleteAt)
-}
-
-func (u *User) UpdateAt_() float64 {
-	return float64(u.UpdateAt)
-}
-
-func (u *User) LastPictureUpdate_() float64 {
-	return float64(u.LastPictureUpdate)
-}
-
-func (u *User) LastPasswordUpdate_() float64 {
-	return float64(u.LastPasswordUpdate)
-}
-
-func (u *User) FailedAttempts_() float64 {
-	return float64(u.FailedAttempts)
-}
-
-func (u *User) LastActivityAt_() float64 {
-	return float64(u.LastActivityAt)
-}
-
-func (u *User) BotLastIconUpdate_() float64 {
-	return float64(u.BotLastIconUpdate)
-}
-
-func (u *User) TermsOfServiceCreateAt_() float64 {
-	return float64(u.TermsOfServiceCreateAt)
-}
-
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
 	u.Username = SanitizeUnicode(u.Username)
@@ -796,7 +759,6 @@ func (u *User) GetRawRoles() string {
 }
 
 func IsValidUserRoles(userRoles string) bool {
-
 	roles := strings.Fields(userRoles)
 
 	for _, r := range roles {

@@ -29,9 +29,6 @@ type FeatureFlags struct {
 
 	NormalizeLdapDNs bool
 
-	// Enable GraphQL feature
-	GraphQL bool
-
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
@@ -46,6 +43,8 @@ type FeatureFlags struct {
 	EnableExportDirectDownload bool
 
 	StreamlinedMarketplace bool
+
+	ConsumePostHook bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -54,7 +53,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = true
 	f.NormalizeLdapDNs = false
-	f.GraphQL = false
 	f.CallsEnabled = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
@@ -62,6 +60,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.StreamlinedMarketplace = true
+	f.ConsumePostHook = false
 }
 
 // ToMap returns the feature flags as a map[string]string
