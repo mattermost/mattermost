@@ -382,20 +382,10 @@ exports[`components/admin_console/request_button/request_button.jsx should match
             className="alert alert-success"
           >
             <SuccessIcon>
-              <LocalizedIcon
+              <i
                 className="fa fa-check"
-                title={
-                  Object {
-                    "defaultMessage": "Success Icon",
-                    "id": "generic_icons.success",
-                  }
-                }
-              >
-                <i
-                  className="fa fa-check"
-                  title="Success Icon"
-                />
-              </LocalizedIcon>
+                title="Success Icon"
+              />
             </SuccessIcon>
             <FormattedMessage
               defaultMessage="Success Message"
