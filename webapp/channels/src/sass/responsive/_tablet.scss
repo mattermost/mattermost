@@ -59,17 +59,6 @@
         display: none;
     }
 
-    .post-right__scroll {
-        .post-create__container {
-            .post-create-body {
-                .icon__emoji_picker {
-                    top: -7px;
-                    display: none;
-                }
-            }
-        }
-    }
-
     .signup-team__container {
         &.branded {
             display: block;
@@ -506,12 +495,6 @@
                 > .post-create__container {
                     width: 100% !important;
                 }
-            }
-
-            .channel-header__links {
-                position: relative;
-                top: auto;
-                right: auto;
             }
         }
 
