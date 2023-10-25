@@ -21,7 +21,6 @@ func MakeScheduler(jobServer *jobs.JobServer, sqlDriverName string) *jobs.DailyS
 			return nil
 		}
 		return &parsedTime
-
 	}
 	isEnabled := func(cfg *model.Config) bool {
 		return sqlDriverName == model.DatabaseDriverPostgres
