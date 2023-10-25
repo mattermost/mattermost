@@ -2,27 +2,28 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import LocalizedIcon from 'components/localized_icon';
-
-import {t} from 'utils/i18n';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 type Props = {
     additionalClassName: string | null;
+    intl: IntlShape;
 }
 
-export default class WarningIcon extends React.PureComponent<Props> {
-    public static defaultProps: Props = {
+class WarningIcon extends React.PureComponent<Props> {
+    public static defaultProps: Partial<Props> = {
         additionalClassName: null,
     };
 
     public render(): JSX.Element {
         const className = 'fa fa-warning' + (this.props.additionalClassName ? ' ' + this.props.additionalClassName : '');
         return (
-            <LocalizedIcon
+            <i
                 className={className}
-                title={{id: t('generic_icons.warning'), defaultMessage: 'Warning Icon'}}
+                title={this.props.intl.formatMessage({id: 'generic_icons.warning', defaultMessage: 'Warning Icon'})}
             />
         );
     }
 }
+
+export default injectIntl(WarningIcon);
