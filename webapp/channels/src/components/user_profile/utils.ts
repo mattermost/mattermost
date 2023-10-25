@@ -22,7 +22,7 @@ export function generateColor(username: string, background: string): string {
     const colorHash = new ColorHash();
 
     const backgroundLuminance = checker.hexToLuminance(background);
-    for (let tries = 3; tries > 0; tries--) {
+    for (let tries = 10; tries > 0; tries--) {
         const textColor = colorHash.hex(userAndSalt);
 
         const cr = checker.getContrastRatio(

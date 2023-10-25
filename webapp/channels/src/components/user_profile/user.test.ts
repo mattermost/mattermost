@@ -10,14 +10,14 @@ const BACKGROUND_COLOR = '#ACC8E5';
 
 describe('components/user_profile/utils', () => {
     test.each([
-        ['Ross_Bednar', '#ac538a', 2.7],
-        ['Geovany95', '#1f9335', 2.2],
-        ['Madisen25', '#56862d', 2.5],
+        ['Ross_Bednar', '#432dd2', 4.5],
+        ['Geovany95', '#2d3086', 4.5],
+        ['Madisen25', '#52783a', 2.9],
         ['Gerard17', '#783a54', 4.5],
         ['Alia30', '#392d86', 4.5],
         ['Darien.Prosacco97', '#862d6d', 4.5],
-        ['Alf48', '#5354ac', 3.7],
-        ['Darron_Orn-Walsh49', '#3a5878', 4.2],
+        ['Alf48', '#4053bf', 3.7],
+        ['Darron_Orn-Walsh49', '#742d86', 4.5],
     ])('should generate best color contrast', (userName, expected, ratio) => {
         cachedUserNameColors.clear();
 
