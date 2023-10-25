@@ -366,12 +366,6 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
 
     const renderMentionButton = (): JSX.Element => (
         <HeaderIconWrapper
-            iconComponent={
-                <MentionsIcon
-                    className='icon icon--standard'
-                    aria-hidden='true'
-                />
-            }
             ariaLabel={true}
             buttonClass={classNames(
                 'channel-header__icon',
@@ -381,14 +375,16 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             onClick={searchMentions}
             tooltipKey={'recentMentions'}
             isRhsOpen={props.isRhsOpen}
-        />
+        >
+            <MentionsIcon
+                className='icon icon--standard'
+                aria-hidden='true'
+            />
+        </HeaderIconWrapper>
     );
 
     const renderFlagBtn = (): JSX.Element => (
         <HeaderIconWrapper
-            iconComponent={
-                <FlagIcon className='icon icon--standard'/>
-            }
             ariaLabel={true}
             buttonClass={classNames(
                 'channel-header__icon ',
@@ -398,7 +394,9 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             onClick={getFlagged}
             tooltipKey={'flaggedPosts'}
             isRhsOpen={props.isRhsOpen}
-        />
+        >
+            <FlagIcon className='icon icon--standard'/>
+        </HeaderIconWrapper>
     );
 
     const renderHintPopover = (): JSX.Element => {
@@ -485,17 +483,16 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         if (hideSearchBar) {
             return (
                 <HeaderIconWrapper
-                    iconComponent={
-                        <SearchIcon
-                            className='icon icon--standard'
-                            aria-hidden='true'
-                        />
-                    }
                     ariaLabel={true}
                     buttonId={'channelHeaderSearchButton'}
                     onClick={searchButtonClick}
                     tooltipKey={'search'}
-                />
+                >
+                    <SearchIcon
+                        className='icon icon--standard'
+                        aria-hidden='true'
+                    />
+                </HeaderIconWrapper>
             );
         }
 

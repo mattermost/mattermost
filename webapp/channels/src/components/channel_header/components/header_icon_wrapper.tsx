@@ -21,7 +21,7 @@ type Props = {
     ariaLabel?: boolean;
     buttonClass?: string;
     buttonId: string;
-    iconComponent: React.ReactNode;
+    children: React.ReactNode;
     onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
     tooltipKey: string;
     tooltipText?: React.ReactNode;
@@ -42,7 +42,7 @@ const HeaderIconWrapper = (props: Props) => {
         ariaLabel,
         buttonClass,
         buttonId,
-        iconComponent,
+        children,
         onClick,
         tooltipKey,
         tooltipText,
@@ -163,7 +163,7 @@ const HeaderIconWrapper = (props: Props) => {
                         className={buttonClass || 'channel-header__icon'}
                         onClick={onClick}
                     >
-                        {iconComponent}
+                        {children}
                     </button>
                 </OverlayTrigger>
                 {boardsEnabled &&
@@ -184,7 +184,7 @@ const HeaderIconWrapper = (props: Props) => {
                     className={buttonClass || 'channel-header__icon'}
                     onClick={onClick}
                 >
-                    {iconComponent}
+                    {children}
                 </button>
             </div>
             {boardsEnabled &&

@@ -169,13 +169,14 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
             <HeaderIconWrapper
                 key={'channelHeaderButton' + plug.id}
                 buttonClass='channel-header__icon'
-                iconComponent={plug.icon!}
                 onClick={() => this.fireAction(plug.action!)}
                 buttonId={plug.id}
                 tooltipKey={'plugin'}
                 tooltipText={plug.tooltipText ? plug.tooltipText : plug.dropdownText}
                 pluginId={plug.pluginId}
-            />
+            >
+                {plug.icon}
+            </HeaderIconWrapper>
         );
     };
 
@@ -236,18 +237,17 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
             <HeaderIconWrapper
                 key={`channelHeaderButton_${binding.app_id}_${binding.location}`}
                 buttonClass='channel-header__icon style--none'
-                iconComponent={(
-                    <img
-                        src={binding.icon}
-                        width='24'
-                        height='24'
-                    />
-                )}
                 onClick={() => this.onBindingClick(binding)}
                 buttonId={`${binding.app_id}_${binding.location}`}
                 tooltipKey={'plugin'}
                 tooltipText={binding.label}
-            />
+            >
+                <img
+                    src={binding.icon}
+                    width='24'
+                    height='24'
+                />
+            </HeaderIconWrapper>
         );
     };
 
