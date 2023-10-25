@@ -4,18 +4,27 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
+
 import {Posts} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import * as GlobalActions from 'actions/global_actions';
 
+import type {Props} from 'components/advanced_create_post/advanced_create_post';
 import AdvancedCreatePost from 'components/advanced_create_post/advanced_create_post';
 import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+import type {TextboxElement} from 'components/textbox';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
 import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers.js';
 import Constants, {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
 import {execCommandInsertText} from 'utils/exec_commands';
+import {TestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
 
 jest.mock('actions/global_actions', () => ({
@@ -25,7 +34,7 @@ jest.mock('actions/global_actions', () => ({
 
 jest.mock('actions/post_actions', () => ({
     createPost: jest.fn(() => {
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             process.nextTick(() => resolve());
         });
     }),
@@ -37,127 +46,116 @@ jest.mock('utils/exec_commands', () => ({
 
 const currentTeamIdProp = 'r7rws4y7ppgszym3pdd5kaibfa';
 const currentUserIdProp = 'zaktnt8bpbgu8mb6ez9k64r7sa';
-const showTutorialTipProp = false;
+const showSendTutorialTipProp = false;
 const fullWidthTextBoxProp = true;
-const recentPostIdInChannelProp = 'a';
 const latestReplyablePostIdProp = 'a';
 const localeProp = 'en';
 
-const currentChannelProp = {
+const currentChannelProp = TestHelper.getChannelMock({
     id: 'owsyt8n43jfxjpzh9np93mx1wa',
     type: 'O',
-};
+});
+
 const currentChannelMembersCountProp = 9;
-const draftProp = {
+
+const draftProp = TestHelper.getPostDraftMock({
+    fileInfos: [],
     message: '',
     uploadsInProgress: [],
-    fileInfos: [],
-};
+});
 
 const ctrlSendProp = false;
 
-const currentUsersLatestPostProp = {id: 'b', root_id: 'a', channel_id: currentChannelProp.id};
+const currentUsersLatestPostProp = TestHelper.getPostMock({id: 'b', root_id: 'a', channel_id: currentChannelProp.id});
 
-const actionsProp = {
-    addMessageIntoHistory: jest.fn(),
-    moveHistoryIndexBack: jest.fn(),
-    moveHistoryIndexForward: jest.fn(),
-    addReaction: jest.fn(),
-    removeReaction: jest.fn(),
-    clearDraftUploads: jest.fn(),
-    onSubmitPost: jest.fn(),
-    selectPostFromRightHandSideSearchByPostId: jest.fn(),
-    setDraft: jest.fn(),
-    setEditingPost: jest.fn(),
-    openModal: jest.fn(),
-    setShowPreview: jest.fn(),
-    savePreferences: jest.fn(),
-    executeCommand: async () => {
-        return {data: true};
+const baseProp: Props = {
+    currentTeamId: currentTeamIdProp,
+    currentChannelMembersCount: currentChannelMembersCountProp,
+    currentChannel: currentChannelProp,
+    currentUserId: currentUserIdProp,
+    showSendTutorialTip: showSendTutorialTipProp,
+    fullWidthTextBox: fullWidthTextBoxProp,
+    draft: draftProp,
+    isRemoteDraft: false,
+    latestReplyablePostId: latestReplyablePostIdProp,
+    locale: localeProp,
+    actions: {
+        addMessageIntoHistory: jest.fn(),
+        moveHistoryIndexBack: jest.fn(),
+        moveHistoryIndexForward: jest.fn(),
+        addReaction: jest.fn(),
+        removeReaction: jest.fn(),
+        clearDraftUploads: jest.fn(),
+        onSubmitPost: jest.fn(),
+        selectPostFromRightHandSideSearchByPostId: jest.fn(),
+        setDraft: jest.fn(),
+        setEditingPost: jest.fn(),
+        openModal: jest.fn(),
+        setShowPreview: jest.fn(),
+        savePreferences: jest.fn(),
+        executeCommand: () => {
+            return {data: true};
+        },
+        getChannelTimezones: jest.fn(() => {
+            return {data: '', error: ''};
+        }),
+        runMessageWillBePostedHooks: (post: Post) => {
+            return {data: post};
+        },
+        runSlashCommandWillBePostedHooks: (message: string, args: CommandArgs) => {
+            return {data: {message, args}};
+        },
+        scrollPostListToBottom: jest.fn(),
+        getChannelMemberCountsByGroup: jest.fn(),
+        emitShortcutReactToLastPostFrom: jest.fn(),
+        searchAssociatedGroupsForReference: jest.fn(),
     },
-    getChannelTimezones: jest.fn(() => Promise.resolve({data: true})),
-    runMessageWillBePostedHooks: async (post) => {
-        return {data: post};
-    },
-    runSlashCommandWillBePostedHooks: async (message, args) => {
-        return {data: {message, args}};
-    },
-    scrollPostListToBottom: jest.fn(),
-    getChannelMemberCountsByGroup: jest.fn(),
-    emitShortcutReactToLastPostFrom: jest.fn(),
-    searchAssociatedGroupsForReference: jest.fn(),
+    ctrlSend: ctrlSendProp,
+    currentUsersLatestPost: currentUsersLatestPostProp,
+    canUploadFiles: false,
+    emojiMap: new EmojiMap(new Map()),
+    enableEmojiPicker: true,
+    enableGifPicker: true,
+    useLDAPGroupMentions: true,
+    useCustomGroupMentions: true,
+    canPost: true,
+    isPostPriorityEnabled: false,
+    enableConfirmNotificationsToChannel: true,
+    maxPostSize: Constants.DEFAULT_CHARACTER_LIMIT,
+    userIsOutOfOffice: false,
+    rhsExpanded: false,
+    rhsOpen: false,
+    badConnection: false,
+    shouldShowPreview: false,
+    useChannelMentions: true,
+    isFormattingBarHidden: false,
+    groupsWithAllowReference: null,
+    channelMemberCountsByGroup: [] as unknown as ChannelMemberCountsByGroup,
+    postEditorActions: [],
 };
 
-function advancedCreatePost({
-    currentChannel = currentChannelProp,
-    currentTeamId = currentTeamIdProp,
-    currentUserId = currentUserIdProp,
-    showSendTutorialTip = showTutorialTipProp,
-    currentChannelMembersCount = currentChannelMembersCountProp,
-    fullWidthTextBox = fullWidthTextBoxProp,
-    draft = draftProp,
-    recentPostIdInChannel = recentPostIdInChannelProp,
-    latestReplyablePostId = latestReplyablePostIdProp,
-    locale = localeProp,
-    actions = actionsProp,
-    ctrlSend = ctrlSendProp,
-    currentUsersLatestPost = currentUsersLatestPostProp,
-    canUploadFiles = true,
-    emojiMap = new EmojiMap(new Map()),
-    useLDAPGroupMentions = true,
-    useCustomGroupMentions = true,
-    canPost = true,
-    isMarkdownPreviewEnabled = false,
-    isPostPriorityEnabled = false,
-} = {}) {
+const submitEvent = {
+    preventDefault: jest.fn(),
+} as unknown as React.FormEvent;
+
+function advancedCreatePost(props?: Partial<Props>) {
+    const allProps: Props = {...baseProp, ...props};
+
     return (
-        <AdvancedCreatePost
-            currentChannel={currentChannel}
-            currentTeamId={currentTeamId}
-            currentUserId={currentUserId}
-            showSendTutorialTip={showSendTutorialTip}
-            fullWidthTextBox={fullWidthTextBox}
-            currentChannelMembersCount={currentChannelMembersCount}
-            draft={draft}
-            isRemoteDraft={false}
-            recentPostIdInChannel={recentPostIdInChannel}
-            latestReplyablePostId={latestReplyablePostId}
-            locale={locale}
-            ctrlSend={ctrlSend}
-            currentUsersLatestPost={currentUsersLatestPost}
-            actions={actions}
-            canUploadFiles={canUploadFiles}
-            enableTutorial={true}
-            enableConfirmNotificationsToChannel={true}
-            enableEmojiPicker={true}
-            enableGifPicker={true}
-            maxPostSize={Constants.DEFAULT_CHARACTER_LIMIT}
-            userIsOutOfOffice={false}
-            rhsExpanded={false}
-            rhsOpen={false}
-            emojiMap={emojiMap}
-            badConnection={false}
-            shouldShowPreview={false}
-            canPost={canPost}
-            useChannelMentions={true}
-            useLDAPGroupMentions={useLDAPGroupMentions}
-            useCustomGroupMentions={useCustomGroupMentions}
-            isMarkdownPreviewEnabled={isMarkdownPreviewEnabled}
-            isFormattingBarHidden={false}
-            isPostPriorityEnabled={isPostPriorityEnabled}
-        />
+        <AdvancedCreatePost {...allProps}/>
     );
 }
 
 describe('components/advanced_create_post', () => {
     jest.useFakeTimers('legacy');
+    let spy: jest.SpyInstance;
 
     beforeEach(() => {
-        jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => setTimeout(cb, 16));
+        spy = jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => setTimeout(cb, 16));
     });
 
     afterEach(() => {
-        window.requestAnimationFrame.mockRestore();
+        spy.mockRestore();
     });
 
     it('should match snapshot, init', () => {
@@ -176,7 +174,7 @@ describe('components/advanced_create_post', () => {
     it('should call clearDraftUploads on mount', () => {
         const clearDraftUploads = jest.fn();
         const actions = {
-            ...actionsProp,
+            ...baseProp.actions,
             clearDraftUploads,
         };
 
@@ -213,7 +211,7 @@ describe('components/advanced_create_post', () => {
             message: 'hello',
         };
         const actions = {
-            ...actionsProp,
+            ...baseProp.actions,
             searchAssociatedGroupsForReference,
         };
         const wrapper = shallow(advancedCreatePost({draft, actions}));
@@ -234,7 +232,7 @@ describe('components/advanced_create_post', () => {
             message: '@group1 hello',
         };
         const actions = {
-            ...actionsProp,
+            ...baseProp.actions,
             searchAssociatedGroupsForReference,
         };
         const wrapper = shallow(advancedCreatePost({draft, actions}));
@@ -255,7 +253,7 @@ describe('components/advanced_create_post', () => {
             message: '@group1 @group2 hello',
         };
         const actions = {
-            ...actionsProp,
+            ...baseProp.actions,
             getChannelMemberCountsByGroup,
         };
         const wrapper = shallow(advancedCreatePost({draft, actions}));
@@ -273,7 +271,7 @@ describe('components/advanced_create_post', () => {
         const getChannelMemberCountsByGroup = jest.fn();
         const useLDAPGroupMentions = false;
         const actions = {
-            ...actionsProp,
+            ...baseProp.actions,
             getChannelMemberCountsByGroup,
         };
         const wrapper = shallow(advancedCreatePost({actions, useLDAPGroupMentions}));
@@ -360,7 +358,7 @@ describe('components/advanced_create_post', () => {
     //     const wrapper = shallow(
     //         advancedCreatePost({
     //             actions: {
-    //                 ...actionsProp,
+    //                 ...baseProp.actions,
     //                 setDraft,
     //             },
     //         }),
@@ -390,11 +388,14 @@ describe('components/advanced_create_post', () => {
     // });
 
     it('onSubmit test for @all', async () => {
+        const result: ActionResult = {
+            data: [1, 2, 3, 4],
+        };
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
-                    getChannelTimezones: jest.fn(() => Promise.resolve({data: [1, 2, 3, 4]})),
+                    ...baseProp.actions,
+                    getChannelTimezones: jest.fn(() => result),
                 },
                 currentChannelMembersCount: 9,
             }),
@@ -404,29 +405,34 @@ describe('components/advanced_create_post', () => {
             message: 'test @all',
         });
 
-        const showNotifyAllModal = wrapper.instance().showNotifyAllModal;
-        wrapper.instance().showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        const instance = wrapper.instance() as AdvancedCreatePost;
+
+        const showNotifyAllModal = instance.showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
 
         const form = wrapper.find('#create_post');
         await form.simulate('Submit', {preventDefault: jest.fn()});
 
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().showNotifyAllModal).toHaveBeenCalledWith(['@all'], 4, 8);
+        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@all'], 4, 8);
 
         wrapper.setProps({
             currentChannelMembersCount: 2,
         });
 
         form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledTimes(1);
+        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
     it('onSubmit test for @here', async () => {
+        const result: ActionResult = {
+            data: [1, 2, 3, 4],
+        };
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
-                    getChannelTimezones: jest.fn(() => Promise.resolve({data: [1, 2, 3, 4]})),
+                    ...baseProp.actions,
+                    getChannelTimezones: jest.fn(() => result),
                 },
                 currentChannelMembersCount: 9,
             }),
@@ -436,21 +442,23 @@ describe('components/advanced_create_post', () => {
             message: 'test @here',
         });
 
-        const showNotifyAllModal = wrapper.instance().showNotifyAllModal;
-        wrapper.instance().showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        const instance = wrapper.instance() as AdvancedCreatePost;
+
+        const showNotifyAllModal = instance.showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
 
         const form = wrapper.find('#create_post');
         await form.simulate('Submit', {preventDefault: jest.fn()});
 
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().showNotifyAllModal).toHaveBeenCalledWith(['@here'], 4, 8);
+        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@here'], 4, 8);
 
         wrapper.setProps({
             currentChannelMembersCount: 2,
         });
 
         form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledTimes(1);
+        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
     it('onSubmit test for @groups', () => {
@@ -474,13 +482,15 @@ describe('components/advanced_create_post', () => {
             message: '@developers',
         });
 
-        const showNotifyAllModal = wrapper.instance().showNotifyAllModal;
-        wrapper.instance().showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        const instance = wrapper.instance() as AdvancedCreatePost;
+
+        const showNotifyAllModal = (instance).showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
 
         const form = wrapper.find('#create_post');
         form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalled();
-        expect(wrapper.instance().showNotifyAllModal).toHaveBeenCalledWith(['@developers'], 0, 10);
+        expect(instance.props.actions.openModal).toHaveBeenCalled();
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@developers'], 0, 10);
     });
 
     it('onSubmit test for several @groups', () => {
@@ -536,13 +546,15 @@ describe('components/advanced_create_post', () => {
             message: '@developers @boss @love @you @software-developers',
         });
 
-        const showNotifyAllModal = wrapper.instance().showNotifyAllModal;
-        wrapper.instance().showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        const instance = wrapper.instance() as AdvancedCreatePost;
+
+        const showNotifyAllModal = instance.showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
 
         const form = wrapper.find('#create_post');
         form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalled();
-        expect(wrapper.instance().showNotifyAllModal).toHaveBeenCalledWith(['@developers', '@boss', '@love', '@you', '@software-developers'], 0, 40);
+        expect(instance.props.actions.openModal).toHaveBeenCalled();
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@developers', '@boss', '@love', '@you', '@software-developers'], 0, 40);
     });
 
     it('onSubmit test for several @groups with timezone', () => {
@@ -590,20 +602,22 @@ describe('components/advanced_create_post', () => {
             message: '@developers @boss @love @you',
         });
 
-        const showNotifyAllModal = wrapper.instance().showNotifyAllModal;
-        wrapper.instance().showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        const instance = wrapper.instance() as AdvancedCreatePost;
+
+        const showNotifyAllModal = instance.showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
 
         const form = wrapper.find('#create_post');
         form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalled();
-        expect(wrapper.instance().showNotifyAllModal).toHaveBeenCalledWith(['@developers', '@boss', '@love', '@you'], 5, 40);
+        expect(instance.props.actions.openModal).toHaveBeenCalled();
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@developers', '@boss', '@love', '@you'], 5, 40);
     });
 
     it('Should set mentionHighlightDisabled prop when useChannelMentions disabled before calling actions.onSubmitPost', async () => {
         const onSubmitPost = jest.fn();
         const wrapper = shallow(advancedCreatePost({
             actions: {
-                ...actionsProp,
+                ...baseProp.actions,
                 onSubmitPost,
             },
         }));
@@ -612,8 +626,8 @@ describe('components/advanced_create_post', () => {
             useChannelMentions: false,
         });
 
-        const post = {message: 'message with @here mention'};
-        await wrapper.instance().sendMessage(post);
+        const post = TestHelper.getPostMock({message: 'message with @here mention'});
+        await (wrapper.instance() as AdvancedCreatePost).sendMessage(post);
 
         expect(onSubmitPost).toHaveBeenCalledTimes(1);
         expect(onSubmitPost.mock.calls[0][0]).toEqual({...post, props: {mentionHighlightDisabled: true}});
@@ -623,7 +637,7 @@ describe('components/advanced_create_post', () => {
         const onSubmitPost = jest.fn();
         const wrapper = shallow(advancedCreatePost({
             actions: {
-                ...actionsProp,
+                ...baseProp.actions,
                 onSubmitPost,
             },
         }));
@@ -632,8 +646,8 @@ describe('components/advanced_create_post', () => {
             useChannelMentions: true,
         });
 
-        const post = {message: 'message with @here mention'};
-        await wrapper.instance().sendMessage(post);
+        const post = TestHelper.getPostMock({message: 'message with @here mention'});
+        await (wrapper.instance() as AdvancedCreatePost).sendMessage(post);
 
         expect(onSubmitPost).toHaveBeenCalledTimes(1);
         expect(onSubmitPost.mock.calls[0][0]).toEqual(post);
@@ -643,7 +657,7 @@ describe('components/advanced_create_post', () => {
         const onSubmitPost = jest.fn();
         const wrapper = shallow(advancedCreatePost({
             actions: {
-                ...actionsProp,
+                ...baseProp.actions,
                 onSubmitPost,
             },
         }));
@@ -652,8 +666,8 @@ describe('components/advanced_create_post', () => {
             useChannelMentions: false,
         });
 
-        const post = {message: 'message without mention'};
-        await wrapper.instance().sendMessage(post);
+        const post = TestHelper.getPostMock({message: 'message with @here mention'});
+        await (wrapper.instance() as AdvancedCreatePost).sendMessage(post);
 
         expect(onSubmitPost).toHaveBeenCalledTimes(1);
         expect(onSubmitPost.mock.calls[0][0]).toEqual(post);
@@ -665,7 +679,7 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     openModal,
                 },
             }),
@@ -688,7 +702,7 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     openModal,
                 },
             }),
@@ -716,7 +730,7 @@ describe('components/advanced_create_post', () => {
             message: '/unknown',
         });
 
-        await wrapper.instance().handleSubmit({preventDefault: jest.fn()});
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
         expect(wrapper.state('submitting')).toBe(false);
     });
 
@@ -726,7 +740,7 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     addReaction,
                 },
             }),
@@ -736,7 +750,7 @@ describe('components/advanced_create_post', () => {
             message: '+:smile:',
         });
 
-        await wrapper.instance().handleSubmit({preventDefault: jest.fn()});
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
         expect(addReaction).toHaveBeenCalledWith('a', 'smile');
     });
 
@@ -746,7 +760,7 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     removeReaction,
                 },
             }),
@@ -781,7 +795,14 @@ describe('components/advanced_create_post', () => {
 
     it('check for handleFileUploadChange callback for focus', () => {
         const wrapper = shallow(advancedCreatePost());
-        const instance = wrapper.instance();
+        const instance: any = wrapper.instance();
+        const mockImpl = () => {
+            return {
+                setSelectionRange: jest.fn(),
+                focus: jest.fn(),
+            };
+        };
+        instance.textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
         instance.focusTextbox = jest.fn();
 
         instance.handleFileUploadChange();
@@ -794,13 +815,13 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     setDraft,
                 },
             }),
         );
 
-        const instance = wrapper.instance();
+        const instance = wrapper.instance() as AdvancedCreatePost;
         const clientIds = ['a'];
         const draft = {
             ...draftProp,
@@ -820,13 +841,13 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     setDraft,
                 },
             }),
         );
 
-        const instance = wrapper.instance();
+        const instance: any = wrapper.instance();
         const clientIds = ['a'];
         const uploadsInProgressDraft = {
             ...draftProp,
@@ -839,14 +860,12 @@ describe('components/advanced_create_post', () => {
         instance.draftsForChannel[currentChannelProp.id] = uploadsInProgressDraft;
 
         wrapper.setProps({draft: uploadsInProgressDraft});
-        const fileInfos = {
-            id: 'a',
-        };
+        const fileInfos = [TestHelper.getFileInfoMock({id: 'a'})];
         const expectedDraft = {
             ...draftProp,
             fileInfos: [
                 ...draftProp.fileInfos,
-                fileInfos,
+                ...fileInfos,
             ],
         };
 
@@ -862,13 +881,13 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     setDraft,
                 },
             }),
         );
 
-        const instance = wrapper.instance();
+        const instance: any = wrapper.instance();
         const uploadsInProgressDraft = {
             ...draftProp,
             uploadsInProgress: [
@@ -901,11 +920,11 @@ describe('components/advanced_create_post', () => {
 
     it('Remove preview from fileInfos', () => {
         const setDraft = jest.fn();
-        const fileInfos = {
+        const fileInfos = TestHelper.getFileInfoMock({
             id: 'a',
             extension: 'jpg',
             name: 'trimmedFilename',
-        };
+        });
         const uploadsInProgressDraft = {
             ...draftProp,
             fileInfos: [
@@ -917,7 +936,7 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     setDraft,
                 },
                 draft: {
@@ -927,7 +946,7 @@ describe('components/advanced_create_post', () => {
             }),
         );
 
-        const instance = wrapper.instance();
+        const instance = wrapper.instance() as AdvancedCreatePost;
         instance.handleFileUploadChange = jest.fn();
         instance.removePreview('a');
 
@@ -942,7 +961,7 @@ describe('components/advanced_create_post', () => {
             ctrlSend: true,
         }));
 
-        const instance = wrapper.instance();
+        const instance: any = wrapper.instance();
         instance.textboxRef.current = {blur: jest.fn()};
 
         const target = {
@@ -959,7 +978,7 @@ describe('components/advanced_create_post', () => {
             stopPropagation: jest.fn(),
             persist: jest.fn(),
             target,
-        };
+        } as unknown as React.KeyboardEvent<TextboxElement>;
 
         instance.handleKeyDown(event);
         setTimeout(() => {
@@ -971,11 +990,11 @@ describe('components/advanced_create_post', () => {
         const setEditingPost = jest.fn();
         const wrapper = shallow(advancedCreatePost({
             actions: {
-                ...actionsProp,
+                ...baseProp.actions,
                 setEditingPost,
             },
         }));
-        const instance = wrapper.instance();
+        const instance = wrapper.instance() as AdvancedCreatePost;
         const type = Utils.localizeMessage('create_post.comment', Posts.MESSAGE_TYPES.COMMENT);
 
         const target = {
@@ -990,7 +1009,7 @@ describe('components/advanced_create_post', () => {
             preventDefault: jest.fn(),
             persist: jest.fn(),
             target,
-        };
+        } as unknown as React.KeyboardEvent<TextboxElement>;
 
         instance.handleKeyDown(event);
         expect(setEditingPost).toHaveBeenCalledWith(currentUsersLatestPostProp.id, 'post_textbox', type);
@@ -1000,11 +1019,11 @@ describe('components/advanced_create_post', () => {
         const setEditingPost = jest.fn();
         const wrapper = shallow(advancedCreatePost({
             actions: {
-                ...actionsProp,
+                ...baseProp.actions,
                 setEditingPost,
             },
         }));
-        const instance = wrapper.instance();
+        const instance = wrapper.instance() as AdvancedCreatePost;
 
         wrapper.setProps({
             currentUsersLatestPost: {id: 'b', channel_id: currentChannelProp.id},
@@ -1024,7 +1043,7 @@ describe('components/advanced_create_post', () => {
             preventDefault: jest.fn(),
             persist: jest.fn(),
             target,
-        };
+        } as unknown as React.KeyboardEvent<TextboxElement>;
 
         instance.handleKeyDown(event);
         expect(setEditingPost).toHaveBeenCalledWith(currentUsersLatestPostProp.id, 'post_textbox', type);
@@ -1033,18 +1052,18 @@ describe('components/advanced_create_post', () => {
     it('Should call moveHistoryIndexForward as ctrlKey and down arrow', () => {
         const moveHistoryIndexForward = jest.fn(
             () => {
-                return new Promise((resolve) => {
+                return new Promise<void>((resolve) => {
                     process.nextTick(() => resolve());
                 });
             },
         );
         const wrapper = shallow(advancedCreatePost({
             actions: {
-                ...actionsProp,
+                ...baseProp.actions,
                 moveHistoryIndexForward,
             },
         }));
-        const instance = wrapper.instance();
+        const instance = wrapper.instance() as AdvancedCreatePost;
 
         const target = {
             selectionStart: 0,
@@ -1060,7 +1079,7 @@ describe('components/advanced_create_post', () => {
             stopPropagation: jest.fn(),
             persist: jest.fn(),
             target,
-        };
+        } as unknown as React.KeyboardEvent<TextboxElement>;
 
         instance.handleKeyDown(event);
         expect(moveHistoryIndexForward).toHaveBeenCalled();
@@ -1069,18 +1088,18 @@ describe('components/advanced_create_post', () => {
     it('Should call moveHistoryIndexBack as ctrlKey and up arrow', () => {
         const moveHistoryIndexBack = jest.fn(
             () => {
-                return new Promise((resolve) => {
+                return new Promise<void>((resolve) => {
                     process.nextTick(() => resolve());
                 });
             },
         );
         const wrapper = shallow(advancedCreatePost({
             actions: {
-                ...actionsProp,
+                ...baseProp.actions,
                 moveHistoryIndexBack,
             },
         }));
-        const instance = wrapper.instance();
+        const instance = wrapper.instance() as AdvancedCreatePost;
 
         const target = {
             selectionStart: 0,
@@ -1096,7 +1115,7 @@ describe('components/advanced_create_post', () => {
             stopPropagation: jest.fn(),
             persist: jest.fn(),
             target,
-        };
+        } as unknown as React.KeyboardEvent<TextboxElement>;
 
         instance.handleKeyDown(event);
         expect(moveHistoryIndexBack).toHaveBeenCalled();
@@ -1104,7 +1123,7 @@ describe('components/advanced_create_post', () => {
 
     it('Show tutorial', () => {
         const wrapper = shallow(advancedCreatePost({
-            showTutorialTip: true,
+            showSendTutorialTip: true,
         }));
         expect(wrapper).toMatchSnapshot();
     });
@@ -1113,12 +1132,12 @@ describe('components/advanced_create_post', () => {
         const onSubmitPost = jest.fn();
         const wrapper = shallow(advancedCreatePost({
             actions: {
-                ...actionsProp,
+                ...baseProp.actions,
                 onSubmitPost,
             },
         }));
-        const post = {message: 'message', file_ids: []};
-        await wrapper.instance().sendMessage(post);
+        const post = TestHelper.getPostMock({message: 'message', file_ids: []});
+        await (wrapper.instance() as AdvancedCreatePost).sendMessage(post);
 
         expect(onSubmitPost).toHaveBeenCalledTimes(1);
         expect(onSubmitPost.mock.calls[0][0]).toEqual(post);
@@ -1130,18 +1149,20 @@ describe('components/advanced_create_post', () => {
         let latestReplyablePostId = '';
         const wrapper = shallow(advancedCreatePost({
             actions: {
-                ...actionsProp,
+                ...baseProp.actions,
                 selectPostFromRightHandSideSearchByPostId,
             },
             latestReplyablePostId,
         }));
 
-        wrapper.instance().replyToLastPost({preventDefault: jest.fn()});
+        const event = {preventDefault: jest.fn()} as unknown as React.KeyboardEvent<Element>;
+
+        (wrapper.instance() as AdvancedCreatePost).replyToLastPost(event);
         expect(selectPostFromRightHandSideSearchByPostId).not.toBeCalled();
 
         latestReplyablePostId = 'latest_replyablePost_id';
         wrapper.setProps({latestReplyablePostId});
-        wrapper.instance().replyToLastPost({preventDefault: jest.fn()});
+        (wrapper.instance() as AdvancedCreatePost).replyToLastPost(event);
         expect(selectPostFromRightHandSideSearchByPostId).toHaveBeenCalledTimes(1);
         expect(selectPostFromRightHandSideSearchByPostId.mock.calls[0][0]).toEqual(latestReplyablePostId);
     });
@@ -1161,13 +1182,16 @@ describe('components/advanced_create_post', () => {
             message: 'No command found',
             server_error_id: 'api.command.execute_command.not_found.app_error',
         };
-        const executeCommand = jest.fn(() => Promise.resolve({error}));
+        const result: ActionResult = {
+            error,
+        };
+        const executeCommand = jest.fn(() => result);
         const onSubmitPost = jest.fn();
 
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     executeCommand,
                     onSubmitPost,
                 },
@@ -1178,11 +1202,11 @@ describe('components/advanced_create_post', () => {
             message: '/fakecommand some text',
         });
 
-        await wrapper.instance().handleSubmit({preventDefault: jest.fn()});
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
         expect(executeCommand).toHaveBeenCalled();
         expect(onSubmitPost).not.toHaveBeenCalled();
 
-        await wrapper.instance().handleSubmit({preventDefault: jest.fn()});
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
 
         expect(onSubmitPost).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -1197,13 +1221,14 @@ describe('components/advanced_create_post', () => {
             message: 'No command found',
             server_error_id: 'api.command.execute_command.not_found.app_error',
         };
-        const executeCommand = jest.fn(() => Promise.resolve({error}));
+
+        const executeCommand = jest.fn().mockResolvedValue({error});
         const onSubmitPost = jest.fn();
 
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
-                    ...actionsProp,
+                    ...baseProp.actions,
                     executeCommand,
                     onSubmitPost,
                 },
@@ -1214,15 +1239,21 @@ describe('components/advanced_create_post', () => {
             message: '/fakecommand some text',
         });
 
-        await wrapper.instance().handleSubmit({preventDefault: jest.fn()});
+        const instance = wrapper.instance() as AdvancedCreatePost;
+
+        await instance.handleSubmit(submitEvent);
         expect(executeCommand).toHaveBeenCalled();
         expect(onSubmitPost).not.toHaveBeenCalled();
 
-        wrapper.instance().handleChange({
-            target: {value: 'some valid text'},
-        });
+        const event = {
+            target: {
+                value: 'some valid text',
+            },
+        } as unknown as React.ChangeEvent<TextboxElement>;
 
-        await wrapper.instance().handleSubmit({preventDefault: jest.fn()});
+        instance.handleChange(event);
+
+        await instance.handleSubmit(submitEvent);
 
         expect(onSubmitPost).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -1240,7 +1271,7 @@ describe('components/advanced_create_post', () => {
                 focus: jest.fn(),
             };
         };
-        wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
+        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
 
         const event = {
             target: {
@@ -1254,11 +1285,11 @@ describe('components/advanced_create_post', () => {
                     return '<table><tr><th>test</th><th>test</th></tr><tr><td>test</td><td>test</td></tr></table>';
                 },
             },
-        };
+        } as unknown as ClipboardEvent;
 
         const markdownTable = '| test | test |\n| --- | --- |\n| test | test |';
 
-        wrapper.instance().pasteHandler(event);
+        (wrapper.instance() as AdvancedCreatePost).pasteHandler(event);
         expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
     });
 
@@ -1270,7 +1301,7 @@ describe('components/advanced_create_post', () => {
                 focus: jest.fn(),
             };
         };
-        wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
+        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
 
         const event = {
             target: {
@@ -1284,11 +1315,11 @@ describe('components/advanced_create_post', () => {
                     return '<table><tr><td>test</td><td>test</td></tr><tr><td>test</td><td>test</td></tr></table>';
                 },
             },
-        };
+        } as unknown as ClipboardEvent;
 
         const markdownTable = '| test | test |\n| --- | --- |\n| test | test |\n';
 
-        wrapper.instance().pasteHandler(event);
+        (wrapper.instance() as AdvancedCreatePost).pasteHandler(event);
         expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
     });
 
@@ -1300,7 +1331,7 @@ describe('components/advanced_create_post', () => {
                 focus: jest.fn(),
             };
         };
-        wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
+        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
 
         const event = {
             target: {
@@ -1314,11 +1345,11 @@ describe('components/advanced_create_post', () => {
                     return '<a href="https://test.domain">link text</a>';
                 },
             },
-        };
+        } as unknown as ClipboardEvent;
 
         const markdownLink = '[link text](https://test.domain)';
 
-        wrapper.instance().pasteHandler(event);
+        (wrapper.instance() as AdvancedCreatePost).pasteHandler(event);
         expect(execCommandInsertText).toHaveBeenCalledWith(markdownLink);
     });
 
@@ -1330,7 +1361,7 @@ describe('components/advanced_create_post', () => {
                 focus: jest.fn(),
             };
         };
-        wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
+        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
 
         const event = {
             target: {
@@ -1340,18 +1371,18 @@ describe('components/advanced_create_post', () => {
             clipboardData: {
                 items: [1],
                 types: ['text/plain', 'text/html'],
-                getData: (type) => {
+                getData: (type: string) => {
                     if (type === 'text/plain') {
                         return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
                     }
                     return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
                 },
             },
-        };
+        } as unknown as ClipboardEvent;
 
         const codeBlockMarkdown = "```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```";
 
-        wrapper.instance().pasteHandler(event);
+        (wrapper.instance() as AdvancedCreatePost).pasteHandler(event);
         expect(execCommandInsertText).toHaveBeenCalledWith(codeBlockMarkdown);
     });
 
@@ -1398,14 +1429,14 @@ describe('components/advanced_create_post', () => {
     // });
 
     testComponentForLineBreak(
-        (value) => advancedCreatePost({draft: {...draftProp, message: value}}),
-        (instance) => instance.state().message,
+        (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
+        (instance: any) => instance.state.message,
         false,
     );
 
     testComponentForMarkdownHotkeys(
-        (value) => advancedCreatePost({draft: {...draftProp, message: value}}),
-        (wrapper, setSelectionRangeFn) => {
+        (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
+        (wrapper: any, setSelectionRangeFn: any) => {
             wrapper.instance().textboxRef = {
                 current: {
                     getInputBox: jest.fn(() => {
@@ -1417,32 +1448,32 @@ describe('components/advanced_create_post', () => {
                 },
             };
         },
-        (instance) => instance.find(AdvanceTextEditor),
-        (instance) => instance.state().message,
+        (instance: any) => instance.find(AdvanceTextEditor),
+        (instance: any) => instance.state().message,
         false,
         'post_textbox',
     );
 
     it('should match snapshot, can post; preview enabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: true, isMarkdownPreviewEnabled: true}));
+        const wrapper = shallow(advancedCreatePost({canPost: true}));
 
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should match snapshot, can post; preview disabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: true, isMarkdownPreviewEnabled: false}));
+        const wrapper = shallow(advancedCreatePost({canPost: true}));
 
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should match snapshot, cannot post; preview enabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: false, isMarkdownPreviewEnabled: true}));
+        const wrapper = shallow(advancedCreatePost({canPost: false}));
 
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should match snapshot, cannot post; preview disabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: false, isMarkdownPreviewEnabled: false}));
+        const wrapper = shallow(advancedCreatePost({canPost: false}));
 
         expect(wrapper).toMatchSnapshot();
     });
@@ -1454,13 +1485,13 @@ describe('components/advanced_create_post', () => {
     });
 
     it('should match snapshot, post priority enabled, with priority important', () => {
-        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: true, draft: {...draftProp, metadata: {priority: {priority: 'important'}}}}));
+        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: true, draft: {...draftProp, metadata: {priority: {priority: PostPriority.IMPORTANT}}}}));
 
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should match snapshot, post priority disabled, with priority important', () => {
-        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: false, draft: {...draftProp, metadata: {priority: {priority: 'important'}}}}));
+        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: false, draft: {...draftProp, metadata: {priority: {priority: PostPriority.IMPORTANT}}}}));
 
         expect(wrapper).toMatchSnapshot();
     });

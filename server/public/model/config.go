@@ -1285,6 +1285,21 @@ func NewLogSettings() *LogSettings {
 	return settings
 }
 
+func (s *LogSettings) isValid() *AppError {
+	cfg := make(mlog.LoggerConfiguration)
+	err := json.Unmarshal(s.GetAdvancedLoggingConfig(), &cfg)
+	if err != nil {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	err = cfg.IsValid()
+	if err != nil {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
+}
+
 func (s *LogSettings) SetDefaults() {
 	if s.EnableConsole == nil {
 		s.EnableConsole = NewBool(true)
@@ -3543,6 +3558,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.DataRetentionSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.LogSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
