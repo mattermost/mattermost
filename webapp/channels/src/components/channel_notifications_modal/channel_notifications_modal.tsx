@@ -10,36 +10,15 @@ import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import AlertBanner from 'components/alert_banner';
-import CheckboxItemCreator from 'components/widgets/modals/components/checkbox-item-creator';
+import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 import ModalHeader from 'components/widgets/modals/components/modal_header';
-import RadioItemCreator from 'components/widgets/modals/components/radio-item-creator';
+import RadioSettingItem from 'components/widgets/modals/components/radio_setting_item';
 import SectionCreator from 'components/widgets/modals/components/section_creator';
 
 import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
 
-import type {
-    ChannelMemberNotifyProps} from './utils';
-import {
-    desktopNotificationInputFieldData,
-    DesktopNotificationsSectionDesc,
-    DesktopNotificationsSectionTitle,
-    IgnoreMentionsDesc,
-    IgnoreMentionsInputFieldData,
-    mobileNotificationInputFieldData,
-    MobileNotificationsSectionDesc,
-    MobileNotificationsSectionTitle,
-    MuteAndIgnoreSectionTitle,
-    MuteChannelDesc,
-    MuteChannelInputFieldData,
-    NotifyMeTitle,
-    DesktopReplyThreadsInputFieldData,
-    ThreadsReplyTitle,
-    MobileReplyThreadsInputFieldData,
-    AutoFollowThreadsTitle,
-    AutoFollowThreadsDesc,
-    AutoFollowThreadsInputFieldData,
-    sameMobileSettingsDesktopInputFieldData,
-} from './utils';
+import type {ChannelMemberNotifyProps} from './utils';
+import utils from './utils';
 
 import type {PropsFromRedux} from './index';
 
@@ -109,28 +88,23 @@ export default function ChannelNotificationsModal(props: Props) {
     const {formatMessage} = useIntl();
     const [show, setShow] = useState(true);
     const [serverError, setServerError] = useState('');
-    const [channelNotifyProps] = useState(props.channelMember && props.channelMember.notify_props);
-    const [mobileSettingsSameAsDesktop, setMobileSettingsSameAsDesktop] = useState<boolean>(getUseSameDesktopSetting(props.currentUser.notify_props, channelNotifyProps));
+    const [mobileSettingsSameAsDesktop, setMobileSettingsSameAsDesktop] = useState<boolean>(getUseSameDesktopSetting(props.currentUser.notify_props, props.channelMember?.notify_props));
 
-    const [settings, setSettings] = useState<SettingsType>(getStateFromNotifyProps(props.currentUser.notify_props, channelNotifyProps));
+    const [settings, setSettings] = useState<SettingsType>(getStateFromNotifyProps(props.currentUser.notify_props, props.channelMember?.notify_props));
 
     function handleHide() {
         setShow(false);
     }
 
-    function handleExit() {
-        props.onExited();
-    }
-
     const resetToDefault = useCallback((settingName: string) => {
         const defaultSettings = props.currentUser.notify_props;
         if (settingName === 'desktop') {
-            setSettings({...settings, desktop: defaultSettings.desktop, desktop_threads: defaultSettings.desktop_threads || settings.desktop_threads});
+            setSettings((prevSettings) => ({...prevSettings, desktop: defaultSettings.desktop, desktop_threads: defaultSettings.desktop_threads || settings.desktop_threads}));
         }
         if (settingName === 'push') {
-            setSettings({...settings, push: defaultSettings.desktop, push_threads: defaultSettings.push_threads || settings.push_threads});
+            setSettings((prevSettings) => ({...prevSettings, push: defaultSettings.desktop, push_threads: defaultSettings.push_threads || settings.push_threads}));
         }
-    }, [settings, props.currentUser]);
+    }, [props.currentUser]);
 
     const handleChange = useCallback((values: Record<string, string>) => {
         setSettings({...settings, ...values});
@@ -138,21 +112,21 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const handleMobileSettingsChange = useCallback(() => {
         setMobileSettingsSameAsDesktop(!mobileSettingsSameAsDesktop);
-        setSettings({...settings, push: settings.desktop, push_threads: settings.desktop_threads});
-    }, [mobileSettingsSameAsDesktop, settings]);
+        setSettings((prevSettings) => ({...prevSettings, push: settings.desktop, push_threads: settings.desktop_threads}));
+    }, [mobileSettingsSameAsDesktop]);
 
     const MuteIgnoreSectionContent = (
         <>
-            <CheckboxItemCreator
-                description={MuteChannelDesc}
+            <CheckboxSettingItem
+                description={utils.MuteChannelDesc}
                 inputFieldValue={settings.mark_unread === 'mention'}
-                inputFieldData={MuteChannelInputFieldData}
+                inputFieldData={utils.MuteChannelInputFieldData}
                 handleChange={(e) => handleChange({mark_unread: e ? 'mention' : 'all'})}
             />
-            <CheckboxItemCreator
-                description={IgnoreMentionsDesc}
+            <CheckboxSettingItem
+                description={utils.IgnoreMentionsDesc}
                 inputFieldValue={settings.ignore_channel_mentions === 'on'}
-                inputFieldData={IgnoreMentionsInputFieldData}
+                inputFieldData={utils.IgnoreMentionsInputFieldData}
                 handleChange={(e) => handleChange({ignore_channel_mentions: e ? 'on' : 'off'})}
             />
         </>
@@ -160,17 +134,17 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const DesktopNotificationsSectionContent = (
         <>
-            <RadioItemCreator
-                title={NotifyMeTitle}
+            <RadioSettingItem
+                title={utils.NotifyMeTitle}
                 inputFieldValue={settings.desktop}
-                inputFieldData={desktopNotificationInputFieldData(props.currentUser.notify_props.desktop)}
+                inputFieldData={utils.desktopNotificationInputFieldData(props.currentUser.notify_props.desktop)}
                 handleChange={(e) => handleChange({desktop: e.target.value})}
             />
             {props.collapsedReplyThreads && settings.desktop === 'mention' &&
-                <CheckboxItemCreator
-                    title={ThreadsReplyTitle}
+                <CheckboxSettingItem
+                    title={utils.ThreadsReplyTitle}
                     inputFieldValue={settings.desktop_threads === 'all'}
-                    inputFieldData={DesktopReplyThreadsInputFieldData}
+                    inputFieldData={utils.DesktopReplyThreadsInputFieldData}
                     handleChange={(e) => handleChange({desktop_threads: e ? 'all' : 'mention'})}
                 />}
         </>
@@ -178,24 +152,24 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const MobileNotificationsSectionContent = (
         <>
-            <CheckboxItemCreator
+            <CheckboxSettingItem
                 inputFieldValue={mobileSettingsSameAsDesktop}
-                inputFieldData={sameMobileSettingsDesktopInputFieldData}
+                inputFieldData={utils.sameMobileSettingsDesktopInputFieldData}
                 handleChange={() => handleMobileSettingsChange()}
             />
             {!mobileSettingsSameAsDesktop && (
                 <>
-                    <RadioItemCreator
-                        title={NotifyMeTitle}
+                    <RadioSettingItem
+                        title={utils.NotifyMeTitle}
                         inputFieldValue={settings.push}
-                        inputFieldData={mobileNotificationInputFieldData(props.currentUser.notify_props.push)}
+                        inputFieldData={utils.mobileNotificationInputFieldData(props.currentUser.notify_props.push)}
                         handleChange={(e) => handleChange({push: e.target.value})}
                     />
                     {props.collapsedReplyThreads && settings.push === 'mention' &&
-                    <CheckboxItemCreator
-                        title={ThreadsReplyTitle}
+                    <CheckboxSettingItem
+                        title={utils.ThreadsReplyTitle}
                         inputFieldValue={settings.push_threads === 'all'}
-                        inputFieldData={MobileReplyThreadsInputFieldData}
+                        inputFieldData={utils.MobileReplyThreadsInputFieldData}
                         handleChange={(e) => handleChange({push_threads: e ? 'all' : 'mention'})}
                     />}
                 </>
@@ -205,9 +179,9 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const AutoFollowThreadsSectionContent = (
         <>
-            <CheckboxItemCreator
+            <CheckboxSettingItem
                 inputFieldValue={settings.channel_auto_follow_threads === 'on'}
-                inputFieldData={AutoFollowThreadsInputFieldData}
+                inputFieldData={utils.AutoFollowThreadsInputFieldData}
                 handleChange={(e) => handleChange({channel_auto_follow_threads: e ? 'on' : 'off'})}
             />
         </>
@@ -259,15 +233,15 @@ export default function ChannelNotificationsModal(props: Props) {
         <>
             <div className='channel-notifications-settings-modal__divider'/>
             <SectionCreator
-                title={DesktopNotificationsSectionTitle}
-                description={DesktopNotificationsSectionDesc}
+                title={utils.DesktopNotificationsSectionTitle}
+                description={utils.DesktopNotificationsSectionDesc}
                 content={DesktopNotificationsSectionContent}
                 titleSuffix={resetToDefaultBtn('desktop')}
             />
             <div className='channel-notifications-settings-modal__divider'/>
             <SectionCreator
-                title={MobileNotificationsSectionTitle}
-                description={MobileNotificationsSectionDesc}
+                title={utils.MobileNotificationsSectionTitle}
+                description={utils.MobileNotificationsSectionDesc}
                 content={MobileNotificationsSectionContent}
                 titleSuffix={resetToDefaultBtn('push')}
             />
@@ -302,7 +276,7 @@ export default function ChannelNotificationsModal(props: Props) {
             dialogClassName='a11y__modal channel-notifications-settings-modal'
             show={show}
             onHide={handleHide}
-            onExited={handleExit}
+            onExited={props.onExited}
             role='dialog'
             aria-labelledby='channelNotificationModalLabel'
             style={{display: 'flex', placeItems: 'center'}}
@@ -318,7 +292,7 @@ export default function ChannelNotificationsModal(props: Props) {
             />
             <main className='channel-notifications-settings-modal__body'>
                 <SectionCreator
-                    title={MuteAndIgnoreSectionTitle}
+                    title={utils.MuteAndIgnoreSectionTitle}
                     content={MuteIgnoreSectionContent}
                 />
                 {settingsAndAlertBanner}
@@ -326,8 +300,8 @@ export default function ChannelNotificationsModal(props: Props) {
                     <>
                         <div className='channel-notifications-settings-modal__divider'/>
                         <SectionCreator
-                            title={AutoFollowThreadsTitle}
-                            description={AutoFollowThreadsDesc}
+                            title={utils.AutoFollowThreadsTitle}
+                            description={utils.AutoFollowThreadsDesc}
                             content={AutoFollowThreadsSectionContent}
                         />
                     </>

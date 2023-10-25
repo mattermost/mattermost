@@ -26,7 +26,7 @@ type Props = SectionItemProps & {
     inputFieldValue: string;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
-function RadioItemCreator({
+function RadioSettingItem({
     title,
     description,
     inputFieldData,
@@ -73,4 +73,4 @@ function RadioItemCreator({
     );
 }
 
-export default RadioItemCreator;
+export default RadioSettingItem;

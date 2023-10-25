@@ -2,137 +2,175 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
-import type {FieldsetCheckbox} from 'components/widgets/modals/components/checkbox-item-creator';
-import type {FieldsetRadio} from 'components/widgets/modals/components/radio-item-creator';
+import type {FieldsetCheckbox} from 'components/widgets/modals/components/checkbox_setting_item';
+import type {FieldsetRadio} from 'components/widgets/modals/components/radio_setting_item';
 
-import {t} from 'utils/i18n';
-
-import {NotificationLevels} from '../../utils/constants';
+import {NotificationLevels} from 'utils/constants';
 
 export type ChannelMemberNotifyProps = Partial<ChannelNotifyProps> & Pick<UserNotifyProps, 'desktop_threads' | 'push_threads'>
 
-export const MuteAndIgnoreSectionTitle = {
-    id: t('channel_notifications.muteAndIgnore'),
-    defaultMessage: 'Mute or ignore',
-};
+const translations = defineMessages({
+    MuteAndIgnoreSectionTitle: {
+        id: 'channel_notifications.muteAndIgnore',
+        defaultMessage: 'Mute or ignore',
+    },
+    NotifyMeTitle: {
+        id: 'channel_notifications.NotifyMeTitle',
+        defaultMessage: 'Notify me about…',
+    },
+    ThreadsReplyTitle: {
+        id: 'channel_notifications.ThreadsReplyTitle',
+        defaultMessage: 'Thread reply notifications',
+    },
 
-export const NotifyMeTitle = {
-    id: t('channel_notifications.NotifyMeTitle'),
-    defaultMessage: 'Notify me about…',
-};
+    DesktopNotificationsSectionTitle: {
+        id: 'channel_notifications.desktopNotificationsTitle',
+        defaultMessage: 'Desktop Notifications',
+    },
 
-export const ThreadsReplyTitle = {
-    id: t('channel_notifications.ThreadsReplyTitle'),
-    defaultMessage: 'Thread reply notifications',
-};
+    DesktopNotificationsSectionDesc: {
+        id: 'channel_notifications.desktopNotificationsDesc',
+        defaultMessage: 'Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.',
+    },
 
-export const DesktopNotificationsSectionTitle = {
-    id: t('channel_notifications.desktopNotificationsTitle'),
-    defaultMessage: 'Desktop Notifications',
-};
+    MobileNotificationsSectionTitle: {
+        id: 'channel_notifications.mobileNotificationsTitle',
+        defaultMessage: 'Mobile Notifications',
+    },
 
-export const DesktopNotificationsSectionDesc = {
-    id: t('channel_notifications.desktopNotificationsDesc'),
-    defaultMessage: 'Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.',
-};
+    MobileNotificationsSectionDesc: {
+        id: 'channel_notifications.mobileNotificationsDesc',
+        defaultMessage: 'Notification alerts are pushed to your mobile device when there is activity in Mattermost.',
+    },
 
-export const MobileNotificationsSectionTitle = {
-    id: t('channel_notifications.mobileNotificationsTitle'),
-    defaultMessage: 'Mobile Notifications',
-};
+    MuteChannelDesc: {
+        id: 'channel_notifications.muteChannelDesc',
+        defaultMessage: 'Turns off notifications for this channel. You’ll still see badges if you’re mentioned.',
+    },
 
-export const MobileNotificationsSectionDesc = {
-    id: t('channel_notifications.mobileNotificationsDesc'),
-    defaultMessage: 'Notification alerts are pushed to your mobile device when there is activity in Mattermost.',
-};
+    IgnoreMentionsDesc: {
+        id: 'channel_notifications.ignoreMentionsDesc',
+        defaultMessage: 'When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel',
+    },
 
-export const MuteChannelDesc = {
-    id: t('channel_notifications.muteChannelDesc'),
-    defaultMessage: 'Turns off notifications for this channel. You’ll still see badges if you’re mentioned.',
-};
-export const IgnoreMentionsDesc = {
-    id: t('channel_notifications.ignoreMentionsDesc'),
-    defaultMessage: 'When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel',
-};
-
-export const MuteChannelInputFieldData: FieldsetCheckbox = {
-    title: {
-        id: t('channel_notifications.muteChannelTitle'),
+    MuteChannelInputFieldTitle: {
+        id: 'channel_notifications.muteChannelTitle',
         defaultMessage: 'Mute channel',
     },
+
+    DesktopReplyThreadsInputFieldTitle: {
+        id: 'channel_notifications.checkbox.threadsReplyTitle',
+        defaultMessage: 'Notify me about replies to threads I\'m following',
+    },
+
+    MobileReplyThreadsInputFieldTitle: {
+        id: 'channel_notifications.checkbox.threadsReplyTitle',
+        defaultMessage: 'Notify me about replies to threads I\'m following',
+    },
+
+    sameMobileSettingsDesktopInputFieldTitle: {
+        id: 'channel_notifications.checkbox.sameMobileSettingsDesktop',
+        defaultMessage: 'Use the same notification settings as desktop',
+    },
+
+    IgnoreMentionsInputFieldTitle: {
+        id: 'channel_notifications.ignoreMentionsTitle',
+        defaultMessage: 'Ignore mentions for @channel, @here and @all',
+    },
+
+    AutoFollowThreadsTitle: {
+        id: 'channel_notifications.autoFollowThreadsTitle',
+        defaultMessage: 'Follow all threads in this channel',
+    },
+
+    AutoFollowThreadsDesc: {
+        id: 'channel_notifications.autoFollowThreadsDesc',
+        defaultMessage: 'When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.',
+    },
+
+    AutoFollowThreadsInputFieldTitle: {
+        id: 'channel_notifications.checkbox.autoFollowThreadsTitle',
+        defaultMessage: 'Automatically follow threads in this channel',
+    },
+});
+
+const desktopNotificationInputFieldOptions = defineMessages({
+    allNewMessages: {
+        id: 'channel_notifications.desktopNotificationAllLabel',
+        defaultMessage: 'All new messages',
+    },
+    mentions: {
+        id: 'channel_notifications.desktopNotificationMentionLabel',
+        defaultMessage: 'Mentions, direct messages, and keywords only',
+    },
+    nothing: {
+        id: 'channel_notifications.desktopNotificationNothingLabel',
+        defaultMessage: 'Nothing',
+    },
+});
+
+const mobileNotificationInputFieldOptions = defineMessages({
+    allNewMessages: {
+        id: 'channel_notifications.MobileNotificationAllLabel',
+        defaultMessage: 'All new messages',
+    },
+    mentions: {
+        id: 'channel_notifications.MobileNotificationMentionLabel',
+        defaultMessage: 'Mentions, direct messages, and keywords only',
+    },
+    nothing: {
+        id: 'channel_notifications.MobileNotificationNothingLabel',
+        defaultMessage: 'Nothing',
+    },
+});
+
+const MuteChannelInputFieldData: FieldsetCheckbox = {
+    title: translations.MuteChannelInputFieldTitle,
     name: 'mute channel',
     dataTestId: 'muteChannel',
 };
 
-export const DesktopReplyThreadsInputFieldData: FieldsetCheckbox = {
-    title: {
-        id: t('channel_notifications.checkbox.threadsReplyTitle'),
-        defaultMessage: 'Notify me about replies to threads I’m following',
-    },
+const DesktopReplyThreadsInputFieldData: FieldsetCheckbox = {
+    title: translations.DesktopReplyThreadsInputFieldTitle,
     name: 'desktop reply threads',
     dataTestId: 'desktopReplyThreads',
 };
 
-export const MobileReplyThreadsInputFieldData: FieldsetCheckbox = {
-    title: {
-        id: t('channel_notifications.checkbox.threadsReplyTitle'),
-        defaultMessage: 'Notify me about replies to threads I’m following',
-    },
+const MobileReplyThreadsInputFieldData: FieldsetCheckbox = {
+    title: translations.MobileReplyThreadsInputFieldTitle,
     name: 'mobile reply threads',
     dataTestId: 'mobileReplyThreads',
 };
 
-export const sameMobileSettingsDesktopInputFieldData: FieldsetCheckbox = {
-    title: {
-        id: t('channel_notifications.checkbox.sameMobileSettingsDesktop'),
-        defaultMessage: 'Use the same notification settings as desktop',
-    },
+const sameMobileSettingsDesktopInputFieldData: FieldsetCheckbox = {
+    title: translations.sameMobileSettingsDesktopInputFieldTitle,
     name: 'same mobile settings as Desktop',
     dataTestId: 'sameMobileSettingsDesktop',
 };
 
-export const IgnoreMentionsInputFieldData: FieldsetCheckbox = {
-    title: {
-        id: t('channel_notifications.ignoreMentionsTitle'),
-        defaultMessage: 'Ignore mentions for @channel, @here and @all',
-    },
+const IgnoreMentionsInputFieldData: FieldsetCheckbox = {
+    title: translations.IgnoreMentionsInputFieldTitle,
     name: 'ignore mentions',
     dataTestId: 'ignoreMentions',
 };
 
-export const AutoFollowThreadsTitle = {
-    id: t('channel_notifications.autoFollowThreadsTitle'),
-    defaultMessage: 'Follow all threads in this channel',
-};
-
-export const AutoFollowThreadsDesc = {
-    id: t('channel_notifications.autoFollowThreadsDesc'),
-    defaultMessage: 'When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.',
-};
-
-export const AutoFollowThreadsInputFieldData: FieldsetCheckbox = {
-    title: {
-        id: t('channel_notifications.checkbox.autoFollowThreadsTitle'),
-        defaultMessage: 'Automatically follow threads in this channel',
-    },
+const AutoFollowThreadsInputFieldData: FieldsetCheckbox = {
+    title: translations.AutoFollowThreadsInputFieldTitle,
     name: 'auto follow threads',
     dataTestId: 'autoFollowThreads',
 };
 
-export const desktopNotificationInputFieldData = (defaultOption: string): FieldsetRadio => {
+const desktopNotificationInputFieldData = (defaultOption: string): FieldsetRadio => {
     return {
         options: [
             {
                 dataTestId: `desktopNotification-${NotificationLevels.ALL}`,
-                title: {
-                    id: 'channel_notifications.desktopNotificationAllLabel',
-                    defaultMessage: 'All new messages',
-                },
+                title: desktopNotificationInputFieldOptions.allNewMessages,
                 name: `desktopNotification-${NotificationLevels.ALL}`,
                 key: `desktopNotification-${NotificationLevels.ALL}`,
                 value: NotificationLevels.ALL,
@@ -144,10 +182,7 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
             },
             {
                 dataTestId: `desktopNotification-${NotificationLevels.MENTION}`,
-                title: {
-                    id: 'channel_notifications.desktopNotificationMentionLabel',
-                    defaultMessage: 'Mentions, direct messages, and keywords only',
-                },
+                title: desktopNotificationInputFieldOptions.mentions,
                 name: `desktopNotification-${NotificationLevels.MENTION}`,
                 key: `desktopNotification-${NotificationLevels.MENTION}`,
                 value: NotificationLevels.MENTION,
@@ -159,10 +194,7 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
             },
             {
                 dataTestId: `desktopNotification-${NotificationLevels.NONE}`,
-                title: {
-                    id: 'channel_notifications.desktopNotificationNothingLabel',
-                    defaultMessage: 'Nothing',
-                },
+                title: desktopNotificationInputFieldOptions.nothing,
                 name: `desktopNotification-${NotificationLevels.NONE}`,
                 key: `desktopNotification-${NotificationLevels.NONE}`,
                 value: NotificationLevels.NONE,
@@ -176,15 +208,12 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
     };
 };
 
-export const mobileNotificationInputFieldData = (defaultOption: string): FieldsetRadio => {
+const mobileNotificationInputFieldData = (defaultOption: string): FieldsetRadio => {
     return {
         options: [
             {
                 dataTestId: `MobileNotification-${NotificationLevels.ALL}`,
-                title: {
-                    id: 'channel_notifications.MobileNotificationAllLabel',
-                    defaultMessage: 'All new messages',
-                },
+                title: mobileNotificationInputFieldOptions.allNewMessages,
                 name: `MobileNotification-${NotificationLevels.ALL}`,
                 key: `MobileNotification-${NotificationLevels.ALL}`,
                 value: NotificationLevels.ALL,
@@ -196,10 +225,7 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
             },
             {
                 dataTestId: `MobileNotification-${NotificationLevels.MENTION}`,
-                title: {
-                    id: 'channel_notifications.MobileNotificationMentionLabel',
-                    defaultMessage: 'Mentions, direct messages, and keywords only',
-                },
+                title: mobileNotificationInputFieldOptions.mentions,
                 name: `MobileNotification-${NotificationLevels.MENTION}`,
                 key: `MobileNotification-${NotificationLevels.MENTION}`,
                 value: NotificationLevels.MENTION,
@@ -211,10 +237,7 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
             },
             {
                 dataTestId: `MobileNotification-${NotificationLevels.NONE}`,
-                title: {
-                    id: 'channel_notifications.MobileNotificationNothingLabel',
-                    defaultMessage: 'Nothing',
-                },
+                title: mobileNotificationInputFieldOptions.nothing,
                 name: `MobileNotification-${NotificationLevels.NONE}`,
                 key: `MobileNotification-${NotificationLevels.NONE}`,
                 value: NotificationLevels.NONE,
@@ -228,3 +251,26 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
     };
 };
 
+const utils = {
+    desktopNotificationInputFieldData,
+    DesktopNotificationsSectionDesc: translations.DesktopNotificationsSectionDesc,
+    DesktopNotificationsSectionTitle: translations.DesktopNotificationsSectionTitle,
+    IgnoreMentionsDesc: translations.IgnoreMentionsDesc,
+    IgnoreMentionsInputFieldData,
+    mobileNotificationInputFieldData,
+    MobileNotificationsSectionDesc: translations.MobileNotificationsSectionDesc,
+    MobileNotificationsSectionTitle: translations.MobileNotificationsSectionTitle,
+    MuteAndIgnoreSectionTitle: translations.MuteAndIgnoreSectionTitle,
+    MuteChannelDesc: translations.MuteChannelDesc,
+    MuteChannelInputFieldData,
+    NotifyMeTitle: translations.NotifyMeTitle,
+    DesktopReplyThreadsInputFieldData,
+    ThreadsReplyTitle: translations.ThreadsReplyTitle,
+    MobileReplyThreadsInputFieldData,
+    AutoFollowThreadsTitle: translations.AutoFollowThreadsTitle,
+    AutoFollowThreadsDesc: translations.AutoFollowThreadsDesc,
+    AutoFollowThreadsInputFieldData,
+    sameMobileSettingsDesktopInputFieldData,
+};
+
+export default utils;

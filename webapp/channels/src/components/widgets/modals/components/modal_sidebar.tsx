@@ -1,10 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useLayoutEffect} from 'react';
-
-import * as UserAgent from 'utils/user_agent';
-
+import React, {useEffect} from 'react';
 import './modal_sidebar.scss';
 
 export type Tab = {
@@ -25,12 +22,6 @@ function ModalSidebar({tabs, activeTab, updateTab}: Props) {
         updateTab(tab.name);
         (e.target as Element).closest('.settings-modal')?.classList.add('display--content');
     };
-
-    useLayoutEffect(() => {
-        if (UserAgent.isFirefox()) {
-            document.querySelector('.settings-modal .settings-table .nav')?.classList.add('position--top');
-        }
-    });
 
     const tabList = tabs.map((tab) => {
         const key = `${tab.name}_li`;

@@ -21,7 +21,7 @@ type Props = SectionItemProps & {
     inputFieldValue: boolean;
     handleChange: (e: boolean) => void;
 }
-function CheckboxItemCreator({
+function CheckboxSettingItem({
     title,
     description,
     inputFieldData,
@@ -59,4 +59,4 @@ function CheckboxItemCreator({
     );
 }
 
-export default CheckboxItemCreator;
+export default CheckboxSettingItem;
