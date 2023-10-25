@@ -226,7 +226,6 @@
   "admin.billing.company_info.city": "Város",
   "admin.billing.company_info.companyAddress": "Vállalat címe",
   "admin.billing.company_info.companyName": "Vállalat neve",
-  "admin.billing.company_info.country": "Ország",
   "admin.billing.company_info.employees": "{employees} alkalmazottak",
   "admin.billing.company_info.numEmployees": "Alkalmazottak száma (nem kötelező)",
   "admin.billing.company_info.title": "Vállalat információ",
