@@ -233,7 +233,6 @@
   "admin.billing.company_info.city": "Thành phố",
   "admin.billing.company_info.companyAddress": "Địa chỉ công ty",
   "admin.billing.company_info.companyName": "Tên công ty",
-  "admin.billing.company_info.country": "Quốc gia",
   "admin.billing.company_info.employees": "{Nhân viên} nhân viên",
   "admin.billing.company_info.numEmployees": "Số lượng nhân viên (không bắt buộc)",
   "admin.billing.company_info.title": "Thông tin Công ty",

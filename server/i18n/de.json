@@ -9972,5 +9972,9 @@
   {
     "id": "model.config.is_valid.user_status_away_timeout.app_error",
     "translation": "Ungültiger Wert für den Benutzerstatus Abwesend Timeout. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Es ist nicht möglich, so viele Emojis nach Namen zu erhalten. Es können nur {{.MaxNames}} Emojis auf einmal angefordert werden."
   }
 ]

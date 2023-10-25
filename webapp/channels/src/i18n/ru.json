@@ -240,7 +240,6 @@
   "admin.billing.company_info.city": "Город",
   "admin.billing.company_info.companyAddress": "Адрес компании",
   "admin.billing.company_info.companyName": "Название компании",
-  "admin.billing.company_info.country": "Страна",
   "admin.billing.company_info.employees": "{employees} сотрудников",
   "admin.billing.company_info.numEmployees": "Количество сотрудников (необязательно)",
   "admin.billing.company_info.title": "Информация о компании",
