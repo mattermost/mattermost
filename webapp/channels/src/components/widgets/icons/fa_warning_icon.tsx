@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import {injectIntl, type IntlShape} from 'react-intl';
 
 type Props = {
-    additionalClassName?: string | null;
+    additionalClassName?: string;
     intl: IntlShape;
 }
 
