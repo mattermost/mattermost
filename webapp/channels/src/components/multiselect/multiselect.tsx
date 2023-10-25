@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage,injectIntl, type IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {getOptionValue} from 'react-select/src/builtins';
 import type {InputActionMeta} from 'react-select/src/types';
@@ -76,7 +76,7 @@ export type State = {
 
 const KeyCodes = Constants.KeyCodes;
 
-export default class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
+class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
     private listRef = React.createRef<MultiSelectList<T>>();
     private reactSelectRef = React.createRef<ReactSelect>();
     private selected: T | null = null;
@@ -571,3 +571,5 @@ const styles = {
         };
     },
 };
+
+export default injectIntl(MultiSelect);
