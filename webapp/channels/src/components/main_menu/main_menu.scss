@@ -1,0 +1,36 @@
+.MainMenu_dropdown-link {
+    display: flex;
+    padding: 0 8px;
+
+    &:hover {
+        background-color: rgba(63, 67, 80, 0.1);
+    }
+
+    >span {
+        display: flex;
+        width: 100%;
+        padding: 6px 10px;
+
+        a {
+            display: flex;
+            align-items: center;
+            color: var(--button-bg);
+            column-gap: 10px;
+
+            >i {
+                background-color: hsla(221, 77%, 48%, 0.08);
+                border-radius: 50%;
+            }
+
+            > span {
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 16px;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+}
