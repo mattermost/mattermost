@@ -6,7 +6,7 @@ import {injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 type Props = {
-    additionalClassName: string | null;
+    additionalClassName?: string | null;
     intl: IntlShape;
 }
 
