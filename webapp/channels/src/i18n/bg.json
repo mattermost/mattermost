@@ -214,7 +214,6 @@
   "admin.billing.company_info.city": "Град",
   "admin.billing.company_info.companyAddress": "Адрес на фирмата",
   "admin.billing.company_info.companyName": "Име на фирма",
-  "admin.billing.company_info.country": "Държава",
   "admin.billing.company_info.employees": "{employees} служители",
   "admin.billing.company_info.numEmployees": "Брой служители (незадължително)",
   "admin.billing.company_info.title": "Информация за компанията",

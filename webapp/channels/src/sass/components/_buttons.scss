@@ -179,6 +179,19 @@ button {
         }
     }
 
+    &.btn-link {
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: rgba(var(--button-bg-rgb), 1);
+
+        &:hover,
+        &:focus,
+        &:active {
+            text-decoration: underline;
+        }
+    }
+
     &.btn-primary {
         position: relative;
         border-color: transparent;

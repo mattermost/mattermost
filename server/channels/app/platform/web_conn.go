@@ -744,6 +744,13 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 	}
 
+	// There are two checks here which differentiates between what to send to an admin user and what to send to a normal user.
+	// For websocket events containing sensitive data, we split that to create two events:
+	// 1. We sanitize all fields, and set ContainsSanitizedData to true. This goes to normal users.
+	// 2. We don't sanitize, and set ContainsSensitiveData to true. This goes to admins.
+	// Setting both ContainsSanitizedData and ContainsSensitiveData for the same event is a bug, and in that case
+	// the event gets sent to no one. This is unit tested in TestWebConnShouldSendEvent.
+
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
