@@ -473,6 +473,7 @@
     }
 
     .header-status__text {
+        flex-shrink: 0;
         display: flex;
         overflow: hidden;
         align-items: center;
