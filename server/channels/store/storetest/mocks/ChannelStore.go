@@ -184,30 +184,30 @@ func (_m *ChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) er
 	return r0
 }
 
-// CountPostsAfter provides a mock function with given fields: channelID, timestamp, userID
-func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
-	ret := _m.Called(channelID, timestamp, userID)
+// CountPostsAfter provides a mock function with given fields: channelID, timestamp, excludedUserID
+func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error) {
+	ret := _m.Called(channelID, timestamp, excludedUserID)
 
 	var r0 int
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(string, int64, string) (int, int, error)); ok {
-		return rf(channelID, timestamp, userID)
+		return rf(channelID, timestamp, excludedUserID)
 	}
 	if rf, ok := ret.Get(0).(func(string, int64, string) int); ok {
-		r0 = rf(channelID, timestamp, userID)
+		r0 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int64, string) int); ok {
-		r1 = rf(channelID, timestamp, userID)
+		r1 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(string, int64, string) error); ok {
-		r2 = rf(channelID, timestamp, userID)
+		r2 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -215,23 +215,23 @@ func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userI
 	return r0, r1, r2
 }
 
-// CountUrgentPostsAfter provides a mock function with given fields: channelID, timestamp, userID
-func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, userID string) (int, error) {
-	ret := _m.Called(channelID, timestamp, userID)
+// CountUrgentPostsAfter provides a mock function with given fields: channelID, timestamp, excludedUserID
+func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error) {
+	ret := _m.Called(channelID, timestamp, excludedUserID)
 
 	var r0 int
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int64, string) (int, error)); ok {
-		return rf(channelID, timestamp, userID)
+		return rf(channelID, timestamp, excludedUserID)
 	}
 	if rf, ok := ret.Get(0).(func(string, int64, string) int); ok {
-		r0 = rf(channelID, timestamp, userID)
+		r0 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int64, string) error); ok {
-		r1 = rf(channelID, timestamp, userID)
+		r1 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r1 = ret.Error(1)
 	}
