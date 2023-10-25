@@ -29,7 +29,6 @@ type CustomMenuProps = {
     children?: React.ReactNode;
     onClose: () => void;
     rootCloseEvent?: 'click' | 'mousedown';
-    bsRole: string;
 }
 
 export const maxComponentsBeforeDropdown = 15;
@@ -67,7 +66,6 @@ type CustomToggleProps = {
     children?: React.ReactNode;
     dropdownOpen?: boolean;
     onClick?: (e: React.MouseEvent) => void;
-    bsRole: string;
 }
 
 class CustomToggle extends React.PureComponent<CustomToggleProps> {
@@ -325,7 +323,6 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                     open={this.state.dropdownOpen}
                 >
                     <CustomToggle
-                        bsRole='toggle'
                         dropdownOpen={this.state.dropdownOpen}
                     >
                         <WithTooltip
@@ -354,7 +351,6 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                         </WithTooltip>
                     </CustomToggle>
                     <CustomMenu
-                        bsRole='menu'
                         open={this.state.dropdownOpen}
                         onClose={this.onClose}
                     >
