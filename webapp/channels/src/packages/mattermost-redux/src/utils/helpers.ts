@@ -109,3 +109,15 @@ export function isEmail(email: string): boolean {
     // this prevents <Outlook Style> outlook.style@domain.com addresses and multiple comma-separated addresses from being accepted
     return (/^[^ ,@]+@[^ ,@]+$/).test(email);
 }
+
+export function getDataRetentionTimeInHours(days: number | undefined, hours: number | undefined): number | undefined {
+    if (hours && hours > 0) {
+        return hours;
+    }
+
+    if (days && days > 0) {
+        return days * 24;
+    }
+
+    return undefined;
+}

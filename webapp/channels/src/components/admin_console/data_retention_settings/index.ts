@@ -12,6 +12,7 @@ import {getDataRetentionCustomPolicies as fetchDataRetentionCustomPolicies, dele
 import {createJob, getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getDataRetentionCustomPolicies, getDataRetentionCustomPoliciesCount} from 'mattermost-redux/selectors/entities/admin';
 import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import {getDataRetentionTimeInHours} from 'mattermost-redux/utils/helpers';
 
 import type {GlobalState} from 'types/store';
 
@@ -28,10 +29,14 @@ type Actions = {
 function mapStateToProps(state: GlobalState) {
     const customPolicies = getDataRetentionCustomPolicies(state);
     const customPoliciesCount = getDataRetentionCustomPoliciesCount(state);
+    const globalMessageRetentionHours = getDataRetentionTimeInHours(state.entities.admin.config.DataRetentionSettings?.MessageRetentionDays, state.entities.admin.config.DataRetentionSettings?.MessageRetentionHours);
+    const globalFileRetentionHours = getDataRetentionTimeInHours(state.entities.admin.config.DataRetentionSettings?.MessageRetentionDays, state.entities.admin.config.DataRetentionSettings?.MessageRetentionHours);
 
     return {
         customPolicies,
         customPoliciesCount,
+        globalMessageRetentionHours,
+        globalFileRetentionHours,
     };
 }
 

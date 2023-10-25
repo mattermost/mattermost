@@ -37,6 +37,8 @@ type Props = {
     config: DeepPartial<AdminConfig>;
     customPolicies: DataRetentionCustomPolicies;
     customPoliciesCount: number;
+    globalMessageRetentionHours: number | undefined;
+    globalFileRetentionHours: number | undefined;
     actions: {
         getDataRetentionCustomPolicies: (page: number) => Promise<{ data: DataRetentionCustomPolicies }>;
         createJob: (job: JobTypeBase) => Promise<{ data: any }>;
@@ -230,12 +232,12 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 description: Utils.localizeMessage('admin.data_retention.form.text', 'Applies to all teams and channels, but does not apply to custom retention policies.'),
                 channel_messages: (
                     <div data-testid='global_message_retention_cell'>
-                        {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableMessageDeletion, DataRetentionSettings?.MessageRetentionHours)}
+                        {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableMessageDeletion, this.props.globalMessageRetentionHours)}
                     </div>
                 ),
                 files: (
                     <div data-testid='global_file_retention_cell'>
-                        {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionHours)}
+                        {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableFileDeletion, this.props.globalFileRetentionHours)}
                     </div>
                 ),
                 actions: (

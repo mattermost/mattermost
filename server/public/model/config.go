@@ -205,7 +205,9 @@ const (
 	BleveSettingsDefaultBatchSize = 10000
 
 	DataRetentionSettingsDefaultMessageRetentionDays           = 365
+	DataRetentionSettingsDefaultMessageRetentionHours          = 0
 	DataRetentionSettingsDefaultFileRetentionDays              = 365
+	DataRetentionSettingsDefaultFileRetentionHours             = 0
 	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
 	DataRetentionSettingsDefaultBatchSize                      = 3000
@@ -2895,11 +2897,7 @@ func (s *DataRetentionSettings) SetDefaults() {
 	}
 
 	if s.MessageRetentionHours == nil {
-		if s.MessageRetentionDays != nil {
-			s.MessageRetentionHours = NewInt(*s.MessageRetentionDays * 24)
-		} else {
-			s.MessageRetentionHours = NewInt(DataRetentionSettingsDefaultMessageRetentionDays * 24)
-		}
+		s.MessageRetentionHours = NewInt(DataRetentionSettingsDefaultMessageRetentionHours)
 	}
 
 	if s.FileRetentionDays == nil {
@@ -2907,11 +2905,7 @@ func (s *DataRetentionSettings) SetDefaults() {
 	}
 
 	if s.FileRetentionHours == nil {
-		if s.FileRetentionDays != nil {
-			s.FileRetentionHours = NewInt(*s.FileRetentionDays * 24)
-		} else {
-			s.FileRetentionHours = NewInt(DataRetentionSettingsDefaultFileRetentionDays * 24)
-		}
+		s.FileRetentionHours = NewInt(DataRetentionSettingsDefaultFileRetentionHours)
 	}
 
 	if s.BoardsRetentionDays == nil {
@@ -2932,6 +2926,30 @@ func (s *DataRetentionSettings) SetDefaults() {
 	if s.RetentionIdsBatchSize == nil {
 		s.RetentionIdsBatchSize = NewInt(DataRetentionSettingsDefaultRetentionIdsBatchSize)
 	}
+}
+
+// GetMessageRetentionTime returns the message retention time as an int.
+// MessageRetentionHours takes precedence over the deprecated MessageRetentionDays.
+func (s *DataRetentionSettings) GetMessageRetentionTime() int {
+	if s.MessageRetentionHours != nil && *s.MessageRetentionHours > 0 {
+		return *s.MessageRetentionHours
+	}
+	if s.MessageRetentionDays != nil {
+		return *s.MessageRetentionDays * 24
+	}
+	return DataRetentionSettingsDefaultMessageRetentionDays * 24
+}
+
+// GetFileRetentionTime returns the message retention time as an int.
+// MessageRetentionHours takes precedence over the deprecated MessageRetentionDays.
+func (s *DataRetentionSettings) GetFileRetentionTime() int {
+	if s.FileRetentionHours != nil && *s.FileRetentionHours > 0 {
+		return *s.FileRetentionHours
+	}
+	if s.FileRetentionDays != nil {
+		return *s.FileRetentionDays * 24
+	}
+	return DataRetentionSettingsDefaultFileRetentionDays * 24
 }
 
 type JobSettings struct {
@@ -4051,7 +4069,7 @@ func (s *DataRetentionSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.MessageRetentionHours <= 0 {
+	if s.MessageRetentionHours != nil && *s.MessageRetentionHours < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -4059,7 +4077,7 @@ func (s *DataRetentionSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.FileRetentionHours <= 0 {
+	if s.FileRetentionHours != nil && *s.FileRetentionHours < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 

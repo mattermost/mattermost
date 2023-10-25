@@ -26,6 +26,8 @@ type ValueType = {
 }
 type Props = {
     config: DeepPartial<AdminConfig>;
+    messageRetentionHours: number | undefined;
+    fileRetentionHours: number | undefined;
     actions: {
         updateConfig: (config: Record<string, any>) => Promise<{ data?: AdminConfig; error?: ServerError }>;
         setNavigationBlocked: (blocked: boolean) => void;
@@ -51,10 +53,10 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
             saving: false,
             serverError: null,
             formErrorText: '',
-            messageRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableMessageDeletion, DataRetentionSettings?.MessageRetentionHours),
-            messageRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableMessageDeletion, DataRetentionSettings?.MessageRetentionHours),
-            fileRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionHours),
-            fileRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionHours),
+            messageRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableMessageDeletion, props.messageRetentionHours),
+            messageRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableMessageDeletion, props.messageRetentionHours),
+            fileRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableFileDeletion, props.fileRetentionHours),
+            fileRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableFileDeletion, props.fileRetentionHours),
         };
     }
 
