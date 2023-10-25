@@ -10,22 +10,22 @@ import {t} from 'utils/i18n';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
-type Props = {
+interface Props extends WrappedComponentProps {
     logs: string[];
     page: number;
     perPage: number;
     nextPage: () => void;
     previousPage: () => void;
-};
+}
 
 type State = {
     nextDisabled: boolean;
 };
 
-class PlainLogList extends React.PureComponent<Props & WrappedComponentProps, State> {
+class PlainLogList extends React.PureComponent<Props, State> {
     private logPanel: React.RefObject<HTMLDivElement>;
 
-    constructor(props: Props & WrappedComponentProps) {
+    constructor(props: Props) {
         super(props);
 
         this.logPanel = React.createRef();
@@ -70,7 +70,6 @@ class PlainLogList extends React.PureComponent<Props & WrappedComponentProps, St
         let content = null;
         let nextButton;
         let previousButton;
-        const {formatMessage} = this.props.intl;
 
         if (this.props.logs.length >= this.props.perPage) {
             nextButton = (
@@ -98,7 +97,7 @@ class PlainLogList extends React.PureComponent<Props & WrappedComponentProps, St
                 >
                     <i
                         className='fa fa-angle-left'
-                        title={formatMessage({id: t('generic_icons.previous'), defaultMessage: 'Previous Icon'})}
+                        title={this.props.intl.formatMessage({id: t('generic_icons.previous'), defaultMessage: 'Previous Icon'})}
                     />
                     <FormattedMessage
                         id='admin.logs.prev'
