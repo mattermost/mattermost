@@ -24,6 +24,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
+// Regex to get quoted strings
+var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
+
 type SqlPostStore struct {
 	*SqlStore
 	metrics           einterfaces.MetricsInterface
@@ -2029,9 +2032,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
 
-		// Regex to get quoted strings
-		quotedStringsReg := regexp.MustCompile(`("[^"]*")`)
-
 		// Replace spaces with to_tsquery symbols
 		replaceSpaces := func(input string, excludedInput bool) string {
 			if input == "" {
@@ -2042,7 +2042,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			input = strings.Join(strings.Fields(input), " ")
 
 			// Replace spaces within quoted strings with '<->'
-			input = quotedStringsReg.ReplaceAllStringFunc(input, func(match string) string {
+			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
 				return strings.Replace(match, " ", "<->", -1)
 			})
 
