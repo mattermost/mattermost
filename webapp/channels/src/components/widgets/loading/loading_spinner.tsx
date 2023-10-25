@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import {ReactNode, CSSProperties, PureComponent} from 'react';
+import {injectIntl, type IntlShape} from 'react-intl';
 
 type Props = {
-    text?: React.ReactNode;
-    style?: React.CSSProperties;
+    text?: ReactNode;
+    style?: CSSProperties;
     intl: IntlShape;
 }
-class LoadingSpinner extends React.PureComponent<Props> {
+class LoadingSpinner extends PureComponent<Props> {
     public static defaultProps: Partial<Props> = {
         text: null,
     };
