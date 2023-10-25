@@ -4,7 +4,8 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {OAuthApp} from '@mattermost/types/integrations';
@@ -15,14 +16,12 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import AccessHistoryModal from 'components/access_history_modal';
 import ActivityLogModal from 'components/activity_log_modal';
 import ExternalLink from 'components/external_link';
-import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ToggleModalButton from 'components/toggle_modal_button';
 
 import icon50 from 'images/icon50x50.png';
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import MfaSection from './mfa_section';
@@ -65,6 +64,7 @@ type Props = {
     passwordConfig: ReturnType<typeof Utils.getPasswordConfig>;
     militaryTime: boolean;
     actions: Actions;
+    intl: IntlShape;
 };
 
 type State = {
@@ -78,7 +78,7 @@ type State = {
     authorizedApps: OAuthApp[];
 };
 
-export default class SecurityTab extends React.PureComponent<Props, State> {
+export class SecurityTab extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = this.getDefaultState();
@@ -1003,9 +1003,9 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                         className='modal-title'
                     >
                         <div className='modal-back'>
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-angle-left'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
+                                title={this.props.intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                                 onClick={this.props.collapseModal}
                             />
                         </div>
@@ -1044,9 +1044,9 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                         dialogType={AccessHistoryModal}
                         id='viewAccessHistory'
                     >
-                        <LocalizedIcon
+                        <i
                             className='fa fa-clock-o'
-                            title={{id: t('user.settings.security.viewHistory.icon'), defaultMessage: 'Access History Icon'}}
+                            title={this.props.intl.formatMessage({id: 'user.settings.security.viewHistory.icon', defaultMessage: 'Access History Icon'})}
                         />
                         <FormattedMessage
                             id='user.settings.security.viewHistory'
@@ -1059,9 +1059,9 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                         dialogType={ActivityLogModal}
                         id='viewAndLogOutOfActiveSessions'
                     >
-                        <LocalizedIcon
+                        <i
                             className='fa fa-clock-o'
-                            title={{id: t('user.settings.security.logoutActiveSessions.icon'), defaultMessage: 'Active Sessions Icon'}}
+                            title={this.props.intl.formatMessage({id: 'user.settings.security.logoutActiveSessions.icon', defaultMessage: 'Active Sessions Icon'})}
                         />
                         <FormattedMessage
                             id='user.settings.security.logoutActiveSessions'
@@ -1073,3 +1073,5 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SecurityTab);
