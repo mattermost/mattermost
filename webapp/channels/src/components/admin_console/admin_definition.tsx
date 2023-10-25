@@ -74,7 +74,7 @@ import FeatureFlags from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import LicenseSettings from './license_settings';
-import MessageExportSettings from './message_export_settings.jsx';
+import MessageExportSettings from './message_export_settings';
 import OpenIdConvert from './openid_convert';
 import PasswordSettings from './password_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';
@@ -200,7 +200,7 @@ export const it = {
         }
         return false;
     },
-    stateMatches: (key: string, regex: RegExp) => (config: DeepPartial<AdminConfig>, state: any) => state[key].toString().match(regex),
+    stateMatches: (key: string, regex: RegExp) => (config: DeepPartial<AdminConfig>, state: any) => state[key].match(regex),
     stateEquals: (key: string, value: any) => (config: DeepPartial<AdminConfig>, state: any) => state[key] === value,
     stateIsTrue: (key: string) => (config: DeepPartial<AdminConfig>, state: any) => Boolean(state[key]),
     stateIsFalse: (key: string) => (config: DeepPartial<AdminConfig>, state: any) => !state[key],
