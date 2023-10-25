@@ -22,11 +22,33 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         enableAutoResponder: false,
         isCallsRingingEnabled: true,
         intl: {} as IntlShape,
+        isStarterFree: false,
+        isEnterpriseReady: true,
     };
 
     test('should match snapshot', () => {
         const wrapper = renderWithFullContext(
             <UserSettingsNotifications {...defaultProps}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot when isStarterFree is true', () => {
+        const props = {...defaultProps, isStarterFree: true};
+
+        const wrapper = renderWithFullContext(
+            <UserSettingsNotifications {...props}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot when its team edition', () => {
+        const props = {...defaultProps, isEnterpriseReady: false};
+
+        const wrapper = renderWithFullContext(
+            <UserSettingsNotifications {...props}/>,
         );
 
         expect(wrapper).toMatchSnapshot();

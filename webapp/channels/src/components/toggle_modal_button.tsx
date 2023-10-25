@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ComponentType, MouseEvent, ReactNode} from 'react';
+import React, {type ComponentType, type MouseEvent, type ReactNode} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
-import type {ModalData} from 'types/actions';
+import {openModal} from 'actions/views/modals';
 
 type Props = {
     ariaLabel?: string;
@@ -19,13 +19,24 @@ type Props = {
     disabled?: boolean;
     id?: string;
     role?: string;
-    actions: {
-        openModal: <P>(modalData: ModalData<P>) => void;
-    };
 };
 
-const ToggleModalButton = ({ariaLabel, children, modalId, dialogType, dialogProps = {}, onClick, className = '', showUnread, disabled, id, actions, role}: Props) => {
+const ToggleModalButton = ({
+    ariaLabel,
+    children,
+    modalId,
+    dialogType,
+    dialogProps = {},
+    onClick,
+    className = '',
+    showUnread,
+    disabled,
+    id,
+    role,
+}: Props) => {
     const intl = useIntl();
+
+    const dispatch = useDispatch();
 
     const show = (e: MouseEvent<HTMLButtonElement>) => {
         if (e) {
@@ -38,7 +49,7 @@ const ToggleModalButton = ({ariaLabel, children, modalId, dialogType, dialogProp
             dialogType,
         };
 
-        actions.openModal(modalData);
+        dispatch(openModal(modalData));
     };
 
     const ariaLabelElement = ariaLabel ? intl.formatMessage({

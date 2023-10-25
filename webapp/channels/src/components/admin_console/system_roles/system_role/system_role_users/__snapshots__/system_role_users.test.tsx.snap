@@ -3,7 +3,7 @@
 exports[`admin_console/system_role_users should match snapshot 1`] = `
 <AdminPanel
   button={
-    <Memo(Connect(ToggleModalButton))
+    <ToggleModalButton
       className="btn btn-primary"
       dialogProps={
         Object {
@@ -121,7 +121,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
         defaultMessage="Add People"
         id="admin.permissions.system_role_users.add_people"
       />
-    </Memo(Connect(ToggleModalButton))>
+    </ToggleModalButton>
   }
   className=""
   id="SystemRoleUsers"
@@ -365,7 +365,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
 exports[`admin_console/system_role_users should match snapshot with readOnly true 1`] = `
 <AdminPanel
   button={
-    <Memo(Connect(ToggleModalButton))
+    <ToggleModalButton
       className="btn btn-primary"
       dialogProps={
         Object {
@@ -483,7 +483,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
         defaultMessage="Add People"
         id="admin.permissions.system_role_users.add_people"
       />
-    </Memo(Connect(ToggleModalButton))>
+    </ToggleModalButton>
   }
   className=""
   id="SystemRoleUsers"
