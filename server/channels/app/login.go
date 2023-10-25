@@ -216,6 +216,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	w.Header().Set(model.HeaderToken, session.Token)
 
 	c.SetSession(session)
+	a.Srv().Store().User().UpdateLastLogin(user.Id, session.CreateAt)
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		userVal := *user
 		sessionVal := *session

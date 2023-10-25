@@ -95,6 +95,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
+	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -6168,4 +6169,15 @@ func testGetUsersWithInvalidEmails(t *testing.T, ss store.Store) {
 	users, err := ss.User().GetUsersWithInvalidEmails(0, 50, "localhost,simulator.amazonses.com")
 	require.NoError(t, err)
 	assert.Len(t, users, 1)
+}
+
+func testUpdateLastLogin(t *testing.T, ss store.Store) {
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	_, err := ss.User().Save(&u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	err = ss.User().UpdateLastLogin(u1.Id, 1234567890)
+	require.NoError(t, err)
 }
