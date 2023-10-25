@@ -222,18 +222,13 @@ func (ps *PlatformService) ExtendSessionExpiry(session *model.Session, newExpiry
 	return nil
 }
 
-func (ps *PlatformService) UpdateSessionsIsGuest(c *request.Context, userID string, isGuest bool) error {
-	sessions, err := ps.GetSessions(c, userID)
+func (ps *PlatformService) UpdateSessionsIsGuest(c *request.Context, user *model.User, isGuest bool) error {
+	sessions, err := ps.GetSessions(c, user.Id)
 	if err != nil {
 		return err
 	}
 
-	user, err := ps.Store.User().Get(c.Context(), userID)
-	if err != nil {
-		return err
-	}
-	roles := user.GetRawRoles()
-	_, err = ps.Store.Session().UpdateRoles(userID, roles)
+	_, err = ps.Store.Session().UpdateRoles(user.Id, user.GetRawRoles())
 	if err != nil {
 		mlog.Warn("Unable to update isGuest session roles", mlog.Err(err))
 	}

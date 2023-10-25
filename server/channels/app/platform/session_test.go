@@ -153,7 +153,7 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, model.SystemGuestRoleId, demotedUser.Roles)
 
-		err = th.Service.UpdateSessionsIsGuest(th.Context, session.UserId, true)
+		err = th.Service.UpdateSessionsIsGuest(th.Context, demotedUser, true)
 		require.NoError(t, err)
 
 		session, err = th.Service.GetSession(th.Context, session.Id)
@@ -177,7 +177,9 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 		err := th.Service.Store.User().PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
 
-		err = th.Service.UpdateSessionsIsGuest(th.Context, session.UserId, false)
+		promotedUser, err := th.Service.Store.User().Get(th.Context.Context(), user.Id)
+		require.NoError(t, err)
+		err = th.Service.UpdateSessionsIsGuest(th.Context, promotedUser, false)
 		require.NoError(t, err)
 
 		session, err = th.Service.GetSession(th.Context, session.Id)

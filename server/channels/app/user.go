@@ -2322,7 +2322,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		c.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
 		a.sendUpdatedUserEvent(*promotedUser)
-		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
+		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, promotedUser, promotedUser.IsGuest()); uErr != nil {
 			c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
 	}
@@ -2367,7 +2367,7 @@ func (a *App) DemoteUserToGuest(c *request.Context, user *model.User) *model.App
 	}
 
 	a.sendUpdatedUserEvent(*demotedUser)
-	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
+	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, demotedUser, demotedUser.IsGuest()); uErr != nil {
 		c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 
