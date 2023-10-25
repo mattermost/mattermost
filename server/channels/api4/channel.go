@@ -1730,10 +1730,10 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	canAddSelf := false
 	canAddOthers := false
 	if channel.Type == model.ChannelTypeOpen {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels) {
+		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels) {
 			canAddSelf = true
 		}
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePublicChannelMembers) {
+		if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePublicChannelMembers) {
 			canAddOthers = true
 		}
 	}
@@ -1781,14 +1781,17 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			UserId:    userId,
 		}
 
-		if _, err = c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); err != nil {
+		existingMember, err := c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId)
+		if err != nil {
 			if err.Id != app.MissingChannelMemberError {
 				c.Logger.Warn("Error adding channel member, error getting channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
 				lastError = err
 				continue
 			}
+		} else {
 			// user is already a member, go to next
 			c.Logger.Warn("Error adding channel member, user already a channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+			newChannelMembers = append(newChannelMembers, *existingMember)
 			continue
 		}
 

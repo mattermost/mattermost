@@ -3271,7 +3271,7 @@ func TestAddChannelMembers(t *testing.T) {
 
 	cm, _, err = client.AddChannelMembers(context.Background(), privateChannel.Id, []string{user.Id, user2.Id, user3.Id})
 	require.NoError(t, err)
-	require.Equal(t, publicChannel.Id, cm[0].ChannelId, "should have returned exact channel")
+	require.Equal(t, privateChannel.Id, cm[0].ChannelId, "should have returned exact channel")
 	require.Equal(t, user.Id, cm[0].UserId, "should have returned exact user added to public channel")
 	require.Equal(t, user2.Id, cm[1].UserId, "should have returned exact user added to public channel")
 	require.Equal(t, user3.Id, cm[2].UserId, "should have returned exact user added to public channel")
