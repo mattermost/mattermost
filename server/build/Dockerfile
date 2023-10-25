@@ -40,8 +40,11 @@ HEALTHCHECK --interval=30s --timeout=10s \
 
 # Configure entrypoint and command
 COPY --chown=mattermost:mattermost --chmod=765 entrypoint.sh /
+
 ENTRYPOINT ["/entrypoint.sh"]
+
 WORKDIR /mattermost
+
 CMD ["mattermost"]
 
 EXPOSE 8065 8067 8074 8075
