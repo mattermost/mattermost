@@ -117,7 +117,7 @@ jest.mock('mattermost-redux/actions/channels', () => ({
             }],
         };
     },
-    addChannelMember: (...args: any) => ({type: 'MOCK_ADD_CHANNEL_MEMBER', args}),
+    addChannelMembers: (...args: any) => ({type: 'MOCK_ADD_CHANNEL_MEMBERS', args}),
     createDirectChannel: (...args: any) => ({type: 'MOCK_CREATE_DIRECT_CHANNEL', args}),
     createGroupChannel: (...args: any) => ({type: 'MOCK_CREATE_GROUP_CHANNEL', args}),
 }));
@@ -164,11 +164,8 @@ describe('Actions.Channel', () => {
         const testStore = await mockStore(initialState);
 
         const expectedActions = [{
-            type: 'MOCK_ADD_CHANNEL_MEMBER',
-            args: ['testid', 'testuserid'],
-        }, {
-            type: 'MOCK_ADD_CHANNEL_MEMBER',
-            args: ['testid', 'testuserid2'],
+            type: 'MOCK_ADD_CHANNEL_MEMBERS',
+            args: ['testid', ['testuserid', 'testuserid2']],
         }];
 
         const fakeData = {
