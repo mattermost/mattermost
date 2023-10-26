@@ -7,7 +7,6 @@ import (
 	b64 "encoding/base64"
 	"html"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -72,10 +71,6 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-
-	if os.Getenv("MM_DEBUG_SAML_EU") == "true" {
-		mlog.Debug("[SAML EU Debug] BEFORE REDIRECT - URL: " + data.URL)
-	}
 
 	http.Redirect(w, r, data.URL, http.StatusFound)
 }
