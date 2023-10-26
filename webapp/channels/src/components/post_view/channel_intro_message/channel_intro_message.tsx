@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
+import {FormattedDate, FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import {BellRingOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -16,7 +16,6 @@ import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import LocalizedIcon from 'components/localized_icon';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import ProfilePicture from 'components/profile_picture';
@@ -25,7 +24,7 @@ import UserProfile from 'components/user_profile';
 import EditIcon from 'components/widgets/icons/fa_edit_icon';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {getMonthLong, t} from 'utils/i18n';
+import {getMonthLong} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import AddMembersButton from './add_members_button';
@@ -325,6 +324,7 @@ export function createDefaultIntroMessage(
     isReadOnly?: boolean,
     teamIsGroupConstrained?: boolean,
 ) {
+    const {formatMessage} = useIntl();
     let teamInviteLink = null;
     const totalUsers = stats.total_users_count;
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
@@ -373,9 +373,9 @@ export function createDefaultIntroMessage(
                         dialogType={AddGroupsToTeamModal}
                         dialogProps={{channel}}
                     >
-                        <LocalizedIcon
+                        <i
                             className='fa fa-user-plus'
-                            title={{id: t('generic_icons.add'), defaultMessage: 'Add Icon'}}
+                            title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
                         />
                         <FormattedMessage
                             id='intro_messages.addGroupsToTeam'
