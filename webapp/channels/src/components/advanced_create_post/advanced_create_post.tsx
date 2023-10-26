@@ -86,7 +86,7 @@ function isDraftEmpty(draft: PostDraft): boolean {
 
 type TextboxElement = HTMLInputElement | HTMLTextAreaElement;
 
-type Props = {
+export type Props = {
 
     // ref passed from channelView for EmojiPickerOverlay
     getChannelView?: () => void;
