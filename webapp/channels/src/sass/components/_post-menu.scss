@@ -79,7 +79,7 @@
         &.post--hovered,
         &.a11y--active {
             .post-menu {
-                border-color: rgba(v(center-channel-color-rgb), 0.08);
+                border-color: rgba(var(--center-channel-color-rgb), 0.2);
                 background-color: v(center-channel-bg);
                 box-shadow: $elevation-1;
             }
