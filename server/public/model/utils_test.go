@@ -948,52 +948,6 @@ func TestSanitizeUnicode(t *testing.T) {
 	}
 }
 
-func TestIsValidURI(t *testing.T) {
-	cases := []struct {
-		Description string
-		Input       string
-		Valid       bool
-	}{
-		{
-			Description: "empty string",
-			Input:       "",
-			Valid:       false,
-		},
-		{
-			Description: "random string",
-			Input:       "random",
-			Valid:       false,
-		},
-		{
-			Description: "valid URL",
-			Input:       "http://mattermost.com",
-			Valid:       true,
-		},
-		{
-			Description: "valid URN",
-			Input:       "urn:ec.mattermost.com:mmlogin:saml",
-			Valid:       true,
-		},
-		{
-			Description: "valid ldap URI",
-			Input:       "ldap://idp.matermost.com/o=Example,c=US",
-			Valid:       true,
-		},
-	}
-
-	for _, testCase := range cases {
-		testCase := testCase
-		t.Run(testCase.Description, func(t *testing.T) {
-			t.Parallel()
-			if testCase.Valid {
-				require.NoError(t, IsValidURI(testCase.Input))
-				return
-			}
-			require.Error(t, IsValidURI(testCase.Input))
-		})
-	}
-}
-
 func TestIsValidChannelIdentifier(t *testing.T) {
 	cases := []struct {
 		Description string

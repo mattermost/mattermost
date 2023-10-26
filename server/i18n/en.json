@@ -8793,7 +8793,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URI."
+    "translation": "Identity Provider Issuer URL cannot be an empty string."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
