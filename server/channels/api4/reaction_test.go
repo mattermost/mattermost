@@ -574,7 +574,6 @@ func TestGetBulkReactions(t *testing.T) {
 		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post4.Id], postIdsReactionsMap[post4.Id])
 		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post5.Id], postIdsReactionsMap[post5.Id])
 		assert.Equal(t, expectedPostIdsReactionsMap, postIdsReactionsMap)
-
 	})
 
 	t.Run("get-reactions-as-anonymous-user", func(t *testing.T) {

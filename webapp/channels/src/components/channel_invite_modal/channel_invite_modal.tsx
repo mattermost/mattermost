@@ -95,8 +95,8 @@ const UsernameSpan = styled.span`
 `;
 
 const UserMappingSpan = styled.span`
-    position: 'absolute';
-    right: 20;
+    position: absolute;
+    right: 20px;
 `;
 
 export default class ChannelInviteModal extends React.PureComponent<Props, State> {
@@ -529,7 +529,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 valueWithImage={true}
                 backButtonText={localizeMessage('multiselect.cancel', 'Cancel')}
                 backButtonClick={closeMembersInviteModal}
-                backButtonClass={'btn-cancel tertiary-button'}
+                backButtonClass={'btn-tertiary tertiary-button'}
                 customNoOptionsMessage={this.props.emailInvitationsEnabled ? customNoOptionsMessage : null}
             />
         );

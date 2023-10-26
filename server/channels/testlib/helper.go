@@ -61,6 +61,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	// Unset environment variables commonly set for development that interfere with tests.
 	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
+	os.Unsetenv("MM_SERVICESETTINGS_CONNECTIONSECURITY")
 	os.Unsetenv("MM_SERVICESETTINGS_ENABLEDEVELOPER")
 
 	var mainHelper MainHelper

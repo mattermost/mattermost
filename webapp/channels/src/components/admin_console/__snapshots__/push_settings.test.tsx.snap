@@ -16,10 +16,9 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
       />
     </AdminHeader>
     <SettingsGroup>
-      <DropdownSetting
+      <Memo(DropdownSetting)
         helpText={null}
         id="pushNotificationServerType"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Enable Push Notifications: "
@@ -50,9 +49,8 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
           ]
         }
       />
-      <DropdownSetting
+      <Memo(DropdownSetting)
         id="pushNotificationServerLocation"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Push Notification Server location:"
@@ -153,7 +151,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -208,10 +206,9 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
       />
     </AdminHeader>
     <SettingsGroup>
-      <DropdownSetting
+      <Memo(DropdownSetting)
         helpText={null}
         id="pushNotificationServerType"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Enable Push Notifications: "
@@ -288,7 +285,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

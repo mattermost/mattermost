@@ -9,12 +9,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   >
     <div>
       <button
-        className="btn btn-default"
+        className="btn btn-tertiary"
         disabled={false}
         onClick={[Function]}
         type="button"
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
           text="Loading..."
         >
@@ -22,7 +22,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
             defaultMessage="Button Text"
             id="test2"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     </div>
     <div
@@ -92,12 +92,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
         >
-          <LoadingWrapper
+          <Memo(LoadingWrapper)
             loading={false}
             text="Loading..."
           >
@@ -109,7 +109,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                 Button Text
               </span>
             </FormattedMessage>
-          </LoadingWrapper>
+          </Memo(LoadingWrapper)>
         </button>
         <div>
           <div
@@ -229,12 +229,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
         >
-          <LoadingWrapper
+          <Memo(LoadingWrapper)
             loading={false}
             text="Loading..."
           >
@@ -246,7 +246,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                 Button Text
               </span>
             </FormattedMessage>
-          </LoadingWrapper>
+          </Memo(LoadingWrapper)>
         </button>
         <div>
           <div
@@ -358,12 +358,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
         >
-          <LoadingWrapper
+          <Memo(LoadingWrapper)
             loading={false}
             text="Loading..."
           >
@@ -375,7 +375,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                 Button Text
               </span>
             </FormattedMessage>
-          </LoadingWrapper>
+          </Memo(LoadingWrapper)>
         </button>
         <div>
           <div
@@ -488,12 +488,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
         >
-          <LoadingWrapper
+          <Memo(LoadingWrapper)
             loading={false}
             text="Loading..."
           >
@@ -505,7 +505,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                 Button Text
               </span>
             </FormattedMessage>
-          </LoadingWrapper>
+          </Memo(LoadingWrapper)>
         </button>
       </div>
       <div

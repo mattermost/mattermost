@@ -38,7 +38,7 @@ func (api *API) InitHostedCustomer() {
 	// GET /api/v4/hosted_customer/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf
 	api.BaseRoutes.HostedCustomer.Handle("/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(selfHostedInvoicePDF)).Methods("GET")
 
-	api.BaseRoutes.HostedCustomer.Handle("/subscribe-newsletter", api.APIHandler(handleSubscribeToNewsletter)).Methods(http.MethodPost)
+	api.BaseRoutes.HostedCustomer.Handle("/subscribe-newsletter", api.APIHandler(handleSubscribeToNewsletter)).Methods("POST")
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
@@ -119,7 +119,7 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var form *model.SelfHostedCustomerForm
-	if err = json.Unmarshal(bodyBytes, &form); err != nil {
+	if err = json.Unmarshal(bodyBytes, &form); err != nil || form == nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}

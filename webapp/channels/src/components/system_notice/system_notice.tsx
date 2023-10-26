@@ -130,7 +130,7 @@ export default class SystemNotice extends React.PureComponent<Props> {
 
         return (
             <div
-                className='system-notice bg--white shadow--2'
+                className='system-notice bg--white'
             >
                 <div className='system-notice__logo'>
                     {icon}
@@ -144,7 +144,7 @@ export default class SystemNotice extends React.PureComponent<Props> {
                     <div className='system-notice__footer'>
                         <button
                             id='systemnotice_remindme'
-                            className='btn btn-primary'
+                            className='btn btn-sm btn-primary'
                             onClick={this.hideAndRemind}
                         >
                             <FormattedMessage
@@ -155,7 +155,7 @@ export default class SystemNotice extends React.PureComponent<Props> {
                         {notice.allowForget &&
                             <button
                                 id='systemnotice_dontshow'
-                                className='btn'
+                                className='btn btn-sm btn-tertiary'
                                 onClick={this.hideAndForget}
                             >
                                 <FormattedMessage

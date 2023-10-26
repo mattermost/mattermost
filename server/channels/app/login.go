@@ -60,7 +60,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 	}
 
 	// Get the MM user we are trying to login
-	if user, err = a.GetUserForLogin(id, loginId); err != nil {
+	if user, err = a.GetUserForLogin(c, id, loginId); err != nil {
 		return nil, err
 	}
 
@@ -120,7 +120,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 	return user, nil
 }
 
-func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError) {
+func (a *App) GetUserForLogin(c *request.Context, id, loginId string) (*model.User, *model.AppError) {
 	enableUsername := *a.Config().EmailSettings.EnableSignInWithUsername
 	enableEmail := *a.Config().EmailSettings.EnableSignInWithEmail
 
@@ -145,7 +145,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 	// Try to get the user with LDAP if enabled
 	if *a.Config().LdapSettings.Enable && a.Ldap() != nil {
-		if ldapUser, err := a.Ldap().GetUser(loginId); err == nil {
+		if ldapUser, err := a.Ldap().GetUser(c, loginId); err == nil {
 			if user, err := a.GetUserByAuth(ldapUser.AuthData, model.UserAuthServiceLdap); err == nil {
 				return user, nil
 			}
@@ -179,7 +179,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 
 		// A special case where we logout of all other sessions with the same Id
-		if err := a.RevokeSessionsForDeviceId(user.Id, deviceID, ""); err != nil {
+		if err := a.RevokeSessionsForDeviceId(c, user.Id, deviceID, ""); err != nil {
 			err.StatusCode = http.StatusInternalServerError
 			return err
 		}
@@ -208,7 +208,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	var err *model.AppError
-	if session, err = a.CreateSession(session); err != nil {
+	if session, err = a.CreateSession(c, session); err != nil {
 		err.StatusCode = http.StatusInternalServerError
 		return err
 	}
@@ -257,7 +257,6 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	if strings.Contains(domain, "localhost") {
 		workspaceName = "localhost"
 	} else {
-
 		// ensure we have a format for a cloud workspace url i.e. example.cloud.mattermost.com
 		if len(strings.Split(domain, ".")) != 4 {
 			return
@@ -278,7 +277,6 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	}
 
 	http.SetCookie(w, cookie)
-
 }
 
 func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request) {
