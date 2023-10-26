@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ReactNode, CSSProperties, PureComponent} from 'react';
+import React, {PureComponent} from 'react';
+import type {ReactNode, CSSProperties} from 'react';
 import {injectIntl, type IntlShape} from 'react-intl';
 
 type Props = {
