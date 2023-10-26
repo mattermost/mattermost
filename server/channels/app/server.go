@@ -432,7 +432,6 @@ func NewServer(options ...Option) (*Server, error) {
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
 	mlog.Info(
 		logCurrentVersion,
-		mlog.Bool("is_trial", isTrial),
 		mlog.String("current_version", model.CurrentVersion),
 		mlog.String("build_number", model.BuildNumber),
 		mlog.String("build_date", model.BuildDate),
@@ -441,7 +440,11 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("service_environment", model.GetServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
-		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
+		mlog.Info(
+			"Enterprise Build",
+			mlog.Bool("enterprise_build", true),
+			mlog.Bool("is_trial", isTrial),
+		)
 	} else {
 		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
 	}
