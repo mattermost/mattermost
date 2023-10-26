@@ -128,7 +128,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 }
 
 func TestReadSecretFromFile(t *testing.T) {
-	f, err := os.createTemp(t.TempDir(), "mmctl")
+	f, err := os.CreateTemp(t.TempDir(), "mmctl")
 	require.NoError(t, err)
 
 	_, err = f.WriteString("test-pass")
