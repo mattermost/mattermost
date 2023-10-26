@@ -77,7 +77,6 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-
 	http.Redirect(w, r, data.URL, http.StatusFound)
 }
 
