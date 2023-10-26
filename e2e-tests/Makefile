@@ -4,10 +4,13 @@ export
 
 SHELL := /bin/bash
 
-.PHONY: all run stop
+.PHONY: all run stop clean
 all: run
-run: cloud-init generate-server start-server prepare-server run-test cloud-teardown
-stop: stop-server stop-dashboard
+run: clean cloud-init generate-server start-server prepare-server run-test cloud-teardown
+stop: stop-server stop-dashboard clean
+clean:
+	rm -fv .ci/server.yml
+	rm -fv .ci/.env*
 
 .PHONY: generate-server start-server prepare-server run-test stop-server restart-server
 generate-server:
@@ -34,7 +37,7 @@ cloud-init: requirecmd-jq requirecmd-curl
 cloud-teardown:
 	bash ./.ci/server.cloud_teardown.sh
 
-.PHONY: fmt-node fmt-shell fmt clean
+.PHONY: fmt-node fmt-shell fmt
 requirecmd-%:
 	@which "$(*)" >/dev/null || { echo "Error, missing required CLI tool: $(*). Aborting." >&2; exit 1; }
 fmt-node: requirecmd-npx
@@ -44,6 +47,3 @@ fmt-shell: requirecmd-shfmt requirecmd-shellcheck
 	shfmt -w -s -i 2 ./.ci/*.sh         # Install with https://webinstall.dev/shellcheck/
 	shellcheck ./.ci/*.sh ./.ci/.e2erc* # Install with https://webinstall.dev/shfmt/
 fmt: fmt-node fmt-shell
-clean: stop
-	rm -fv .ci/server.yml
-	rm -fv .ci/.env*

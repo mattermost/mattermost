@@ -346,7 +346,7 @@ generate_env_files() {
       echo "CYPRESS_serverEdition=Cloud" >>.env.cypress
       ;;
     *)
-      echo "CYPRESS_serverEdition=E20" >>.env.cypress
+      [ -z "${MM_LICENSE:-}" ] || echo "CYPRESS_serverEdition=E20" >>.env.cypress
       ;;
     esac
     ;;
