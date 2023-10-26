@@ -154,7 +154,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	if opts.IncludeProfilePictures {
 		for _, profilePicture := range profilePictures {
 			if err := a.exportFile(outPath, profilePicture, zipWr); err != nil {
-				return err
+				ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
 			}
 		}
 		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
