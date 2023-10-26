@@ -121,8 +121,6 @@ type Props = {
     placeholder?: string;
 }
 
-let timeoutId: NodeJS.Timeout;
-
 const AdvanceTextEditor = ({
     location,
     message,
@@ -194,6 +192,7 @@ const AdvanceTextEditor = ({
     const emojiPickerRef = useRef<HTMLButtonElement>(null);
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
+    const timeout = useRef<NodeJS.Timeout>();
 
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
@@ -609,7 +608,7 @@ const AdvanceTextEditor = ({
     }, [handleWidthChange, message]);
 
     useEffect(() => {
-        return () => clearTimeout(timeoutId);
+        return () => timeout.current && clearTimeout(timeout.current);
     }, []);
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
@@ -624,7 +623,7 @@ const AdvanceTextEditor = ({
 
             // set timeout to make sure aria-label is read by a screen reader,
             // and then set the flag to "true" to make sure it's not read again until a user logs back in
-            timeoutId = setTimeout(() => {
+            timeout.current = setTimeout(() => {
                 LocalStorageStore.setWasNotifiedOfLogIn(true);
             }, 3000);
         }
