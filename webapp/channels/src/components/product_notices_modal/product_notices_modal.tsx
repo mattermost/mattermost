@@ -4,16 +4,16 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ProductNotices, ProductNotice} from '@mattermost/types/product_notices';
+import {GenericModal} from '@mattermost/components';
+import type {ProductNotices, ProductNotice} from '@mattermost/types/product_notices';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 import Markdown from 'components/markdown';
-import {GenericModal} from '@mattermost/components';
+import AdminEyeIcon from 'components/widgets/icons/admin_eye_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import AdminEyeIcon from 'components/widgets/icons/admin_eye_icon';
 
 import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
 

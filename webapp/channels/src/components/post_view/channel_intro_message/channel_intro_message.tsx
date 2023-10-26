@@ -1,28 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
-import React from 'react';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile as UserProfileRedux} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {UserProfile as UserProfileRedux} from '@mattermost/types/users';
-
-import {Channel} from '@mattermost/types/channels';
-
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LocalizedIcon from 'components/localized_icon';
+import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
 import UserProfile from 'components/user_profile';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import EditIcon from 'components/widgets/icons/fa_edit_icon';
-import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 
+import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong, t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 

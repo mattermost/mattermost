@@ -17,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type PluginAPI struct {
@@ -764,6 +764,10 @@ func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, 
 
 func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfo(fileID)
+}
+
+func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	return api.app.SetFileSearchableContent(fileID, content)
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {

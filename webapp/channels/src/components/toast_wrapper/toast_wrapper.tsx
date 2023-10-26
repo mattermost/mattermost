@@ -2,22 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape, WrappedComponentProps} from 'react-intl';
-import {RouteComponentProps} from 'react-router-dom';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape, WrappedComponentProps} from 'react-intl';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import {Preferences} from 'mattermost-redux/constants';
 
+import {HintToast} from 'components/hint-toast/hint_toast';
+import {SearchShortcut} from 'components/search_shortcut';
+import Timestamp, {RelativeRanges} from 'components/timestamp';
+import Toast from 'components/toast/toast';
+
+import {getHistory} from 'utils/browser_history';
+import Constants from 'utils/constants';
+import {isToday} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {isIdNotPost, getNewMessageIndex} from 'utils/post_utils';
 import {localizeMessage} from 'utils/utils';
-import {isToday} from 'utils/datetime';
-import Constants from 'utils/constants';
-import {getHistory} from 'utils/browser_history';
-
-import Toast from 'components/toast/toast';
-import Timestamp, {RelativeRanges} from 'components/timestamp';
-import {SearchShortcut} from 'components/search_shortcut';
-import {HintToast} from 'components/hint-toast/hint_toast';
 
 const TOAST_TEXT_COLLAPSE_WIDTH = 500;
 

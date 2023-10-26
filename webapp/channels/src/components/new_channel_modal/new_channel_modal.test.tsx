@@ -14,11 +14,10 @@ import {
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
-
-import {GlobalState} from 'types/store';
-
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import NewChannelModal from './new_channel_modal';
 
@@ -328,7 +327,6 @@ describe('components/new_channel_modal', () => {
 
         // Change display name to invalid
         userEvent.clear(channelNameInput);
-        userEvent.type(channelNameInput, '');
 
         // Confirm button should be disabled
         expect(createChannelButton).toBeDisabled();

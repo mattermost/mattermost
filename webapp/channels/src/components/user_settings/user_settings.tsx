@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import AdvancedTab from './advanced';
 import DisplayTab from './display';

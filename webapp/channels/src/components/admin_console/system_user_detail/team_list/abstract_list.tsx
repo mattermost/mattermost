@@ -4,12 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 
-import {TeamWithMembership} from './types';
+import type {TeamWithMembership} from './types';
 
 import './abstract_list.scss';
 

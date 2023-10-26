@@ -1432,7 +1432,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// we then manually schedule the job to send another invite after 48 hours
-		_, appErr = c.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, jobData)
+		_, appErr = c.App.Srv().Jobs.CreateJob(c.AppContext, model.JobTypeResendInvitationEmail, jobData)
 		if appErr != nil {
 			c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
 			return
@@ -1592,7 +1592,7 @@ func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord("invalidateAllEmailInvites", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.InvalidateAllEmailInvites(); err != nil {
+	if err := c.App.InvalidateAllEmailInvites(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}

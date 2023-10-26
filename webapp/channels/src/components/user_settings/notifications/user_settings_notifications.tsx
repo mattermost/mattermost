@@ -3,22 +3,22 @@
 
 /* eslint-disable max-lines */
 
-import React, {ChangeEvent, RefObject} from 'react';
+import React from 'react';
+import type {ChangeEvent, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import LocalizedIcon from 'components/localized_icon';
+import SettingItem from 'components/setting_item';
+import SettingItemMax from 'components/setting_item_max';
 
 import Constants, {NotificationLevels} from 'utils/constants';
+import {t} from 'utils/i18n';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {a11yFocus, localizeMessage, moveCursorToEnd} from 'utils/utils';
-import {t} from 'utils/i18n';
-
-import SettingItem from 'components/setting_item';
-import LocalizedIcon from 'components/localized_icon';
-
-import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-
-import SettingItemMax from 'components/setting_item_max';
 
 import DesktopNotificationSettings from './desktop_notification_setting/desktop_notification_settings';
 import EmailNotificationSetting from './email_notification_setting';

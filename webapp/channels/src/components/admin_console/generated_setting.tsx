@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import crypto from 'crypto';
-
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 

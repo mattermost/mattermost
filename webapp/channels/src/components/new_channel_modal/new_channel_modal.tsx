@@ -1,43 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {FormattedMessage, useIntl} from 'react-intl';
-import {Tooltip} from 'react-bootstrap';
-
 import classNames from 'classnames';
 import crypto from 'crypto';
+import React, {useState} from 'react';
+import {Tooltip} from 'react-bootstrap';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
-import OverlayTrigger from 'components/overlay_trigger';
 import {GenericModal} from '@mattermost/components';
-import Input from 'components/widgets/inputs/input/input';
-import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
-import URLInput from 'components/widgets/inputs/url_input/url_input';
+import type {Board} from '@mattermost/types/boards';
+import type {ChannelType, Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
 
-import Pluggable from 'plugins/pluggable';
-
+import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
+import Preferences from 'mattermost-redux/constants/preferences';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import Preferences from 'mattermost-redux/constants/preferences';
-import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
 
-import {GlobalState} from 'types/store';
+import OverlayTrigger from 'components/overlay_trigger';
+import Input from 'components/widgets/inputs/input/input';
+import URLInput from 'components/widgets/inputs/url_input/url_input';
+import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 
+import Pluggable from 'plugins/pluggable';
 import Constants, {ItemStatus, ModalIdentifiers} from 'utils/constants';
 import {cleanUpUrlable, validateChannelUrl, getSiteURL} from 'utils/url';
 import {localizeMessage} from 'utils/utils';
 
-import {Board} from '@mattermost/types/boards';
-import {ChannelType, Channel} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
+import type {GlobalState} from 'types/store';
 
 import './new_channel_modal.scss';
 

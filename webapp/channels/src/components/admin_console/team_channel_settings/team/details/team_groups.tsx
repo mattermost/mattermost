@@ -4,8 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
-import {Group} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
