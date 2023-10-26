@@ -38,24 +38,24 @@ import (
 // By default, the number of buckets equals the number of cpus returned from runtime.NumCPU.
 //
 // This struct is lock-free and intended to be used without lock.
-type LRUStriped struct {
-	buckets                []*LRU
+type LRUStriped[T any] struct {
+	buckets                []*LRU[T]
 	name                   string
 	invalidateClusterEvent model.ClusterEvent
 }
 
-func (L LRUStriped) hashkeyMapHash(key string) uint64 {
+func (L LRUStriped[T]) hashkeyMapHash(key string) uint64 {
 	return xxhash.Sum64String(key)
 }
 
-func (L LRUStriped) keyBucket(key string) *LRU {
+func (L LRUStriped[T]) keyBucket(key string) *LRU[T] {
 	return L.buckets[L.hashkeyMapHash(key)%uint64(len(L.buckets))]
 }
 
 // Purge loops through each LRU cache for purging. Since LRUStriped doesn't use any lock,
 // each LRU bucket is purged after another one, which means that keys could still
 // be present after a call to Purge.
-func (L LRUStriped) Purge() error {
+func (L LRUStriped[T]) Purge() error {
 	for _, lru := range L.buckets {
 		lru.Purge() // errors from purging LRU can be ignored as they always return nil
 	}
@@ -63,34 +63,34 @@ func (L LRUStriped) Purge() error {
 }
 
 // Set does the same as LRU.Set
-func (L LRUStriped) Set(key string, value any) error {
+func (L LRUStriped[T]) Set(key string, value T) error {
 	return L.keyBucket(key).Set(key, value)
 }
 
 // SetWithDefaultExpiry does the same as LRU.SetWithDefaultExpiry
-func (L LRUStriped) SetWithDefaultExpiry(key string, value any) error {
+func (L LRUStriped[T]) SetWithDefaultExpiry(key string, value T) error {
 	return L.keyBucket(key).SetWithDefaultExpiry(key, value)
 }
 
 // SetWithExpiry does the same as LRU.SetWithExpiry
-func (L LRUStriped) SetWithExpiry(key string, value any, ttl time.Duration) error {
+func (L LRUStriped[T]) SetWithExpiry(key string, value T, ttl time.Duration) error {
 	return L.keyBucket(key).SetWithExpiry(key, value, ttl)
 }
 
 // Get does the same as LRU.Get
-func (L LRUStriped) Get(key string, value any) error {
+func (L LRUStriped[T]) Get(key string, value *T) error {
 	return L.keyBucket(key).Get(key, value)
 }
 
 // Remove does the same as LRU.Remove
-func (L LRUStriped) Remove(key string) error {
+func (L LRUStriped[T]) Remove(key string) error {
 	return L.keyBucket(key).Remove(key)
 }
 
 // Keys does the same as LRU.Keys. However, because this is lock-free, keys might be
 // inserted or removed from a previously scanned LRU cache.
 // This is not as precise as using a single LRU instance.
-func (L LRUStriped) Keys() ([]string, error) {
+func (L LRUStriped[T]) Keys() ([]string, error) {
 	var keys []string
 	for _, lru := range L.buckets {
 		k, _ := lru.Keys() // Keys never returns any error
@@ -100,7 +100,7 @@ func (L LRUStriped) Keys() ([]string, error) {
 }
 
 // Len does the same as LRU.Len. As for LRUStriped.Keys, this call cannot be precise.
-func (L LRUStriped) Len() (int, error) {
+func (L LRUStriped[T]) Len() (int, error) {
 	var size int
 	for _, lru := range L.buckets {
 		s, _ := lru.Len() // Len never returns any error
@@ -110,12 +110,12 @@ func (L LRUStriped) Len() (int, error) {
 }
 
 // GetInvalidateClusterEvent does the same as LRU.GetInvalidateClusterEvent
-func (L LRUStriped) GetInvalidateClusterEvent() model.ClusterEvent {
+func (L LRUStriped[T]) GetInvalidateClusterEvent() model.ClusterEvent {
 	return L.invalidateClusterEvent
 }
 
 // Name does the same as LRU.Name
-func (L LRUStriped) Name() string {
+func (L LRUStriped[T]) Name() string {
 	return L.name
 }
 
@@ -124,7 +124,7 @@ func (L LRUStriped) Name() string {
 //
 // Not that in order to prevent false eviction, this LRU cache adds 10% (computation is rounded up) of the
 // requested size to the total cache size.
-func NewLRUStriped(opts LRUOptions) (Cache, error) {
+func NewLRUStriped[T any](opts LRUOptions) (Cache[T], error) {
 	if opts.StripedBuckets == 0 {
 		return nil, fmt.Errorf("number of buckets is mandatory")
 	}
@@ -138,12 +138,12 @@ func NewLRUStriped(opts LRUOptions) (Cache, error) {
 	// now this is the size for each bucket
 	opts.Size = (opts.Size / opts.StripedBuckets) + (opts.Size % opts.StripedBuckets)
 
-	buckets := make([]*LRU, opts.StripedBuckets)
+	buckets := make([]*LRU[T], opts.StripedBuckets)
 	for i := 0; i < opts.StripedBuckets; i++ {
-		buckets[i] = NewLRU(opts).(*LRU)
+		buckets[i] = NewLRU[T](opts).(*LRU[T])
 	}
 
-	return LRUStriped{
+	return LRUStriped[T]{
 		buckets:                buckets,
 		invalidateClusterEvent: opts.InvalidateClusterEvent,
 		name:                   opts.Name,

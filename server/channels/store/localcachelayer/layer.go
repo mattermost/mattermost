@@ -71,7 +71,7 @@ type LocalCacheStore struct {
 	cluster einterfaces.ClusterInterface
 
 	reaction      LocalCacheReactionStore
-	reactionCache cache.Cache
+	reactionCache cache.Cache[*model.Reaction]
 
 	fileInfo      LocalCacheFileInfoStore
 	fileInfoCache cache.Cache
@@ -396,7 +396,7 @@ func (s LocalCacheStore) DropAllTables() {
 	s.Store.DropAllTables()
 }
 
-func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string) {
+func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache[any], key string) {
 	cache.Remove(key)
 	if s.cluster != nil {
 		msg := &model.ClusterMessage{
@@ -408,7 +408,7 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string
 	}
 }
 
-func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value any) {
+func (s *LocalCacheStore) doStandardAddToCache[T any](cache cache.Cache[any], key string, value T) {
 	cache.SetWithDefaultExpiry(key, value)
 }
 

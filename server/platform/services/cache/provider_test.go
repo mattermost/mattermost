@@ -14,7 +14,7 @@ import (
 
 func TestNewCache(t *testing.T) {
 	t.Run("with only size option given", func(t *testing.T) {
-		p := NewProvider()
+		p := NewProvider[string]()
 
 		size := 1
 		c, err := p.NewCache(&CacheOptions{
@@ -34,7 +34,7 @@ func TestNewCache(t *testing.T) {
 	})
 
 	t.Run("with only size option given", func(t *testing.T) {
-		p := NewProvider()
+		p := NewProvider[string]()
 
 		size := 1
 		c, err := p.NewCache(&CacheOptions{
@@ -54,7 +54,7 @@ func TestNewCache(t *testing.T) {
 	})
 
 	t.Run("with all options specified", func(t *testing.T) {
-		p := NewProvider()
+		p := NewProvider[string]()
 
 		size := 1
 		expiry := 1 * time.Second
@@ -93,7 +93,7 @@ func TestNewCache(t *testing.T) {
 
 func TestNewCache_Striped(t *testing.T) {
 	t.Run("with only size option given", func(t *testing.T) {
-		p := NewProvider()
+		p := NewProvider[string]()
 
 		size := 1
 		c, err := p.NewCache(&CacheOptions{
@@ -115,7 +115,7 @@ func TestNewCache_Striped(t *testing.T) {
 	})
 
 	t.Run("with only size option given", func(t *testing.T) {
-		p := NewProvider()
+		p := NewProvider[string]()
 
 		size := 1
 		c, err := p.NewCache(&CacheOptions{
@@ -137,7 +137,7 @@ func TestNewCache_Striped(t *testing.T) {
 	})
 
 	t.Run("with all options specified", func(t *testing.T) {
-		p := NewProvider()
+		p := NewProvider[string]()
 
 		size := 1
 		expiry := 1 * time.Second
@@ -177,7 +177,7 @@ func TestNewCache_Striped(t *testing.T) {
 }
 
 func TestConnectClose(t *testing.T) {
-	p := NewProvider()
+	p := NewProvider[any]()
 
 	err := p.Connect()
 	require.NoError(t, err)

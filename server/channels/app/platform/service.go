@@ -47,8 +47,8 @@ type PlatformService struct {
 	exportFilestore filestore.FileBackend
 
 	cacheProvider cache.Provider
-	statusCache   cache.Cache
-	sessionCache  cache.Cache
+	statusCache   cache.Cache[*model.Status]
+	sessionCache  cache.Cache[*model.Session]
 	sessionPool   sync.Pool
 
 	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
@@ -464,7 +464,7 @@ func (ps *PlatformService) CacheProvider() cache.Provider {
 	return ps.cacheProvider
 }
 
-func (ps *PlatformService) StatusCache() cache.Cache {
+func (ps *PlatformService) StatusCache() cache.Cache[*model.Status] {
 	return ps.statusCache
 }
 

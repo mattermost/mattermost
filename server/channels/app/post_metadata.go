@@ -27,12 +27,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
 
-type linkMetadataCache struct {
-	OpenGraph *opengraph.OpenGraph
-	PostImage *model.PostImage
-	Permalink *model.Permalink
-}
-
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
 func (s *Server) initPostMetadata() {
@@ -717,7 +711,7 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 }
 
 func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, bool) {
-	var cached linkMetadataCache
+	var cached platform.LinkMetadataCache
 	err := platform.LinkCache().Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
 	if err != nil {
 		return nil, nil, nil, false
@@ -767,7 +761,7 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 }
 
 func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage, permalink *model.Permalink) {
-	metadata := linkMetadataCache{
+	metadata := platform.LinkMetadataCache{
 		OpenGraph: og,
 		PostImage: image,
 		Permalink: permalink,

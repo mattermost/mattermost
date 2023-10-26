@@ -27,10 +27,10 @@ func makeLRUPredictableTestData(num int) [][2]string {
 }
 
 func TestNewLRUStriped(t *testing.T) {
-	scache, err := NewLRUStriped(LRUOptions{StripedBuckets: 3, Size: 20})
+	scache, err := NewLRUStriped[any](LRUOptions{StripedBuckets: 3, Size: 20})
 	require.NoError(t, err)
 
-	cache := scache.(LRUStriped)
+	cache := scache.(LRUStriped[any])
 
 	require.Len(t, cache.buckets, 3)
 	assert.Equal(t, 8, cache.buckets[0].size)
@@ -41,9 +41,9 @@ func TestNewLRUStriped(t *testing.T) {
 func TestLRUStripedKeyDistribution(t *testing.T) {
 	dataset := makeLRUPredictableTestData(100)
 
-	scache, err := NewLRUStriped(LRUOptions{StripedBuckets: 4, Size: len(dataset)})
+	scache, err := NewLRUStriped[string](LRUOptions{StripedBuckets: 4, Size: len(dataset)})
 	require.NoError(t, err)
-	cache := scache.(LRUStriped)
+	cache := scache.(LRUStriped[string])
 	for _, kv := range dataset {
 		require.NoError(t, cache.Set(kv[0], kv[1]))
 		var out string
@@ -66,9 +66,9 @@ func TestLRUStripedKeyDistribution(t *testing.T) {
 }
 
 func TestLRUStriped_Size(t *testing.T) {
-	scache, err := NewLRUStriped(LRUOptions{StripedBuckets: 2, Size: 128})
+	scache, err := NewLRUStriped[any](LRUOptions{StripedBuckets: 2, Size: 128})
 	require.NoError(t, err)
-	cache := scache.(LRUStriped)
+	cache := scache.(LRUStriped[any])
 	acc := 0
 	for _, bucket := range cache.buckets {
 		acc += bucket.size
@@ -77,9 +77,9 @@ func TestLRUStriped_Size(t *testing.T) {
 }
 
 func TestLRUStriped_HashKey(t *testing.T) {
-	scache, err := NewLRUStriped(LRUOptions{StripedBuckets: 2, Size: 128})
+	scache, err := NewLRUStriped[any](LRUOptions{StripedBuckets: 2, Size: 128})
 	require.NoError(t, err)
-	cache := scache.(LRUStriped)
+	cache := scache.(LRUStriped[any])
 	first := cache.hashkeyMapHash("key")
 	cache.hashkeyMapHash("other_key_to_ensure_that_result_it’s_not_dependent_on_previous_input")
 	second := cache.hashkeyMapHash("key")
@@ -87,7 +87,7 @@ func TestLRUStriped_HashKey(t *testing.T) {
 }
 
 func TestLRUStriped_Get(t *testing.T) {
-	cache, err := NewLRUStriped(LRUOptions{StripedBuckets: 4, Size: 128})
+	cache, err := NewLRUStriped[string](LRUOptions{StripedBuckets: 4, Size: 128})
 	require.NoError(t, err)
 	var out string
 	require.Equal(t, ErrKeyNotFound, cache.Get("key", &out))

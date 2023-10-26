@@ -118,8 +118,8 @@ type Server struct {
 	timezones *timezones.Timezones
 
 	htmlTemplateWatcher     *templates.Container
-	seenPendingPostIdsCache cache.Cache
-	openGraphDataCache      cache.Cache
+	seenPendingPostIdsCache cache.Cache[string]
+	openGraphDataCache      cache.Cache[[]byte]
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 

@@ -15,7 +15,7 @@ import (
 )
 
 // LRU is a thread-safe fixed size LRU cache.
-type LRU struct {
+type LRU[T any] struct {
 	lock                   sync.RWMutex
 	size                   int
 	len                    int
@@ -47,8 +47,8 @@ type entry struct {
 }
 
 // NewLRU creates an LRU of the given size.
-func NewLRU(opts LRUOptions) Cache {
-	return &LRU{
+func NewLRU[T any](opts LRUOptions) Cache[T] {
+	return &LRU[T]{
 		name:                   opts.Name,
 		size:                   opts.Size,
 		evictList:              list.New(),
@@ -59,7 +59,7 @@ func NewLRU(opts LRUOptions) Cache {
 }
 
 // Purge is used to completely clear the cache.
-func (l *LRU) Purge() error {
+func (l *LRU[T]) Purge() error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -70,30 +70,30 @@ func (l *LRU) Purge() error {
 
 // Set adds the given key and value to the store without an expiry. If the key already exists,
 // it will overwrite the previous value.
-func (l *LRU) Set(key string, value any) error {
+func (l *LRU[T]) Set(key string, value T) error {
 	return l.SetWithExpiry(key, value, 0)
 }
 
 // SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
 // the key already exists, it will overwrite the previous value
-func (l *LRU) SetWithDefaultExpiry(key string, value any) error {
+func (l *LRU[T]) SetWithDefaultExpiry(key string, value T) error {
 	return l.SetWithExpiry(key, value, l.defaultExpiry)
 }
 
 // SetWithExpiry adds the given key and value to the cache with the given expiry. If the key
 // already exists, it will overwrite the previous value
-func (l *LRU) SetWithExpiry(key string, value any, ttl time.Duration) error {
+func (l *LRU[T]) SetWithExpiry(key string, value T, ttl time.Duration) error {
 	return l.set(key, value, ttl)
 }
 
 // Get the content stored in the cache for the given key, and decode it into the value interface.
 // return ErrKeyNotFound if the key is missing from the cache
-func (l *LRU) Get(key string, value any) error {
+func (l *LRU[T]) Get(key string, value *T) error {
 	return l.get(key, value)
 }
 
 // Remove deletes the value for a key.
-func (l *LRU) Remove(key string) error {
+func (l *LRU[T]) Remove(key string) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -104,7 +104,7 @@ func (l *LRU) Remove(key string) error {
 }
 
 // Keys returns a slice of the keys in the cache.
-func (l *LRU) Keys() ([]string, error) {
+func (l *LRU[T]) Keys() ([]string, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
@@ -121,23 +121,23 @@ func (l *LRU) Keys() ([]string, error) {
 }
 
 // Len returns the number of items in the cache.
-func (l *LRU) Len() (int, error) {
+func (l *LRU[T]) Len() (int, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	return l.len, nil
 }
 
 // GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
-func (l *LRU) GetInvalidateClusterEvent() model.ClusterEvent {
+func (l *LRU[T]) GetInvalidateClusterEvent() model.ClusterEvent {
 	return l.invalidateClusterEvent
 }
 
 // Name returns the name of the cache
-func (l *LRU) Name() string {
+func (l *LRU[T]) Name() string {
 	return l.name
 }
 
-func (l *LRU) set(key string, value any, ttl time.Duration) error {
+func (l *LRU[T]) set(key string, value any, ttl time.Duration) error {
 	var expires time.Time
 	if ttl > 0 {
 		expires = time.Now().Add(ttl)
@@ -184,12 +184,7 @@ func (l *LRU) set(key string, value any, ttl time.Duration) error {
 	return nil
 }
 
-func (l *LRU) get(key string, value any) error {
-	val, err := l.getItem(key)
-	if err != nil {
-		return err
-	}
-
+func foo(val []byte, value any) error {
 	// We use a fast path for hot structs.
 	if msgpVal, ok := value.(msgp.Unmarshaler); ok {
 		_, err := msgpVal.UnmarshalMsg(val)
@@ -221,7 +216,16 @@ func (l *LRU) get(key string, value any) error {
 	return msgpack.Unmarshal(val, value)
 }
 
-func (l *LRU) getItem(key string) ([]byte, error) {
+func (l *LRU[T]) get(key string, value *T) error {
+	val, err := l.getItem(key)
+	if err != nil {
+		return err
+	}
+
+	return foo(val, value)
+}
+
+func (l *LRU[T]) getItem(key string) ([]byte, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -238,7 +242,7 @@ func (l *LRU) getItem(key string) ([]byte, error) {
 	return e.value, nil
 }
 
-func (l *LRU) removeElement(e *list.Element) {
+func (l *LRU[T]) removeElement(e *list.Element) {
 	l.evictList.Remove(e)
 	kv := e.Value.(*entry)
 	if kv.generation == l.currentGeneration {

@@ -63,7 +63,7 @@ func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage)
 		ps.logger.Warn("Failed to decode status from JSON")
 	}
 
-	ps.statusCache.Set(status.UserId, status)
+	ps.statusCache.Set(status.UserId, &status)
 }
 
 func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {

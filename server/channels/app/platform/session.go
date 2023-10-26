@@ -99,7 +99,7 @@ func (ps *PlatformService) ClearAllUsersSessionCache() {
 
 func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Session, error) {
 	var session = ps.sessionPool.Get().(*model.Session)
-	if err := ps.sessionCache.Get(token, session); err == nil {
+	if err := ps.sessionCache.Get(token, &session); err == nil { //TODO(Ben): Double check
 		if m := ps.metricsIFace; m != nil {
 			m.IncrementMemCacheHitCounterSession()
 		}

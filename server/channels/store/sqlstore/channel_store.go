@@ -442,13 +442,13 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-var allChannelMembersForUserCache = cache.NewLRU(cache.LRUOptions{
+var allChannelMembersForUserCache = cache.NewLRU[map[string]string](cache.LRUOptions{
 	Size: AllChannelMembersForUserCacheSize,
 })
-var allChannelMembersNotifyPropsForChannelCache = cache.NewLRU(cache.LRUOptions{
+var allChannelMembersNotifyPropsForChannelCache = cache.NewLRU[map[string]model.StringMap](cache.LRUOptions{
 	Size: AllChannelMembersNotifyPropsForChannelCacheSize,
 })
-var channelByNameCache = cache.NewLRU(cache.LRUOptions{
+var channelByNameCache = cache.NewLRU[*model.Channel](cache.LRUOptions{
 	Size: model.ChannelCacheSize,
 })
 

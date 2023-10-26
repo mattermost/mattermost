@@ -27,7 +27,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 		StripedBuckets:         runtime.NumCPU() - 1,
 	}
 
-	cache, err := cache.NewLRUStriped(opts)
+	cache, err := cache.NewLRUStriped[string](opts)
 	if err != nil {
 		panic(err)
 	}

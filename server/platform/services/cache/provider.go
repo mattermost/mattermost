@@ -20,27 +20,27 @@ type CacheOptions struct {
 }
 
 // Provider is a provider for Cache
-type Provider interface {
+type Provider[T any] interface {
 	// NewCache creates a new cache with given options.
-	NewCache(opts *CacheOptions) (Cache, error)
+	NewCache(opts *CacheOptions) (Cache[T], error)
 	// Connect opens a new connection to the cache using specific provider parameters.
 	Connect() error
 	// Close releases any resources used by the cache provider.
 	Close() error
 }
 
-type cacheProvider struct {
+type cacheProvider[T any] struct {
 }
 
 // NewProvider creates a new CacheProvider
-func NewProvider() Provider {
-	return &cacheProvider{}
+func NewProvider[T any]() Provider[T] {
+	return &cacheProvider[T]{}
 }
 
 // NewCache creates a new cache with given opts
-func (c *cacheProvider) NewCache(opts *CacheOptions) (Cache, error) {
+func (c *cacheProvider[T]) NewCache(opts *CacheOptions) (Cache[T], error) {
 	if opts.Striped {
-		return NewLRUStriped(LRUOptions{
+		return NewLRUStriped[T](LRUOptions{
 			Name:                   opts.Name,
 			Size:                   opts.Size,
 			DefaultExpiry:          opts.DefaultExpiry,
@@ -48,7 +48,7 @@ func (c *cacheProvider) NewCache(opts *CacheOptions) (Cache, error) {
 			StripedBuckets:         opts.StripedBuckets,
 		})
 	}
-	return NewLRU(LRUOptions{
+	return NewLRU[T](LRUOptions{
 		Name:                   opts.Name,
 		Size:                   opts.Size,
 		DefaultExpiry:          opts.DefaultExpiry,
@@ -57,11 +57,11 @@ func (c *cacheProvider) NewCache(opts *CacheOptions) (Cache, error) {
 }
 
 // Connect opens a new connection to the cache using specific provider parameters.
-func (c *cacheProvider) Connect() error {
+func (c *cacheProvider[T]) Connect() error {
 	return nil
 }
 
 // Close releases any resources used by the cache provider.
-func (c *cacheProvider) Close() error {
+func (c *cacheProvider[T]) Close() error {
 	return nil
 }
