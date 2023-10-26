@@ -216,7 +216,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 	a.Log().Info(
 		fmt.Sprintf("Permitted admins for %s", syncableType),
 		mlog.String(strings.ToLower(fmt.Sprintf("%s_id", syncableType)), syncableID),
-		mlog.Any("permitted_admins", permittedAdmins),
+		mlog.Array("permitted_admins", permittedAdmins),
 	)
 
 	switch syncableType {
