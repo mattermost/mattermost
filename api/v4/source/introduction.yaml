@@ -469,7 +469,7 @@ tags:
       - get_statuses_by_ids
 
 
-      To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/mattermost-server/blob/master/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost-redux/blob/master/src/client/websocket_client.ts).
+      To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost/blob/master/webapp/platform/client/src/websocket.ts).
   - name: APIv3 Deprecation
     description: >
       Since Mattermost 4.6 released on January 16, 2018, API v3 has no longer

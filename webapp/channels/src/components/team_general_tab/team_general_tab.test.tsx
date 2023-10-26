@@ -4,15 +4,11 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {ChangeEvent, ComponentProps} from 'react';
-import {type IntlShape} from 'react-intl';
 
 import {GeneralTab} from 'components/team_general_tab/team_general_tab';
 
+import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
-
-interface MockIntl extends IntlShape {
-    formatMessage: jest.Mock;
-}
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});
@@ -130,7 +126,10 @@ describe('components/TeamSettings', () => {
         wrapper.instance().handleAllowedDomainsSubmit();
 
         expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith(props.team);
+        expect(actions.patchTeam).toHaveBeenCalledWith({
+            allowed_domains: '',
+            id: props.team?.id,
+        });
     });
 
     test('should call actions.patchTeam on handleNameSubmit', () => {
@@ -145,7 +144,10 @@ describe('components/TeamSettings', () => {
         wrapper.instance().handleNameSubmit();
 
         expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith(props.team);
+        expect(actions.patchTeam).toHaveBeenCalledWith({
+            display_name: props.team?.display_name,
+            id: props.team?.id,
+        });
     });
 
     test('should call actions.patchTeam on handleInviteIdSubmit', () => {
@@ -177,7 +179,10 @@ describe('components/TeamSettings', () => {
         }
 
         expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith(props.team);
+        expect(actions.patchTeam).toHaveBeenCalledWith({
+            description: newDescription,
+            id: props.team?.id,
+        });
     });
 
     test('should match snapshot when team is group constrained', () => {
