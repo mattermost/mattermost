@@ -11,7 +11,7 @@ export function getMonthLong(locale: string): 'short' | 'long' {
 }
 
 /**
- * @deprecated Use react-intl methods such as formattedMessage, FormattedMessage, defineMessage, defineMessages.
+ * @deprecated Use react-intl methods such as formatMessage, FormattedMessage, defineMessage, defineMessages.
  */
 export function t(v: string): string {
     return v;
