@@ -51,12 +51,9 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
     constructor(props: Props) {
         super(props);
 
-        const selectedOption = {value: props.selectedSound, label: props.selectedSound};
-        const callsSelectedOption = {value: props.callsSelectedSound, label: props.callsSelectedSound};
-
         this.state = {
-            selectedOption,
-            callsSelectedOption,
+            selectedOption: {value: props.selectedSound, label: props.selectedSound},
+            callsSelectedOption: {value: props.callsSelectedSound, label: props.callsSelectedSound},
             blurDropdown: false,
         };
 
@@ -152,21 +149,19 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                     return {value: sound, label: sound};
                 });
 
-                notificationSelection = (
-                    <div className='pt-2'>
-                        <ReactSelect
-                            className='react-select notification-sound-dropdown'
-                            classNamePrefix='react-select'
-                            id='displaySoundNotification'
-                            options={options}
-                            clearable={false}
-                            onChange={this.setDesktopNotificationSound}
-                            value={this.state.selectedOption}
-                            isSearchable={false}
-                            ref={this.dropdownSoundRef}
-                        />
-                    </div>
-                );
+                notificationSelection = (<div className='pt-2'>
+                    <ReactSelect
+                        className='react-select notification-sound-dropdown'
+                        classNamePrefix='react-select'
+                        id='displaySoundNotification'
+                        options={options}
+                        clearable={false}
+                        onChange={this.setDesktopNotificationSound}
+                        value={this.state.selectedOption}
+                        isSearchable={false}
+                        ref={this.dropdownSoundRef}
+                        components={{SingleValue: (props) => <div data-testid='displaySoundNotificationValue'>{props.children}</div>}}
+                    /></div>);
             }
 
             if (this.props.isCallsRingingEnabled) {
@@ -183,21 +178,19 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                         return {value: sound, label: sound};
                     });
 
-                    callsNotificationSelection = (
-                        <div className='pt-2'>
-                            <ReactSelect
-                                className='react-select notification-sound-dropdown'
-                                classNamePrefix='react-select'
-                                id='displayCallsSoundNotification'
-                                options={callsOptions}
-                                clearable={false}
-                                onChange={this.setCallsNotificationRing}
-                                value={this.state.callsSelectedOption}
-                                isSearchable={false}
-                                ref={this.callsDropdownRef}
-                            />
-                        </div>
-                    );
+                    callsNotificationSelection = (<div className='pt-2'>
+                        <ReactSelect
+                            className='react-select notification-sound-dropdown'
+                            classNamePrefix='react-select'
+                            id='displayCallsSoundNotification'
+                            options={callsOptions}
+                            clearable={false}
+                            onChange={this.setCallsNotificationRing}
+                            value={this.state.callsSelectedOption}
+                            isSearchable={false}
+                            ref={this.callsDropdownRef}
+                            components={{SingleValue: (props) => <div data-testid='displayCallsSoundNotificationValue'>{props.children}</div>}}
+                        /></div>);
                 }
 
                 callsSection = (
@@ -533,9 +526,14 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
 
     componentDidUpdate(prevProps: Props) {
         this.blurDropdown();
-
         if (prevProps.active && !this.props.active && this.props.areAllSectionsInactive) {
             this.focusEditButton();
+        }
+        if (this.props.selectedSound !== prevProps.selectedSound) {
+            this.setState({selectedOption: {value: this.props.selectedSound, label: this.props.selectedSound}});
+        }
+        if (this.props.callsSelectedSound !== prevProps.callsSelectedSound) {
+            this.setState({callsSelectedOption: {value: this.props.callsSelectedSound, label: this.props.callsSelectedSound}});
         }
     }
 

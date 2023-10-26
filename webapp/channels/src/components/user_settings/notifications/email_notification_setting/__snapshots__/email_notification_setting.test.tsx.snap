@@ -234,7 +234,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 onClick={[Function]}
                 type="submit"
               >
-                <LoadingWrapper
+                <Memo(LoadingWrapper)
                   loading={false}
                   text={
                     <Memo(MemoizedFormattedMessage)
@@ -253,7 +253,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       </span>
                     </FormattedMessage>
                   </span>
-                </LoadingWrapper>
+                </Memo(LoadingWrapper)>
               </button>
             </SaveButton>
             <button
@@ -679,7 +679,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 onClick={[Function]}
                 type="submit"
               >
-                <LoadingWrapper
+                <Memo(LoadingWrapper)
                   loading={false}
                   text={
                     <Memo(MemoizedFormattedMessage)
@@ -698,7 +698,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       </span>
                     </FormattedMessage>
                   </span>
-                </LoadingWrapper>
+                </Memo(LoadingWrapper)>
               </button>
             </SaveButton>
             <button

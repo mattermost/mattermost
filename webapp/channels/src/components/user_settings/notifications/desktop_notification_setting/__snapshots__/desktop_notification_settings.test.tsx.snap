@@ -874,6 +874,11 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 className="react-select notification-sound-dropdown"
                 classNamePrefix="react-select"
                 clearable={false}
+                components={
+                  Object {
+                    "SingleValue": [Function],
+                  }
+                }
                 defaultInputValue=""
                 defaultMenuIsOpen={false}
                 defaultValue={null}
@@ -1068,6 +1073,11 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
               className="react-select notification-sound-dropdown"
               classNamePrefix="react-select"
               clearable={false}
+              components={
+                Object {
+                  "SingleValue": [Function],
+                }
+              }
               defaultInputValue=""
               defaultMenuIsOpen={false}
               defaultValue={null}
