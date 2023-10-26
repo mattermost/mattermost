@@ -20,7 +20,7 @@ import Constants, {RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
-interface RhsHeaderPostProps extends WrappedComponentProps {
+interface Props extends WrappedComponentProps {
     isExpanded: boolean;
     isMobileView: boolean;
     rootPostId: string;
@@ -43,7 +43,7 @@ interface RhsHeaderPostProps extends WrappedComponentProps {
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
 }
 
-class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProps> {
+class RhsHeaderPost extends React.PureComponent<Props> {
     handleBack = (e: React.MouseEvent) => {
         e.preventDefault();
 
