@@ -4248,7 +4248,7 @@ func (a *OpenTracingAppLayer) ExtendSessionExpiryIfNeeded(session *model.Session
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+func (a *OpenTracingAppLayer) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExtractContentFromFileInfo")
 
@@ -4260,7 +4260,7 @@ func (a *OpenTracingAppLayer) ExtractContentFromFileInfo(fileInfo *model.FileInf
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.ExtractContentFromFileInfo(fileInfo)
+	resultVar0 := a.app.ExtractContentFromFileInfo(rctx, fileInfo)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14758,7 +14758,7 @@ func (a *OpenTracingAppLayer) SaveBrandImage(imageData *multipart.FileHeader) *m
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
+func (a *OpenTracingAppLayer) SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveComplianceReport")
 
@@ -14770,7 +14770,7 @@ func (a *OpenTracingAppLayer) SaveComplianceReport(job *model.Compliance) (*mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SaveComplianceReport(job)
+	resultVar0, resultVar1 := a.app.SaveComplianceReport(rctx, job)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
