@@ -17,6 +17,9 @@ type Props = Omit<HTMLAttributes<HTMLSpanElement | HTMLElement>, 'title' | 'comp
     };
 }
 
+/**
+ * @deprecated Use react-intl for title and aria-label instead and make revelant i or span tags for the icon
+ */
 const LocalizedIcon = React.forwardRef((props: Props, ref?: React.Ref<HTMLSpanElement | HTMLElement>) => {
     const {
         component = 'i',
