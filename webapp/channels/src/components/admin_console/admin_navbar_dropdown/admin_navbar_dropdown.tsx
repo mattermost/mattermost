@@ -64,13 +64,13 @@ class AdminNavbarDropdown extends React.PureComponent<Props> {
                 <MenuItemBlockableLink
                     to={'/select_team'}
                     icon={
-                      <i
-                        className='fa fa-exchange'
-                        title={formatMessage({
-                            id: 'select_team.icon',
-                            defaultMessage: 'Select Team Icon',
-                        })}
-                      />
+                        <i
+                            className='fa fa-exchange'
+                            title={formatMessage({
+                                id: 'select_team.icon',
+                                defaultMessage: 'Select Team Icon',
+                            })}
+                        />
                     }
                     text={formatMessage({id: 'admin.nav.switch', defaultMessage: 'Team Selection'})}
                 />
