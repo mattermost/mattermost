@@ -2,7 +2,7 @@
 
 exports[`components/SystemNotice should match snapshot for admin, admin notice 1`] = `
 <div
-  className="system-notice bg--white shadow--2"
+  className="system-notice bg--white"
 >
   <div
     className="system-notice__logo"
@@ -65,7 +65,7 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
 
 exports[`components/SystemNotice should match snapshot for admin, regular notice 1`] = `
 <div
-  className="system-notice bg--white shadow--2"
+  className="system-notice bg--white"
 >
   <div
     className="system-notice__logo"
@@ -111,7 +111,7 @@ exports[`components/SystemNotice should match snapshot for admin, regular notice
 
 exports[`components/SystemNotice should match snapshot for regular user, admin and regular notice 1`] = `
 <div
-  className="system-notice bg--white shadow--2"
+  className="system-notice bg--white"
 >
   <div
     className="system-notice__logo"
@@ -165,7 +165,7 @@ exports[`components/SystemNotice should match snapshot for regular user, no noti
 
 exports[`components/SystemNotice should match snapshot for regular user, regular notice 1`] = `
 <div
-  className="system-notice bg--white shadow--2"
+  className="system-notice bg--white"
 >
   <div
     className="system-notice__logo"
@@ -213,7 +213,7 @@ exports[`components/SystemNotice should match snapshot for show function returni
 
 exports[`components/SystemNotice should match snapshot for show function returning true 1`] = `
 <div
-  className="system-notice bg--white shadow--2"
+  className="system-notice bg--white"
 >
   <div
     className="system-notice__logo"
@@ -259,7 +259,7 @@ exports[`components/SystemNotice should match snapshot for show function returni
 
 exports[`components/SystemNotice should match snapshot for with allowForget equal false 1`] = `
 <div
-  className="system-notice bg--white shadow--2"
+  className="system-notice bg--white"
 >
   <div
     className="system-notice__logo"
@@ -295,7 +295,7 @@ exports[`components/SystemNotice should match snapshot for with allowForget equa
 
 exports[`components/SystemNotice should match snapshot when a custom icon is passed 1`] = `
 <div
-  className="system-notice bg--white shadow--2"
+  className="system-notice bg--white"
 >
   <div
     className="system-notice__logo"
