@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Button, ButtonGroup} from 'react-bootstrap';
+import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
