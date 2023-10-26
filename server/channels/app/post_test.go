@@ -404,6 +404,147 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestUpdatePostPluginHooks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Should stop processing at first reject", func(t *testing.T) {
+		setupMultiPluginAPITest(t, []string{
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					return nil, "rejected"
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					if (newPost == nil) {
+						return nil, "nil post"
+					}
+					newPost.Message = newPost.Message + "fromplugin"
+					return newPost, ""
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+		}, []string{
+			`{"id": "testrejectfirstpost", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testupdatepost", "server": {"executable": "backend.exe"}}`,
+		}, []string{
+			"testrejectfirstpost", "testupdatepost",
+		}, true, th.App, th.Context)
+
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "", true)
+		require.Nil(t, err)
+
+		post.Message = "new message"
+		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
+		require.Nil(t, updatedPost)
+		require.NotNil(t, err)
+		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
+	})
+
+	t.Run("Should update", func(t *testing.T) {
+		setupMultiPluginAPITest(t, []string{
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					newPost.Message = newPost.Message + " 1"
+					return newPost, ""
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					newPost.Message = newPost.Message + " 2"
+					return newPost, ""
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+		}, []string{
+			`{"id": "testaddone", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testaddtwo", "server": {"executable": "backend.exe"}}`,
+		}, []string{
+			"testaddone", "testaddtwo",
+		}, true, th.App, th.Context)
+
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "", true)
+		require.Nil(t, err)
+
+		post.Message = "new message"
+		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
+		require.Nil(t, err)
+		require.NotNil(t, updatedPost)
+		require.Equal(t, "new message 1 2", updatedPost.Message)
+	})
+}
+
 func TestPostChannelMentions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
