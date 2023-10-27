@@ -30,7 +30,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
   className="textarea-wrapper"
 >
   <Connect(SuggestionBox)
-    channelId="channelId"
     className="form-control custom-textarea"
     contextId="channelId"
     id="someid"
@@ -137,7 +136,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
   className="textarea-wrapper"
 >
   <Connect(SuggestionBox)
-    channelId="channelId"
     className="form-control custom-textarea"
     contextId="channelId"
     id="someid"
@@ -244,7 +242,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
   className="textarea-wrapper"
 >
   <Connect(SuggestionBox)
-    channelId="channelId"
     className="form-control custom-textarea"
     contextId="channelId"
     id="someid"

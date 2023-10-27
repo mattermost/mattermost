@@ -326,7 +326,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     listComponent={this.props.suggestionList}
                     listPosition={this.props.suggestionListPosition}
                     providers={this.suggestionProviders}
-                    channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={ALL}
                     disabled={this.props.disabled}
