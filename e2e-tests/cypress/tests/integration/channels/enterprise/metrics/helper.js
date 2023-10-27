@@ -15,7 +15,7 @@ export const checkMetrics = (expectedStatusCode) => {
             failOnStatusCode: false,
         }).then((response) => {
             expect(response.headers['Content-Type'], 'should not hit webapp').not.to.equal('text/html');
-            expect(response.status, `should match expected status code hitting ${baseURL.toString()}`).to.equal(expectedStatusCode);
+            expect(response.status, 'should match expected status code').to.equal(expectedStatusCode);
         });
     });
 };
