@@ -8,7 +8,7 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
-import {resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
+import {moveHistoryIndexBack, moveHistoryIndexForward, resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions, Preferences, Posts} from 'mattermost-redux/constants';
 import {getAllChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
@@ -25,7 +25,6 @@ import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {
     clearCommentDraftUploads,
     updateCommentDraft,
-    makeOnMoveHistoryIndex,
     makeOnSubmit,
     makeOnEditLatestPost,
 } from 'actions/views/create_comment';
@@ -132,8 +131,8 @@ type Actions = {
     updateCommentDraftWithRootId: (rootID: string, draft: PostDraft, save?: boolean) => void;
     onSubmit: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
     onResetHistoryIndex: () => void;
-    onMoveHistoryIndexBack: () => void;
-    onMoveHistoryIndexForward: () => void;
+    moveHistoryIndexBack: (index: string) => Promise<void>;
+    moveHistoryIndexForward: (index: string) => Promise<void>;
     onEditLatestPost: () => ActionResult;
     resetCreatePostRequest: () => void;
     getChannelTimezones: (channelId: string) => Promise<ActionResult>;
@@ -152,14 +151,6 @@ function makeMapDispatchToProps() {
         draft: PostDraft,
         options: {ignoreSlash: boolean},
     ) => (dispatch: DispatchFunc, getState: () => GlobalState) => Promise<ActionResult | ActionResult[]> | ActionResult;
-    let onMoveHistoryIndexBack: () => (
-        dispatch: DispatchFunc,
-        getState: () => GlobalState,
-    ) => Promise<ActionResult | ActionResult[]> | ActionResult;
-    let onMoveHistoryIndexForward: () => (
-        dispatch: DispatchFunc,
-        getState: () => GlobalState,
-    ) => Promise<ActionResult | ActionResult[]> | ActionResult;
     let onEditLatestPost: () => ActionFunc;
 
     function onResetHistoryIndex() {
@@ -173,8 +164,6 @@ function makeMapDispatchToProps() {
     return (dispatch: Dispatch, ownProps: OwnProps) => {
         if (rootId !== ownProps.rootId) {
             onUpdateCommentDraft = makeOnUpdateCommentDraft(ownProps.rootId, ownProps.channelId);
-            onMoveHistoryIndexBack = makeOnMoveHistoryIndex(ownProps.rootId, -1);
-            onMoveHistoryIndexForward = makeOnMoveHistoryIndex(ownProps.rootId, 1);
         }
 
         if (channelId !== ownProps.channelId) {
@@ -200,8 +189,8 @@ function makeMapDispatchToProps() {
                 updateCommentDraftWithRootId,
                 onSubmit,
                 onResetHistoryIndex,
-                onMoveHistoryIndexBack,
-                onMoveHistoryIndexForward,
+                moveHistoryIndexBack,
+                moveHistoryIndexForward,
                 onEditLatestPost,
                 resetCreatePostRequest,
                 getChannelTimezones,
