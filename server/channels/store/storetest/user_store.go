@@ -6180,4 +6180,8 @@ func testUpdateLastLogin(t *testing.T, ss store.Store) {
 
 	err = ss.User().UpdateLastLogin(u1.Id, 1234567890)
 	require.NoError(t, err)
+
+	user, err := ss.User().Get(context.Background(), u1.Id)
+	require.NoError(t, err)
+	require.Equal(t, int64(1234567890), user.LastLogin)
 }
