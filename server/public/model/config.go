@@ -2868,9 +2868,9 @@ type DataRetentionSettings struct {
 	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
 	EnableBoardsDeletion           *bool   `access:"compliance_data_retention_policy"`
-	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"`
+	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"` // Deprecated: use `MessageRetentionHours`
 	MessageRetentionHours          *int    `access:"compliance_data_retention_policy"`
-	FileRetentionDays              *int    `access:"compliance_data_retention_policy"`
+	FileRetentionDays              *int    `access:"compliance_data_retention_policy"` // Deprecated: use `FileRetentionHours`
 	FileRetentionHours             *int    `access:"compliance_data_retention_policy"`
 	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
@@ -2941,7 +2941,7 @@ func (s *DataRetentionSettings) GetMessageRetentionTime() int {
 }
 
 // GetFileRetentionTime returns the message retention time as an int.
-// MessageRetentionHours takes precedence over the deprecated MessageRetentionDays.
+// FileRetentionHours takes precedence over the deprecated FileRetentionDays.
 func (s *DataRetentionSettings) GetFileRetentionTime() int {
 	if s.FileRetentionHours != nil && *s.FileRetentionHours > 0 {
 		return *s.FileRetentionHours
