@@ -4,6 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
@@ -184,7 +185,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
 
         const appId = 'appId';
-        const apps = [{id: appId}, {id: '2'}];
+        const apps = [{id: appId}, {id: '2'}] as OAuthApp[];
         const event: any = {
             currentTarget: {getAttribute: jest.fn().mockReturnValue(appId)},
             preventDefault: jest.fn(),
