@@ -139,6 +139,10 @@ func (u *User) Auditable() map[string]interface{} {
 	}
 }
 
+func (u *User) LogClone() any {
+	return u.Auditable()
+}
+
 //msgp UserMap
 
 // UserMap is a map from a userId to a user object.
