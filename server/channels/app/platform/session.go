@@ -230,7 +230,7 @@ func (ps *PlatformService) UpdateSessionsIsGuest(c *request.Context, user *model
 
 	_, err = ps.Store.Session().UpdateRoles(user.Id, user.GetRawRoles())
 	if err != nil {
-		mlog.Warn("Unable to update isGuest session roles", mlog.Err(err))
+		return err
 	}
 
 	for _, session := range sessions {
