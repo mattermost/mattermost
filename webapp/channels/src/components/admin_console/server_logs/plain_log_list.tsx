@@ -6,8 +6,6 @@ import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-in
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 
-import {t} from 'utils/i18n';
-
 const NEXT_BUTTON_TIMEOUT = 500;
 
 interface Props extends WrappedComponentProps {
@@ -97,7 +95,7 @@ class PlainLogList extends React.PureComponent<Props, State> {
                 >
                     <i
                         className='fa fa-angle-left'
-                        title={this.props.intl.formatMessage({id: t('generic_icons.previous'), defaultMessage: 'Previous Icon'})}
+                        title={this.props.intl.formatMessage({id: 'generic_icons.previous', defaultMessage: 'Previous Icon'})}
                     />
                     <FormattedMessage
                         id='admin.logs.prev'
