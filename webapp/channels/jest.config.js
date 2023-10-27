@@ -44,7 +44,9 @@ const config = {
     setupFilesAfterEnv: ['<rootDir>/src/tests/setup.js'],
     testEnvironment: 'jsdom',
     testTimeout: 60000,
-    testURL: 'http://localhost:8065',
+    testEnvironmentOptions: {
+        url: 'http://localhost:8065',
+    },
     watchPlugins: [
         'jest-watch-typeahead/filename',
         'jest-watch-typeahead/testname',
