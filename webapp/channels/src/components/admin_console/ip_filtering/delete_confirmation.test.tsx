@@ -10,10 +10,10 @@ describe('DeleteConfirmationModal', () => {
     const onClose = jest.fn();
     const onConfirm = jest.fn();
     const filterToDelete = {
-        CIDRBlock: '192.168.0.0/16',
-        Description: 'Test IP Filter',
-        Enabled: true,
-        OwnerID: '',
+        cidr_block: '192.168.0.0/16',
+        description: 'Test IP Filter',
+        enabled: true,
+        owner_id: '',
     };
 
     const baseProps = {

@@ -333,13 +333,3 @@ func (df *Feedback) ToMap() map[string]any {
 
 	return res
 }
-
-type PatchInstallationRequest struct {
-	AllowedIPRanges  *AllowedIPRanges
-	OverrideIPRanges *bool
-}
-
-type Installation struct {
-	ID              string
-	AllowedIPRanges *AllowedIPRanges
-}

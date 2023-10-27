@@ -3,10 +3,10 @@ package model
 type AllowedIPRanges []AllowedIPRange
 
 type AllowedIPRange struct {
-	CIDRBlock   string
-	Description string
-	Enabled     bool
-	OwnerID     string
+	CIDRBlock   string `json:"cidr_block"`
+	Description string `json:"description"`
+	Enabled     bool   `json:"enabled"`
+	OwnerID     string `json:"owner_id"`
 }
 
 func (air *AllowedIPRanges) Auditable() map[string]interface{} {
@@ -16,5 +16,5 @@ func (air *AllowedIPRanges) Auditable() map[string]interface{} {
 }
 
 type GetIPAddressResponse struct {
-	IP string
+	IP string `json:"ip"`
 }

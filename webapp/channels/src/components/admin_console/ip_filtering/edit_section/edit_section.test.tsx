@@ -13,8 +13,8 @@ import EditSection from './';
 describe('EditSection', () => {
     const ipFilters = [
         {
-            CIDRBlock: '192.168.0.0/24',
-            Description: 'Test Filter',
+            cidr_block: '192.168.0.0/24',
+            description: 'Test Filter',
         },
     ] as AllowedIPRange[];
     const currentUsersIP = '192.168.0.1';

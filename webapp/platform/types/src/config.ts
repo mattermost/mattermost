@@ -982,14 +982,14 @@ export enum ServiceEnvironment {
 
 
 export type AllowedIPRange = {
-    CIDRBlock: string;
-    Description: string;
-    Enabled: boolean;
-    OwnerID: string;
+    cidr_block: string;
+    description: string;
+    enabled: boolean;
+    owner_id: string;
 }
 
 export type AllowedIPRanges = AllowedIPRange[];
 
 export type FetchIPResponse = {
-    IP: string;
+    ip: string;
 }

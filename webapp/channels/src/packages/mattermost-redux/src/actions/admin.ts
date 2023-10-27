@@ -14,6 +14,7 @@ import type {
 import type {ServerError} from '@mattermost/types/errors';
 import type {GroupSearchOpts} from '@mattermost/types/groups';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
+import type {AllowedIPRange} from '@mattermost/types/src/config';
 import type {
     TeamSearchOpts,
 } from '@mattermost/types/teams';
@@ -843,5 +844,26 @@ export function completeSetup(completeSetup: CompleteOnboardingRequest): ActionF
 export function getAppliedSchemaMigrations(): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getAppliedSchemaMigrations,
+    });
+}
+
+export function getIPFilters() {
+    return bindClientFunc({
+        clientFunc: Client4.getIPFilters,
+        params: [],
+    });
+}
+
+export function getCurrentIP() {
+    return bindClientFunc({
+        clientFunc: Client4.getCurrentIP,
+        params: [],
+    });
+}
+
+export function applyIPFilters(ipFilters: AllowedIPRange[]) {
+    return bindClientFunc({
+        clientFunc: Client4.applyIPFilters,
+        params: [ipFilters],
     });
 }

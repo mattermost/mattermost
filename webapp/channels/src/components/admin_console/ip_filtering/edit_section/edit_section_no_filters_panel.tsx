@@ -12,7 +12,7 @@ type NoFiltersPanelProps = {
 
 const NoFiltersPanel = ({setShowAddModal}: NoFiltersPanelProps) => (
     <div className='NoFilters'>
-        <div className='icon'>
+        <div>
             <IPFilteringEarthSvg
                 width={149}
                 height={140}

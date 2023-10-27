@@ -57,7 +57,7 @@ const EditSection = ({
                         </div>
                         {ipFilters?.map((allowedIPRange, index) => (
                             <EditTableRow
-                                key={allowedIPRange.CIDRBlock}
+                                key={allowedIPRange.cidr_block}
                                 allowedIPRange={allowedIPRange}
                                 index={index}
                                 handleRowMouseEnter={(index) => setHoveredRow(index)}

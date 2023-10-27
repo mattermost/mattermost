@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
@@ -45,24 +45,18 @@ export default function SaveConfirmationModal({onClose, onConfirm, title, subtit
                             <div className='Title'>{formatMessage({id: 'admin.ip_filtering.save_disclaimer_title', defaultMessage: 'Using the Customer Portal to restore access'})}</div>
                             {/* TODO - replace "workspace owner" with owner's email address? */}
                             <div className='Subtitle'>
-                                {
-                                    formatMessage(
-                                        {
-                                            id: 'admin.ip_filtering.save_disclaimer_subtitle',
-                                            defaultMessage: 'If you happen to block yourself with these settings, your workspace owner can log in to the {customerportal} to disable IP filtering to restore access.',
-                                        },
-                                        {
-                                            customerportal: (
-                                                <ExternalLink
-                                                    href='https://customers.mattermost.com/console/ip_filtering'
-                                                    target='_blank'
-                                                    rel='noreferrer'
-                                                >
-                                                    {'Customer Portal'}
-                                                </ExternalLink>),
-                                        },
-                                    )
-                                }
+                                <FormattedMessage
+                                    id={'admin.ip_filtering.save_disclaimer_subtitle'}
+                                    defaultMessage={'If you happen to block yourself with these settings, your workspace owner can log in to the <customerportal>Customer Portal</customerportal> to disable IP filtering to restore access.'}
+                                    values={{
+                                        customerportal: (msg) => (
+                                            <ExternalLink
+                                                href='https://customers.mattermost.com/console/ip_filtering'
+                                            >
+                                                {msg}
+                                            </ExternalLink>),
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>
