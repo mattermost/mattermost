@@ -2,16 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import LocalizedIcon from 'components/localized_icon';
-
-import {t} from 'utils/i18n';
+import {useIntl} from 'react-intl';
 
 export default function SuccessIcon() {
+    const {formatMessage} = useIntl();
+
     return (
-        <LocalizedIcon
+        <i
             className='fa fa-check'
-            title={{id: t('generic_icons.success'), defaultMessage: 'Success Icon'}}
+            title={formatMessage({id: 'generic_icons.success', defaultMessage: 'Success Icon'})}
         />
     );
 }
