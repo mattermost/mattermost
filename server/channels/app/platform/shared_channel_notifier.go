@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
-var sharedChannelEventsForSync model.StringArray = []string{
+var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.WebsocketEventType {
 	model.WebsocketEventPosted,
 	model.WebsocketEventPostEdited,
 	model.WebsocketEventPostDeleted,
@@ -22,7 +22,7 @@ var sharedChannelEventsForSync model.StringArray = []string{
 	model.WebsocketEventReactionRemoved,
 }
 
-var sharedChannelEventsForInvitation model.StringArray = []string{
+var sharedChannelEventsForInvitation model.WebsocketEventTypeArray = []model.WebsocketEventType {
 	model.WebsocketEventDirectAdded,
 }
 
@@ -34,21 +34,21 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	if syncService == nil {
 		return
 	}
-	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync) {
+	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync.ToStringArray()) {
 		err := handleContentSync(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
 				err.Error(),
-				mlog.String("event", event.EventType()),
+				mlog.String("event", string(event.EventType())),
 				mlog.String("action", "content_sync"),
 			)
 		}
-	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation) {
+	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation.ToStringArray()) {
 		err := handleInvitation(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
 				err.Error(),
-				mlog.String("event", event.EventType()),
+				mlog.String("event", string(event.EventType())),
 				mlog.String("action", "invitation"),
 			)
 		}
@@ -58,7 +58,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 func isEligibleForEvents(syncService SharedChannelServiceIFace, event *model.WebSocketEvent, events model.StringArray) bool {
 	return syncServiceEnabled(syncService) &&
 		eventHasChannel(event) &&
-		events.Contains(event.EventType())
+		events.Contains(string(event.EventType()))
 }
 
 func eventHasChannel(event *model.WebSocketEvent) bool {

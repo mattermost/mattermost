@@ -388,7 +388,7 @@ func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppErro
 	return updatedTeam, nil
 }
 
-func (a *App) sendTeamEvent(team *model.Team, event string) *model.AppError {
+func (a *App) sendTeamEvent(team *model.Team, event model.WebsocketEventType) *model.AppError {
 	sanitizedTeam := &model.Team{}
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()

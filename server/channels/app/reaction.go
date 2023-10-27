@@ -137,7 +137,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 	return nil
 }
 
-func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
+func (a *App) sendReactionEvent(event model.WebsocketEventType, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 	reactionJSON, err := json.Marshal(reaction)

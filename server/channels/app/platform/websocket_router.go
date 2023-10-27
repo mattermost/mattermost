@@ -36,7 +36,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
-	if r.Action == model.WebsocketAuthenticationChallenge {
+	if r.Action == string(model.WebsocketAuthenticationChallenge) {
 		if conn.GetSessionToken() != "" {
 			return
 		}
