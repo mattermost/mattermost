@@ -531,7 +531,6 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOver={[Function]}
                                         >
                                           <i
-                                            aria-label="Close"
                                             className="icon icon-send"
                                           />
                                         </button>
@@ -740,7 +739,6 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOver={[Function]}
                                         >
                                           <i
-                                            aria-label="Close"
                                             className="icon icon-send"
                                           />
                                         </button>
@@ -949,7 +947,6 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOver={[Function]}
                                         >
                                           <i
-                                            aria-label="Close"
                                             className="icon icon-send"
                                           />
                                         </button>
@@ -1158,7 +1155,6 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOver={[Function]}
                                         >
                                           <i
-                                            aria-label="Close"
                                             className="icon icon-send"
                                           />
                                         </button>
@@ -1367,7 +1363,6 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOver={[Function]}
                                         >
                                           <i
-                                            aria-label="Close"
                                             className="icon icon-send"
                                           />
                                         </button>

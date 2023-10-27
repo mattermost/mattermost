@@ -14,13 +14,11 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
-
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatar from 'components/widgets/users/avatar';
-
 
 import * as Utils from 'utils/utils';
 
@@ -199,7 +197,6 @@ const GroupMemberList = (props: Props) => {
                             >
                                 <i
                                     className='icon icon-send'
-                                    aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close'})}
                                 />
                             </DMButton>
                         </SimpleTooltip>
