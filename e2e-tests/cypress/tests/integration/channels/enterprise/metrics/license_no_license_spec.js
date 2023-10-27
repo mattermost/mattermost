@@ -15,12 +15,12 @@ import {checkMetrics} from './helper';
 describe('Metrics > No license', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
+        cy.apiDeleteLicense();
         cy.apiUpdateConfig({
             MetricsSettings: {
                 Enable: true,
             },
         });
-        cy.apiDeleteLicense();
     });
 
     it('should enable metrics in BUILD_NUMBER == dev environments', () => {
