@@ -12,13 +12,17 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             DataRetentionSettings: {
                 EnableMessageDeletion: true,
                 EnableFileDeletion: true,
+                MessageRetentionDays: 100,
                 MessageRetentionHours: 2400,
+                FileRetentionDays: 100,
                 FileRetentionHours: 2400,
                 DeletionJobStartTime: '00:15',
             },
         },
         customPolicies: {},
         customPoliciesCount: 0,
+        globalMessageRetentionHours: 2400,
+        globalFileRetentionHours: 2400,
         actions: {
             getDataRetentionCustomPolicies: jest.fn().mockResolvedValue([]),
             createJob: jest.fn(),

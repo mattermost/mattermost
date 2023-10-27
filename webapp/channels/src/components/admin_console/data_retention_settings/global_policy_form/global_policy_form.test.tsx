@@ -17,6 +17,8 @@ describe('components/PluginManagement', () => {
                 DeletionJobStartTime: '10:00',
             },
         },
+        messageRetentionHours: 2400,
+        fileRetentionHours: 2400,
         actions: {
             updateConfig: jest.fn(),
             setNavigationBlocked: jest.fn(),
