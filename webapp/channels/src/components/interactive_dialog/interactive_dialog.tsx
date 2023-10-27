@@ -13,8 +13,6 @@ import {
     checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
 
-import store from 'stores/redux_store';
-
 import SpinnerButton from 'components/spinner_button';
 
 import type EmojiMap from 'utils/emoji_map';
@@ -105,16 +103,20 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
 
         const {url, callbackId, state} = this.props;
 
-        const dialog = {
+        const dialog: DialogSubmission = {
             url,
-            callback_id: callbackId,
-            state,
-            submission: values,
-        } as unknown as DialogSubmission;
+            callback_id: callbackId ?? '',
+            state: state ?? '',
+            submission: values as { [x: string]: string },
+            user_id: '',
+            channel_id: '',
+            team_id: '',
+            cancelled: false,
+        };
 
         this.setState({submitting: true});
 
-        const {data}: any = await this.props.actions.submitInteractiveDialog(dialog)(store.dispatch, store.getState);
+        const {data}: any = await this.props.actions.submitInteractiveDialog(dialog) ?? {};
 
         this.setState({submitting: false});
 
@@ -149,12 +151,16 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
         const {url, callbackId, state, notifyOnCancel} = this.props;
 
         if (!submitted && notifyOnCancel) {
-            const dialog = {
+            const dialog: DialogSubmission = {
                 url,
-                callback_id: callbackId,
-                state,
+                callback_id: callbackId ?? '',
+                state: state ?? '',
                 cancelled: true,
-            }as unknown as DialogSubmission;
+                user_id: '',
+                channel_id: '',
+                team_id: '',
+                submission: {},
+            };
 
             this.props.actions.submitInteractiveDialog(dialog);
         }

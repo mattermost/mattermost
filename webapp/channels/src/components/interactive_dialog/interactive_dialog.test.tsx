@@ -29,7 +29,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         submitLabel: 'Yes',
         notifyOnCancel: true,
         state: 'some state',
-        onExited: () => {},
+        onExited: jest.fn(),
         actions: {
             submitInteractiveDialog: jest.fn(),
         },
@@ -41,9 +41,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
             const props = {
                 ...baseProps,
                 actions: {
-                    submitInteractiveDialog: jest.fn().mockRejectedValue({
-                        data: {error: 'This is an error.'},
-                    }),
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {error: 'This is an error.'}}),
                 },
             };
             const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...props}/>);
@@ -140,9 +138,9 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
 
         testCases.forEach((testCase) => test(`should interpret ${testCase.description}`, () => {
             if (testCase.default === undefined) {
-                delete element.default;
+                delete (element as any).default;
             } else {
-                element.default = testCase.default;
+                (element as any).default = testCase.default;
             }
 
             const store = mockStore({});
