@@ -17,7 +17,6 @@ const KeyCodes = Constants.KeyCodes;
 
 export default class SuggestionBox extends React.PureComponent {
     static propTypes = {
-        ref: PropTypes.any,
 
         /**
          * The list component to render, usually SuggestionList
