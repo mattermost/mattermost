@@ -12,20 +12,39 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -45,7 +64,6 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -54,18 +72,23 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
     showEmojiPicker={false}
-    showSendTutorialTip={false}
+    showSendTutorialTip={true}
     textboxRef={
       Object {
         "current": null,
@@ -91,20 +114,39 @@ exports[`components/advanced_create_post should match snapshot for center textbo
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -124,7 +166,6 @@ exports[`components/advanced_create_post should match snapshot for center textbo
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -133,13 +174,18 @@ exports[`components/advanced_create_post should match snapshot for center textbo
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -170,20 +216,39 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={false}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -203,7 +268,6 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -212,13 +276,18 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -250,19 +319,38 @@ exports[`components/advanced_create_post should match snapshot when file upload 
     badConnection={false}
     canPost={true}
     canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -282,7 +370,6 @@ exports[`components/advanced_create_post should match snapshot when file upload 
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -291,13 +378,18 @@ exports[`components/advanced_create_post should match snapshot when file upload 
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -328,20 +420,39 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -361,7 +472,6 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -370,13 +480,18 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -407,20 +522,39 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -440,7 +574,6 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -449,13 +582,18 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -486,20 +624,39 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={false}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -519,7 +676,6 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -528,13 +684,18 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -565,20 +726,39 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={false}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -598,7 +778,6 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -607,13 +786,18 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -644,20 +828,39 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -677,7 +880,6 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -686,13 +888,18 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -723,18 +930,35 @@ exports[`components/advanced_create_post should match snapshot, post priority di
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
         "metadata": Object {
@@ -742,6 +966,8 @@ exports[`components/advanced_create_post should match snapshot, post priority di
             "priority": "important",
           },
         },
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -761,7 +987,6 @@ exports[`components/advanced_create_post should match snapshot, post priority di
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -770,13 +995,18 @@ exports[`components/advanced_create_post should match snapshot, post priority di
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -815,20 +1045,39 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -848,7 +1097,6 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -857,13 +1105,18 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleUploadStart={[Function]}
     hideEmojiPicker={[Function]}
     isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
@@ -907,18 +1160,35 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
-    canUploadFiles={true}
+    canUploadFiles={false}
+    caretPosition={0}
     channelId="owsyt8n43jfxjpzh9np93mx1wa"
+    ctrlSend={false}
     currentChannel={
       Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
         "id": "owsyt8n43jfxjpzh9np93mx1wa",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
         "type": "O",
+        "update_at": 0,
       }
     }
     currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     disableSend={false}
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
         "metadata": Object {
@@ -926,6 +1196,8 @@ exports[`components/advanced_create_post should match snapshot, post priority en
             "priority": "important",
           },
         },
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -945,7 +1217,6 @@ exports[`components/advanced_create_post should match snapshot, post priority en
     handleFileUploadChange={[Function]}
     handleFileUploadComplete={[Function]}
     handleGifClick={[Function]}
-    handleKeyDown={[Function]}
     handleMouseUpKeyUp={[Function]}
     handlePostError={[Function]}
     handleSubmit={[Function]}
@@ -969,13 +1240,18 @@ exports[`components/advanced_create_post should match snapshot, post priority en
         }
       />
     }
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
     location="CENTER"
     maxPostSize={4000}
     message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
     postId=""
     postMsgKeyPress={[Function]}
     prefillMessage={[Function]}
     removePreview={[Function]}
+    replyToLastPost={[Function]}
     serverError={null}
     setShowPreview={[Function]}
     shouldShowPreview={false}
