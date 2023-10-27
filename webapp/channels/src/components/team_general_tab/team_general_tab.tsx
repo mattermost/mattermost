@@ -106,9 +106,10 @@ export class GeneralTab extends React.PureComponent<Props, State> {
     handleAllowedDomainsSubmit = async () => {
         const state = {serverError: '', clientError: ''};
 
-        const data = {...this.props.team};
-        data.allowed_domains = this.state.allowed_domains;
-
+        const data = {
+            id: this.props.team?.id,
+            allowed_domains: this.state.allowed_domains,
+        };
         const {error} = await this.props.actions.patchTeam(data);
 
         if (error) {
@@ -151,9 +152,10 @@ export class GeneralTab extends React.PureComponent<Props, State> {
             return;
         }
 
-        const data = {...this.props.team};
-        data.display_name = this.state.name;
-
+        const data = {
+            id: this.props.team?.id,
+            display_name: this.state.name,
+        };
         const {error} = await this.props.actions.patchTeam(data);
 
         if (error) {
@@ -198,9 +200,10 @@ export class GeneralTab extends React.PureComponent<Props, State> {
             return;
         }
 
-        const data = {...this.props.team};
-        data.description = this.state.description;
-
+        const data = {
+            id: this.props.team?.id,
+            description: this.state.description,
+        };
         const {error} = await this.props.actions.patchTeam(data);
 
         if (error) {
