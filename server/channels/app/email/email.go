@@ -1275,3 +1275,29 @@ func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale
 
 	return nil
 }
+
+func (es *Service) SendIPFiltersChangedEmail(email string, initiatingUser *model.User, siteURL, portalURL, locale string) (bool, error) {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.ip_filters_changed.subject")
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.ip_filters_changed.title")
+	data.Props["SubTitle"] = T("api.templates.ip_filters_changed.subTitle", map[string]any{"InitiatingUsername": initiatingUser.Username, "SiteURL": siteURL})
+	data.Props["ButtonURL"] = siteURL + "/admin_console/site_config/ip_filtering"
+	data.Props["Button"] = T("api.templates.ip_filters_changed.button")
+	data.Props["TroubleAccessingTitle"] = T("api.templates.ip_filters_changed_footer.title")
+	data.Props["TroubleAccessingSubtitle"] = T("api.templates.ip_filters_changed_footer.info", map[string]any{"InitiatingUserEmail": initiatingUser.Email})
+
+	body, err := es.templatesContainer.RenderToString("ip_filters_changed", data)
+	if err != nil {
+		return false, err
+	}
+
+	if err := es.sendMail(email, subject, body, "PasswordResetEmail"); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
