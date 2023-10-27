@@ -5,8 +5,6 @@ import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import {t} from 'utils/i18n';
-
 type Props = {
     additionalClassName?: string;
 }
