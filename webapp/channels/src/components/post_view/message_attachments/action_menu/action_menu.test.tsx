@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithFullContext, screen} from 'tests/react_testing_utils';
 
 import ActionMenu from './action_menu';
 
@@ -32,7 +32,7 @@ describe('components/post_view/message_attachments/ActionMenu', () => {
     };
 
     test('should start with nothing selected', async () => {
-        renderWithIntlAndStore(<ActionMenu {...baseProps}/>, {});
+        renderWithFullContext(<ActionMenu {...baseProps}/>);
 
         const autoCompleteSelector = screen.getByTestId('autoCompleteSelector');
         const input = screen.getByPlaceholderText('action');
@@ -55,7 +55,7 @@ describe('components/post_view/message_attachments/ActionMenu', () => {
                 default_option: '2',
             },
         };
-        renderWithIntlAndStore(<ActionMenu {...props}/>, {});
+        renderWithFullContext(<ActionMenu {...props}/>);
 
         const input = screen.getByPlaceholderText('action');
 

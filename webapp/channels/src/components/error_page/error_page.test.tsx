@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {BrowserRouter} from 'react-router-dom';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithFullContext, screen} from 'tests/react_testing_utils';
 import {ErrorPageTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -14,15 +13,13 @@ import ErrorPage from './error_page';
 
 describe('ErrorPage', () => {
     it('displays cloud archived page correctly', () => {
-        renderWithIntlAndStore(
+        renderWithFullContext(
             (
-                <BrowserRouter>
-                    <ErrorPage
-                        location={{
-                            search: `?type=${ErrorPageTypes.CLOUD_ARCHIVED}`,
-                        }}
-                    />
-                </BrowserRouter>
+                <ErrorPage
+                    location={{
+                        search: `?type=${ErrorPageTypes.CLOUD_ARCHIVED}`,
+                    }}
+                />
             ),
             {
                 entities: {

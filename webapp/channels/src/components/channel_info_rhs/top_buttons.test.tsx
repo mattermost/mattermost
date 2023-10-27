@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import TopButtons from './top_buttons';
@@ -47,7 +47,7 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithIntl(
+        renderWithFullContext(
             <TopButtons
                 {...testProps}
             />,
@@ -60,7 +60,7 @@ describe('channel_info_rhs/top_buttons', () => {
         // Favorited to Favorite
         toggleFavorite.mockReset();
         testProps.isFavorite = true;
-        renderWithIntl(
+        renderWithFullContext(
             <TopButtons
                 {...testProps}
             />,
@@ -83,7 +83,7 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithIntl(
+        renderWithFullContext(
             <TopButtons
                 {...testProps}
             />,
@@ -96,7 +96,7 @@ describe('channel_info_rhs/top_buttons', () => {
         // Muted to Mute
         toggleMute.mockReset();
         testProps.isMuted = true;
-        renderWithIntl(
+        renderWithFullContext(
             <TopButtons
                 {...testProps}
             />,
@@ -118,7 +118,7 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithIntl(
+        renderWithFullContext(
             <TopButtons
                 {...testProps}
             />,
@@ -134,7 +134,7 @@ describe('channel_info_rhs/top_buttons', () => {
             channelType: Constants.DM_CHANNEL,
         };
 
-        renderWithIntl(
+        renderWithFullContext(
             <TopButtons
                 {...testProps}
             />,
@@ -149,7 +149,7 @@ describe('channel_info_rhs/top_buttons', () => {
             canAddPeople: false,
         };
 
-        renderWithIntl(
+        renderWithFullContext(
             <TopButtons
                 {...testProps}
             />,
@@ -159,7 +159,7 @@ describe('channel_info_rhs/top_buttons', () => {
     });
 
     test('can copy link', () => {
-        renderWithIntl(
+        renderWithFullContext(
             <TopButtons
                 {...topButtonDefaultProps}
             />,
@@ -179,7 +179,7 @@ describe('channel_info_rhs/top_buttons', () => {
                 ...topButtonDefaultProps,
                 channelType,
             };
-            renderWithIntl(
+            renderWithFullContext(
                 <TopButtons
                     {...localProps}
                 />,

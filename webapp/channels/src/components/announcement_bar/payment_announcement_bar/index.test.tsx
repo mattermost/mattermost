@@ -5,7 +5,7 @@ import React from 'react';
 
 import * as cloudActions from 'mattermost-redux/actions/cloud';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithFullContext, screen} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 
 import PaymentAnnouncementBar from './';
@@ -68,7 +68,7 @@ describe('PaymentAnnouncementBar', () => {
     };
 
     it('when most recent payment failed, shows that', () => {
-        renderWithIntlAndStore(<PaymentAnnouncementBar/>, happyPathStore);
+        renderWithFullContext(<PaymentAnnouncementBar/>, happyPathStore);
         screen.getByText('Your most recent payment failed');
     });
 
@@ -76,7 +76,7 @@ describe('PaymentAnnouncementBar', () => {
         const store = JSON.parse(JSON.stringify(happyPathStore));
         store.entities.cloud.customer.payment_method.exp_year = (new Date()).getFullYear() - 1;
         store.entities.cloud.subscription.last_invoice.status = 'success';
-        renderWithIntlAndStore(<PaymentAnnouncementBar/>, store);
+        renderWithFullContext(<PaymentAnnouncementBar/>, store);
         screen.getByText('Your credit card has expired', {exact: false});
     });
 
@@ -84,14 +84,14 @@ describe('PaymentAnnouncementBar', () => {
         const store = JSON.parse(JSON.stringify(happyPathStore));
         store.entities.cloud.customer = null;
         store.entities.cloud.subscription.last_invoice.status = 'success';
-        renderWithIntlAndStore(<PaymentAnnouncementBar/>, store);
+        renderWithFullContext(<PaymentAnnouncementBar/>, store);
         expect(cloudActions.getCloudCustomer).toHaveBeenCalled();
     });
 
     it('when not an admin, does not fetch customer', () => {
         const store = JSON.parse(JSON.stringify(happyPathStore));
         store.entities.users.profiles.me.roles = '';
-        renderWithIntlAndStore(<PaymentAnnouncementBar/>, store);
+        renderWithFullContext(<PaymentAnnouncementBar/>, store);
         expect(cloudActions.getCloudCustomer).not.toHaveBeenCalled();
     });
 });

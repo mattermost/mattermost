@@ -6,7 +6,7 @@ import React from 'react';
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithFullContext, screen} from 'tests/react_testing_utils';
 
 import PostAttachmentContainer from './post_attachment_container';
 import type {Props} from './post_attachment_container';
@@ -37,7 +37,7 @@ describe('PostAttachmentContainer', () => {
     };
 
     test('should render correctly', () => {
-        renderWithIntlAndStore(
+        renderWithFullContext(
             <PostAttachmentContainer {...baseProps}/>, initialState,
         );
 

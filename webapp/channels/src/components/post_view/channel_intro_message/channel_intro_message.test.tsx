@@ -6,7 +6,7 @@ import React from 'react';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithFullContext, screen} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -85,7 +85,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
 
     describe('test Open Channel', () => {
         test('should match component state, without boards', () => {
-            renderWithIntlAndStore(
+            renderWithFullContext(
                 <ChannelIntroMessage{...baseProps}/>, initialState,
             );
 
@@ -110,7 +110,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         };
 
         test('should match component state, no profiles', () => {
-            renderWithIntlAndStore(
+            renderWithFullContext(
                 <ChannelIntroMessage
                     {...props}
                 />, initialState,
@@ -126,7 +126,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         });
 
         test('should match component state, with profiles', () => {
-            renderWithIntlAndStore(
+            renderWithFullContext(
                 <ChannelIntroMessage
                     {...props}
                     channelProfiles={users}
@@ -171,7 +171,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         };
 
         test('should match component state, without teammate', () => {
-            renderWithIntlAndStore(
+            renderWithFullContext(
                 <ChannelIntroMessage
                     {...props}
                 />, initialState,
@@ -183,7 +183,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         });
 
         test('should match component state, with teammate', () => {
-            renderWithIntlAndStore(
+            renderWithFullContext(
                 <ChannelIntroMessage
                     {...props}
                     teammate={user1 as UserProfile}
@@ -229,7 +229,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         };
 
         test('should match component state, readonly', () => {
-            renderWithIntlAndStore(
+            renderWithFullContext(
                 <ChannelIntroMessage
                     {...props}
                     isReadOnly={true}
@@ -246,7 +246,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         });
 
         test('should match component state without any permission', () => {
-            renderWithIntlAndStore(
+            renderWithFullContext(
                 <ChannelIntroMessage
                     {...props}
                     teamIsGroupConstrained={true}
@@ -278,7 +278,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         };
 
         test('should match component state', () => {
-            renderWithIntlAndStore(
+            renderWithFullContext(
                 <ChannelIntroMessage
                     {...props}
                 />, initialState,

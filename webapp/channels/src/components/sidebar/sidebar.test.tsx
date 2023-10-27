@@ -242,7 +242,7 @@ describe('components/sidebar', () => {
                 },
                 views: {
                     channel: {
-                        lastUnreadChannel: {id: channel1.id},
+                        lastUnreadChannel: {id: channel1.id} as any,
                     },
                 },
             };
