@@ -124,7 +124,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('submitPassword() should not have called updateUserPassword', async () => {
         const wrapper = shallow<SecurityTab>(<SecurityTab {...requiredProps}/>);
 
-        await (wrapper.instance()).submitPassword();
+        await wrapper.instance().submitPassword();
         expect(requiredProps.actions.updateUserPassword).toHaveBeenCalledTimes(0);
     });
 
@@ -144,7 +144,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         };
         wrapper.setState(state);
 
-        await (wrapper.instance()).submitPassword();
+        await wrapper.instance().submitPassword();
 
         expect(updateUserPassword).toHaveBeenCalled();
         expect(updateUserPassword).toHaveBeenCalledWith(
@@ -166,7 +166,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         const wrapper = shallow<SecurityTab>(<SecurityTab {...requiredProps}/>);
         wrapper.setState({authorizedApps: []});
-        (wrapper.instance()).deauthorizeApp(event);
+        wrapper.instance().deauthorizeApp(event);
 
         expect(requiredProps.actions.deauthorizeOAuthApp).toHaveBeenCalled();
         expect(requiredProps.actions.deauthorizeOAuthApp).toHaveBeenCalledWith(
@@ -190,7 +190,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             preventDefault: jest.fn(),
         };
         wrapper.setState({authorizedApps: apps});
-        (wrapper.instance()).deauthorizeApp(event);
+        wrapper.instance().deauthorizeApp(event);
 
         await promise;
 
@@ -211,7 +211,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             currentTarget: {getAttribute: jest.fn().mockReturnValue('appId')},
             preventDefault: jest.fn(),
         };
-        (wrapper.instance()).deauthorizeApp(event);
+        wrapper.instance().deauthorizeApp(event);
 
         await promise;
 
