@@ -14,7 +14,7 @@ import type {
 import type {ServerError} from '@mattermost/types/errors';
 import type {GroupSearchOpts} from '@mattermost/types/groups';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
-import type {AllowedIPRange} from '@mattermost/types/src/config';
+import type {AllowedIPRange} from '@mattermost/types/config';
 import type {
     TeamSearchOpts,
 } from '@mattermost/types/teams';
