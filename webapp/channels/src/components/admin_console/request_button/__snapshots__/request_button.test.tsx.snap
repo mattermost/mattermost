@@ -117,7 +117,6 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           >
             <injectIntl(WarningIcon)>
               <WarningIcon
-                additionalClassName={null}
                 intl={
                   Object {
                     "$t": [Function],
@@ -285,7 +284,6 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           >
             <injectIntl(WarningIcon)>
               <WarningIcon
-                additionalClassName={null}
                 intl={
                   Object {
                     "$t": [Function],
