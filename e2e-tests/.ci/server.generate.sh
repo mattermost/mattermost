@@ -54,23 +54,20 @@ services:
       - "./.env.server"
       - "./.env.server.cloud"
     environment:
-      MM_SERVICESETTINGS_SITEURL: http://server:8065
-      MM_SERVICESETTINGS_ALLOWCORSFROM: http://localhost:8065   # Required for making websockets work when running locally
+      MM_SERVICESETTINGS_ALLOWCORSFROM: "*"
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
       MM_PLUGINSETTINGS_ENABLED: "true"
       MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
       MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: "true"
       MM_TEAMSETTINGS_ENABLEOPENSERVER: "true"
-      MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
+      MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       MM_SQLSETTINGS_DRIVERNAME: "postgres"
       MM_EMAILSETTINGS_SMTPSERVER: "inbucket"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
       MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_SERVICEENVIRONMENT: "test"
-    ports:
-      - "8065:8065"
-      - "8067:8067"
+    network_mode: host
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do
     # The server container will start only if all other dependent services are healthy
@@ -94,25 +91,19 @@ $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
     command: postgres -c "config_file=/etc/postgresql/postgresql.conf"
     volumes:
       - ../../server/build/docker/postgres.conf:/etc/postgresql/postgresql.conf
+    network_mode: host
     healthcheck:
       test: ["CMD", "pg_isready", "-h", "localhost"]
       interval: 10s
       timeout: 15s
-      retries: 12
-    networks:
-      default:
-        aliases:
-        - postgres'
+      retries: 12'
   fi)
 
 $(if mme2e_is_token_in_list "inbucket" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   inbucket:
     restart: "no"
-    ports:
-      - "9001:9001"
-      - "10025:10025"
-      - "10110:10110"
+    network_mode: host
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: inbucket'
@@ -122,8 +113,7 @@ $(if mme2e_is_token_in_list "minio" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   minio:
     restart: "no"
-    ports:
-      - "9000:9000"
+    network_mode: host
     extends:
       file: ../../server/build/gitlab-dc.common.yml
       service: minio'
@@ -133,9 +123,7 @@ $(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   openldap:
     restart: "no"
-    ports:
-      - "389:389"
-      - "636:636"
+    network_mode: host
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: openldap'
@@ -148,9 +136,7 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
     image: mattermostdevelopment/mattermost-elasticsearch:7.17.10
     platform: linux/arm64/v8
     restart: "no"
-    ports:
-      - "9200:9200"
-      - "9300:9300"
+    network_mode: host
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: elasticsearch'
@@ -158,9 +144,7 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
       echo '
   elasticsearch:
     restart: "no"
-    ports:
-      - "9200:9200"
-      - "9300:9300"
+    network_mode: host
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: elasticsearch'
@@ -171,8 +155,7 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   keycloak:
     restart: "no"
-    ports:
-      - "8484:8080"
+    network_mode: host
     extends:
         file: ../../server/build/gitlab-dc.common.yml
         service: keycloak'
@@ -193,10 +176,10 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
       REPO: "mattermost"
       # Cypress configuration
       HEADLESS: "true"
-      CYPRESS_baseUrl: "http://server:8065"
-      CYPRESS_dbConnection: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
-      CYPRESS_smtpUrl: "http://inbucket:9001"
-      CYPRESS_webhookBaseUrl: "http://webhook-interactions:3000"
+      CYPRESS_baseUrl: "http://localhost:8065"
+      CYPRESS_dbConnection: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+      CYPRESS_smtpUrl: "http://localhost:9001"
+      CYPRESS_webhookBaseUrl: "http://localhost:3000"
       CYPRESS_chromeWebSecurity: "false"
       CYPRESS_firstTest: "true"
       CYPRESS_resetBeforeTest: "true"
@@ -217,30 +200,26 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
         soft: 8096
         hard: 1048576
     working_dir: /cypress
+    network_mode: host
     volumes:
       - "../../e2e-tests/cypress/:/cypress"'
   fi)
 
-$(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
+$(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; then
     # shellcheck disable=SC2016
     echo '
   webhook-interactions:
     image: mattermostdevelopment/mirrored-node:${NODE_VERSION_REQUIRED}
-    command: sh -c "npm install --legacy-peer-deps && exec node webhook_serve.js"
-    environment:
-      NODE_PATH: /usr/local/lib/node_modules/
+    command: sh -c "npm install --global --legacy-peer-deps && exec node webhook_serve.js"
     healthcheck:
       test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000"]
       interval: 10s
       timeout: 15s
       retries: 12
     working_dir: /cypress
+    network_mode: host
     volumes:
-      - "../../e2e-tests/cypress/:/cypress:ro"
-    networks:
-      default:
-        aliases:
-          - webhook-interactions'
+      - "../../e2e-tests/cypress/:/cypress:ro"'
   fi)
 
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
@@ -254,7 +233,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     environment:
       CI: "true"
       NODE_OPTIONS: --no-experimental-fetch
-      PW_BASE_URL: http://server:8065
+      PW_BASE_URL: http://localhost:8065
       PW_ADMIN_USERNAME: sysadmin
       PW_ADMIN_PASSWORD: Sys@dmin-sample1
       PW_ADMIN_EMAIL: sysadmin@sample.mattermost.com
@@ -271,6 +250,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
         soft: 8096
         hard: 1048576
     working_dir: /mattermost
+    network_mode: host
     volumes:
       - "../../:/mattermost"'
   fi)
@@ -326,17 +306,17 @@ generate_env_files() {
     for SERVICE in $ENABLED_DOCKER_SERVICES; do
       case $SERVICE in
       openldap)
-        echo "CYPRESS_ldapServer=openldap" >>.env.cypress
+        echo "CYPRESS_ldapServer=localhost" >>.env.cypress
         echo "CYPRESS_runLDAPSync=true" >>.env.cypress
         ;;
       minio)
-        echo "CYPRESS_minioS3Endpoint=minio:9000" >>.env.cypress
+        echo "CYPRESS_minioS3Endpoint=localhost:9000" >>.env.cypress
         ;;
       keycloak)
-        echo "CYPRESS_keycloakBaseUrl=http://keycloak:8484" >>.env.cypress
+        echo "CYPRESS_keycloakBaseUrl=http://localhost:8484" >>.env.cypress
         ;;
       elasticsearch)
-        echo "CYPRESS_elasticsearchConnectionURL=http://elasticsearch:9200" >>.env.cypress
+        echo "CYPRESS_elasticsearchConnectionURL=http://localhost:9200" >>.env.cypress
         ;;
       esac
     done
