@@ -55,6 +55,7 @@ const config = {
         escapeString: true,
         printBasicPrototype: true,
     },
+    workerIdleMemoryLimit: 0.8,
 };
 
 module.exports = config;
