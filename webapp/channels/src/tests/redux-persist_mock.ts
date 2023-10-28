@@ -12,7 +12,7 @@ jest.mock('redux-persist', () => {
         },
 
         persistReducer: jest.fn().mockImplementation((config, reducers) => reducers),
-        persistCombineReducers: (persistConfig, reducers) => combineReducers(reducers),
+        persistCombineReducers: (persistConfig: any, reducers: any) => combineReducers(reducers),
         persistStore: () => {
             return {
                 pause: () => {},
@@ -22,3 +22,5 @@ jest.mock('redux-persist', () => {
         },
     };
 });
+
+export default {};
