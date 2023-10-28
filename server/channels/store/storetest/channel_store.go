@@ -172,7 +172,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	require.Error(t, nErr, "should be unique name")
 
 	o1.Id = ""
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 	_, nErr = ss.Channel().Save(&o1, -1)
 	require.Error(t, nErr, "should not be able to save direct channel")
@@ -209,7 +209,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
@@ -272,7 +272,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	// Save yourself Direct Message
 	o1.Id = ""
 	o1.DisplayName = "Myself"
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m1)
 	require.NoError(t, nErr, "couldn't save direct channel", nErr)
@@ -446,7 +446,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	o2 := model.Channel{}
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Direct Name"
-	o2.Name = NewTestId()
+	o2.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o2.Type = model.ChannelTypeDirect
 
 	m1 := model.ChannelMember{}
@@ -548,7 +548,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	o2 := model.Channel{}
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Direct Name"
-	o2.Name = "bb" + model.NewId()
+	o2.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o2.Type = model.ChannelTypeDirect
 
 	o3 := model.Channel{}
@@ -580,8 +580,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}, false)
 		require.NoError(t, err, err)
 		require.Len(t, r1, 2, "invalid returned channels, expected 2 and got "+strconv.Itoa(len(r1)))
-		require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, r1[0]))
-		require.Equal(t, channelToJSON(t, &o2), channelToJSON(t, r1[1]))
+		require.ElementsMatch(t, []*model.Channel{&o1, &o2}, r1)
 	})
 
 	t.Run("Get 1 existing and 1 not existing channel", func(t *testing.T) {
@@ -589,16 +588,14 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 		r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}, false)
 		require.NoError(t, err, err)
 		require.Len(t, r2, 1, "invalid returned channels, expected 1 and got "+strconv.Itoa(len(r2)))
-		require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, r2[0]), "invalid returned channel")
+		require.ElementsMatch(t, []*model.Channel{&o1}, r2, "invalid returned channel")
 	})
 
 	t.Run("Get 2 existing and 1 deleted channel", func(t *testing.T) {
 		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id, o3.Id}, true)
 		require.NoError(t, err, err)
 		require.Len(t, r1, 3, "invalid returned channels, expected 3 and got "+strconv.Itoa(len(r1)))
-		require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, r1[0]))
-		require.Equal(t, channelToJSON(t, &o2), channelToJSON(t, r1[1]))
-		require.Equal(t, channelToJSON(t, &o3), channelToJSON(t, r1[2]))
+		require.ElementsMatch(t, []*model.Channel{&o1, &o2, &o3}, r1)
 	})
 }
 
@@ -640,7 +637,7 @@ func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
 	c2 := model.Channel{}
 	c2.TeamId = t1.Id
 	c2.DisplayName = "Direct Name"
-	c2.Name = "bb" + model.NewId()
+	c2.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	c2.Type = model.ChannelTypeDirect
 
 	c3 := model.Channel{}
@@ -671,10 +668,20 @@ func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
 	res, err := ss.Channel().GetChannelsWithTeamDataByIds([]string{c1.Id, c2.Id}, false)
 	require.NoError(t, err)
 	require.Len(t, res, 2)
-	assert.Equal(t, res[0].Id, c1.Id)
-	assert.Equal(t, res[0].TeamName, t1.Name)
-	assert.Equal(t, res[1].Id, c2.Id)
-	assert.Equal(t, res[1].TeamName, "")
+
+	if res[0].Id == c1.Id {
+		assert.Equal(t, res[0].TeamName, t1.Name)
+
+		assert.Equal(t, res[1].Id, c2.Id)
+		assert.Equal(t, res[1].TeamName, "")
+	} else if res[0].Id == c2.Id {
+		assert.Equal(t, res[0].TeamName, "")
+
+		assert.Equal(t, res[1].Id, c1.Id)
+		assert.Equal(t, res[1].TeamName, t1.Name)
+	} else {
+		assert.Fail(t, "unknown channel id")
+	}
 }
 
 func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
@@ -4472,6 +4479,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
+		userId3 := model.NewId()
 
 		channelId := model.NewId()
 
@@ -4496,21 +4504,28 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId3,
+			ChannelId: channelId,
+			CreateAt:  1003,
+		})
+		require.NoError(t, err)
+
 		count, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
-		assert.Equal(t, 3, count)
+		assert.Equal(t, 4, count)
 
 		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.Equal(t, 3, count)
 
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId1)
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId2)
+		require.NoError(t, err)
+		assert.Equal(t, 3, count)
+
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId2)
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
-
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId1)
-		require.NoError(t, err)
-		assert.Equal(t, 1, count)
 	})
 
 	t.Run("should not count deleted posts", func(t *testing.T) {
@@ -4616,6 +4631,7 @@ func testCountUrgentPostsAfter(t *testing.T, ss store.Store) {
 	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
+		userId3 := model.NewId()
 
 		channelId := model.NewId()
 
@@ -4654,19 +4670,33 @@ func testCountUrgentPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId3,
+			ChannelId: channelId,
+			CreateAt:  1003,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewString(model.PostPriorityUrgent),
+					RequestedAck:            model.NewBool(false),
+					PersistentNotifications: model.NewBool(false),
+				},
+			},
+		})
+		require.NoError(t, err)
+
 		count, err := ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.Equal(t, 2, count)
 
 		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
-		assert.Equal(t, 0, count)
+		assert.Equal(t, 1, count)
 
-		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, userId1)
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, userId3)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 
-		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, userId1)
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, userId3)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
@@ -7469,7 +7499,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s Sql
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name" + model.NewId()
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	userIds := []string{model.NewId(), model.NewId(), model.NewId()}
@@ -7526,7 +7556,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "The Direct Channel" + model.NewId()
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	o2 := model.Channel{}
@@ -7588,7 +7618,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Different Name" + model.NewId()
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
