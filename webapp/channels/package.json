@@ -56,7 +56,7 @@
     "memoize-one": "6.0.0",
     "moment-timezone": "0.5.38",
     "p-queue": "7.3.0",
-    "pdfjs-dist": "2.15.349",
+    "pdfjs-dist": "3.11.174",
     "popper.js": "1.16.1",
     "process": "0.11.10",
     "prop-types": "15.8.1",
