@@ -3,7 +3,7 @@
 
 import React, {useState, useCallback, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage,useIntl} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -13,7 +13,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
 import LocalizedIcon from 'components/localized_icon';
 
-import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -36,6 +35,7 @@ const AddUsersToGroupModal = (props: Props) => {
     const [saving, setSaving] = useState(false);
     const [usersToAdd, setUsersToAdd] = useState<UserProfile[]>([]);
     const [showUnknownError, setShowUnknownError] = useState(false);
+    const {formatMessage} = useIntl();
 
     const doHide = useCallback(() => {
         setShow(false);
@@ -107,9 +107,9 @@ const AddUsersToGroupModal = (props: Props) => {
                     aria-label='Close'
                     onClick={goBack}
                 >
-                    <LocalizedIcon
+                    <i
                         className='icon icon-arrow-left'
-                        ariaLabel={{id: t('user_groups_modal.goBackLabel'), defaultMessage: 'Back'}}
+                        aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     />
                 </button>
                 <Modal.Title
