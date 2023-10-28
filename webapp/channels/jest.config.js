@@ -41,7 +41,7 @@ const config = {
         'node_modules/(?!react-native|react-router|p-queue|p-timeout|@mattermost/compass-components|@mattermost/compass-icons)',
     ],
     setupFiles: ['jest-canvas-mock'],
-    setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
+    setupFilesAfterEnv: ['<rootDir>/src/tests/setupTests.ts'],
     testEnvironment: 'jsdom',
     testTimeout: 60000,
     testEnvironmentOptions: {
