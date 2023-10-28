@@ -184,7 +184,7 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
                                         this.goBack();
                                     }}
                                 >
-                                    <i className='icon icon-arrow-left' aria-label={t('user_groups_modal.goBackLabel')}></i>
+                                    <i className='icon icon-arrow-left'></i>
                                 </button>
                                 <Modal.Title
                                     componentClass='h1'
