@@ -218,6 +218,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
       retries: 12
     working_dir: /cypress
     network_mode: host
+    restart: on-failure
     volumes:
       - "../../e2e-tests/cypress/:/cypress:ro"'
   fi)
