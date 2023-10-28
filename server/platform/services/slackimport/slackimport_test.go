@@ -344,7 +344,7 @@ func TestOldImportChannel(t *testing.T) {
 		// ch := th.CreateDmChannel(u1)
 		ch := &model.Channel{
 			Type: model.ChannelTypeDirect,
-			Name: "test-channel",
+			Name: model.GetDMNameFromIds(u1.Id, u2.Id),
 		}
 		users := map[string]*model.User{
 			u2.Id: u2,
@@ -364,7 +364,7 @@ func TestOldImportChannel(t *testing.T) {
 	t.Run("No panic on direct channel with 1 member", func(t *testing.T) {
 		ch := &model.Channel{
 			Type: model.ChannelTypeDirect,
-			Name: "test-channel",
+			Name: model.GetDMNameFromIds(u1.Id, u1.Id),
 		}
 		users := map[string]*model.User{
 			u1.Id: u1,

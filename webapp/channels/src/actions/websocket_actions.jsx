@@ -101,7 +101,7 @@ import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
-import {loadProfilesForSidebar} from 'actions/user_actions';
+import {loadProfilesForDM, loadProfilesForGM} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
@@ -118,8 +118,10 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes, PageLoadContext} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
+
+import {temporarilySetPageLoadContext} from './telemetry_actions';
 
 const dispatch = store.dispatch;
 const getState = store.getState;
@@ -210,6 +212,8 @@ function restart() {
 export function reconnect() {
     // eslint-disable-next-line
     console.log('Reconnecting WebSocket');
+
+    temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
 
     dispatch({
         type: GeneralTypes.WEBSOCKET_SUCCESS,
@@ -1229,7 +1233,11 @@ function handlePreferenceChangedEvent(msg) {
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
 
     if (addedNewDmUser(preference)) {
-        loadProfilesForSidebar();
+        loadProfilesForDM();
+    }
+
+    if (addedNewGmUser(preference)) {
+        loadProfilesForGM();
     }
 }
 
@@ -1238,7 +1246,11 @@ function handlePreferencesChangedEvent(msg) {
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
 
     if (preferences.findIndex(addedNewDmUser) !== -1) {
-        loadProfilesForSidebar();
+        loadProfilesForDM();
+    }
+
+    if (preferences.findIndex(addedNewGmUser) !== -1) {
+        loadProfilesForGM();
     }
 }
 
@@ -1249,6 +1261,10 @@ function handlePreferencesDeletedEvent(msg) {
 
 function addedNewDmUser(preference) {
     return preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW && preference.value === 'true';
+}
+
+function addedNewGmUser(preference) {
+    return preference.category === Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW && preference.value === 'true';
 }
 
 function handleStatusChangedEvent(msg) {

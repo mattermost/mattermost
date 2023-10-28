@@ -52,7 +52,7 @@ const RenewalLink = (props: RenewalLinkProps) => {
     const handleLinkClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
         try {
-            const {status} = await Client4.ping();
+            const {status} = await Client4.ping(false);
             if (status === 'OK' && renewalLink !== '') {
                 if (props.telemetryInfo?.success) {
                     trackEvent('renew_license', props.telemetryInfo.success);

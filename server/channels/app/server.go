@@ -40,6 +40,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
@@ -148,8 +149,6 @@ type Server struct {
 
 	products map[string]product.Product
 	services map[product.ServiceKey]any
-
-	hooksManager *product.HooksManager
 }
 
 func (s *Server) Store() store.Store {
@@ -244,8 +243,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
-
-	s.hooksManager = product.NewHooksManager(s.GetMetrics())
 
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
@@ -424,6 +421,11 @@ func NewServer(options ...Option) (*Server, error) {
 		s.EmailService.InitEmailBatching()
 	})
 
+	isTrial := false
+	if licence := s.License(); licence != nil {
+		isTrial = licence.IsTrial
+	}
+
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
 	mlog.Info(
 		logCurrentVersion,
@@ -435,7 +437,11 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("service_environment", model.GetServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
-		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
+		mlog.Info(
+			"Enterprise Build",
+			mlog.Bool("enterprise_build", true),
+			mlog.Bool("is_trial", isTrial),
+		)
 	} else {
 		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
 	}
@@ -1571,6 +1577,11 @@ func (s *Server) initJobs() {
 	s.Jobs.RegisterJobType(
 		model.JobTypeS3PathMigration,
 		s3_path_migration.MakeWorker(s.Jobs, s.Store(), s.FileBackend()),
+		nil)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteEmptyDraftsMigration,
+		delete_empty_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil)
 
 	s.Jobs.RegisterJobType(
