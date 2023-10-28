@@ -71,7 +71,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             e.preventDefault();
-            this.setState({purpose: Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>)});
+            this.setState({purpose: Utils.insertLineBreakFromKeyEvent(e.nativeEvent)});
         } else if (ctrlSend && Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && e.ctrlKey) {
             e.preventDefault();
             this.handleSave();
