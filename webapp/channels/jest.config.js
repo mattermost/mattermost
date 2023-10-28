@@ -51,6 +51,11 @@ const config = {
         'jest-watch-typeahead/filename',
         'jest-watch-typeahead/testname',
     ],
+    snapshotFormat: {
+        escapeString: true,
+        printBasicPrototype: true,
+    },
+    workerIdleMemoryLimit: 0.8,
 };
 
 module.exports = config;
