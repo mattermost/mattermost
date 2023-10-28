@@ -46,9 +46,7 @@ export const MenuItemActionImpl = ({
             onClick={onClick}
             disabled={disabled}
         >
-            {iconClassName && (
-                <i className={`icon ${iconClassName} MenuItem__link-icon`}/>
-            )}
+            {iconClassName && <i className={`icon ${iconClassName}`}/>}
             {text && <span className='MenuItem__primary-text'>{text}{rightDecorator}</span>}
             {extraText && <span className='MenuItem__help-text'>{extraText}</span>}
         </button>

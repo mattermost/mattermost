@@ -19,9 +19,7 @@ export const MenuItemExternalLinkImpl: React.FC<Props> = ({url, text, iconClassN
         onClick={onClick}
         location='menu_item_external_link'
     >
-        {iconClassName && (
-            <i className={`icon ${iconClassName} MenuItem__link-icon`}/>
-        )}
+        {iconClassName && <i className={`icon ${iconClassName}`}/>}
         <span className='MenuItem__primary-text'>
             {text}
         </span>

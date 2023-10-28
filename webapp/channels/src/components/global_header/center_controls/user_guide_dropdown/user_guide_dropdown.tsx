@@ -69,6 +69,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
             return (
                 <Menu.ItemAction
                     id={item.id + '_pluginmenuitem'}
+                    iconClassName='icon-thumbs-up-down'
                     key={item.id + '_pluginmenuitem'}
                     onClick={item.action}
                     text={item.text}
