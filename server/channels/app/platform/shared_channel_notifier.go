@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
-var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.WebsocketEventType {
+var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.WebsocketEventType{
 	model.WebsocketEventPosted,
 	model.WebsocketEventPostEdited,
 	model.WebsocketEventPostDeleted,
@@ -22,7 +22,7 @@ var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.Websocket
 	model.WebsocketEventReactionRemoved,
 }
 
-var sharedChannelEventsForInvitation model.WebsocketEventTypeArray = []model.WebsocketEventType {
+var sharedChannelEventsForInvitation model.WebsocketEventTypeArray = []model.WebsocketEventType{
 	model.WebsocketEventDirectAdded,
 }
 
