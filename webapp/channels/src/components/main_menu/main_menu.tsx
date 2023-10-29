@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl, FormattedMessage} from 'react-intl';
+import {injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -14,7 +14,6 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import AboutBuildModal from 'components/about_build_modal';
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
-import ExternalLink from 'components/external_link';
 import InvitationModal from 'components/invitation_modal';
 import LeaveTeamModal from 'components/leave_team_modal';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
@@ -35,6 +34,8 @@ import * as UserAgent from 'utils/user_agent';
 
 import type {ModalData} from 'types/actions';
 import type {PluginComponent} from 'types/store/plugins';
+
+import LearnAboutTeamsLink from './learn_about_teams_link';
 import './main_menu.scss';
 
 export type Props = {
@@ -526,20 +527,7 @@ export class MainMenu extends React.PureComponent<Props> {
                     </SystemPermissionGate>
                     <Menu.Group>
                         <div className='MainMenu_dropdown-link'>
-                            <FormattedMessage
-                                id='navbar_dropdown.learnAboutTeams'
-                                defaultMessage='<a>Learn about teams</a>'
-                                values={{
-                                    a: (chunks) => (
-                                        <ExternalLink
-                                            href='https://mattermost.com/pl/mattermost-academy-team-training'
-                                        >
-                                            <i className='icon icon-lightbulb-outline'/>
-                                            <span>{chunks}</span>
-                                        </ExternalLink>
-                                    ),
-                                }}
-                            />
+                            <LearnAboutTeamsLink/>
                         </div>
                     </Menu.Group>
                 </Menu.Group>
