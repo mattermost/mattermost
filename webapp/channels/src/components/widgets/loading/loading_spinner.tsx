@@ -12,26 +12,22 @@ type Props = {
     style?: React.CSSProperties;
 }
 
-export default class LoadingSpinner extends React.PureComponent<Props> {
-    public static defaultProps: Props = {
-        text: null,
-    };
+const LoadingSpinner: React.FC<Props> = ({ text = null, style }) => {
+    return (
+        <span
+            id='loadingSpinner'
+            className={'LoadingSpinner' + (text ? ' with-text' : '')}
+            style={style}
+            data-testid='loadingSpinner'
+        >
+            <LocalizedIcon
+                className='fa fa-spinner fa-fw fa-pulse spinner'
+                component='span'
+                title={{ id: t('generic_icons.loading'), defaultMessage: 'Loading Icon' }}
+            />
+            {text}
+        </span>
+    );
+};
 
-    public render() {
-        return (
-            <span
-                id='loadingSpinner'
-                className={'LoadingSpinner' + (this.props.text ? ' with-text' : '')}
-                style={this.props.style}
-                data-testid='loadingSpinner'
-            >
-                <LocalizedIcon
-                    className='fa fa-spinner fa-fw fa-pulse spinner'
-                    component='span'
-                    title={{id: t('generic_icons.loading'), defaultMessage: 'Loading Icon'}}
-                />
-                {this.props.text}
-            </span>
-        );
-    }
-}
+export default React.memo(LoadingSpinner);
