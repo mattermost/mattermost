@@ -423,7 +423,7 @@ const AdvanceTextEditor = ({
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
-            onMessageChange(Utils.insertLineBreakFromKeyEvent(e));
+            onMessageChange(Utils.insertLineBreakFromKeyEvent(e.nativeEvent));
             return;
         }
 
