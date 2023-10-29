@@ -230,12 +230,12 @@ func (_m *MetricsInterface) IncrementWebhookPost() {
 }
 
 // IncrementWebsocketEvent provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebsocketEvent(eventType WebsocketEventType) {
+func (_m *MetricsInterface) IncrementWebsocketEvent(eventType string) {
 	_m.Called(eventType)
 }
 
 // IncrementWebsocketReconnectEvent provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType WebsocketEventType) {
+func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType string) {
 	_m.Called(eventType)
 }
 
