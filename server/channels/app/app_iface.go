@@ -566,7 +566,7 @@ type AppIface interface {
 	ExportFileExists(path string) (bool, *model.AppError)
 	ExportFileModTime(path string) (time.Time, *model.AppError)
 	ExportPermissions(w io.Writer) error
-	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
+	ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() filestore.FileBackend
 	FileExists(path string) (bool, *model.AppError)
@@ -1008,7 +1008,7 @@ type AppIface interface {
 	SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError
 	SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError)
 	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError
-	SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError)
+	SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError)
 	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error)
 	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
