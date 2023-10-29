@@ -11,7 +11,7 @@ const LearnAboutTeamsLink = () => {
     return (
         <div className='LearnAboutTeamsLink'>
             <FormattedMessage
-                id='learnAboutTeams'
+                id='learn_about_teams'
                 defaultMessage='<a>Learn about teams</a>'
                 values={{
                     a: (chunks) => (
