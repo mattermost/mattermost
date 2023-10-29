@@ -8140,5 +8140,837 @@
   {
     "id": "sharedchannel.permalink.not_found",
     "translation": "Bài đăng này chứa các liên kết cố định đến các kênh khác mà người dùng trên các trang web khác có thể không hiển thị."
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Kênh không phải là một tin nhắn nhóm."
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Không thể tìm nạp các nhóm chung."
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Không thể lấy được kênh cho bài viết đã cho."
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Không tìm thấy thành viên kênh nào cho ID người dùng và ID kênh đó."
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Không thể lấy được số lượng thành viên của kênh."
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Không thể có được các thành viên kênh."
+  },
+  {
+    "id": "app.channel.get_more_channels.get.app_error",
+    "translation": "Không thể nhận được các kênh."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Không thể lấy số lượng bài đăng được ghim trên kênh."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Không thể nhận được các kênh riêng tư."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Không thể truy cập các kênh công khai."
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Không thể nhận được tin nhắn chưa đọc của kênh."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Không thể tìm thấy tư cách thành viên kênh của người dùng"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "ID nhóm được chỉ định trong yêu cầu chuyển đổi không chứa tất cả các thành viên trong nhóm tin nhắn"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Không thể tạo tin nhắn nhóm cho bài đăng chuyển đổi kênh"
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Không thể chọn nhóm thành viên kênh."
+  },
+  {
+    "id": "app.channel.permanent_delete.app_error",
+    "translation": "Không thể xóa kênh."
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Không thể xóa thành viên kênh."
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Không thể tìm thấy bài viết được ghim."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Chúng tôi không thể xóa người dùng đã vô hiệu hóa khỏi kênh."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Không thể xóa thành viên kênh."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Chúng tôi không thể đặt lại sơ đồ kênh."
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "Không thể khôi phục kênh."
+  },
+  {
+    "id": "app.channel.save_member.exists.app_error",
+    "translation": "Thành viên kênh có ID đó đã tồn tại."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Không thể lấy các kênh nhóm cho người dùng và thuật ngữ nhất định."
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "Không thể chèn bản ghi vào cơ sở dữ liệu."
+  },
+  {
+    "id": "app.channel.update_channel.internal_error",
+    "translation": "Không thể cập nhật kênh."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Không thể đánh dấu kênh là chưa đọc."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Không thể cập nhật thành viên kênh."
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Không thể truy xuất các sản phẩm trên đám mây"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Không thể lấy tên gói hiện tại"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Không thể truy xuất đăng ký đám mây"
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Đăng ký không quá hạn"
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Không thể lấy số lượng tệp cho kênh"
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Không thể cập nhật thành viên kênh, thông báo đã vượt quá giới hạn kích thước đạo cụ."
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Không thể có được thành viên kênh."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Không thể xác định xem người dùng có thuộc danh sách kênh hay không."
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Không thể có được các thành viên kênh."
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} thành viên của không gian làm việc {{.WorkspaceName}} đã yêu cầu bắt đầu dùng thử Enterprise để có quyền truy cập vào: "
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Không thể có được mức độ ưu tiên cho bài viết"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Không thể xóa các danh mục thanh bên hiện có cho GM đã chuyển đổi."
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "Kênh đang được chuyển đổi không phải là tin nhắn nhóm. Bạn chỉ có thể chuyển đổi tin nhắn nhóm"
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm kiếm kênh."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Không thể cập nhật lần xem cuối cùng vào thời điểm đó."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Trình điều khiển cửa hàng xuất của bạn không hỗ trợ tạo url chỉ định."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Tính năng này bị hạn chế bởi cờ tính năng."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Không thể tạo url được chỉ định."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "Không tìm thấy tệp xuất."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Không thể sao chép tệp trong khi xuất."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Không tạo được tệp trong khi xuất."
+  },
+  {
+    "id": "app.emoji.get_list.internal_error",
+    "translation": "Không thể lấy được biểu tượng cảm xúc."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Không thể kiểm tra xem tập tin có tồn tại hay không."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Hành động này yêu cầu sử dụng một nơi lưu trữ export riêng biệt."
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "chèn lỗi"
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Đã vượt quá giới hạn cho phân trang."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Không thể sắp xếp bài đăng."
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "Bạn không thể cập nhật Bài đăng hiện có."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Không thể phân tích cú pháp phiên bản plugin đóng gói sẵn."
+  },
+  {
+    "id": "app.select_error",
+    "translation": "chọn lỗi"
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Không thể tìm thấy đội hiện có."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Dịch vụ xác thực không hợp lệ: {{.AuthService}}"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Lỗi trong quá trình thực hiện công việc."
+  },
+  {
+    "id": "app.job.get.app_error",
+    "translation": "Không thể có được công việc."
+  },
+  {
+    "id": "app.job.get_all.app_error",
+    "translation": "Không thể lấy được các job."
+  },
+  {
+    "id": "app.job.get_count_by_status_and_type.app_error",
+    "translation": "Không thể lấy số lượng công việc theo trạng thái và loại."
+  },
+  {
+    "id": "app.job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Không thể nhận công việc mới nhất theo trạng thái và loại."
+  },
+  {
+    "id": "app.job.save.app_error",
+    "translation": "Không thể lưu công việc."
+  },
+  {
+    "id": "app.job.update.app_error",
+    "translation": "Không thể cập nhật công việc."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Lỗi tìm nạp bài đăng có thể truy cập lần cuối"
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Không tạo được mã thông báo gia hạn mới."
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "Không có giấy phép hiện tại"
+  },
+  {
+    "id": "app.member_count",
+    "translation": "lỗi lấy số thành viên"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Khi bạn đi vắng, {{.SenderName}} đã gửi cho bạn một Tin nhắn Trực tiếp mới."
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Không thể nhận được các bài viết được gắn cờ."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Không thể nhận được bài viết sau thời gian bị ràng buộc."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Không thể lấy hàng loạt bài viết để lập chỉ mục."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Không thể tải bài đăng cho kênh."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Không thể tải bài đăng cho kênh."
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Không thể ghi đè bài viết."
+  },
+  {
+    "id": "app.post.permanent_delete_by_channel.app_error",
+    "translation": "Không thể xóa bài viết theo kênh."
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Không thể lưu bài viết."
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "Lỗi tìm kiếm bài viết"
+  },
+  {
+    "id": "app.post.update.app_error",
+    "translation": "Không thể cập nhật bài viết."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Không thể xóa thông báo liên tục theo kênh."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Không thể xóa thông báo liên tục của nhóm."
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Không thể nhận được ưu tiên sau cho bài đăng"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Xin chào, đây là lời nhắc của bạn về tin nhắn này từ @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.preference.delete.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi xóa tùy chọn."
+  },
+  {
+    "id": "app.preference.get_all.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm tùy chọn."
+  },
+  {
+    "id": "app.preference.get_category.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm tùy chọn."
+  },
+  {
+    "id": "app.preference.permanent_delete_by_user.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi xóa tùy chọn."
+  },
+  {
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Không thể nhận được phản ứng cho bài viết."
+  },
+  {
+    "id": "app.reaction.get_for_post.app_error",
+    "translation": "Không thể nhận được phản ứng cho bài viết."
+  },
+  {
+    "id": "app.recover.delete.app_error",
+    "translation": "Không thể xóa mã thông báo."
+  },
+  {
+    "id": "app.recover.save.app_error",
+    "translation": "Không thể lưu mã thông báo."
+  },
+  {
+    "id": "app.role.get.app_error",
+    "translation": "Không thể nhận được vai trò."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Không thể có được tất cả các vai trò."
+  },
+  {
+    "id": "app.role.get_by_names.app_error",
+    "translation": "Không thể nhận được vai trò."
+  },
+  {
+    "id": "app.role.permanent_delete_all.app_error",
+    "translation": "Chúng tôi không thể xóa vĩnh viễn tất cả các vai trò."
+  },
+  {
+    "id": "app.role.save.insert.app_error",
+    "translation": "Không thể lưu vai trò mới."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Đã xảy ra lỗi khi chạy hook plugin khi lưu cấu hình."
+  },
+  {
+    "id": "app.scheme.delete.app_error",
+    "translation": "Không thể xóa lược đồ này."
+  },
+  {
+    "id": "app.session.analytics_session_count.app_error",
+    "translation": "Không thể đếm số phiên."
+  },
+  {
+    "id": "app.session.get.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm phiên."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Không thể tìm thấy đội hiện có."
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Không thể lấy ID nhóm chung."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Không thể có được thành viên trong nhóm."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Không tìm thấy thành viên nhóm nào cho ID người dùng và ID nhóm đó."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Không thể có được các thành viên trong nhóm."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Không thể có được các thành viên trong nhóm."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Không thể nhận được tin nhắn chưa đọc của các đội."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "Không thể tạo thành viên nhóm mới"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "Không thể tạo thành viên nhóm mới vì nó đã tồn tại"
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Không thể cập nhật thành viên nhóm."
+  },
+  {
+    "id": "app.team.permanentdeleteteam.internal_error",
+    "translation": "Không thể xóa nhóm."
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Không thể loại bỏ thành viên nhóm."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Không thể cứu được đội."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Phải gọi cập nhật cho nhóm hiện có."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Không thể lưu thành viên nhóm."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm kiếm nhóm."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm kiếm các nhóm riêng tư."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Không thể tìm thấy nhóm hiện có để cập nhật."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi cập nhật nhóm."
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Giá trị cho Thư mục không được để trống."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Giá trị không hợp lệ cho Số ngày lưu giữ. Giá trị phải lớn hơn 0"
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "Giá trị không hợp lệ cho Thư mục."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Giá trị không hợp lệ cho thời gian chờ siêu dữ liệu liên kết. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Không thể định vị thư mục tệp ổ cắm cục bộ."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Số lượng người nhận tối đa không hợp lệ đối với thông báo liên tục. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Thuộc tính quản trị viên không hợp lệ. Phải ở dạng 'field=value'."
+  },
+  {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Thuật toán Canonical không hợp lệ."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Thuộc tính Khách không hợp lệ. Phải ở dạng 'field=value'."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
+    "translation": "AuthService của người dùng và AuthData có tính chất tương hỗ lẫn nhau."
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Không thể nhận được bài viết trong khoảng thời gian bị ràng buộc."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Không thể xóa bài đăng thông báo liên tục"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Không thể kéo dài thời lượng phiên"
+  },
+  {
+    "id": "app.job.download_export_results_not_enabled",
+    "translation": "DownloadExportResults trong config.json là sai. Vui lòng đặt giá trị này thành true để tải xuống kết quả của công việc này."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Không thể tải bài đăng cho kênh."
+  },
+  {
+    "id": "app.preference.get.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm tùy chọn."
+  },
+  {
+    "id": "app.session.get_sessions.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm phiên của người dùng."
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Không thể nhận được tất cả công việc theo loại và trạng thái."
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Không thể tải bài đăng cho kênh."
+  },
+  {
+    "id": "app.preference.save.updating.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi cập nhật tùy chọn."
+  },
+  {
+    "id": "app.session.permanent_delete_sessions_by_user.app_error",
+    "translation": "Không thể xóa tất cả các phiên của người dùng."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Lỗi tìm nạp tệp có thể truy cập lần cuối"
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Không thể chọn bài viết để xóa cho người dùng."
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Không thể xóa phản ứng cho người dùng."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Không thể tìm thấy đội hiện có."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Các chỉ mục bị bỏ qua để thanh lọc không được bắt đầu bằng dấu gạch ngang."
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "Loại giấy phép này không hỗ trợ tạo mã thông báo gia hạn"
+  },
+  {
+    "id": "app.role.get_by_name.app_error",
+    "translation": "Không thể nhận được vai trò."
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Không thể nhận được các kênh cho chương trình được cung cấp."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Bộ giải mã đồng thời không hợp lệ {{.Value}}. Phải là số dương hoặc -1."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Không thể lấy hàng loạt tệp để lập chỉ mục."
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": "Vai trò này không hợp lệ."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Không thể đếm được số thành viên trong nhóm."
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "Giá trị không hợp lệ cho Số ngày lưu giữ. Giá trị quá thấp."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Không thể lấy danh sách nhóm của một người dùng."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Tổng số thông báo liên tục trên mỗi bài đăng không hợp lệ. Phải là một số dương."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "Không thể tạo thành viên nhóm mới vì nhóm đã đạt đến giới hạn thành viên"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Tần suất thông báo liên tục không hợp lệ. Phải có ít nhất hai phút."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Không thể xóa nhóm hiện có."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Chúng tôi không thể thiết lập lại sơ đồ nhóm."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm kiếm các nhóm mở."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Không thể xác định xem người dùng có thuộc danh sách nhóm hay không."
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "Tất cả các thông số Bao gồmDeletedChannels phải có cùng giá trị."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Vai trò của thành viên nhóm không hợp lệ dài hơn {{.Limit}} ký tự."
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Lỗi tạo tập tin zip."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Không thể sắp xếp thứ tự."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "Bạn không thể nâng cấp vì bạn đang chạy Matter Extreme Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "Bản nâng cấp lên Matter Extreme Enterprise Edition đang chạy."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp. Tính năng này sẽ chỉ hoạt động trên các hệ thống Linux có kiến trúc x86-64."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp. Không thể xác minh chữ ký số của tệp nhị phân đã tải xuống."
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Không thể tải lên."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Invalid Content-Length."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Loại nội dung không hợp lệ để tải lên nhiều phần."
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Không thể xử lý dữ liệu nhiều phần."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "không phải là người dùng ldap"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "Phản hồi SAML quá dài"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Cập nhật vào lúc phải là thời điểm hợp lệ."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Trường Id không hợp lệ cho phiên."
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "Lệnh /{{.Command}} đã làm hỏng plugin {{.PluginId}}. Xin vui lòng liên hệ với quản trị hệ thống của bạn"
+  },
+  {
+    "id": "model.post.channel_notifications_disabled_in_channel.message",
+    "translation": "Thông báo kênh bị tắt trong {{.ChannelName}}. {{.Mention}} không kích hoạt bất kỳ thông báo nào."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Giá trị không hợp lệ cho Created_At"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "Giá trị không hợp lệ cho FileOffset"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "Giá trị không hợp lệ cho FileSize"
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Giá trị không hợp lệ cho ID"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Giá trị không hợp lệ cho Path"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Giá trị không hợp lệ cho Loại"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Giá trị không hợp lệ cho UserId"
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "Giá trị không hợp lệ cho ChannelId."
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "Giá trị không hợp lệ cho Filename"
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Không thể mã hóa trường thành JSON"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "Bạn đã nâng cấp lên Matter Extreme Enterprise Edition. Vui lòng khởi động lại máy chủ để hoàn tất quá trình nâng cấp."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp. Người dùng hệ thống Matter Extreme {{.MattermostUsername}} không có quyền ghi vào tệp nhị phân cần thiết. Quản trị viên hệ thống có thể cập nhật quyền của tệp bằng cách thực hiện lệnh sau trên máy chủ nơi Matter Extreme được cài đặt:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nSau khi thay đổi quyền truy cập tệp, hãy thử nâng cấp lại Matter Extreme. Khi bạn đã nâng cấp và khởi động lại, hãy nhớ khôi phục quyền truy cập tệp nhị phân ban đầu:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\""
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin cho /{{.Command}} không hoạt động. Xin vui lòng liên hệ với quản trị hệ thống của bạn"
+  },
+  {
+    "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+    "translation": "Giá trị cũ không hợp lệ, không nên đặt giá trị này khi hoạt động không phải là nguyên tử."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Trường UserId không hợp lệ cho phiên."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp. Người dùng hệ thống Matter Extreme {{.MattermostUsername}} không có quyền ghi vào tệp nhị phân cần thiết. Quản trị viên hệ thống có thể cập nhật quyền của tệp bằng cách thực hiện lệnh sau trên máy chủ nơi Matter Extreme được cài đặt:"
+  },
+  {
+    "id": "api.user.autocomplete_users.missing_team_id.app_error",
+    "translation": "Cần có tham số id nhóm để tự động hoàn thành theo kênh."
+  },
+  {
+    "id": "app.webhooks.update_incoming.app_error",
+    "translation": "Không thể cập nhật IncomingWebhook."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Vai trò phiên không hợp lệ dài hơn {{.Limit}} ký tự."
+  },
+  {
+    "id": "app.webhooks.update_outgoing.app_error",
+    "translation": "Không thể cập nhật webhook."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Trường CreateAt không hợp lệ cho phiên."
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Lỗi đọc file từ backend"
   }
 ]
