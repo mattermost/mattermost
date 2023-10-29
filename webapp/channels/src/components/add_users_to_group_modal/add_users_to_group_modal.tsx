@@ -3,7 +3,7 @@
 
 import React, {useState, useCallback, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage,useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -11,7 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
-import LocalizedIcon from 'components/localized_icon';
+
 
 import {localizeMessage} from 'utils/utils';
 
@@ -104,12 +104,11 @@ const AddUsersToGroupModal = (props: Props) => {
                 <button
                     type='button'
                     className='modal-header-back-button btn btn-icon'
-                    aria-label='Close'
+                    aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     onClick={goBack}
                 >
                     <i
-                        className='icon icon-arrow-left'
-                        aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
+                        className='icon icon-arrow-left'                       
                     />
                 </button>
                 <Modal.Title
