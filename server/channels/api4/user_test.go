@@ -2419,7 +2419,7 @@ func TestUpdateUserRoles(t *testing.T) {
 	})
 }
 
-func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event string, test func(*model.WebSocketEvent)) {
+func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, model.WebsocketEventType string, test func(*model.WebSocketEvent)) {
 	for {
 		select {
 		case resp, ok := <-client.EventChannel:
