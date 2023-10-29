@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
 
 import {GroupSource} from '@mattermost/types/groups';
 import type {Group} from '@mattermost/types/groups';
@@ -26,7 +25,6 @@ export type Props = {
 }
 
 const ViewUserGroupListItem = (props: Props) => {
-    const {formatMessage} = useIntl();
     const {
         user,
         group,
@@ -72,7 +70,6 @@ const ViewUserGroupListItem = (props: Props) => {
                 >
                     <i
                         className='icon icon-trash-can-outline'
-                        aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     />
                 </button>
             }
