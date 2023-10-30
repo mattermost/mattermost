@@ -19,9 +19,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot while
     <div
       className="DataGrid_loading"
     >
-      <LoadingSpinner
-        text={null}
-      />
+      <injectIntl(LoadingSpinner) />
       <MemoizedFormattedMessage
         defaultMessage="Loading"
         id="admin.data_grid.loading"
