@@ -96,11 +96,11 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		cloudWorkspaceOwnerEmailAddress := ""
 		if c.App.License().IsCloud() {
-			portalUserCustomer, err := c.App.Cloud().GetCloudCustomer(c.AppContext.Session().UserId)
-			if err != nil {
-				mlog.Error("Failed to get portal user customer", mlog.Err(err))
+			portalUserCustomer, cErr := c.App.Cloud().GetCloudCustomer(c.AppContext.Session().UserId)
+			if cErr != nil {
+				mlog.Error("Failed to get portal user customer", mlog.Err(cErr))
 			}
-			if portalUserCustomer != nil {
+			if cErr == nil && portalUserCustomer != nil {
 				cloudWorkspaceOwnerEmailAddress = portalUserCustomer.Email
 			}
 		}
@@ -109,7 +109,6 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 			if _, err = c.App.Srv().EmailService.SendIPFiltersChangedEmail(user.Email, initiatingUser[0], *c.App.Config().ServiceSettings.SiteURL, *c.App.Config().CloudSettings.CWSURL, user.Locale, cloudWorkspaceOwnerEmailAddress == user.Email); err != nil {
 				mlog.Error("Error while sending IP filters changed email", mlog.Err(err))
 			}
-
 		}
 	})
 

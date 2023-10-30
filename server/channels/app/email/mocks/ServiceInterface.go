@@ -310,6 +310,30 @@ func (_m *ServiceInterface) SendGuestInviteEmails(team *model.Team, channels []*
 	return r0
 }
 
+// SendIPFiltersChangedEmail provides a mock function with given fields: _a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner
+func (_m *ServiceInterface) SendIPFiltersChangedEmail(_a0 string, userWhoChangedFilter *model.User, siteURL string, portalURL string, locale string, isWorkspaceOwner bool) (bool, error) {
+	ret := _m.Called(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, *model.User, string, string, string, bool) (bool, error)); ok {
+		return rf(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.User, string, string, string, bool) bool); ok {
+		r0 = rf(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *model.User, string, string, string, bool) error); ok {
+		r1 = rf(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SendInviteEmails provides a mock function with given fields: team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent, isSystemAdmin, isFirstAdmin
 func (_m *ServiceInterface) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error {
 	ret := _m.Called(team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
