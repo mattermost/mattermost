@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, fireEvent, waitFor} from '@testing-library/react';
+import {fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {AllowedIPRange} from '@mattermost/types/config';
+
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 import IPFilteringAddOrEditModal from './add_edit_ip_filter_modal';
 
@@ -18,10 +20,10 @@ describe('IPFilteringAddOrEditModal', () => {
     const onClose = jest.fn();
     const onSave = jest.fn();
     const existingRange: AllowedIPRange = {
-        CIDRBlock: '192.168.0.0/16',
-        Description: 'Test IP Filter',
-        Enabled: true,
-        OwnerID: '',
+        cidr_block: '192.168.0.0/16',
+        description: 'Test IP Filter',
+        enabled: true,
+        owner_id: '',
     };
     const currentIP = '192.168.0.1';
 
@@ -33,7 +35,7 @@ describe('IPFilteringAddOrEditModal', () => {
     };
 
     test('renders the modal with the correct title when an existingRange is provided', () => {
-        const {getByText} = render(
+        const {getByText} = renderWithIntl(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -43,7 +45,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('renders the modal with the correct title when an existingRange is omitted (ie, Add Modal)', () => {
-        const {getByText} = render(
+        const {getByText} = renderWithIntl(
             <IPFilteringAddOrEditModal
                 {...baseProps}
                 existingRange={undefined}
@@ -54,7 +56,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('renders the modal with the correct inputs and values', () => {
-        const {getByLabelText} = render(
+        const {getByLabelText} = renderWithIntl(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -65,7 +67,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('calls the onSave function with the correct values when the Save button is clicked', async () => {
-        const {getByLabelText, getByTestId} = render(
+        const {getByLabelText, getByTestId} = renderWithIntl(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -77,17 +79,17 @@ describe('IPFilteringAddOrEditModal', () => {
 
         await waitFor(() => {
             expect(onSave).toHaveBeenCalledWith({
-                CIDRBlock: '10.0.0.0/8',
-                Description: 'Test IP Filter 2',
-                Enabled: true,
-                OwnerID: '',
+                cidr_block: '10.0.0.0/8',
+                description: 'Test IP Filter 2',
+                enabled: true,
+                owner_id: '',
             }, existingRange);
             expect(onClose).toHaveBeenCalled();
         });
     });
 
     test('calls the onSave function with the correct values when the Save button is clicked for a new IP filter', async () => {
-        const {getByLabelText, getByTestId} = render(
+        const {getByLabelText, getByTestId} = renderWithIntl(
             <IPFilteringAddOrEditModal
                 {...baseProps}
                 existingRange={undefined}
@@ -100,17 +102,17 @@ describe('IPFilteringAddOrEditModal', () => {
 
         await waitFor(() => {
             expect(onSave).toHaveBeenCalledWith({
-                CIDRBlock: '10.0.0.0/8',
-                Description: 'Test IP Filter 2',
-                Enabled: true,
-                OwnerID: '',
+                cidr_block: '10.0.0.0/8',
+                description: 'Test IP Filter 2',
+                enabled: true,
+                owner_id: '',
             });
             expect(onClose).toHaveBeenCalled();
         });
     });
 
     test('displays an error message when an invalid CIDR is entered', async () => {
-        const {getByLabelText, getByTestId, getByText} = render(
+        const {getByLabelText, getByTestId, getByText} = renderWithIntl(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -128,7 +130,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('disables the Save button when an invalid CIDR is entered', () => {
-        const {getByLabelText, getByTestId} = render(
+        const {getByLabelText, getByTestId} = renderWithIntl(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,

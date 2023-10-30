@@ -4,7 +4,7 @@
 import cidrRegex from 'cidr-regex';
 import React, {useState} from 'react';
 import {Modal} from 'react-bootstrap';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {AllowedIPRange} from '@mattermost/types/config';
@@ -28,17 +28,17 @@ function validateCIDR(cidr: string) {
 
 export default function IPFilteringAddOrEditModal({onClose, onSave, existingRange, currentIP}: Props) {
     const {formatMessage} = useIntl();
-    const [name, setName] = useState(existingRange?.Description || '');
-    const [CIDR, setCIDR] = useState(existingRange?.CIDRBlock || '');
+    const [name, setName] = useState(existingRange?.description || '');
+    const [CIDR, setCIDR] = useState(existingRange?.cidr_block || '');
 
     const [CIDRError, setCIDRError] = useState<CustomMessageInputType>(null);
 
     const handleSave = () => {
         const allowedIPRange: AllowedIPRange = {
-            CIDRBlock: CIDR,
-            Description: name,
-            Enabled: true,
-            OwnerID: '',
+            cidr_block: CIDR,
+            description: name,
+            enabled: true,
+            owner_id: '',
         };
 
         if (existingRange) {
@@ -72,7 +72,7 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
         >
             <Modal.Header closeButton={true}>
                 <div className='title'>
-                    {existingRange?.CIDRBlock ? formatMessage({id: 'admin.ip_filtering.edit_ip_filter', defaultMessage: 'Edit IP Filter'}) : formatMessage({id: 'admin.ip_filtering.add_ip_filter', defaultMessage: 'Add IP Filter'})}
+                    {existingRange?.cidr_block ? formatMessage({id: 'admin.ip_filtering.edit_ip_filter', defaultMessage: 'Edit IP Filter'}) : formatMessage({id: 'admin.ip_filtering.add_ip_filter', defaultMessage: 'Add IP Filter'})}
                 </div>
             </Modal.Header>
             <Modal.Body>
@@ -108,26 +108,21 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
                                 customMessage={CIDRError}
                             />
                         </div>
-                        {/* TODO: get proper PL for more info link out */}
                         <p>
-                            {
-                                formatMessage(
-                                    {
-                                        id: 'admin.ip_filtering.more_info',
-                                        defaultMessage: 'Enter ranges in CIDR format (e.g. 192.168.0.1/8). {link}',
-                                    },
-                                    {
-                                        link: (
-                                            <ExternalLink
-                                                href='https://docs.mattermost.com/guides/cloud-workspace-management.html'
-                                                location={'ip_filtering_add_edit_rule_modal'}
-                                            >
-                                                {formatMessage({id: 'admin.ip_filtering.more_info_link', defaultMessage: 'More info'})}
-                                            </ExternalLink>
-                                        ),
-                                    },
-                                )
-                            }
+                            <FormattedMessage
+                                id={'admin.ip_filtering.more_info'}
+                                defaultMessage={'Enter ranges in CIDR format (e.g. 192.168.0.1/8). <link>More info</link>'}
+                                values={{
+                                    link: (msg) => (
+                                        <ExternalLink
+                                            href='https://docs.mattermost.com/guides/cloud-workspace-management.html'
+                                            location={'ip_filtering_add_edit_rule_modal'}
+                                        >
+                                            {msg}
+                                        </ExternalLink>
+                                    ),
+                                }}
+                            />
                         </p>
                     </div>
                 </div>

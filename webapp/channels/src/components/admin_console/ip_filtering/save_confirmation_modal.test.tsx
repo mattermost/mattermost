@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, fireEvent} from '@testing-library/react';
+import {fireEvent} from '@testing-library/react';
 import React from 'react';
+
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 import SaveConfirmationModal from './save_confirmation_modal';
 
@@ -28,7 +30,7 @@ describe('SaveConfirmationModal', () => {
     };
 
     test('renders the title and subtitle', () => {
-        const {getByText} = render(
+        const {getByText} = renderWithIntl(
             <SaveConfirmationModal
                 {...baseProps}
             />,
@@ -39,7 +41,7 @@ describe('SaveConfirmationModal', () => {
     });
 
     test('renders the disclaimer if includeDisclaimer is true', () => {
-        const {getByText} = render(
+        const {getByText} = renderWithIntl(
             <SaveConfirmationModal
                 {...baseProps}
                 includeDisclaimer={true}
@@ -50,7 +52,7 @@ describe('SaveConfirmationModal', () => {
     });
 
     test('calls onClose when the cancel button is clicked', () => {
-        const {getByText} = render(
+        const {getByText} = renderWithIntl(
             <SaveConfirmationModal
                 {...baseProps}
             />,
@@ -62,7 +64,7 @@ describe('SaveConfirmationModal', () => {
     });
 
     test('calls onConfirm when the confirm button is clicked', () => {
-        const {getByText} = render(
+        const {getByText} = renderWithIntl(
             <SaveConfirmationModal
                 {...baseProps}
             />,

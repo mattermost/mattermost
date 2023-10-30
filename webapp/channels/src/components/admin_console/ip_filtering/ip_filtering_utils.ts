@@ -26,7 +26,7 @@ export function isIPAddressInRanges(ipAddress: string, allowedIPRanges: AllowedI
     // Check if the IP address is encapsulated by any of the allowed IP ranges
     for (const allowedIPRange of allowedIPRanges) {
         // Split the CIDR block and subnet mask from the allowed IP range
-        const [cidrBlock, subnetMask] = allowedIPRange.CIDRBlock.split('/');
+        const [cidrBlock, subnetMask] = allowedIPRange.cidr_block.split('/');
 
         // Convert the CIDR block to a number
         const cidrBlockNumber = isIPv4 ?

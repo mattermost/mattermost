@@ -8,24 +8,24 @@ import {isIPAddressInRanges} from './ip_filtering_utils';
 describe('isIPAddressInRanges', () => {
     const allowedIPRanges = [
         {
-            CIDRBlock: '192.168.0.0/24',
-            Description: 'Test Filter',
+            cidr_block: '192.168.0.0/24',
+            description: 'Test Filter',
         },
         {
-            CIDRBlock: '10.1.0.0/16',
-            Description: 'Test Filter 2',
+            cidr_block: '10.1.0.0/16',
+            description: 'Test Filter 2',
         },
         {
-            CIDRBlock: '172.16.0.0/12',
-            Description: 'Test Filter 3',
+            cidr_block: '172.16.0.0/12',
+            description: 'Test Filter 3',
         },
         {
-            CIDRBlock: '2001:db8::/32',
-            Description: 'Test Filter 4',
+            cidr_block: '2001:db8::/32',
+            description: 'Test Filter 4',
         },
         {
-            CIDRBlock: 'fe80::/10',
-            Description: 'Test Filter 5',
+            cidr_block: 'fe80::/10',
+            description: 'Test Filter 5',
         },
     ] as AllowedIPRange[];
 

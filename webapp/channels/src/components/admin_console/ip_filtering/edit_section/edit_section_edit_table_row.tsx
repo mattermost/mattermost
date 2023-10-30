@@ -38,12 +38,11 @@ const EditTableRow = ({
     return (
         <div
             className='Row'
-            key={allowedIPRange.CIDRBlock}
             onMouseEnter={() => handleRowMouseEnter(index)}
             onMouseLeave={handleRowMouseLeave}
         >
-            <div className='FilterName'>{allowedIPRange.Description}</div>
-            <div className='IpAddressRange'>{allowedIPRange.CIDRBlock}</div>
+            <div className='FilterName'>{allowedIPRange.description}</div>
+            <div className='IpAddressRange'>{allowedIPRange.cidr_block}</div>
             <div className='Actions'>
                 {hoveredRow === index && (
                     <>

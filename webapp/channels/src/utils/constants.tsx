@@ -446,6 +446,9 @@ export const ModalIdentifiers = {
     START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
     START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
     CONVERT_GM_TO_CHANNEL: 'convert_gm_to_channel',
+    IP_FILTERING_ADD_EDIT_MODAL: 'ip_filtering_add_edit_modal',
+    IP_FILTERING_DELETE_CONFIRMATION_MODAL: 'ip_filtering_delete_confirmation_modal',
+    IP_FILTERING_SAVE_CONFIRMATION_MODAL: 'ip_filtering_save_confirmation_modal',
 };
 
 export const UserStatuses = {
@@ -1088,6 +1091,7 @@ export const HostedCustomerLinks = {
 
 export const DocLinks = {
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
+    ADVANCED_LOGGING: 'https://mattermost.com/pl/advanced-logging',
     CONFIGURE_DOCUMENT_CONTENT_SEARCH: 'https://mattermost.com/pl/configure-document-content-search',
     CONFIGURE_AD_LDAP_QUERY_TIMEOUT: 'https://mattermost.com/pl/configure-ad-ldap-query-timeout',
     CONFIGURE_OVERRIDE_SAML_BIND_DATA_WITH_LDAP: 'https://mattermost.com/pl/configure-override-saml-bind-data-with-ldap',

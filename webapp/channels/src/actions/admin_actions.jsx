@@ -91,6 +91,33 @@ export async function samlCertificateStatus(success, error) {
     }
 }
 
+export async function getIPFilters(success, error) {
+    const {data, error: err} = await AdminActions.getIPFilters()(dispatch, getState);
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error(err);
+    }
+}
+
+export async function getCurrentIP(success, error) {
+    const {data, error: err} = await AdminActions.getCurrentIP()(dispatch, getState);
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error(err);
+    }
+}
+
+export async function applyIPFilters(ipList, success, error) {
+    const {data, error: err} = await AdminActions.applyIPFilters(ipList)(dispatch, getState);
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error(err);
+    }
+}
+
 export function getOAuthAppInfo(clientId) {
     return bindClientFunc({
         clientFunc: Client4.getOAuthAppInfo,

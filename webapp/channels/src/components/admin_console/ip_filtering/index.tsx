@@ -3,13 +3,17 @@
 
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
 
-import {Client4} from 'mattermost-redux/client';
+import {applyIPFilters, getCurrentIP, getIPFilters} from 'actions/admin_actions';
+import {closeModal, openModal} from 'actions/views/modals';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import IPFilteringAddOrEditModal from './add_edit_ip_filter_modal';
 import DeleteConfirmationModal from './delete_confirmation';
@@ -23,28 +27,23 @@ import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
 import './ip_filtering.scss';
 
 const IPFiltering = () => {
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [editFilter, setEditFilter] = useState<AllowedIPRange | null>(null);
     const [ipFilters, setIpFilters] = useState<AllowedIPRange[] | null>(null);
     const [originalIpFilters, setOriginalIpFilters] = useState<AllowedIPRange[] | null>(null);
     const [saveNeeded, setSaveNeeded] = useState(false);
-    const [filterToDelete, setFilterToDelete] = useState<AllowedIPRange | null>(null);
     const [currentUsersIP, setCurrentUsersIP] = useState<string | null>(null);
-    const [currentIPIsInRange, setCurrentIPIsInRange] = useState<boolean>(false);
-    const [saveConfirmationModal, setSaveConfirmationModal] = useState<JSX.Element | null>(null);
     const [saving, setSaving] = useState<boolean>(false);
-
     const [filterToggle, setFilterToggle] = useState<boolean>(false);
 
     useEffect(() => {
-        Client4.getIPFilters().then((res) => {
-            setIpFilters(res as AllowedIPRange[]);
-            setOriginalIpFilters(res as AllowedIPRange[]);
+        getIPFilters((data: AllowedIPRange[]) => {
+            setIpFilters(data);
+            setOriginalIpFilters(data);
         });
 
-        Client4.getCurrentIP().then((res) => {
-            setCurrentUsersIP((res as FetchIPResponse)?.IP);
+        getCurrentIP((res: FetchIPResponse) => {
+            setCurrentUsersIP(res.ip);
         });
     }, []);
 
@@ -58,23 +57,21 @@ const IPFiltering = () => {
         setSaveNeeded(haveFiltersChanged);
     }, [ipFilters, originalIpFilters]);
 
-    useEffect(() => {
+    const currentIPIsInRange = () => {
         if (!filterToggle) {
-            setCurrentIPIsInRange(true);
-            return;
+            return true;
         }
         if (!ipFilters?.length) {
-            setCurrentIPIsInRange(true);
-            return;
+            return true;
         }
-        setCurrentIPIsInRange(ipFilters !== null && currentUsersIP !== null && isIPAddressInRanges(currentUsersIP, ipFilters));
-    }, [ipFilters, currentUsersIP, filterToggle]);
+        return ipFilters !== null && currentUsersIP !== null && isIPAddressInRanges(currentUsersIP, ipFilters);
+    };
 
     useEffect(() => {
         if (!ipFilters?.length) {
             return;
         }
-        setFilterToggle(ipFilters?.some((filter: AllowedIPRange) => filter.Enabled === true) ?? false);
+        setFilterToggle(ipFilters?.some((filter: AllowedIPRange) => filter.enabled === true) ?? false);
     }, [ipFilters]);
 
     useEffect(() => {
@@ -82,14 +79,14 @@ const IPFiltering = () => {
             setIpFilters(ipFilters?.map((filter: AllowedIPRange): AllowedIPRange => {
                 return {
                     ...filter,
-                    Enabled: false,
+                    enabled: false,
                 };
             }) || []);
         } else {
             setIpFilters(ipFilters?.map((filter: AllowedIPRange): AllowedIPRange => {
                 return {
                     ...filter,
-                    Enabled: true,
+                    enabled: true,
                 };
             }) || []);
         }
@@ -100,7 +97,7 @@ const IPFiltering = () => {
             if (!prevIpFilters) {
                 return [filter];
             }
-            const index = prevIpFilters.findIndex((f) => f.CIDRBlock === existingRange?.CIDRBlock);
+            const index = prevIpFilters.findIndex((f) => f.cidr_block === existingRange?.cidr_block);
             if (index === -1) {
                 return null;
             }
@@ -111,13 +108,48 @@ const IPFiltering = () => {
         setSaveNeeded(true);
     }
 
-    function handleConfirmDeleteFilter(filter: AllowedIPRange) {
-        setFilterToDelete(filter);
+    function showAddModal() {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.IP_FILTERING_ADD_EDIT_MODAL,
+            dialogType: IPFilteringAddOrEditModal,
+            dialogProps: {
+                currentIP: currentUsersIP!,
+                onClose: () => dispatch(closeModal(ModalIdentifiers.IP_FILTERING_ADD_EDIT_MODAL)),
+                onSave: (filter: AllowedIPRange) => {
+                    handleAddFilter(filter);
+                },
+            },
+        }));
+    }
+
+    function showEditModal(editFilter: AllowedIPRange) {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.IP_FILTERING_ADD_EDIT_MODAL,
+            dialogType: IPFilteringAddOrEditModal,
+            dialogProps: {
+                currentIP: currentUsersIP!,
+                onClose: () => dispatch(closeModal(ModalIdentifiers.IP_FILTERING_ADD_EDIT_MODAL)),
+                onSave: handleEditFilter,
+                existingRange: editFilter!,
+            },
+        }));
+    }
+
+    function showConfirmDeleteFilterModal(filter: AllowedIPRange) {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.IP_FILTERING_DELETE_CONFIRMATION_MODAL,
+            dialogType: DeleteConfirmationModal,
+            dialogProps: {
+                onClose: () => dispatch(closeModal(ModalIdentifiers.IP_FILTERING_DELETE_CONFIRMATION_MODAL)),
+                onConfirm: handleDeleteFilter,
+                filterToDelete: filter,
+            },
+        }));
     }
 
     function handleDeleteFilter(filter: AllowedIPRange) {
-        setIpFilters((prevIpFilters) => prevIpFilters?.filter((f) => f.CIDRBlock !== filter.CIDRBlock) ?? null);
-        setFilterToDelete(null);
+        dispatch(closeModal(ModalIdentifiers.IP_FILTERING_DELETE_CONFIRMATION_MODAL));
+        setIpFilters((prevIpFilters) => prevIpFilters?.filter((f) => f.cidr_block !== filter.cidr_block) ?? null);
     }
 
     function handleAddFilter(filter: AllowedIPRange) {
@@ -127,19 +159,21 @@ const IPFiltering = () => {
 
     function handleSave() {
         setSaving(true);
-        setSaveConfirmationModal(null);
+        closeModal(ModalIdentifiers.IP_FILTERING_SAVE_CONFIRMATION_MODAL);
 
-        Client4.applyIPFilters(ipFilters ?? []).then((res) => {
-            setIpFilters(res as AllowedIPRange[]);
+        const success = (data: AllowedIPRange[]) => {
+            setIpFilters(data);
             setSaving(false);
             setSaveNeeded(false);
-        });
+        };
+
+        applyIPFilters(ipFilters ?? [], success);
     }
 
     function handleSaveClick() {
         const saveConfirmModalProps = {
             onClose: () => {
-                setSaveConfirmationModal(null);
+                closeModal(ModalIdentifiers.IP_FILTERING_SAVE_CONFIRMATION_MODAL);
             },
             onConfirm: handleSave,
         } as any;
@@ -184,11 +218,15 @@ const IPFiltering = () => {
             saveConfirmModalProps.includeDisclaimer = true;
         }
 
-        setSaveConfirmationModal(<SaveConfirmationModal {...saveConfirmModalProps}/>);
+        dispatch(openModal({
+            modalId: ModalIdentifiers.IP_FILTERING_SAVE_CONFIRMATION_MODAL,
+            dialogType: SaveConfirmationModal,
+            dialogProps: saveConfirmModalProps,
+        }));
     }
 
     const saveBarError = () => {
-        if (currentIPIsInRange) {
+        if (currentIPIsInRange()) {
             return undefined;
         }
 
@@ -214,42 +252,14 @@ const IPFiltering = () => {
                         <EditSection
                             ipFilters={ipFilters}
                             currentUsersIP={currentUsersIP}
-                            setShowAddModal={setShowAddModal}
-                            setEditFilter={setEditFilter}
-                            handleConfirmDeleteFilter={handleConfirmDeleteFilter}
-                            currentIPIsInRange={currentIPIsInRange}
+                            setShowAddModal={showAddModal}
+                            setEditFilter={showEditModal}
+                            handleConfirmDeleteFilter={showConfirmDeleteFilterModal}
+                            currentIPIsInRange={currentIPIsInRange()}
                         />
                     }
                 </>
             </div>
-            {
-                editFilter !== null &&
-                <IPFilteringAddOrEditModal
-                    currentIP={currentUsersIP!}
-                    onClose={() => setEditFilter(null)}
-                    onSave={handleEditFilter}
-                    existingRange={editFilter!}
-                />
-            }
-            {
-                showAddModal &&
-                <IPFilteringAddOrEditModal
-                    currentIP={currentUsersIP!}
-                    onClose={() => setShowAddModal(false)}
-                    onSave={(filter: AllowedIPRange) => {
-                        handleAddFilter(filter);
-                    }}
-                />
-            }
-            {
-                filterToDelete !== null &&
-                <DeleteConfirmationModal
-                    onClose={() => setFilterToDelete(null)}
-                    onConfirm={handleDeleteFilter}
-                    filterToDelete={filterToDelete}
-                />
-            }
-            {saveConfirmationModal}
             <SaveChangesPanel
                 saving={saving}
                 saveNeeded={saveNeeded}

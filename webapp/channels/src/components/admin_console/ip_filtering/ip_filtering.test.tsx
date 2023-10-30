@@ -7,11 +7,13 @@ import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
 
-import type {AllowedIPRange} from '@mattermost/types/config';
+import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
-import testConfigureStore from 'tests/test_store';
+import configureStore from 'store';
+
+import ModalController from 'components/modal_controller';
 
 import IPFiltering from './index';
 
@@ -20,9 +22,9 @@ jest.mock('mattermost-redux/client');
 describe('IPFiltering', () => {
     const ipFilters = [
         {
-            CIDRBlock: '10.0.0.0/8',
-            Description: 'Test IP Filter',
-            Enabled: true,
+            cidr_block: '10.0.0.0/8',
+            description: 'Test IP Filter',
+            enabled: true,
         },
     ] as AllowedIPRange[];
 
@@ -33,7 +35,7 @@ describe('IPFiltering', () => {
     const currentIP = '10.0.0.1';
     const applyIPFiltersMock = jest.fn(() => Promise.resolve(ipFilters));
     const getIPFiltersMock = jest.fn(() => Promise.resolve(ipFilters));
-    const getCurrentIPMock = jest.fn(() => Promise.resolve({IP: currentIP}));
+    const getCurrentIPMock = jest.fn(() => Promise.resolve({ip: currentIP} as FetchIPResponse));
 
     beforeEach(() => {
         Client4.applyIPFilters = applyIPFiltersMock;
@@ -41,7 +43,7 @@ describe('IPFiltering', () => {
         Client4.getCurrentIP = getCurrentIPMock;
     });
 
-    const mockedStore = testConfigureStore({
+    const mockedStore = configureStore({
         entities: {
             users: {
                 currentUserId: 'current_user_id',
@@ -64,6 +66,7 @@ describe('IPFiltering', () => {
         <Router>
             <IntlProvider {...intlProviderProps}>
                 <Provider store={mockedStore} >
+                    <ModalController/>
                     {component}
                 </Provider>
             </IntlProvider>
@@ -196,7 +199,6 @@ describe('IPFiltering', () => {
 
         await waitFor(() => {
             expect(applyIPFiltersMock).toHaveBeenCalledTimes(1);
-            expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
         });
     });
 });
