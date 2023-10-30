@@ -52,6 +52,7 @@ describe('components/ToastWrapper', () => {
         onSearchHintDismiss: jest.fn(),
         showScrollToBottomToast: false,
         onScrollToBottomToastDismiss: jest.fn(),
+        hideScrollToBottomToast: jest.fn(),
         actions: {
             updateToastStatus: jest.fn(),
         },
@@ -691,7 +692,7 @@ describe('components/ToastWrapper', () => {
             expect(hintToast).toBeInTheDocument();
         });
 
-        test('should call scrollToLatestMessages on click, and hide this toast', () => {
+        test('should call scrollToLatestMessages on click, and hide this toast (do not call dismiss function)', () => {
             const props = {
                 ...baseProps,
                 showScrollToBottomToast: true,
@@ -702,7 +703,10 @@ describe('components/ToastWrapper', () => {
             fireEvent.click(scrollToBottomToast);
 
             expect(baseProps.scrollToLatestMessages).toHaveBeenCalledTimes(1);
-            expect(baseProps.onScrollToBottomToastDismiss).toHaveBeenCalledTimes(1);
+
+            // * Do not dismiss the toast, hide it only
+            expect(baseProps.onScrollToBottomToastDismiss).toHaveBeenCalledTimes(0);
+            expect(baseProps.hideScrollToBottomToast).toHaveBeenCalledTimes(1);
         });
 
         test('should call the dismiss callback', () => {
