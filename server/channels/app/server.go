@@ -996,6 +996,11 @@ func (s *Server) Start() error {
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
+	// Check if the command is called by root user
+	if os.Geteuid() == 0 {
+		mlog.Warn("Running as root is not recommended")
+	}
+
 	m := &autocert.Manager{
 		Cache:  autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
 		Prompt: autocert.AcceptTOS,
