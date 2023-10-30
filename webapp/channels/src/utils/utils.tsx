@@ -118,7 +118,7 @@ export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEv
  * insert a new line character at keyboard cursor (or overwrites selection)
  * WARNING: HAS DOM SIDE EFFECTS
  */
-export function insertLineBreakFromKeyEvent(e: React.KeyboardEvent<TextboxElement>): string {
+export function insertLineBreakFromKeyEvent(e: KeyboardEvent): string {
     const el = e.target as TextboxElement;
     const {selectionEnd, selectionStart, value} = el;
 
@@ -1186,6 +1186,9 @@ export function clearFileInput(elm: HTMLInputElement) {
     }
 }
 
+/**
+ * @deprecated Use react-intl instead, only place its usage can be justified is in the redux actions
+ */
 export function localizeMessage(id: string, defaultMessage?: string) {
     const state = store.getState();
 
