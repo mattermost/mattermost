@@ -182,7 +182,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
       <AutoHeightSwitcher
         showSlot={1}
         slot1={
-          <Memo(Connect(ExternalImage))
+          <Memo(Connect(Component))
             imageMetadata={
               Object {
                 "format": "png",
@@ -197,7 +197,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
             src="http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png"
           >
             [Function]
-          </Memo(Connect(ExternalImage))>
+          </Memo(Connect(Component))>
         }
         slot2={
           <button
@@ -240,7 +240,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
             }
           >
             <div>
-              <Connect(ExternalImage)
+              <Connect(Component)
                 imageMetadata={
                   Object {
                     "format": "png",
@@ -254,7 +254,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
                 }
                 src="http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png"
               >
-                <ExternalImage
+                <Memo(ExternalImage)
                   dispatch={[Function]}
                   enableSVGs={true}
                   hasImageProxy={true}
@@ -299,8 +299,8 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
                       src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
                     />
                   </figure>
-                </ExternalImage>
-              </Connect(ExternalImage)>
+                </Memo(ExternalImage)>
+              </Connect(Component)>
             </div>
           </div>
         </Transition>

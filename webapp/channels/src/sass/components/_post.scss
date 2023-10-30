@@ -667,7 +667,7 @@
         }
 
         .post__body {
-            color: rbga(var(--center-channel-color-rgb), 0.6);
+            color: rgba(var(--center-channel-color-rgb), 0.6);
         }
     }
 
@@ -1540,10 +1540,11 @@
         }
     }
 
+    // This class is used for the "Commented on" messages with CRT disabled
     .post__link {
         overflow: hidden;
         margin: 2px 0 5px;
-        color: rgba(var(--center-channel-color), 0.65);
+        color: rgba(var(--center-channel-color-rgb), 0.65);
         font-size: 13px;
         text-overflow: ellipsis;
         -webkit-user-select: none; /* Chrome all / Safari all */
