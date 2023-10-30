@@ -11,7 +11,9 @@ import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
-import testConfigureStore from 'tests/test_store';
+import configureStore from 'store';
+
+import ModalController from 'components/modal_controller';
 
 import IPFiltering from './index';
 
@@ -41,7 +43,7 @@ describe('IPFiltering', () => {
         Client4.getCurrentIP = getCurrentIPMock;
     });
 
-    const mockedStore = testConfigureStore({
+    const mockedStore = configureStore({
         entities: {
             users: {
                 currentUserId: 'current_user_id',
@@ -64,6 +66,7 @@ describe('IPFiltering', () => {
         <Router>
             <IntlProvider {...intlProviderProps}>
                 <Provider store={mockedStore} >
+                    <ModalController/>
                     {component}
                 </Provider>
             </IntlProvider>
@@ -97,6 +100,105 @@ describe('IPFiltering', () => {
 
         await waitFor(() => {
             expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
+        });
+    });
+
+    test('adds a new IP filter when the "Add IP Filter" button is clicked', async () => {
+        const {getByLabelText, getByText} = render(wrapWithIntlProviderAndStore(<IPFiltering/>));
+
+        await waitFor(() => {
+            expect(getByText('Add Filter')).toBeInTheDocument();
+        });
+
+        fireEvent.click(getByText('Add Filter'));
+
+        const descriptionInput = getByLabelText('Enter a name for this rule');
+        const cidrInput = getByLabelText('Enter IP Range');
+        const saveButton = screen.getByTestId('save-add-edit-button');
+
+        fireEvent.change(cidrInput, {target: {value: '192.168.0.0/16'}});
+        fireEvent.change(descriptionInput, {target: {value: 'Test IP Filter 2'}});
+        fireEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(getByText('Test IP Filter 2')).toBeInTheDocument();
+            expect(getByText('192.168.0.0/16')).toBeInTheDocument();
+        });
+    });
+
+    test('edits an existing IP filter when the "Edit" button is clicked', async () => {
+        const {getByLabelText, getByText, queryByText} = render(wrapWithIntlProviderAndStore(<IPFiltering/>));
+
+        await waitFor(() => {
+            expect(getByText('Test IP Filter')).toBeInTheDocument();
+        });
+
+        fireEvent.mouseEnter(screen.getByText('Test IP Filter'));
+        fireEvent.click(screen.getByRole('button', {
+            name: /Edit/i,
+        }));
+
+        const descriptionInput = getByLabelText('Enter a name for this rule');
+        const cidrInput = getByLabelText('Enter IP Range');
+        const saveButton = screen.getByTestId('save-add-edit-button');
+
+        fireEvent.change(cidrInput, {target: {value: '192.168.0.0/16'}});
+        fireEvent.change(descriptionInput, {target: {value: 'zzzzzfilter'}});
+        fireEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(getByText('zzzzzfilter')).toBeInTheDocument();
+            expect(getByText('192.168.0.0/16')).toBeInTheDocument();
+
+            // ensure that the old description is gone, because we've now changed it
+            expect(queryByText('Test IP Filter')).toBeNull();
+        });
+    });
+
+    test('deletes an existing IP filter when the "Delete" button is clicked', async () => {
+        const {getByText, queryByText} = render(wrapWithIntlProviderAndStore(<IPFiltering/>));
+
+        await waitFor(() => {
+            expect(getByText('Test IP Filter')).toBeInTheDocument();
+        });
+
+        fireEvent.mouseEnter(screen.getByText('Test IP Filter'));
+        fireEvent.click(screen.getByRole('button', {
+            name: /Delete/i,
+        }));
+
+        const confirmButton = getByText('Delete filter');
+
+        fireEvent.click(confirmButton);
+
+        await waitFor(() => {
+            expect(queryByText('Test IP Filter')).not.toBeInTheDocument();
+        });
+    });
+
+    test('saves changes when the "Save" button is clicked', async () => {
+        const {getByText, queryByText} = render(wrapWithIntlProviderAndStore(<IPFiltering/>));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
+            expect(screen.getByRole('button', {pressed: true})).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByTestId('filterToggle-button'));
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
+        });
+
+        await waitFor(() => {
+            expect(queryByText('Test IP Filter')).not.toBeInTheDocument();
+        });
+
+        fireEvent.click(getByText('Save'));
+        fireEvent.click(screen.getByTestId('save-confirmation-button'));
+
+        await waitFor(() => {
+            expect(applyIPFiltersMock).toHaveBeenCalledTimes(1);
         });
     });
 });
