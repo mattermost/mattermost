@@ -255,6 +255,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         text="Keyboard shortcuts"
       />
       <MenuItemAction
+        iconClassName="icon-thumbs-up-down"
         id="testId_pluginmenuitem"
         key="testId_pluginmenuitem"
         onClick={[Function]}
