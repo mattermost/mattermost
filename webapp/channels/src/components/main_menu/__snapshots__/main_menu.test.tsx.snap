@@ -54,7 +54,7 @@ exports[`components/Menu should match snapshot with guest access disabled and no
 <Menu
   ariaLabel="team menu"
 >
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -208,8 +208,8 @@ exports[`components/Menu should match snapshot with guest access disabled and no
       show={true}
       text="Leave Team"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -227,8 +227,8 @@ exports[`components/Menu should match snapshot with guest access disabled and no
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup />
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup) />
 </Menu>
 `;
 
@@ -237,7 +237,7 @@ exports[`components/Menu should match snapshot with id 1`] = `
   ariaLabel="team menu"
   id="test-id"
 >
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -409,8 +409,8 @@ exports[`components/Menu should match snapshot with id 1`] = `
       show={true}
       text="Leave Team"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -428,8 +428,8 @@ exports[`components/Menu should match snapshot with id 1`] = `
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup />
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup) />
 </Menu>
 `;
 
@@ -437,7 +437,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled 1
 <Menu
   ariaLabel="team menu"
 >
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -609,8 +609,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled 1
       show={true}
       text="Leave Team"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -628,8 +628,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled 1
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup />
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup) />
 </Menu>
 `;
 
@@ -637,7 +637,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
 <Menu
   ariaLabel="main menu"
 >
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -649,8 +649,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
         id="menuCloudTrial"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -662,8 +662,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
         id="startTrial"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemAction
       icon={
         <i
@@ -688,8 +688,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
       show={true}
       text="Saved Posts"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
@@ -738,8 +738,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
       show={true}
       text="Settings"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -799,8 +799,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
         text="Invite People"
       />
     </Connect(TeamPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -921,8 +921,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
         text="View Members"
       />
     </Connect(TeamPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -968,17 +968,17 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
       show={true}
       text="Leave Team"
     />
-  </MenuGroup>
-  <MenuGroup />
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup) />
+  <Memo(MenuGroup)>
     <MenuItemLink
       id="integrations"
       show={false}
       text="Integrations"
       to="/team_name/integrations"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemExternalLink
       icon={
         <i
@@ -1029,8 +1029,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
       show={true}
       text="About Mattermost"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemAction
       icon={
         <i
@@ -1042,7 +1042,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
       show={true}
       text="Log Out"
     />
-  </MenuGroup>
+  </Memo(MenuGroup)>
 </Menu>
 `;
 
@@ -1050,7 +1050,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled 1`
 <Menu
   ariaLabel="team menu"
 >
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -1222,8 +1222,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled 1`
       show={true}
       text="Leave Team"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -1241,8 +1241,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled 1`
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup />
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup) />
 </Menu>
 `;
 
@@ -1250,7 +1250,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
 <Menu
   ariaLabel="main menu"
 >
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -1262,8 +1262,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
         id="menuCloudTrial"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -1275,8 +1275,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
         id="startTrial"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemAction
       icon={
         <i
@@ -1301,8 +1301,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
       show={true}
       text="Saved Posts"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
@@ -1351,8 +1351,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
       show={true}
       text="Settings"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -1412,8 +1412,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
         text="Invite People"
       />
     </Connect(TeamPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -1534,8 +1534,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
         text="View Members"
       />
     </Connect(TeamPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -1581,17 +1581,17 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
       show={true}
       text="Leave Team"
     />
-  </MenuGroup>
-  <MenuGroup />
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup) />
+  <Memo(MenuGroup)>
     <MenuItemLink
       id="integrations"
       show={false}
       text="Integrations"
       to="/team_name/integrations"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemExternalLink
       icon={
         <i
@@ -1644,8 +1644,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
       show={true}
       text="About Mattermost"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemAction
       icon={
         <i
@@ -1657,7 +1657,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
       show={true}
       text="Log Out"
     />
-  </MenuGroup>
+  </Memo(MenuGroup)>
 </Menu>
 `;
 
@@ -1665,7 +1665,7 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
 <Menu
   ariaLabel="team menu"
 >
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -1837,8 +1837,8 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
       show={true}
       text="Leave Team"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -1856,8 +1856,8 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemAction
       icon={false}
       id="plugin-id-1_pluginmenuitem"
@@ -1872,7 +1872,7 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
       onClick={[Function]}
       show={true}
     />
-  </MenuGroup>
+  </Memo(MenuGroup)>
 </Menu>
 `;
 
@@ -1880,7 +1880,7 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
 <Menu
   ariaLabel="main menu"
 >
-  <MenuGroup>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -1892,8 +1892,8 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
         id="menuCloudTrial"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -1905,8 +1905,8 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
         id="startTrial"
       />
     </Connect(SystemPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemAction
       icon={
         <i
@@ -1931,8 +1931,8 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       show={true}
       text="Saved Posts"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
@@ -1981,8 +1981,8 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       show={true}
       text="Settings"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -2042,8 +2042,8 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
         text="Invite People"
       />
     </Connect(TeamPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(TeamPermissionGate)
       permissions={
         Array [
@@ -2164,8 +2164,8 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
         text="View Members"
       />
     </Connect(TeamPermissionGate)>
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -2211,8 +2211,8 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       show={true}
       text="Leave Team"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemAction
       id="plugin-id-1_pluginmenuitem"
       key="plugin-id-1_pluginmenuitem"
@@ -2225,16 +2225,16 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       onClick={[Function]}
       show={true}
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemLink
       id="integrations"
       show={false}
       text="Integrations"
       to="/team_name/integrations"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemExternalLink
       icon={
         <i
@@ -2285,8 +2285,8 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       show={true}
       text="About Mattermost"
     />
-  </MenuGroup>
-  <MenuGroup>
+  </Memo(MenuGroup)>
+  <Memo(MenuGroup)>
     <MenuItemAction
       icon={
         <i
@@ -2298,6 +2298,6 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       show={true}
       text="Log Out"
     />
-  </MenuGroup>
+  </Memo(MenuGroup)>
 </Menu>
 `;
