@@ -13,14 +13,14 @@ const StatusIconNew = ({className = '', status = ''}: Props) => {
         return null;
     }
 
-    let iconName = 'icon-circle-outline';
-    if (status === 'online') {
-        iconName = 'icon-check-circle';
-    } else if (status === 'away') {
-        iconName = 'icon-clock';
-    } else if (status === 'dnd') {
-        iconName = 'icon-minus-circle';
-    }
+    const statusToIconMap: { [key: string]: string } = {
+        online: 'icon-check-circle',
+        away: 'icon-clock',
+        dnd: 'icon-minus-circle',
+        default: 'icon-circle-outline',
+    };
+
+    const iconName = statusToIconMap[status] || statusToIconMap.default;
 
     return <i className={`${iconName} ${className}`}/>;
 };
