@@ -13,17 +13,17 @@
 * npm run make-emojis -- --help
 */
 
-import * as fs from 'node:fs';
-import * as fsPromise from 'node:fs/promises';
 import path from 'node:path';
+import * as fsPromise from 'node:fs/promises';
+import * as fs from 'node:fs';
 import * as url from 'node:url';
 
-import chalk from 'chalk';
-import jsonCategories from 'emoji-datasource/categories.json' assert { type: 'json' };
-import jsonData from 'emoji-datasource/emoji.json' assert { type: 'json' };
 import yargs from 'yargs';
+import chalk from 'chalk';
+import jsonData from 'emoji-datasource/emoji.json';
+import jsonCategories from 'emoji-datasource/categories.json';
 
-import additionalShortnames from './additional_shortnames.json' assert { type: 'json' };
+import additionalShortnames from './additional_shortnames.json';
 
 const EMOJI_SIZE = 64;
 const EMOJI_SIZE_PADDED = EMOJI_SIZE + 2; // 1px per side

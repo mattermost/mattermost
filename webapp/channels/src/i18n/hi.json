@@ -233,7 +233,6 @@
   "admin.billing.company_info.city": "शहर",
   "admin.billing.company_info.companyAddress": "कंपनी का पता",
   "admin.billing.company_info.companyName": "कंपनी का नाम",
-  "admin.billing.company_info.country": "देश",
   "admin.billing.company_info.employees": "{employees} कर्मचारियों",
   "admin.billing.company_info.numEmployees": "कर्मचारियों की संख्या (वैकल्पिक)",
   "admin.billing.company_info.title": "कंपनी की जानकारी",
