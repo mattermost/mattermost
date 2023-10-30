@@ -543,9 +543,9 @@ class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> 
     }
 }
 
-function defaultAriaLabelRenderer(option: Value) {
+function defaultAriaLabelRenderer(option: Value): string {
     if (!option) {
-        return null;
+        return '';
     }
     return option.label;
 }
