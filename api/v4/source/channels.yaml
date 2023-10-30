@@ -180,7 +180,9 @@
               type: array
               items:
                 type: string
-        description: User ids to be in the group message channel
+              minItems: 1
+              maxItems: 1000
+        description: User ids to be in the group message channel.
         required: true
       responses:
         "201":
@@ -408,7 +410,9 @@
               type: array
               items:
                 type: string
-        description: List of channel ids
+              minItems: 1
+              maxItems: 1000
+        description: List of channel ids.
         required: true
       responses:
         "200":
@@ -1347,12 +1351,14 @@
               properties:
                 user_id:
                   type: string
-                  description: The ID of user to add into the channel, kept for backwards compatibility.
+                  description: The ID of user to add into the channel, for backwards compatibility.
                 user_ids:
                   type: array
                   items:
                     type: string
-                  description: The IDs of users to add into the channel, required if 'user_id' does not exist.
+                  minItems: 1
+                  maxItems: 1000
+                  description: The IDs of users to add into the channel, required if 'user_id' doess not exist.
                 post_root_id:
                   type: string
                   description: The ID of root post where link to add channel member
@@ -1395,7 +1401,9 @@
               type: array
               items:
                 type: string
-        description: List of user ids
+              minItems: 1
+              maxItems: 1000
+        description: List of user ids.
         required: true
       responses:
         "200":

@@ -16,6 +16,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
+const maxListSize = 1000
+
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods("POST")
@@ -514,7 +516,7 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIds := model.ArrayFromJSON(r.Body)
 
-	if len(userIds) == 0 {
+	if len(userIds) == 0 || len(userIds) > maxListSize {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -699,6 +701,10 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	channelIDs := model.ArrayFromJSON(r.Body)
+	if len(channelIDs) > maxListSize {
+		c.SetInvalidParam("channel_ids")
+		return
+	}
 	if !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), channelIDs, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
@@ -888,7 +894,7 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	channelIds := model.ArrayFromJSON(r.Body)
-	if len(channelIds) == 0 {
+	if len(channelIds) == 0 || len(channelIds) > maxListSize {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
@@ -1428,7 +1434,7 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	userIds := model.ArrayFromJSON(r.Body)
-	if len(userIds) == 0 {
+	if len(userIds) == 0 || len(userIds) > maxListSize {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -1684,6 +1690,10 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	var userIds []string
 	interfaceIds, ok := props["user_ids"].([]interface{})
 	if ok {
+		if len(interfaceIds) > maxListSize {
+			c.SetInvalidParam("user_ids")
+			return
+		}
 		for _, userId := range interfaceIds {
 			userIds = append(userIds, userId.(string))
 		}
