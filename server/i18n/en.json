@@ -3727,10 +3727,6 @@
     "translation": "Review changes"
   },
   {
-    "id": "api.templates.ip_filters_changed.info",
-    "translation": ""
-  },
-  {
     "id": "api.templates.ip_filters_changed.subTitle",
     "translation": "@{{ .InitiatingUsername }} changed the IP filtering settings for your workspace at the URL: {{ .SiteURL }}"
   },
@@ -3743,8 +3739,16 @@
     "translation": "IP filtering changes for your workspace"
   },
   {
-    "id": "api.templates.ip_filters_changed_footer.info",
-    "translation": "<a href=\"mailto:{{ .InitiatingUserEmail }}\">Send an email</a> to the system admin who made the change or <a href=\"mailto:support@mattermost.com\">contact Mattermost Support</a>."
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Contact support"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Log in to the customer portal to reset IP filtering"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Send an email to {{ .InitiatingUserEmail }}"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.title",

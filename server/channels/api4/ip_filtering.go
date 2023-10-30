@@ -94,8 +94,19 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 			mlog.Error("Failed to get system admins", mlog.Err(err))
 		}
 
+		cloudWorkspaceOwnerEmailAddress := ""
+		if c.App.License().IsCloud() {
+			portalUserCustomer, err := c.App.Cloud().GetCloudCustomer(c.AppContext.Session().UserId)
+			if err != nil {
+				mlog.Error("Failed to get portal user customer", mlog.Err(err))
+			}
+			if portalUserCustomer != nil {
+				cloudWorkspaceOwnerEmailAddress = portalUserCustomer.Email
+			}
+		}
+
 		for _, user := range users {
-			if _, err = c.App.Srv().EmailService.SendIPFiltersChangedEmail(user.Email, initiatingUser[0], *c.App.Config().ServiceSettings.SiteURL, *c.App.Config().CloudSettings.CWSURL, user.Locale); err != nil {
+			if _, err = c.App.Srv().EmailService.SendIPFiltersChangedEmail(user.Email, initiatingUser[0], *c.App.Config().ServiceSettings.SiteURL, *c.App.Config().CloudSettings.CWSURL, user.Locale, cloudWorkspaceOwnerEmailAddress == user.Email); err != nil {
 				mlog.Error("Error while sending IP filters changed email", mlog.Err(err))
 			}
 
