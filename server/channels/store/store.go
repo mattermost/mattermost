@@ -46,6 +46,7 @@ type Store interface {
 	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
+	OAuthOutgoingConnection() OAuthOutgoingConnectionStore
 	System() SystemStore
 	Webhook() WebhookStore
 	Command() CommandStore
@@ -570,6 +571,14 @@ type OAuthStore interface {
 	GetPreviousAccessData(userID, clientId string) (*model.AccessData, error)
 	RemoveAccessData(token string) error
 	RemoveAllAccessData() error
+}
+
+type OAuthOutgoingConnectionStore interface {
+	SaveConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)
+	UpdateConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)
+	GetConnection(c request.CTX, id string) (*model.OAuthOutgoingConnection, error)
+	GetConnections(c request.CTX, offset, limit int) ([]*model.OAuthOutgoingConnection, error)
+	DeleteConnection(c request.CTX, id string) error
 }
 
 type SystemStore interface {
