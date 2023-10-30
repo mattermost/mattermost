@@ -483,7 +483,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+	message := model.NewWebSocketEvent(model.Posted, "", post.ChannelId, "", nil, "")
 
 	// Note that PreparePostForClient should've already been called by this point
 	postJSON, jsonErr := post.ToJSON()

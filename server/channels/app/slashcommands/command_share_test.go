@@ -51,7 +51,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
 			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
-			return err == nil && event.EventType() == model.WebsocketEventChannelConverted
+			return err == nil && event.EventType() == model.ChannelConverted
 		})
 		assert.Len(t, channelConvertedMessages, 1)
 	})
@@ -86,7 +86,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
 			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
-			return err == nil && event.EventType() == model.WebsocketEventChannelConverted
+			return err == nil && event.EventType() == model.ChannelConverted
 		})
 		require.Len(t, channelConvertedMessages, 1)
 	})

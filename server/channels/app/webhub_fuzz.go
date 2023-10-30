@@ -106,7 +106,7 @@ type actionData struct {
 func getActionData(data []byte, userIDs, teamIDs, channelIDs []string) *actionData {
 	// Some sample events
 	events := []string{
-		model.WebsocketEventChannelCreated,
+		model.ChannelCreated,
 		model.WebsocketEventChannelDeleted,
 		model.WebsocketEventUserAdded,
 		model.WebsocketEventUserUpdated,

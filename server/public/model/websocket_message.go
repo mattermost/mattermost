@@ -21,13 +21,13 @@ func (arr WebsocketEventTypeArray) ToStringArray() StringArray {
 }
 
 const (
-	WebsocketEventTyping                              WebsocketEventType = "typing"
-	WebsocketEventPosted                              WebsocketEventType = "posted"
-	WebsocketEventPostEdited                          WebsocketEventType = "post_edited"
-	WebsocketEventPostDeleted                         WebsocketEventType = "post_deleted"
-	WebsocketEventPostUnread                          WebsocketEventType = "post_unread"
-	WebsocketEventChannelConverted                    WebsocketEventType = "channel_converted"
-	WebsocketEventChannelCreated                      WebsocketEventType = "channel_created"
+	Typing                              WebsocketEventType = "typing"
+	Posted                              WebsocketEventType = "posted"
+	PostEdited                          WebsocketEventType = "post_edited"
+	PostDeleted                         WebsocketEventType = "post_deleted"
+	PostUnread                          WebsocketEventType = "post_unread"
+	ChannelConverted                    WebsocketEventType = "channel_converted"
+	ChannelCreated                      WebsocketEventType = "channel_created"
 	WebsocketEventChannelDeleted                      WebsocketEventType = "channel_deleted"
 	WebsocketEventChannelRestored                     WebsocketEventType = "channel_restored"
 	WebsocketEventChannelUpdated                      WebsocketEventType = "channel_updated"

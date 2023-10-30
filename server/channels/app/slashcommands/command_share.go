@@ -322,7 +322,7 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[str
 }
 
 func notifyClientsForChannelUpdate(a *app.App, sharedChannel *model.SharedChannel) {
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, sharedChannel.TeamId, "", "", nil, "")
+	messageWs := model.NewWebSocketEvent(model.ChannelConverted, sharedChannel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", sharedChannel.ChannelId)
 	a.Publish(messageWs)
 }

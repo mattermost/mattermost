@@ -197,8 +197,8 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 			Data:     data,
 		}
 
-		if message.EventType() == model.WebsocketEventPosted ||
-			message.EventType() == model.WebsocketEventPostEdited ||
+		if message.EventType() == model.Posted ||
+			message.EventType() == model.PostEdited ||
 			message.EventType() == model.WebsocketEventDirectAdded ||
 			message.EventType() == model.WebsocketEventGroupAdded ||
 			message.EventType() == model.WebsocketEventAddedToTeam ||

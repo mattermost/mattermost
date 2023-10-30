@@ -50,7 +50,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		mockService.active = true
 		th.Service.SetSharedChannelService(mockService)
 
-		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, model.NewId(), model.NewId(), "", nil, "")
+		websocketEvent := model.NewWebSocketEvent(model.Posted, model.NewId(), model.NewId(), "", nil, "")
 
 		th.Service.SharedChannelSyncHandler(websocketEvent)
 		assert.Empty(t, mockService.channelNotifications)
@@ -65,7 +65,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th.Service.SetSharedChannelService(mockService)
 
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
-		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, th.BasicTeam.Id, channel.Id, "", nil, "")
+		websocketEvent := model.NewWebSocketEvent(model.Posted, th.BasicTeam.Id, channel.Id, "", nil, "")
 
 		th.Service.SharedChannelSyncHandler(websocketEvent)
 		require.Len(t, mockService.channelNotifications, 1)

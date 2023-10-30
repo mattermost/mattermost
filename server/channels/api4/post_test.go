@@ -921,7 +921,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 		for {
 			select {
 			case ev := <-wsClient.EventChannel:
-				if ev.EventType() == model.WebsocketEventPosted {
+				if ev.EventType() == model.Posted {
 					assert.True(t, ev.GetData()["set_online"].(bool) == isSetOnline)
 					return
 				}
@@ -2562,7 +2562,7 @@ func TestDeletePostEvent(t *testing.T) {
 		var exit bool
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.EventType() == model.WebsocketEventPostDeleted {
+			if event.EventType() == model.PostDeleted {
 				var post model.Post
 				err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &post)
 				require.NoError(t, err)
@@ -2613,7 +2613,7 @@ func TestDeletePostMessage(t *testing.T) {
 			for {
 				select {
 				case ev := <-wsClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventPostDeleted {
+					if ev.EventType() == model.PostDeleted {
 						assert.Equal(t, tc.delete_by, ev.GetData()["delete_by"])
 						return
 					}
@@ -3362,7 +3362,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		for {
 			select {
 			case ev := <-userWSClient.EventChannel:
-				if ev.EventType() == model.WebsocketEventPostUnread {
+				if ev.EventType() == model.PostUnread {
 					caught = true
 					data = ev.GetData()
 				}
@@ -3373,7 +3373,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 				break
 			}
 		}
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPostUnread)
+		require.Truef(t, caught, "User should have received %s event", model.PostUnread)
 		msgCount, ok := data["msg_count"]
 		require.True(t, ok)
 		require.EqualValues(t, 3, msgCount)
@@ -3621,7 +3621,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 				for {
 					select {
 					case ev := <-userWSClient.EventChannel:
-						if ev.EventType() == model.WebsocketEventPosted {
+						if ev.EventType() == model.Posted {
 							caught = true
 							data := ev.GetData()
 
@@ -3644,7 +3644,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 				}
 			}()
 
-			require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPosted)
+			require.Truef(t, caught, "User should have received %s event", model.Posted)
 		})
 	}
 }

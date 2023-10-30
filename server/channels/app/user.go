@@ -2406,7 +2406,7 @@ func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppEr
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[userID] = true
 
-	event := model.NewWebSocketEvent(model.WebsocketEventTyping, "", channelID, "", omitUsers, "")
+	event := model.NewWebSocketEvent(model.Typing, "", channelID, "", omitUsers, "")
 	event.Add("parent_id", parentId)
 	event.Add("user_id", userID)
 	a.Publish(event)

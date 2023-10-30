@@ -267,7 +267,7 @@ func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userI
 
 	a.postJoinChannelMessage(c, user, channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", userID, nil, "")
+	message := model.NewWebSocketEvent(model.ChannelCreated, "", "", userID, nil, "")
 	message.Add("channel_id", channel.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
@@ -781,7 +781,7 @@ func (a *App) UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, use
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
+	messageWs := model.NewWebSocketEvent(model.ChannelConverted, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	a.Publish(messageWs)
 
@@ -2814,7 +2814,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 }
 
 func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.ChannelUnreadAt, postID string, withMsgCountRoot bool) {
-	message := model.NewWebSocketEvent(model.WebsocketEventPostUnread, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil, "")
+	message := model.NewWebSocketEvent(model.PostUnread, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil, "")
 	message.Add("msg_count", channelUnread.MsgCount)
 	if withMsgCountRoot {
 		message.Add("msg_count_root", channelUnread.MsgCountRoot)
