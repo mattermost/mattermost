@@ -80,7 +80,7 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 
 ## Get the latest news
 
-- **Twitter** - Follow [Mattermost on X, formerly Twitter](https://twitter.com/mattermost).
+- **X** - Follow [Mattermost on X, formerly Twitter](https://twitter.com/mattermost).
 - **Blog** - Get the latest updates from the [Mattermost blog](https://mattermost.com/blog/).
 - **Facebook** - Follow [Mattermost on Facebook](https://www.facebook.com/MattermostHQ).
 - **LinkedIn** - Follow [Mattermost on LinkedIn](https://www.linkedin.com/company/mattermost/).
