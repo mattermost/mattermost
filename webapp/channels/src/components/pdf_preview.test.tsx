@@ -2,23 +2,27 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
+import type {PDFDocumentProxy, PDFPageProxy} from 'pdfjs-dist';
 import React from 'react';
 
-import PDFPreview from 'components/pdf_preview.jsx';
+import PDFPreview from 'components/pdf_preview';
+import type {Props} from 'components/pdf_preview';
+
+import {TestHelper} from 'utils/test_helper';
 
 jest.mock('pdfjs-dist', () => ({
     getDocument: () => Promise.resolve({
         numPages: 3,
-        getPage: (i) => Promise.resolve({
+        getPage: (i: number) => Promise.resolve({
             pageIndex: i,
-            getContext: (s) => Promise.resolve({s}),
+            getContext: (s: string) => Promise.resolve({s}),
         }),
     }),
 }));
 
 describe('component/PDFPreview', () => {
-    const requiredProps = {
-        fileInfo: {extension: 'pdf'},
+    const requiredProps: Props = {
+        fileInfo: TestHelper.getFileInfoMock({extension: 'pdf'}),
         fileUrl: 'https://pre-release.mattermost.com/api/v4/files/ips59w4w9jnfbrs3o94m1dbdie',
         scale: 1,
         handleBgClose: jest.fn(),
@@ -40,7 +44,7 @@ describe('component/PDFPreview', () => {
     });
 
     test('should update state with new value from props when prop changes', () => {
-        const wrapper = shallow(
+        const wrapper = shallow<PDFPreview>(
             <PDFPreview {...requiredProps}/>,
         );
         const newFileUrl = 'https://some-new-url';
@@ -51,19 +55,22 @@ describe('component/PDFPreview', () => {
     });
 
     test('should return correct state when onDocumentLoad is called', () => {
-        const wrapper = shallow(
+        const wrapper = shallow<PDFPreview>(
             <PDFPreview {...requiredProps}/>,
         );
 
-        let pdf = {numPages: 0};
+        let pdf = {numPages: 0} as PDFDocumentProxy;
         wrapper.instance().onDocumentLoad(pdf);
         expect(wrapper.state('pdf')).toEqual(pdf);
         expect(wrapper.state('numPages')).toEqual(pdf.numPages);
 
         pdf = {
             numPages: 100,
-            getPage: (i) => Promise.resolve(i),
-        };
+            getPage: async (i) => {
+                const page = {pageNumber: i} as PDFPageProxy;
+                return Promise.resolve(page);
+            },
+        } as PDFDocumentProxy;
         wrapper.instance().onDocumentLoad(pdf);
         expect(wrapper.state('pdf')).toEqual(pdf);
         expect(wrapper.state('numPages')).toEqual(pdf.numPages);
