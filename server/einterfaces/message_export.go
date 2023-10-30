@@ -9,6 +9,6 @@ import (
 )
 
 type MessageExportInterface interface {
-	StartSynchronizeJob(c *request.Context, exportFromTimestamp int64) (*model.Job, *model.AppError)
-	RunExport(c *request.Context, format string, since int64, limit int) (int64, *model.AppError)
+	StartSynchronizeJob(c request.CTX, exportFromTimestamp int64) (*model.Job, *model.AppError)
+	RunExport(c request.CTX, format string, since int64, limit int) (int64, *model.AppError)
 }

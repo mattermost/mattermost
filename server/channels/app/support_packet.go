@@ -27,7 +27,7 @@ const (
 	cpuProfileDuration = 5 * time.Second
 )
 
-func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
+func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
 	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
 	var warnings []string
 
@@ -35,7 +35,7 @@ func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
 	fileDatas := []model.FileData{}
 
 	// A array of the functions that we can iterate through since they all have the same return value
-	functions := map[string]func(c *request.Context) (*model.FileData, error){
+	functions := map[string]func(c request.CTX) (*model.FileData, error){
 		"support package":  a.generateSupportPacketYaml,
 		"plugins":          a.createPluginsFile,
 		"config":           a.createSanitizedConfigFile,
@@ -68,7 +68,7 @@ func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
 	return fileDatas
 }
 
-func (a *App) generateSupportPacketYaml(c *request.Context) (*model.FileData, error) {
+func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) {
 	var rErr error
 
 	/* DB */
@@ -234,7 +234,7 @@ func (a *App) generateSupportPacketYaml(c *request.Context) (*model.FileData, er
 	return fileData, rErr
 }
 
-func (a *App) createPluginsFile(_ *request.Context) (*model.FileData, error) {
+func (a *App) createPluginsFile(_ request.CTX) (*model.FileData, error) {
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
 	pluginsResponse, appErr := a.GetPlugins()
 	if appErr != nil {
@@ -253,7 +253,7 @@ func (a *App) createPluginsFile(_ *request.Context) (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) getNotificationsLog(_ *request.Context) (*model.FileData, error) {
+func (a *App) getNotificationsLog(_ request.CTX) (*model.FileData, error) {
 	if !*a.Config().NotificationLogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve notifications.log because LogSettings: EnableFile is set to false")
 	}
@@ -271,7 +271,7 @@ func (a *App) getNotificationsLog(_ *request.Context) (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) getMattermostLog(_ *request.Context) (*model.FileData, error) {
+func (a *App) getMattermostLog(_ request.CTX) (*model.FileData, error) {
 	if !*a.Config().LogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
 	}
@@ -289,7 +289,7 @@ func (a *App) getMattermostLog(_ *request.Context) (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) createSanitizedConfigFile(_ *request.Context) (*model.FileData, error) {
+func (a *App) createSanitizedConfigFile(_ request.CTX) (*model.FileData, error) {
 	// Getting sanitized config, prettifying it, and then adding it to our file data array
 	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
 	if err != nil {
@@ -303,7 +303,7 @@ func (a *App) createSanitizedConfigFile(_ *request.Context) (*model.FileData, er
 	return fileData, nil
 }
 
-func (a *App) createCPUProfile(_ *request.Context) (*model.FileData, error) {
+func (a *App) createCPUProfile(_ request.CTX) (*model.FileData, error) {
 	var b bytes.Buffer
 
 	err := pprof.StartCPUProfile(&b)
@@ -322,7 +322,7 @@ func (a *App) createCPUProfile(_ *request.Context) (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) createHeapProfile(*request.Context) (*model.FileData, error) {
+func (a *App) createHeapProfile(request.CTX) (*model.FileData, error) {
 	var b bytes.Buffer
 
 	err := pprof.Lookup("heap").WriteTo(&b, 0)
@@ -337,7 +337,7 @@ func (a *App) createHeapProfile(*request.Context) (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) createGoroutineProfile(_ *request.Context) (*model.FileData, error) {
+func (a *App) createGoroutineProfile(_ request.CTX) (*model.FileData, error) {
 	var b bytes.Buffer
 
 	err := pprof.Lookup("goroutine").WriteTo(&b, 2)
