@@ -516,7 +516,8 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIds := model.ArrayFromJSON(r.Body)
 
-	if len(userIds) == 0 || len(userIds) > maxListSize {
+	const maxGroupUsers = 7
+	if len(userIds) == 0 || len(userIds) > maxGroupUsers {
 		c.SetInvalidParam("user_ids")
 		return
 	}
