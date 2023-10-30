@@ -12,7 +12,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
 
-
 import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -107,9 +106,7 @@ const AddUsersToGroupModal = (props: Props) => {
                     aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     onClick={goBack}
                 >
-                    <i
-                        className='icon icon-arrow-left'                       
-                    />
+                    <i className='icon icon-arrow-left'/>
                 </button>
                 <Modal.Title
                     componentClass='h1'
