@@ -34,12 +34,6 @@ BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 
-# treestate
-GIT_TREESTATE = clean
-DIFF = $(shell git diff --quiet >/dev/null 2>&1; if [ $$? -eq 1 ]; then echo "1"; fi)
-ifeq ($(DIFF), 1)
-    GIT_TREESTATE = dirty
-endif
 
 # Docker
 export COMPOSE_PROJECT_NAME=mattermost-server
@@ -62,9 +56,8 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 MMCTL_BUILD_TAGS =
 MMCTL_TESTFLAGS ?= -timeout 30m
 MMCTL_PKG = github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands
-LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(BUILD_HASH)"
-LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(GIT_TREESTATE)"
-LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(BUILD_DATE)"
+MMCTL_BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+MMCTL_LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(MMCTL_BUILD_DATE)"
 
 # Enterprise
 BUILD_ENTERPRISE_DIR ?= ../../enterprise
@@ -91,18 +84,6 @@ endif
 
 # Webapp
 BUILD_WEBAPP_DIR ?= ../webapp
-BUILD_CLIENT = false
-BUILD_HASH_CLIENT = independent
-ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
-  ifeq ($(BUILD_CLIENT),true)
-    BUILD_CLIENT = true
-    BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
-  else
-    BUILD_CLIENT = false
-  endif
-else
-    BUILD_CLIENT = false
-endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
@@ -167,9 +148,9 @@ PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.2
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
+PLUGIN_PACKAGES += mattermost-plugin-todo-v0.7.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
@@ -434,7 +415,7 @@ check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 
 gotestsum:
-	$(GO) install gotest.tools/gotestsum@v1.7.0
+	$(GO) install gotest.tools/gotestsum@v1.11.0
 
 test-compile: gotestsum ## Compile tests.
 	@echo COMPILE TESTS
@@ -534,7 +515,7 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: run-server inject-test-data ## start a local instance and add test data to it.
+test-data: run-server inject-test-data stop-server ## start a local instance and add test data to it.
 
 inject-test-data: # add test data to the local instance.
 	@if ! ./scripts/wait-for-system-start.sh; then \
@@ -551,8 +532,6 @@ inject-test-data: # add test data to the local instance.
 	@echo Login with a system admin account username=sysadmin password=Sys@dmin-sample1
 	@echo Login with a regular account username=user-1 password=SampleUs@r-1
 	@echo ========================================================================
-
-	make stop-server
 
 test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
@@ -813,7 +792,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 mmctl-build: ## Compiles and generates the mmctl binary
-	go build -trimpath -ldflags '$(LDFLAGS)' -o bin/mmctl ./cmd/mmctl
+	go build -trimpath -ldflags '$(MMCTL_LDFLAGS)' -o bin/mmctl ./cmd/mmctl
 
 mmctl-docs: ## Generate the mmctl docs
 	rm -rf ./cmd/mmctl/docs

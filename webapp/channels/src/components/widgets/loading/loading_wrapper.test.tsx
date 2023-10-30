@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import LoadingWrapper from './loading_wrapper';
 
@@ -13,37 +14,25 @@ describe('components/widgets/loading/LoadingWrapper', () => {
             loading: true,
             text: 'test',
             children: 'children',
-            snapshot: `
-<LoadingSpinner
-  text="test"
-/>
-`,
         },
         {
             name: 'showing spinner without text',
             loading: true,
             children: 'text',
-            snapshot: `
-<LoadingSpinner
-  text={null}
-/>
-`,
         },
         {
             name: 'showing content with children',
             loading: false,
             children: 'text',
-            snapshot: '"text"',
         },
         {
             name: 'showing content without children',
             loading: false,
-            snapshot: '""',
         },
     ];
     for (const testCase of testCases) {
         test(testCase.name, () => {
-            const wrapper = shallow(
+            const wrapper = mountWithIntl(
                 <LoadingWrapper
                     loading={testCase.loading}
                     text={testCase.text}
@@ -51,7 +40,7 @@ describe('components/widgets/loading/LoadingWrapper', () => {
                     {testCase.children}
                 </LoadingWrapper>,
             );
-            expect(wrapper).toMatchInlineSnapshot(testCase.snapshot);
+            expect(wrapper).toMatchSnapshot();
         });
     }
 });
