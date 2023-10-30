@@ -837,7 +837,7 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionReadPublicChannel) {
-		c.SetPermissionError(model.PermissionManageSystem)
+		c.SetPermissionError(model.PermissionReadPublicChannel)
 		return
 	}
 
