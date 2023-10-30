@@ -3,6 +3,7 @@
 
 import debounce from 'lodash/debounce';
 import type {PDFDocumentProxy, PDFPageProxy} from 'pdfjs-dist';
+import type {RenderParameters} from 'pdfjs-dist/types/src/display/api';
 import React from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
@@ -157,7 +158,7 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
         const renderContext = {
             canvasContext: context as object,
             viewport,
-        };
+        } as RenderParameters;
 
         await page.render(renderContext).promise;
         this.pdfPagesRendered[pageIndex] = true;
