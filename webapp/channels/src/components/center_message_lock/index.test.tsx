@@ -6,7 +6,7 @@ import React from 'react';
 import {emptyLimits} from 'tests/constants/cloud';
 import {emptyTeams} from 'tests/constants/teams';
 import {adminUsersState, endUsersState} from 'tests/constants/users';
-import {screen, renderWithFullContext} from 'tests/react_testing_utils';
+import {screen, renderWithContext} from 'tests/react_testing_utils';
 import {makeEmptyUsage} from 'utils/limits_test';
 import {TestHelper} from 'utils/test_helper';
 
@@ -100,7 +100,7 @@ const endUserLimitExceeded = {
 
 describe('CenterMessageLock', () => {
     it('returns null if limits not loaded', () => {
-        renderWithFullContext(
+        renderWithContext(
             <CenterMessageLock channelId={'channelId'}/>,
             initialState,
         );
@@ -109,7 +109,7 @@ describe('CenterMessageLock', () => {
     });
 
     it('Admins have a call to upgrade', () => {
-        renderWithFullContext(
+        renderWithContext(
             <CenterMessageLock channelId={'channelId'}/>,
             exceededLimitsState,
         );
@@ -117,7 +117,7 @@ describe('CenterMessageLock', () => {
     });
 
     it('End users have a call to notify admin', () => {
-        renderWithFullContext(
+        renderWithContext(
             <CenterMessageLock channelId={'channelId'}/>,
             endUserLimitExceeded,
         );
@@ -125,7 +125,7 @@ describe('CenterMessageLock', () => {
     });
 
     it('Filtered messages over one year old display year', () => {
-        renderWithFullContext(
+        renderWithContext(
             <CenterMessageLock channelId={'channelId'}/>,
             exceededLimitsState,
         );
@@ -139,7 +139,7 @@ describe('CenterMessageLock', () => {
         const expectedDate = firstOfMonth.toLocaleString('en', {month: 'long', day: 'numeric'});
 
         state.entities.posts.posts.c.create_at = Date.parse(firstOfMonth.toUTCString());
-        renderWithFullContext(
+        renderWithContext(
             <CenterMessageLock channelId={'channelId'}/>,
             state,
         );
@@ -151,7 +151,7 @@ describe('CenterMessageLock', () => {
         const secondOfMonth = new Date(now + (1000 * 60 * 60 * 24));
         const expectedDate = secondOfMonth.toLocaleString('en', {month: 'long', day: 'numeric'});
 
-        renderWithFullContext(
+        renderWithContext(
             <CenterMessageLock
                 channelId={'channelId'}
                 firstInaccessiblePostTime={now}

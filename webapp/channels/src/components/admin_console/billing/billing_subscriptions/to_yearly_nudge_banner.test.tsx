@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithFullContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {CloudProducts, RecurringIntervals} from 'utils/constants';
 
 import {ToYearlyNudgeBanner, ToYearlyNudgeBannerDismissable} from './to_yearly_nudge_banner';
@@ -60,7 +60,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
 
         screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar');
     });
@@ -85,7 +85,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
@@ -110,7 +110,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
@@ -135,7 +135,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
@@ -159,7 +159,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
                 },
             },
         };
-        renderWithFullContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
@@ -193,7 +193,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
             },
         };
         await waitFor(() => {
-            renderWithFullContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
+            renderWithContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
         });
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
@@ -220,7 +220,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
@@ -246,7 +246,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
@@ -270,7 +270,7 @@ describe('ToYearlyNudgeBanner', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBanner/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBanner/>, state, {useMockedStore: true});
 
         screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner');
     });
@@ -292,7 +292,7 @@ describe('ToYearlyNudgeBanner', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBanner/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBanner/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
     });
@@ -314,7 +314,7 @@ describe('ToYearlyNudgeBanner', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBanner/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBanner/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
     });
@@ -337,7 +337,7 @@ describe('ToYearlyNudgeBanner', () => {
             },
         };
 
-        renderWithFullContext(<ToYearlyNudgeBanner/>, state, {useMockedStore: true});
+        renderWithContext(<ToYearlyNudgeBanner/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
     });

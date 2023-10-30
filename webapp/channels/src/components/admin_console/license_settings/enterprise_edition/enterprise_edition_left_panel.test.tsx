@@ -14,7 +14,7 @@ import * as useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHoste
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {OverActiveUserLimits, SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -126,7 +126,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
     });
 
     test('should not add any class if active users is lower than the minimal', () => {
-        renderWithFullContext(
+        renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...baseProps}
             />,
@@ -148,7 +148,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             statsActiveUsers: minWarning,
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...props}
             />,
@@ -170,7 +170,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             statsActiveUsers: exceedHighLimitExtraUsersError,
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...props}
             />,
@@ -203,7 +203,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             license: testLicense,
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...props}
             />,
@@ -231,7 +231,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             license: testLicense,
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...props}
             />,
@@ -261,7 +261,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
 
         jest.spyOn(useCanSelfHostedExpand, 'default').mockImplementation(() => true);
 
-        renderWithFullContext(
+        renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...props}
             />,

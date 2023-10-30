@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {ErrorPageTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -13,7 +13,7 @@ import ErrorPage from './error_page';
 
 describe('ErrorPage', () => {
     it('displays cloud archived page correctly', () => {
-        renderWithFullContext(
+        renderWithContext(
             (
                 <ErrorPage
                     location={{

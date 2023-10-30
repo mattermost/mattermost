@@ -10,7 +10,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import {
     fireEvent,
-    renderWithFullContext,
+    renderWithContext,
     screen,
     waitFor,
 } from 'tests/react_testing_utils';
@@ -97,7 +97,7 @@ describe('components/announcement_bar/notify_admin_downgrade_delinquency_bar', (
             is_free_trial: 'false',
         };
 
-        renderWithFullContext(<NotifyAdminDowngradeDeliquencyBar/>, state);
+        renderWithContext(<NotifyAdminDowngradeDeliquencyBar/>, state);
 
         expect(screen.queryByText('Your workspace has been downgraded. Notify your admin to fix billing issues')).not.toBeInTheDocument();
     });
@@ -105,7 +105,7 @@ describe('components/announcement_bar/notify_admin_downgrade_delinquency_bar', (
     it('Should not show banner when deliquency is less than 90 days', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-06-20'));
 
-        renderWithFullContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
+        renderWithContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
 
         expect(screen.queryByText('Your workspace has been downgraded. Notify your admin to fix billing issues')).not.toBeInTheDocument();
     });
@@ -122,7 +122,7 @@ describe('components/announcement_bar/notify_admin_downgrade_delinquency_bar', (
             ],
         );
 
-        renderWithFullContext(<NotifyAdminDowngradeDeliquencyBar/>, state);
+        renderWithContext(<NotifyAdminDowngradeDeliquencyBar/>, state);
 
         expect(screen.queryByText('Your workspace has been downgraded. Notify your admin to fix billing issues')).not.toBeInTheDocument();
     });
@@ -139,7 +139,7 @@ describe('components/announcement_bar/notify_admin_downgrade_delinquency_bar', (
             ],
         );
 
-        renderWithFullContext(<NotifyAdminDowngradeDeliquencyBar/>, state);
+        renderWithContext(<NotifyAdminDowngradeDeliquencyBar/>, state);
 
         expect(screen.queryByText('Your workspace has been downgraded. Notify your admin to fix billing issues')).not.toBeInTheDocument();
     });
@@ -149,7 +149,7 @@ describe('components/announcement_bar/notify_admin_downgrade_delinquency_bar', (
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.users.profiles.current_user_id = {roles: 'system_admin'};
 
-        renderWithFullContext(<NotifyAdminDowngradeDeliquencyBar/>, state);
+        renderWithContext(<NotifyAdminDowngradeDeliquencyBar/>, state);
 
         expect(screen.queryByText('Your workspace has been downgraded. Notify your admin to fix billing issues')).not.toBeInTheDocument();
     });
@@ -158,7 +158,7 @@ describe('components/announcement_bar/notify_admin_downgrade_delinquency_bar', (
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
         Client4.notifyAdmin = jest.fn();
 
-        renderWithFullContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
+        renderWithContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
 
         expect(savePreferences).not.toBeCalled();
     });
@@ -166,7 +166,7 @@ describe('components/announcement_bar/notify_admin_downgrade_delinquency_bar', (
     it('Should show banner when deliquency is higher than 90 days', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        renderWithFullContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
+        renderWithContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
 
         expect(screen.getByText('Your workspace has been downgraded. Notify your admin to fix billing issues')).toBeInTheDocument();
     });
@@ -174,7 +174,7 @@ describe('components/announcement_bar/notify_admin_downgrade_delinquency_bar', (
     it('Should save the preferences if the user close the banner', async () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        renderWithFullContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
+        renderWithContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
 
         fireEvent.click(screen.getByRole('link'));
 
@@ -191,7 +191,7 @@ describe('components/announcement_bar/notify_admin_downgrade_delinquency_bar', (
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
         Client4.notifyAdmin = jest.fn();
 
-        renderWithFullContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
+        renderWithContext(<NotifyAdminDowngradeDeliquencyBar/>, initialState);
 
         fireEvent.click(screen.getByText('Notify admin'));
 

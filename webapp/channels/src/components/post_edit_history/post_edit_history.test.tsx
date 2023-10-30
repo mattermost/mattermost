@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithFullContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostEditHistory from './post_edit_history';
@@ -36,7 +36,7 @@ describe('components/post_edit_history', () => {
         mock.mockResolvedValue(data);
 
         const wrapper = await waitFor(() => {
-            return renderWithFullContext(<PostEditHistory {...baseProps}/>);
+            return renderWithContext(<PostEditHistory {...baseProps}/>);
         });
 
         expect(wrapper.container).toMatchSnapshot();
@@ -48,7 +48,7 @@ describe('components/post_edit_history', () => {
         mock.mockRejectedValue(error);
 
         const wrapper = await waitFor(() => {
-            return renderWithFullContext(<PostEditHistory {...baseProps}/>);
+            return renderWithContext(<PostEditHistory {...baseProps}/>);
         });
 
         expect(wrapper.container).toMatchSnapshot();

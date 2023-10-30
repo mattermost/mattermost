@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -91,7 +91,7 @@ describe('components/admin_console/billing/billing_history', () => {
     };
 
     test('should match the default state of the component with given props', () => {
-        renderWithFullContext(
+        renderWithContext(
             <BillingHistory/>,
             state,
         );
@@ -111,7 +111,7 @@ describe('components/admin_console/billing/billing_history', () => {
             ...state,
             entities: {...state.entities, cloud: {invoices: {}, errors: {}}},
         };
-        renderWithFullContext(
+        renderWithContext(
             <BillingHistory/>,
             noBillingHistoryState,
         );
@@ -133,7 +133,7 @@ describe('components/admin_console/billing/billing_history', () => {
     });
 
     test('Billing history section shows two invoices to download', () => {
-        renderWithFullContext(
+        renderWithContext(
             <BillingHistory/>,
             state,
         );
@@ -147,7 +147,7 @@ describe('components/admin_console/billing/billing_history', () => {
     });
 
     test('Billing history section download button has the target property set as _self so it works well in desktop app', () => {
-        renderWithFullContext(
+        renderWithContext(
             <BillingHistory/>,
             state,
         );
@@ -197,7 +197,7 @@ describe('BillingHistory -- self-hosted', () => {
             ...state,
             entities: {...state.entities, hostedCustomer: {invoices: {invoices: {}, invoicesLoaded: true}, errors: {}}},
         };
-        renderWithFullContext(
+        renderWithContext(
             <BillingHistory/>,
             noBillingHistoryState,
         );
@@ -219,7 +219,7 @@ describe('BillingHistory -- self-hosted', () => {
     });
 
     test('Billing history section shows two invoices to download', () => {
-        renderWithFullContext(
+        renderWithContext(
             <BillingHistory/>,
             state,
         );
@@ -235,7 +235,7 @@ describe('BillingHistory -- self-hosted', () => {
 describe('NoBillingHistorySection', () => {
     const state = {entities: {users: {}, general: {config: {}, license: {}}}} as any;
     test('goes to cloud docs on cloud', () => {
-        renderWithFullContext(
+        renderWithContext(
             <NoBillingHistorySection selfHosted={false}/>,
             state,
         );
@@ -243,7 +243,7 @@ describe('NoBillingHistorySection', () => {
     });
 
     test('goes to self-hosted docs on self-hosted', () => {
-        renderWithFullContext(
+        renderWithContext(
             <NoBillingHistorySection selfHosted={true}/>,
             state,
         );

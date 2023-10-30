@@ -11,7 +11,7 @@ import * as StorageSelectors from 'selectors/storage';
 
 import ModalController from 'components/modal_controller';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudProducts, ModalIdentifiers, Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -80,7 +80,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the admin hasn\'t a preference', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -106,7 +106,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
 
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -121,7 +121,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the deliquency_since is equal 90 days', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-16'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -136,7 +136,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the deliquency_since is more than 90 days', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -151,7 +151,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Shouldn\'t show the modal if the deliqeuncy_since is less than 90 days', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-15'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -166,7 +166,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the license is cloud', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -187,7 +187,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
 
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -208,7 +208,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
 
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -223,7 +223,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the user is an admin', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -245,7 +245,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
         };
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -260,7 +260,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the user just logged in', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -275,7 +275,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
         (StorageSelectors.makeGetItem as jest.Mock).mockReturnValue(() => true);
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -295,7 +295,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
 
         const getCloudProds = jest.spyOn(cloudActions, 'getCloudProducts').mockImplementationOnce(jest.fn().mockReturnValue({type: 'mock_impl'}));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -319,7 +319,7 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
 
         const getCloudProds = jest.spyOn(cloudActions, 'getCloudProducts').mockImplementationOnce(jest.fn().mockReturnValue({type: 'mock_impl'}));
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>

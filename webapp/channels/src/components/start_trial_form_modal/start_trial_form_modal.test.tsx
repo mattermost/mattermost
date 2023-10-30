@@ -9,7 +9,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import {
-    renderWithFullContext,
+    renderWithContext,
     screen,
     waitFor,
 } from 'tests/react_testing_utils';
@@ -75,7 +75,7 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
 
     test('should match snapshot', async () => {
         const wrapper = await waitFor(() => {
-            return renderWithFullContext(
+            return renderWithContext(
                 <BrowserRouter>
                     <StartTrialFormModal {...props}/>
                 </BrowserRouter>,
@@ -87,7 +87,7 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
 
     test('should pre-fill email, fire trackEvent', () => {
         waitFor(() => {
-            renderWithFullContext(
+            renderWithContext(
                 <BrowserRouter>
                     <StartTrialFormModal {...props}/>
                 </BrowserRouter>,
@@ -100,7 +100,7 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
 
     test('Start trial button should be disabled on load', () => {
         waitFor(() => {
-            renderWithFullContext(
+            renderWithContext(
                 <BrowserRouter>
                     <StartTrialFormModal {...props}/>
                 </BrowserRouter>,

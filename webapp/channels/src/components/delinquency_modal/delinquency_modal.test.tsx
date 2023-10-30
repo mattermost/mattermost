@@ -8,7 +8,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import DelinquencyModal from './delinquency_modal';
@@ -67,7 +67,7 @@ describe('components/deliquency_modal/deliquency_modal', () => {
     };
 
     it('should save preferences and track stayOnFremium if admin click Stay on Free', () => {
-        renderWithFullContext(<DelinquencyModal {...baseProps}/>, initialState);
+        renderWithContext(<DelinquencyModal {...baseProps}/>, initialState);
 
         fireEvent.click(screen.getByText('Stay on Free'));
 
@@ -84,7 +84,7 @@ describe('components/deliquency_modal/deliquency_modal', () => {
     });
 
     it('should save preferences and track update Billing if admin click Update Billing', () => {
-        renderWithFullContext(<DelinquencyModal {...baseProps}/>, initialState);
+        renderWithContext(<DelinquencyModal {...baseProps}/>, initialState);
 
         fireEvent.click(screen.getByText('Update Billing'));
 

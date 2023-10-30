@@ -8,7 +8,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
 
@@ -58,7 +58,7 @@ describe('TrueUpReview', () => {
     it('regular self hosted license in the true up window sees content', () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
 
-        renderWithFullContext(<TrueUpReview/>, showsTrueUpReviewState);
+        renderWithContext(<TrueUpReview/>, showsTrueUpReviewState);
         screen.getByText('Share to Mattermost');
     });
 
@@ -67,7 +67,7 @@ describe('TrueUpReview', () => {
         store.entities.general.license.IsGovSku = 'true';
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
 
-        renderWithFullContext(<TrueUpReview/>, store);
+        renderWithContext(<TrueUpReview/>, store);
         expect(screen.queryByText('Share to Mattermost')).not.toBeInTheDocument();
     });
 });

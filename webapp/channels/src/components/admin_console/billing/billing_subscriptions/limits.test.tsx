@@ -11,7 +11,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import * as cloudActions from 'actions/cloud';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {Constants, CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
@@ -104,7 +104,7 @@ describe('Limits', () => {
     test('message limit rendered in K', () => {
         const state = setupState(defaultOptions);
 
-        renderWithFullContext(<Limits/>, state);
+        renderWithContext(<Limits/>, state);
         screen.getByText('Message History');
         screen.getByText(/of 10K/);
     });
@@ -112,7 +112,7 @@ describe('Limits', () => {
     test('storage limit rendered in GB', () => {
         const state = setupState(defaultOptions);
 
-        renderWithFullContext(<Limits/>, state);
+        renderWithContext(<Limits/>, state);
         screen.getByText('File Storage');
         screen.getByText(/of 1GB/);
     });
@@ -123,7 +123,7 @@ describe('Limits', () => {
         jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
         const state = setupState({isEnterprise: true});
 
-        renderWithFullContext(<Limits/>, state);
+        renderWithContext(<Limits/>, state);
         expect(screen.queryByTestId('limits-panel-title')).not.toBeInTheDocument();
     });
 
@@ -133,7 +133,7 @@ describe('Limits', () => {
         jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
         const state = setupState(defaultOptions);
 
-        renderWithFullContext(<Limits/>, state);
+        renderWithContext(<Limits/>, state);
         screen.getByTestId('limits-panel-title');
     });
 });

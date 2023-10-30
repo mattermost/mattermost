@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import NewMessageSeparator from './new_message_separator';
 
 describe('components/post_view/new_message_separator', () => {
     test('should render new_message_separator', () => {
-        renderWithFullContext(
+        renderWithContext(
             <NewMessageSeparator
                 separatorId='1234'
                 newMessagesSeparatorActions={[]}

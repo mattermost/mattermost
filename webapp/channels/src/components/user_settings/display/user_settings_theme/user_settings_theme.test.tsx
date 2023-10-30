@@ -7,7 +7,7 @@ import type {ComponentProps} from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import UserSettingsTheme from './user_settings_theme';
 
@@ -101,7 +101,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
             selected: true,
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <UserSettingsTheme {...props}/>,
             initialState,
         );

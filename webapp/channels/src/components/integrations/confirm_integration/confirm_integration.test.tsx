@@ -10,7 +10,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import ConfirmIntegration from 'components/integrations/confirm_integration/confirm_integration';
 
-import {renderWithFullContext} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/ConfirmIntegration', () => {
@@ -74,7 +74,7 @@ describe('components/integrations/ConfirmIntegration', () => {
 
     test('should match callback URLs of OAuth Apps', () => {
         props.location.search = getSearchString('oauth2-apps');
-        const {container} = renderWithFullContext(
+        const {container} = renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );

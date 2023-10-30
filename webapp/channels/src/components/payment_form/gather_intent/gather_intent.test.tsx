@@ -7,7 +7,7 @@ import * as reactRedux from 'react-redux';
 import {
     act,
     fireEvent,
-    renderWithFullContext,
+    renderWithContext,
     screen,
 } from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -58,7 +58,7 @@ describe('components/gather_intent/gather_intent.tsx', () => {
     };
 
     it('should display modal if the user click on the modal opener', () => {
-        renderWithFullContext(
+        renderWithContext(
             <GatherIntent {...baseProps}/>,
             initialState,
         );
@@ -69,7 +69,7 @@ describe('components/gather_intent/gather_intent.tsx', () => {
     });
 
     it('should display the modal opener after close the modal', () => {
-        renderWithFullContext(
+        renderWithContext(
             <GatherIntent {...baseProps}/>,
             initialState,
         );
@@ -84,7 +84,7 @@ describe('components/gather_intent/gather_intent.tsx', () => {
         useDispatchMock.mockReturnValue(jest.fn().mockImplementation(() => new Promise((resolve) => {
             resolve({});
         })));
-        renderWithFullContext(
+        renderWithContext(
             <GatherIntent {...baseProps}/>,
             initialState,
         );
@@ -102,7 +102,7 @@ describe('components/gather_intent/gather_intent.tsx', () => {
         useDispatchMock.mockReturnValue(jest.fn().mockImplementation(() => new Promise((resolve) => {
             resolve({});
         })));
-        renderWithFullContext(
+        renderWithContext(
             <GatherIntent {...baseProps}/>,
             initialState,
         );
@@ -129,7 +129,7 @@ describe('components/gather_intent/gather_intent.tsx', () => {
             monthly_subscription_alt_payment_method: 'Dummy feedback',
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <GatherIntent {...baseProps}/>,
             newState,
         );

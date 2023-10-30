@@ -10,7 +10,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import useGetMultiplesExceededCloudLimit from 'components/common/hooks/useGetMultiplesExceededCloudLimit';
 
-import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {LimitTypes} from 'utils/limits';
 
@@ -68,7 +68,7 @@ describe('components/delinquency_modal/freemium_modal', () => {
 
     it('should track reactivate plan if admin click Re activate plan', () => {
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([LimitTypes.fileStorage]);
-        renderWithFullContext(
+        renderWithContext(
             <FreemiumModal {...baseProps}/>,
             initialState,
         );
@@ -84,7 +84,7 @@ describe('components/delinquency_modal/freemium_modal', () => {
 
     it('should not show reactivate plan if admin limits isn\'t surpassed', () => {
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([]);
-        renderWithFullContext(
+        renderWithContext(
             <FreemiumModal {...baseProps}/>,
             initialState,
         );
@@ -96,7 +96,7 @@ describe('components/delinquency_modal/freemium_modal', () => {
 
     it('should display message history text when only message limit is surpassed', () => {
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([LimitTypes.messageHistory]);
-        renderWithFullContext(
+        renderWithContext(
             <FreemiumModal {...baseProps}/>,
             initialState,
         );
@@ -107,7 +107,7 @@ describe('components/delinquency_modal/freemium_modal', () => {
 
     it('should display storage text when only storage is surpassed', () => {
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([LimitTypes.fileStorage]);
-        renderWithFullContext(
+        renderWithContext(
             <FreemiumModal {...baseProps}/>,
             initialState,
         );
@@ -118,7 +118,7 @@ describe('components/delinquency_modal/freemium_modal', () => {
 
     it('should display update to paid plan text when only multiples limits is surpassed', () => {
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([LimitTypes.messageHistory, LimitTypes.fileStorage]);
-        renderWithFullContext(
+        renderWithContext(
             <FreemiumModal {...baseProps}/>,
             initialState,
         );

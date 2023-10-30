@@ -8,7 +8,7 @@ import SearchChannelProvider from 'components/suggestion/search_channel_provider
 import SearchDateProvider from 'components/suggestion/search_date_provider';
 import SearchUserProvider from 'components/suggestion/search_user_provider';
 
-import {renderWithFullContext} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import SearchBar from './search_bar';
 
@@ -40,21 +40,21 @@ describe('components/search_bar/SearchBar', () => {
     };
 
     it('should match snapshot without search', () => {
-        const {container} = renderWithFullContext(
+        const {container} = renderWithContext(
             <SearchBar {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot without search, without searchType', () => {
-        const {container} = renderWithFullContext(
+        const {container} = renderWithContext(
             <SearchBar {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot without search, with searchType', () => {
-        const {container} = renderWithFullContext(
+        const {container} = renderWithContext(
             <SearchBar
                 {...baseProps}
                 searchType='files'
@@ -64,7 +64,7 @@ describe('components/search_bar/SearchBar', () => {
     });
 
     it('should match snapshot with search, with searchType', () => {
-        const {container} = renderWithFullContext(
+        const {container} = renderWithContext(
             <SearchBar
                 {...baseProps}
                 searchTerms={'test'}
@@ -75,7 +75,7 @@ describe('components/search_bar/SearchBar', () => {
     });
 
     it('should match snapshot with search', () => {
-        const {container} = renderWithFullContext(
+        const {container} = renderWithContext(
             <SearchBar
                 {...baseProps}
                 searchTerms={'test'}

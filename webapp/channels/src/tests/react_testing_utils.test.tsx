@@ -21,19 +21,19 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import {
-    renderWithFullContext,
+    renderWithContext,
     screen,
     userEvent,
     waitFor,
 } from './react_testing_utils';
 
-describe('renderWithFullContext', () => {
+describe('renderWithContext', () => {
     test('should be able to render anything', () => {
         const TestComponent = () => {
             return <div>{'Anything'}</div>;
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
             {},
         );
@@ -51,7 +51,7 @@ describe('renderWithFullContext', () => {
             );
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -65,7 +65,7 @@ describe('renderWithFullContext', () => {
             return <div>{intl.formatMessage({id: 'about.hash', defaultMessage: 'Build Hash:'})}</div>;
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -88,7 +88,7 @@ describe('renderWithFullContext', () => {
             );
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -104,7 +104,7 @@ describe('renderWithFullContext', () => {
             numProfiles: Object.keys(state.entities.users.profiles).length,
         }))(UnconnectedTestComponent);
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -117,7 +117,7 @@ describe('renderWithFullContext', () => {
             return <div>{`There are ${numProfiles} users loaded`}</div>;
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -137,7 +137,7 @@ describe('renderWithFullContext', () => {
             );
         };
 
-        const {rerender} = renderWithFullContext(
+        const {rerender} = renderWithContext(
             <TestComponent appTitle='Mattermost'/>,
         );
 
@@ -169,7 +169,7 @@ describe('renderWithFullContext', () => {
             return <div>{`User1 is ${user1.username} and User2 is ${user2.username}!`}</div>;
         };
 
-        const {replaceStoreState} = renderWithFullContext(
+        const {replaceStoreState} = renderWithContext(
             <TestComponent/>,
             initialState,
         );
@@ -221,7 +221,7 @@ describe('renderWithFullContext', () => {
             return <div>{`User1 is ${user1.username} and User2 is ${user2.username}!`}</div>;
         };
 
-        const {updateStoreState} = renderWithFullContext(
+        const {updateStoreState} = renderWithContext(
             <TestComponent/>,
             initialState,
         );
@@ -270,7 +270,7 @@ describe('renderWithFullContext', () => {
             return <div>{`${props.greeting}, ${user1.username}!`}</div>;
         };
 
-        const {rerender, updateStoreState} = renderWithFullContext(
+        const {rerender, updateStoreState} = renderWithContext(
             <TestComponent greeting='Hello'/>,
             initialState,
         );
@@ -332,7 +332,7 @@ describe('renderWithFullContext', () => {
             );
         };
 
-        renderWithFullContext(<TestComponent/>);
+        renderWithContext(<TestComponent/>);
 
         expect(screen.getByText('User1 is NOT_LOADED!')).toBeInTheDocument();
 
@@ -367,7 +367,7 @@ describe('renderWithFullContext', () => {
             );
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <>
                 <TestComponent/>
                 <ModalController/>

@@ -27,7 +27,7 @@ export type FullContextOptions = {
     useMockedStore?: boolean;
 }
 
-export const renderWithFullContext = (
+export const renderWithContext = (
     component: React.ReactElement,
     initialState: DeepPartial<GlobalState> = {},
     partialOptions?: FullContextOptions,

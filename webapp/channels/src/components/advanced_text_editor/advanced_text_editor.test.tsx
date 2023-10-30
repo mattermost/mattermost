@@ -13,7 +13,7 @@ import type Textbox from 'components/textbox/textbox';
 
 import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithFullContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 import {WebSocketContext} from 'utils/use_websocket';
 
@@ -152,7 +152,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     describe('keyDown behavior', () => {
         it('Enter should call postMsgKeyPress', () => {
             const postMsgKeyPress = jest.fn();
-            renderWithFullContext(
+            renderWithContext(
                 <WebSocketContext.Provider value={WebSocketClient}>
                     <AdavancedTextEditor
                         {...baseProps}
@@ -175,7 +175,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         it('Ctrl+up should call loadPrevMessage', () => {
             const loadPrevMessage = jest.fn();
-            renderWithFullContext(
+            renderWithContext(
                 <WebSocketContext.Provider value={WebSocketClient}>
                     <AdavancedTextEditor
                         {...baseProps}
@@ -196,7 +196,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         it('up should call onEditLatestPost', () => {
             const onEditLatestPost = jest.fn();
-            renderWithFullContext(
+            renderWithContext(
                 <WebSocketContext.Provider value={WebSocketClient}>
                     <AdavancedTextEditor
                         {...baseProps}
@@ -216,7 +216,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
 
         it('ESC should blur the input', () => {
-            renderWithFullContext(
+            renderWithContext(
                 <WebSocketContext.Provider value={WebSocketClient}>
                     <AdavancedTextEditor
                         {...baseProps}
@@ -261,7 +261,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     const selectionStart = 5;
                     const selectionEnd = 10;
 
-                    renderWithFullContext(
+                    renderWithContext(
                         <WebSocketContext.Provider value={WebSocketClient}>
                             <AdavancedTextEditor
                                 {...baseProps}

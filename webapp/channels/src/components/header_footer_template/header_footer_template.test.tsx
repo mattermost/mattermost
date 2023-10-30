@@ -6,7 +6,7 @@ import React from 'react';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithFullContext} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -65,12 +65,12 @@ describe('components/HeaderFooterTemplate', () => {
     });
 
     test('should match snapshot without children', () => {
-        const {container} = renderWithFullContext(<HeaderFooterNotLoggedIn/>, initialState);
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, initialState);
         expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with children', () => {
-        const {container} = renderWithFullContext(
+        const {container} = renderWithContext(
             <HeaderFooterNotLoggedIn>
                 <p>{'test'}</p>
             </HeaderFooterNotLoggedIn>,
@@ -90,7 +90,7 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithFullContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
@@ -105,7 +105,7 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithFullContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
@@ -120,7 +120,7 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithFullContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
@@ -135,7 +135,7 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithFullContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
@@ -153,7 +153,7 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithFullContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
@@ -171,7 +171,7 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
         expect(document.body.classList.contains('sticky')).toBe(false);
-        const {container, unmount} = renderWithFullContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container, unmount} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
         expect(document.body.classList.contains('sticky')).toBe(true);
 

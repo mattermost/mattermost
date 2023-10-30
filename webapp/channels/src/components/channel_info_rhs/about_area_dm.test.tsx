@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -135,7 +135,7 @@ describe('channel_info_rhs/about_area_dm', () => {
     };
 
     test('should display user avatar', () => {
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaDM
                 {...defaultProps}
             />,
@@ -146,7 +146,7 @@ describe('channel_info_rhs/about_area_dm', () => {
     });
 
     test('should display user name', () => {
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaDM
                 {...defaultProps}
             />,
@@ -157,7 +157,7 @@ describe('channel_info_rhs/about_area_dm', () => {
     });
 
     test('should display user position', () => {
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaDM
                 {...defaultProps}
             />,
@@ -178,7 +178,7 @@ describe('channel_info_rhs/about_area_dm', () => {
                 },
             },
         };
-        const {container} = renderWithFullContext(
+        const {container} = renderWithContext(
             <AboutAreaDM
                 {...props}
             />,
@@ -196,7 +196,7 @@ describe('channel_info_rhs/about_area_dm', () => {
                 is_guest: true,
             },
         };
-        const {container} = renderWithFullContext(
+        const {container} = renderWithContext(
             <AboutAreaDM
                 {...props}
             />,
@@ -217,7 +217,7 @@ describe('channel_info_rhs/about_area_dm', () => {
                 },
             },
         };
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaDM
                 {...props}
             />,
@@ -228,7 +228,7 @@ describe('channel_info_rhs/about_area_dm', () => {
     });
 
     test('should display channel header', () => {
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaDM
                 {...defaultProps}
             />,
@@ -249,7 +249,7 @@ describe('channel_info_rhs/about_area_dm', () => {
                 },
             },
         };
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaDM
                 {...props}
             />,

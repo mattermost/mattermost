@@ -12,7 +12,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import {
     fireEvent,
-    renderWithFullContext,
+    renderWithContext,
     screen,
 } from 'tests/react_testing_utils';
 import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
@@ -124,7 +124,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
     });
 
     it('should not render the banner because we are not on overage state', () => {
-        renderWithFullContext(<OverageUsersBannerNotice/>);
+        renderWithContext(<OverageUsersBannerNotice/>);
 
         expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
     });
@@ -143,7 +143,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -159,7 +159,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             Cloud: 'true',
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -187,7 +187,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -205,7 +205,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -232,7 +232,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -270,7 +270,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -289,7 +289,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -315,7 +315,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -342,7 +342,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -380,7 +380,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -409,7 +409,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -428,7 +428,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -462,7 +462,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -494,7 +494,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -527,7 +527,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         };
         store.entities.general.license.IsGovSku = 'true';
 
-        renderWithFullContext(
+        renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );

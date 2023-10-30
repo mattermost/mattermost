@@ -18,7 +18,7 @@ import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -293,7 +293,7 @@ describe('components/signup/Signup', () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
-        const {container: signupContainer} = renderWithFullContext(
+        const {container: signupContainer} = renderWithContext(
             <Signup/>,
         );
 
@@ -308,7 +308,7 @@ describe('components/signup/Signup', () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => false);
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
-        const {container: signupContainer} = renderWithFullContext(
+        const {container: signupContainer} = renderWithContext(
             <Signup/>,
         );
 
@@ -320,7 +320,7 @@ describe('components/signup/Signup', () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
         mockLicense = {IsLicensed: 'true', Cloud: 'true'};
 
-        const {container: signupContainer} = renderWithFullContext(
+        const {container: signupContainer} = renderWithContext(
             <Signup/>,
         );
 

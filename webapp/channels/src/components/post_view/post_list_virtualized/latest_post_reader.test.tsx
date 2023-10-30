@@ -6,7 +6,7 @@ import {createIntl, useIntl} from 'react-intl';
 
 import enMessages from 'i18n/en.json';
 import esMessages from 'i18n/es.json';
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import LatestPostReader from './latest_post_reader';
@@ -58,7 +58,7 @@ describe('LatestPostReader', () => {
     test('should render aria-label as a child in the given locale', () => {
         (useIntl as jest.Mock).mockImplementation(() => createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
 
-        const {rerender} = renderWithFullContext(
+        const {rerender} = renderWithContext(
             <LatestPostReader {...baseProps}/>,
             baseState,
         );
@@ -83,7 +83,7 @@ describe('LatestPostReader', () => {
             postIds: [],
         };
 
-        renderWithFullContext(<LatestPostReader {...props}/>, baseState);
+        renderWithContext(<LatestPostReader {...props}/>, baseState);
 
         // body should be empty
         const message = screen.queryByText('This is a test');

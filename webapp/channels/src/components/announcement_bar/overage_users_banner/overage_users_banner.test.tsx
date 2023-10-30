@@ -11,7 +11,7 @@ import {General} from 'mattermost-redux/constants';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
@@ -131,7 +131,7 @@ describe('components/overage_users_banner', () => {
     });
 
     it('should not render the banner because we are not on overage state', () => {
-        renderWithFullContext(<OverageUsersBanner/>);
+        renderWithContext(<OverageUsersBanner/>);
 
         expect(screen.queryByText('(Only visible to admins) Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
         expect(getLicenseSelfServeStatus).not.toBeCalled();
@@ -151,7 +151,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.queryByText('Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
         expect(getLicenseSelfServeStatus).not.toBeCalled();
@@ -165,7 +165,7 @@ describe('components/overage_users_banner', () => {
             Cloud: 'true',
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.queryByText('Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
         expect(getLicenseSelfServeStatus).not.toBeCalled();
@@ -191,7 +191,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.queryByText(text5PercentageState)).not.toBeInTheDocument();
         expect(getLicenseSelfServeStatus).not.toBeCalled();
@@ -215,7 +215,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.getByText(text5PercentageState)).toBeInTheDocument();
         expect(screen.getByText(contactSalesTextLink)).toBeInTheDocument();
@@ -239,7 +239,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         fireEvent.click(screen.getByText(contactSalesTextLink));
         expect(windowSpy).toBeCalledTimes(1);
@@ -282,7 +282,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.getByText(text5PercentageState)).toBeInTheDocument();
         expect(screen.getByText(contactSalesTextLink)).toBeInTheDocument();
@@ -298,7 +298,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         fireEvent.click(screen.getByRole('link'));
 
@@ -329,7 +329,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.getByText(text10PercentageState)).toBeInTheDocument();
         expect(screen.getByText(contactSalesTextLink)).toBeInTheDocument();
@@ -353,7 +353,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         fireEvent.click(screen.getByText(contactSalesTextLink));
         expect(windowSpy).toBeCalledTimes(1);
@@ -387,7 +387,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.getByText(expandSeatsTextLink)).toBeInTheDocument();
     });
@@ -411,7 +411,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         fireEvent.click(screen.getByText(expandSeatsTextLink));
         expect(windowSpy).toBeCalledTimes(1);
@@ -442,7 +442,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.getByText(expandSeatsTextLink)).toBeInTheDocument();
     });
@@ -466,7 +466,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithFullContext(<OverageUsersBanner/>, store);
+        renderWithContext(<OverageUsersBanner/>, store);
 
         fireEvent.click(screen.getByText(expandSeatsTextLink));
         expect(windowSpy).toBeCalledTimes(1);

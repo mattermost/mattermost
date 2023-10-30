@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -140,7 +140,7 @@ describe('channel_info_rhs/about_area_gm', () => {
     };
 
     test('should display users avatar', () => {
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaGM
                 {...defaultProps}
             />,
@@ -152,7 +152,7 @@ describe('channel_info_rhs/about_area_gm', () => {
     });
 
     test('should display user names', () => {
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaGM
                 {...defaultProps}
             />,
@@ -163,7 +163,7 @@ describe('channel_info_rhs/about_area_gm', () => {
     });
 
     test('should display channel header', () => {
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaGM
                 {...defaultProps}
             />,

@@ -6,7 +6,7 @@ import React from 'react';
 import FeatureDiscovery from 'components/admin_console/feature_discovery/feature_discovery';
 
 import {
-    renderWithFullContext,
+    renderWithContext,
     screen,
     userEvent,
     waitFor,
@@ -22,7 +22,7 @@ describe('components/feature_discovery', () => {
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            renderWithFullContext(
+            renderWithContext(
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
@@ -78,7 +78,7 @@ describe('components/feature_discovery', () => {
             const openModal = jest.fn();
 
             await waitFor(() => {
-                renderWithFullContext(
+                renderWithContext(
                     <FeatureDiscovery
                         featureName='test'
                         minimumSKURequiredForFeature={LicenseSkus.Professional}
@@ -138,7 +138,7 @@ describe('components/feature_discovery', () => {
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            renderWithFullContext(
+            renderWithContext(
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}

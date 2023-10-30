@@ -8,7 +8,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import FileAttachment from './file_attachment';
 
@@ -80,14 +80,14 @@ describe('FileAttachment', () => {
                 },
             },
         };
-        renderWithFullContext(<FileAttachment {...baseProps}/>, reduxState);
+        renderWithContext(<FileAttachment {...baseProps}/>, reduxState);
 
         expect(screen.queryByTestId('archived-file-icon')).not.toBeInTheDocument();
         expect(screen.queryByText(/This file is archived/)).not.toBeInTheDocument();
     });
 
     test('non archived file does not show archived elements in compact display mode', () => {
-        renderWithFullContext(<FileAttachment {...{...baseProps, compactDisplay: true}}/>);
+        renderWithContext(<FileAttachment {...{...baseProps, compactDisplay: true}}/>);
 
         expect(screen.queryByTestId('archived-file-icon')).not.toBeInTheDocument();
         expect(screen.queryByText(/archived/)).not.toBeInTheDocument();
@@ -189,7 +189,7 @@ describe('FileAttachment', () => {
                 },
                 compactDisplay: true,
             };
-            renderWithFullContext(<FileAttachment {...props}/>);
+            renderWithContext(<FileAttachment {...props}/>);
             screen.getByTestId('archived-file-icon');
             screen.getByText(baseProps.fileInfo.name);
             screen.getByText(/archived/);
@@ -204,7 +204,7 @@ describe('FileAttachment', () => {
                 },
                 compactDisplay: false,
             };
-            renderWithFullContext(<FileAttachment {...props}/>);
+            renderWithContext(<FileAttachment {...props}/>);
             screen.getByTestId('archived-file-icon');
             screen.getByText(baseProps.fileInfo.name);
             screen.getByText(/This file is archived/);

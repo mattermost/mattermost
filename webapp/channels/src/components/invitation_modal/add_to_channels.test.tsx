@@ -10,7 +10,7 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AddToChannels from './add_to_channels';
 import type {Props} from './add_to_channels';
@@ -39,19 +39,19 @@ describe('AddToChannels', () => {
     describe('placeholder selection', () => {
         it('should use townSquareDisplayName when not in a channel', () => {
             const props = {...baseProps, currentChannel: undefined};
-            renderWithFullContext(<AddToChannels {...props}/>);
+            renderWithContext(<AddToChannels {...props}/>);
             expect(screen.getByText(props.townSquareDisplayName, {exact: false})).toBeInTheDocument();
         });
 
         it('should use townSqureDisplayName when not in a public or private channel', () => {
             const props = {...baseProps, currentChannel: {type: 'D', display_name: ''} as Channel};
-            renderWithFullContext(<AddToChannels {...props}/>);
+            renderWithContext(<AddToChannels {...props}/>);
             expect(screen.getByText(props.townSquareDisplayName, {exact: false})).toBeInTheDocument();
         });
 
         it('should use the currentChannel display_name when in a channel', () => {
             const props = {...baseProps, currentChannel: {type: 'O', display_name: 'My Awesome Channel'} as Channel};
-            renderWithFullContext(<AddToChannels {...props}/>);
+            renderWithContext(<AddToChannels {...props}/>);
             expect(screen.getByText('My Awesome Channel', {exact: false})).toBeInTheDocument();
         });
     });

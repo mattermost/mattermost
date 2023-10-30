@@ -7,7 +7,7 @@ import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
 
 import {
-    renderWithFullContext,
+    renderWithContext,
     screen,
     userEvent,
     waitFor,
@@ -81,13 +81,13 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
     };
 
     test('should match default component state', () => {
-        renderWithFullContext(<ButtonBinding {...baseProps}/>, initialState);
+        renderWithContext(<ButtonBinding {...baseProps}/>, initialState);
 
         screen.getByText('some_label');
     });
 
     test('should call doAppSubmit on click', async () => {
-        renderWithFullContext(<ButtonBinding {...baseProps}/>, initialState);
+        renderWithContext(<ButtonBinding {...baseProps}/>, initialState);
 
         screen.getByText('some_label');
 
@@ -135,7 +135,7 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
             },
         };
 
-        renderWithFullContext(<ButtonBinding {...props}/>, initialState);
+        renderWithContext(<ButtonBinding {...props}/>, initialState);
 
         screen.getByText('some_label');
 

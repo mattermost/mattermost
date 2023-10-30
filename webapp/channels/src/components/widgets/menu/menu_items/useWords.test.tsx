@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {FileSizes} from 'utils/file_utils';
 import {LimitTypes} from 'utils/limits';
 
@@ -167,7 +167,7 @@ describe('useWords', () => {
     };
     tests.forEach((t: Test) => {
         test(t.label, () => {
-            renderWithFullContext(
+            renderWithContext(
                 <TestEl {...t.props}/>,
                 initialState,
             );

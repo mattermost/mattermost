@@ -8,7 +8,7 @@ import type {Subscription} from '@mattermost/types/cloud';
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
@@ -101,7 +101,7 @@ describe('CloudUsageModal', () => {
         props.title = 'very important title';
         props.description = 'very important description';
 
-        renderWithFullContext(
+        renderWithContext(
             <CloudUsageModal
                 {...props}
             />,
@@ -119,7 +119,7 @@ describe('CloudUsageModal', () => {
             onClick: jest.fn(),
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <CloudUsageModal
                 {...props}
             />,
@@ -137,7 +137,7 @@ describe('CloudUsageModal', () => {
             message: 'secondary action',
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <CloudUsageModal
                 {...props}
             />,
@@ -151,7 +151,7 @@ describe('CloudUsageModal', () => {
     test('hides footer when there are no actions', () => {
         const state = setupState(true);
 
-        renderWithFullContext(
+        renderWithContext(
             <CloudUsageModal
                 {...props}
             />,

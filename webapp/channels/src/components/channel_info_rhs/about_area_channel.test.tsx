@@ -6,7 +6,7 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -124,7 +124,7 @@ describe('channel_info_rhs/about_area_channel', () => {
     };
 
     test('should display channel purpose', () => {
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaChannel
                 {...defaultProps}
             />,
@@ -135,7 +135,7 @@ describe('channel_info_rhs/about_area_channel', () => {
     });
 
     test('should display channel header', () => {
-        renderWithFullContext(
+        renderWithContext(
             <AboutAreaChannel
                 {...defaultProps}
             />,
