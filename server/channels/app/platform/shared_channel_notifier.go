@@ -23,7 +23,7 @@ var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.Websocket
 }
 
 var sharedChannelEventsForInvitation model.WebsocketEventTypeArray = []model.WebsocketEventType{
-	model.WebsocketEventDirectAdded,
+	model.DirectAdded,
 }
 
 // SharedChannelSyncHandler is called when a websocket event is received by a cluster node.

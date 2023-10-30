@@ -107,7 +107,7 @@ func getActionData(data []byte, userIDs, teamIDs, channelIDs []string) *actionDa
 	// Some sample events
 	events := []string{
 		model.ChannelCreated,
-		model.WebsocketEventChannelDeleted,
+		model.ChannelDeleted,
 		model.WebsocketEventUserAdded,
 		model.WebsocketEventUserUpdated,
 		model.WebsocketEventStatusChange,

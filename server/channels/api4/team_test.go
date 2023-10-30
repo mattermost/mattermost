@@ -2715,7 +2715,7 @@ func TestRemoveTeamMemberEvents(t *testing.T) {
 		_, err := client.RemoveTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id)
 		require.NoError(t, err)
 
-		assertExpectedWebsocketEvent(t, WebSocketClient, model.WebsocketEventLeaveTeam, func(event *model.WebSocketEvent) {
+		assertExpectedWebsocketEvent(t, WebSocketClient, model.LeaveTeam, func(event *model.WebSocketEvent) {
 			eventUserId, ok := event.GetData()["user_id"].(string)
 			require.True(t, ok, "expected user")
 			// assert eventUser.Id is same as th.BasicUser.Id
@@ -2723,7 +2723,7 @@ func TestRemoveTeamMemberEvents(t *testing.T) {
 			// assert this event doesn't go to event creator
 			assert.Equal(t, event.GetBroadcast().OmitUsers[eventUserId], true)
 		})
-		assertExpectedWebsocketEvent(t, WebSocketClient2, model.WebsocketEventLeaveTeam, func(event *model.WebSocketEvent) {
+		assertExpectedWebsocketEvent(t, WebSocketClient2, model.LeaveTeam, func(event *model.WebSocketEvent) {
 			eventUserId, ok := event.GetData()["user_id"].(string)
 			require.True(t, ok, "expected user")
 			// assert eventUser.Id is same as th.BasicUser.Id

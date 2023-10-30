@@ -292,7 +292,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
 
 	// This message goes to everyone, so the teamID, channelID and userID are irrelevant
-	message := model.NewWebSocketEvent(model.WebsocketEventNewUser, "", "", "", nil, "")
+	message := model.NewWebSocketEvent(model.NewUser, "", "", "", nil, "")
 	message.Add("user_id", ruser.Id)
 	a.Publish(message)
 
@@ -2343,7 +2343,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
-			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil, "")
+			evt := model.NewWebSocketEvent(model.MemberUpdated, "", "", user.Id, nil, "")
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
 				return model.NewAppError("PromoteGuestToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -2388,7 +2388,7 @@ func (a *App) DemoteUserToGuest(c *request.Context, user *model.User) *model.App
 		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
-			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil, "")
+			evt := model.NewWebSocketEvent(model.MemberUpdated, "", "", user.Id, nil, "")
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
 				return model.NewAppError("DemoteUserToGuest", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)

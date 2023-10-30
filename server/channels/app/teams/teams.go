@@ -196,13 +196,13 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 	// message for other team members
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[teamMember.UserId] = true
-	messageTeam := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", omitUsers, "")
+	messageTeam := model.NewWebSocketEvent(model.LeaveTeam, teamMember.TeamId, "", "", omitUsers, "")
 	messageTeam.Add("user_id", teamMember.UserId)
 	messageTeam.Add("team_id", teamMember.TeamId)
 	ts.wh.Publish(messageTeam)
 
 	// message for teamMember.UserId
-	messageUser := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, "", "", teamMember.UserId, nil, "")
+	messageUser := model.NewWebSocketEvent(model.LeaveTeam, "", "", teamMember.UserId, nil, "")
 	messageUser.Add("user_id", teamMember.UserId)
 	messageUser.Add("team_id", teamMember.TeamId)
 
