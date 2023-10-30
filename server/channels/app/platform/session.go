@@ -222,7 +222,7 @@ func (ps *PlatformService) ExtendSessionExpiry(session *model.Session, newExpiry
 	return nil
 }
 
-func (ps *PlatformService) UpdateSessionsIsGuest(c request.Context, user *model.User, isGuest bool) error {
+func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, user *model.User, isGuest bool) error {
 	sessions, err := ps.GetSessions(c, user.Id)
 	if err != nil {
 		return err
