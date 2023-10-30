@@ -233,7 +233,6 @@
   "admin.billing.company_info.city": "Miestas",
   "admin.billing.company_info.companyAddress": "Kompanijos adresas",
   "admin.billing.company_info.companyName": "Įmonės pavadinimas",
-  "admin.billing.company_info.country": "Šalis",
   "admin.billing.company_info.employees": "{darbuotojai} darbuotojai",
   "admin.billing.company_info.numEmployees": "Darbuotojų skaičius (neprivaloma)",
   "admin.billing.company_info.title": "Kompanijos informacija",
