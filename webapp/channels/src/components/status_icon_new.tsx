@@ -8,17 +8,17 @@ type Props = {
     status?: string;
 }
 
+const statusToIconMap: { [key: string]: string } = {
+    online: 'icon-check-circle',
+    away: 'icon-clock',
+    dnd: 'icon-minus-circle',
+    default: 'icon-circle-outline',
+};
+
 const StatusIconNew = ({className = '', status = ''}: Props) => {
     if (!status) {
         return null;
     }
-
-    const statusToIconMap: { [key: string]: string } = {
-        online: 'icon-check-circle',
-        away: 'icon-clock',
-        dnd: 'icon-minus-circle',
-        default: 'icon-circle-outline',
-    };
 
     const iconName = statusToIconMap[status] || statusToIconMap.default;
 
