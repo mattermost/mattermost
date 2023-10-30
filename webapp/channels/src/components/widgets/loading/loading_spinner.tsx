@@ -1,22 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import LocalizedIcon from 'components/localized_icon';
-
 import classNames from 'classnames';
-
-import { defineMessage } from 'react-intl';
+import React from 'react';
+import {useIntl} from 'react-intl';
 
 type Props = {
     text: React.ReactNode;
     style?: React.CSSProperties;
 }
 
-const IconTitle = defineMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'});
-
-const LoadingSpinner = ({ text = null, style }: Props) => {
+const LoadingSpinner = ({text = null, style}: Props) => {
+    const {formatMessage} = useIntl();
     return (
         <span
             id='loadingSpinner'
@@ -24,14 +19,13 @@ const LoadingSpinner = ({ text = null, style }: Props) => {
             style={style}
             data-testid='loadingSpinner'
         >
-            <LocalizedIcon
+            <span
                 className='fa fa-spinner fa-fw fa-pulse spinner'
-                component='span'
-                title={IconTitle}
+                title={formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'})}
             />
             {text}
         </span>
     );
-}
+};
 
-export default React.memo(LoadingSpinner)
+export default React.memo(LoadingSpinner);
