@@ -6,10 +6,11 @@
             display: flex;
             align-items: center;
             padding: 6px 18px;
-            color: var(--button-bg);
             column-gap: 10px;
 
-            &:hover {
+            &:hover,
+            &:focus,
+            &:active {
                 text-decoration: none;
             }
 
@@ -29,6 +30,10 @@
                 font-size: 12px;
                 font-weight: 600;
                 line-height: 16px;
+
+                &:hover {
+                    text-decoration: underline;
+                }
             }
         }
     }
