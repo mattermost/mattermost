@@ -41,49 +41,49 @@ func (oa *OAuthOutgoingConnection) Auditable() map[string]interface{} {
 // IsValid validates the object and returns an error if it isn't properly configured
 func (oa *OAuthOutgoingConnection) IsValid() *AppError {
 	if !IsValidId(oa.Id) {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.id.error", nil, "", http.StatusBadRequest)
 	}
 
 	if oa.CreateAt == 0 {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.create_at.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.create_at.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if oa.UpdateAt == 0 {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.update_at.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.update_at.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if !IsValidId(oa.CreatorId) {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.creator_id.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.creator_id.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(oa.Name) > 64 {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.name.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.name.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if len(oa.ClientId) == 0 || utf8.RuneCountInString(oa.ClientId) > 255 {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.client_id.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.client_id.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if len(oa.ClientSecret) == 0 || utf8.RuneCountInString(oa.ClientSecret) > 255 {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.client_secret.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.client_secret.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if len(oa.OAuthTokenURL) == 0 || utf8.RuneCountInString(oa.OAuthTokenURL) > 256 {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.oauth_token_url.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.oauth_token_url.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if oa.GrantType != GrantTypeClientCredentials {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.grant_type.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.grant_type.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if len(oa.Audiences) == 0 {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.audience.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.audience.empty", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if len(oa.Audiences) > 0 {
 		for _, audience := range oa.Audiences {
 			if !IsValidHTTPURL(audience) {
-				return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.audience.app_error", nil, "id="+oa.Id, http.StatusBadRequest)
+				return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.audience.error", nil, "id="+oa.Id, http.StatusBadRequest)
 			}
 		}
 	}
