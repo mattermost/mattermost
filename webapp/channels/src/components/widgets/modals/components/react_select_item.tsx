@@ -5,23 +5,23 @@ import React from 'react';
 import type {ValueType} from 'react-select';
 import ReactSelect from 'react-select';
 
-import type {SectionItemProps} from './section_item_creator';
-import SectionItemCreator from './section_item_creator';
+import type {BaseSettingItemProps} from './base_setting_item';
+import BaseSettingItem from './base_setting_item';
 
-export type Limit = {
+export type Option = {
     value: number;
     label: string;
 };
 
 export type FieldsetReactSelect = {
     dataTestId?: string;
-    options: Limit[];
+    options: Option[];
 }
 
-type Props = SectionItemProps & {
+type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetReactSelect;
-    inputFieldValue: Limit;
-    handleChange: (selected: ValueType<Limit>) => void;
+    inputFieldValue: Option;
+    handleChange: (selected: ValueType<Option>) => void;
 }
 function ReactSelectItemCreator({
     title,
@@ -47,7 +47,7 @@ function ReactSelectItemCreator({
         </fieldset>
     );
     return (
-        <SectionItemCreator
+        <BaseSettingItem
             content={content}
             title={title}
             description={description}

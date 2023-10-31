@@ -2,26 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
 import './section_item_creator.scss';
 
-export type SectionItemProps = {
-    title?: {
-        id: string;
-        defaultMessage: string;
-    };
-    description?: {
-        id: string;
-        defaultMessage: string;
-    };
+export type BaseSettingItemProps = {
+    title?: MessageDescriptor;
+    description?: MessageDescriptor;
 };
 
-type Props = SectionItemProps & {
+type Props = BaseSettingItemProps & {
     content: JSX.Element;
 }
 
-function SectionItemCreator({title, description, content}: Props): JSX.Element {
+function BaseSettingItem({title, description, content}: Props): JSX.Element {
     const {formatMessage} = useIntl();
     const Title = title && (
         <h4 className='mm-modal-generic-section-item__title'>
@@ -46,5 +41,5 @@ function SectionItemCreator({title, description, content}: Props): JSX.Element {
     );
 }
 
-export default SectionItemCreator;
+export default BaseSettingItem;
 

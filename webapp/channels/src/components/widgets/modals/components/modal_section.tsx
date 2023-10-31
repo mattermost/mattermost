@@ -2,37 +2,32 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
-import './section_creator.scss';
+import './modal_section.scss';
 
 type Props = {
-    title: {
-        id: string;
-        defaultMessage: string;
-    };
-    description?: {
-        id: string;
-        defaultMessage: string;
-    };
+    title: MessageDescriptor;
+    description?: MessageDescriptor;
     content: JSX.Element;
     titleSuffix?: JSX.Element;
 };
 
-function SectionCreator({
+function ModalSection({
     title,
     description,
     content,
     titleSuffix,
 }: Props): JSX.Element {
     const {formatMessage} = useIntl();
-    const Title = (
+    const titleContent = (
         <h4 className='mm-modal-generic-section__title'>
             {formatMessage({id: title.id, defaultMessage: title.defaultMessage})}
         </h4>
     );
 
-    const Description = description && (
+    const descriptionContent = description && (
         <p className='mm-modal-generic-section__description'>
             {formatMessage({id: description.id, defaultMessage: description.defaultMessage})}
         </p>
@@ -41,18 +36,18 @@ function SectionCreator({
     function titleRow() {
         if (titleSuffix) {
             return (<div className='mm-modal-generic-section__row'>
-                {Title}
+                {titleContent}
                 {titleSuffix}
             </div>);
         }
-        return Title;
+        return titleContent;
     }
 
     return (
         <section className='mm-modal-generic-section'>
             <div className='mm-modal-generic-section__info-ctr'>
                 {titleRow()}
-                {Description}
+                {descriptionContent}
             </div>
             <div className='mm-modal-generic-section__content'>
                 {content}
@@ -61,4 +56,4 @@ function SectionCreator({
     );
 }
 
-export default SectionCreator;
+export default ModalSection;

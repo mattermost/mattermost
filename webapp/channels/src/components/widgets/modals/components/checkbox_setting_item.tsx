@@ -3,20 +3,18 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
-import type {SectionItemProps} from './section_item_creator';
-import SectionItemCreator from './section_item_creator';
+import type {BaseSettingItemProps} from './base_setting_item';
+import BaseSettingItem from './base_setting_item';
 
 export type FieldsetCheckbox = {
     dataTestId?: string;
-    title: {
-        id: string;
-        defaultMessage: string;
-    };
+    title: MessageDescriptor;
     name: string;
 }
 
-type Props = SectionItemProps & {
+type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetCheckbox;
     inputFieldValue: boolean;
     handleChange: (e: boolean) => void;
@@ -51,7 +49,7 @@ function CheckboxSettingItem({
         </fieldset>
     );
     return (
-        <SectionItemCreator
+        <BaseSettingItem
             content={content}
             title={title}
             description={description}

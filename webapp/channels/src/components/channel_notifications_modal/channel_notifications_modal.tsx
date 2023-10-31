@@ -12,8 +12,8 @@ import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 import AlertBanner from 'components/alert_banner';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 import ModalHeader from 'components/widgets/modals/components/modal_header';
+import ModalSection from 'components/widgets/modals/components/modal_section';
 import RadioSettingItem from 'components/widgets/modals/components/radio_setting_item';
-import SectionCreator from 'components/widgets/modals/components/section_creator';
 
 import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
 
@@ -96,24 +96,14 @@ export default function ChannelNotificationsModal(props: Props) {
         setShow(false);
     }
 
-    const resetToDefault = useCallback((settingName: string) => {
-        const defaultSettings = props.currentUser.notify_props;
-        if (settingName === 'desktop') {
-            setSettings((prevSettings) => ({...prevSettings, desktop: defaultSettings.desktop, desktop_threads: defaultSettings.desktop_threads || settings.desktop_threads}));
-        }
-        if (settingName === 'push') {
-            setSettings((prevSettings) => ({...prevSettings, push: defaultSettings.desktop, push_threads: defaultSettings.push_threads || settings.push_threads}));
-        }
-    }, [props.currentUser]);
-
     const handleChange = useCallback((values: Record<string, string>) => {
-        setSettings({...settings, ...values});
-    }, [settings]);
+        setSettings((prevSettings) => ({...prevSettings, ...values}));
+    }, []);
 
     const handleMobileSettingsChange = useCallback(() => {
-        setMobileSettingsSameAsDesktop(!mobileSettingsSameAsDesktop);
+        setMobileSettingsSameAsDesktop((prevSettings) => !prevSettings);
         setSettings((prevSettings) => ({...prevSettings, push: settings.desktop, push_threads: settings.desktop_threads}));
-    }, [mobileSettingsSameAsDesktop]);
+    }, []);
 
     const MuteIgnoreSectionContent = (
         <>
@@ -187,14 +177,14 @@ export default function ChannelNotificationsModal(props: Props) {
         </>
     );
 
-    async function handleSave() {
+    function handleSave() {
         const userSettings: Partial<SettingsType> = {...settings};
         if (!props.collapsedReplyThreads) {
             delete userSettings.push_threads;
             delete userSettings.desktop_threads;
             delete userSettings.channel_auto_follow_threads;
         }
-        await props.actions.updateChannelNotifyProps(props.currentUser.id, props.channel.id, userSettings).then((value) => {
+        props.actions.updateChannelNotifyProps(props.currentUser.id, props.channel.id, userSettings).then((value) => {
             const {error} = value;
             if (error) {
                 setServerError(error.message);
@@ -206,6 +196,15 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const resetToDefaultBtn = useCallback((settingName: string) => {
         const defaultSettings = props.currentUser.notify_props;
+
+        const resetToDefault = (settingName: string) => {
+            if (settingName === 'desktop') {
+                setSettings((prevSettings) => ({...prevSettings, desktop: defaultSettings.desktop, desktop_threads: defaultSettings.desktop_threads || settings.desktop_threads}));
+            }
+            if (settingName === 'push') {
+                setSettings((prevSettings) => ({...prevSettings, push: defaultSettings.desktop, push_threads: defaultSettings.push_threads || settings.push_threads}));
+            }
+        };
 
         const isDesktopSameAsDefault = (defaultSettings.desktop === settings.desktop && defaultSettings.desktop_threads === settings.desktop_threads);
         const isPushSameAsDefault = (defaultSettings.push === settings.push && defaultSettings.push_threads === settings.push_threads);
@@ -232,14 +231,14 @@ export default function ChannelNotificationsModal(props: Props) {
     const settingsAndAlertBanner = settings.mark_unread === 'all' ? (
         <>
             <div className='channel-notifications-settings-modal__divider'/>
-            <SectionCreator
+            <ModalSection
                 title={utils.DesktopNotificationsSectionTitle}
                 description={utils.DesktopNotificationsSectionDesc}
                 content={DesktopNotificationsSectionContent}
                 titleSuffix={resetToDefaultBtn('desktop')}
             />
             <div className='channel-notifications-settings-modal__divider'/>
-            <SectionCreator
+            <ModalSection
                 title={utils.MobileNotificationsSectionTitle}
                 description={utils.MobileNotificationsSectionDesc}
                 content={MobileNotificationsSectionContent}
@@ -291,7 +290,7 @@ export default function ChannelNotificationsModal(props: Props) {
                 handleClose={handleHide}
             />
             <main className='channel-notifications-settings-modal__body'>
-                <SectionCreator
+                <ModalSection
                     title={utils.MuteAndIgnoreSectionTitle}
                     content={MuteIgnoreSectionContent}
                 />
@@ -299,7 +298,7 @@ export default function ChannelNotificationsModal(props: Props) {
                 {props.collapsedReplyThreads &&
                     <>
                         <div className='channel-notifications-settings-modal__divider'/>
-                        <SectionCreator
+                        <ModalSection
                             title={utils.AutoFollowThreadsTitle}
                             description={utils.AutoFollowThreadsDesc}
                             content={AutoFollowThreadsSectionContent}

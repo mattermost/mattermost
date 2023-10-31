@@ -2,18 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import type {SectionItemProps} from './section_item_creator';
-import SectionItemCreator from './section_item_creator';
+import type {BaseSettingItemProps} from './base_setting_item';
+import BaseSettingItem from './base_setting_item';
 
 export type FieldsetRadio = {
     options: Array<{
         dataTestId?: string;
-        title: {
-            id: string;
-            defaultMessage: string;
-        };
+        title: MessageDescriptor;
         name: string;
         key: string;
         value: string;
@@ -21,7 +19,7 @@ export type FieldsetRadio = {
     }>;
 }
 
-type Props = SectionItemProps & {
+type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetRadio;
     inputFieldValue: string;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -58,14 +56,12 @@ function RadioSettingItem({
     });
 
     const content = (
-        <>
-            <fieldset className='mm-modal-generic-section-item__fieldset-radio'>
-                {[...fields]}
-            </fieldset>
-        </>
+        <fieldset className='mm-modal-generic-section-item__fieldset-radio'>
+            {[...fields]}
+        </fieldset>
     );
     return (
-        <SectionItemCreator
+        <BaseSettingItem
             content={content}
             title={title}
             description={description}
