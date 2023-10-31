@@ -2908,8 +2908,8 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.EventType() == model.MemberUpdated {
-				require.Equal(t, model.MemberUpdated, event.EventType())
+			if event.EventType() == model.ChannelMemberUpdated {
+				require.Equal(t, model.ChannelMemberUpdated, event.EventType())
 				waiting = false
 			}
 		case <-timeout:
