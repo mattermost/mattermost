@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
-const GetRolesByNamesMax = 2000
+const GetRolesByNamesMax = 100
 
 var notAllowedPermissions = []string{
 	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
