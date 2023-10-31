@@ -678,13 +678,16 @@ type Z_MessageWillBeUpdatedReturns struct {
 
 func (g *hooksRPCClient) MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string) {
 	_args := &Z_MessageWillBeUpdatedArgs{c, newPost, oldPost}
-	_returns := &Z_MessageWillBeUpdatedReturns{A: _args.B}
+	_default_returns := &Z_MessageWillBeUpdatedReturns{A: _args.B}
 	if g.implemented[MessageWillBeUpdatedID] {
+		_returns := &Z_MessageWillBeUpdatedReturns{}
 		if err := g.client.Call("Plugin.MessageWillBeUpdated", _args, _returns); err != nil {
 			g.log.Error("RPC call MessageWillBeUpdated to plugin failed.", mlog.Err(err))
+			return _default_returns.A, _default_returns.B
 		}
+		return _returns.A, _returns.B
 	}
-	return _returns.A, _returns.B
+	return _default_returns.A, _default_returns.B
 }
 
 func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, returns *Z_MessageWillBeUpdatedReturns) error {
