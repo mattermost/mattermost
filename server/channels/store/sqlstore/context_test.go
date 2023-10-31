@@ -7,6 +7,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,9 +18,6 @@ func TestContextMaster(t *testing.T) {
 	assert.True(t, HasMaster(m))
 }
 
-/*
-
-//TODO(hanzei): Where to move?
 func TestRequestContextWithMaster(t *testing.T) {
 	t.Run("set and get", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
@@ -28,41 +26,29 @@ func TestRequestContextWithMaster(t *testing.T) {
 		assert.True(t, HasMaster(rctx.Context()))
 	})
 
-	t.Run("directly assigning does cause the child to alter the parent", func(t *testing.T) {
+	t.Run("directly assigning does not cause the copy to alter the original context", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
-		rctxClone := rctx
-		rctxClone = RequestContextWithMaster(rctxClone)
+		rctxCopy := rctx
+		rctxCopy = RequestContextWithMaster(rctxCopy)
 
 		assert.True(t, HasMaster(rctx.Context()))
-		assert.True(t, HasMaster(rctxClone.Context()))
+		assert.False(t, HasMaster(rctxCopy.Context()))
 	})
 
-	t.Run("values get copied from parent", func(t *testing.T) {
+	t.Run("values get copied from original context", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
 		rctx = RequestContextWithMaster(rctx)
-		rctxClone := rctx.Clone()
+		rctxCopy := rctx
 
 		assert.True(t, HasMaster(rctx.Context()))
-		assert.True(t, HasMaster(rctxClone.Context()))
+		assert.True(t, HasMaster(rctxCopy.Context()))
 	})
 
-	t.Run("changing the child does not alter the parent", func(t *testing.T) {
+	t.Run("changing the copy does not alter the original context", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
-		rctxClone := rctx.Clone()
-		rctxClone = RequestContextWithMaster(rctxClone)
+		rctxCopy := RequestContextWithMaster(rctx)
 
 		assert.False(t, HasMaster(rctx.Context()))
-		assert.True(t, HasMaster(rctxClone.Context()))
-	})
-
-	t.Run("changing the parent does not alter the child", func(t *testing.T) {
-		var rctx request.CTX = request.TestContext(t)
-		rctxClone := rctx.Clone()
-		rctx = RequestContextWithMaster(rctx)
-
-		assert.True(t, HasMaster(rctx.Context()))
-		assert.False(t, HasMaster(rctxClone.Context()))
+		assert.True(t, HasMaster(rctxCopy.Context()))
 	})
 }
-
-*/
