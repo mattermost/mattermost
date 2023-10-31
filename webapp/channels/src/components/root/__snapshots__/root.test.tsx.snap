@@ -115,7 +115,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
         />
         <LoggedInRoute
           component={[Function]}
-          path="/:team"
+          path="/:team([a-z0-9\\\\-_]+)"
           theme={Object {}}
         />
         <Connect(RootRedirect) />
