@@ -27,14 +27,14 @@ type OAuthOutgoingConnection struct {
 	Audiences     StringArray `json:"audiences"`
 }
 
-func (a *OAuthOutgoingConnection) Auditable() map[string]interface{} {
+func (oa *OAuthOutgoingConnection) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"id":         a.Id,
-		"creator_id": a.CreatorId,
-		"create_at":  a.CreateAt,
-		"update_at":  a.UpdateAt,
-		"name":       a.Name,
-		"grant_type": a.GrantType,
+		"id":         oa.Id,
+		"creator_id": oa.CreatorId,
+		"create_at":  oa.CreateAt,
+		"update_at":  oa.UpdateAt,
+		"name":       oa.Name,
+		"grant_type": oa.GrantType,
 	}
 }
 
