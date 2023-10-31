@@ -23,12 +23,12 @@ import (
 type PluginAPI struct {
 	id       string
 	app      *App
-	ctx      *request.Context
+	ctx      request.CTX
 	logger   mlog.Sugar
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, c request.CTX, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,

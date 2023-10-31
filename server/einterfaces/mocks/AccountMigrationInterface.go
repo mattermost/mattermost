@@ -16,11 +16,11 @@ type AccountMigrationInterface struct {
 }
 
 // MigrateToLdap provides a mock function with given fields: c, fromAuthService, foreignUserFieldNameToMatch, force, dryRun
-func (_m *AccountMigrationInterface) MigrateToLdap(c *request.Context, fromAuthService string, foreignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError {
+func (_m *AccountMigrationInterface) MigrateToLdap(c request.CTX, fromAuthService string, foreignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError {
 	ret := _m.Called(c, fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string, string, bool, bool) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool, bool) *model.AppError); ok {
 		r0 = rf(c, fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
 	} else {
 		if ret.Get(0) != nil {
@@ -32,11 +32,11 @@ func (_m *AccountMigrationInterface) MigrateToLdap(c *request.Context, fromAuthS
 }
 
 // MigrateToSaml provides a mock function with given fields: c, fromAuthService, usersMap, auto, dryRun
-func (_m *AccountMigrationInterface) MigrateToSaml(c *request.Context, fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) *model.AppError {
+func (_m *AccountMigrationInterface) MigrateToSaml(c request.CTX, fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) *model.AppError {
 	ret := _m.Called(c, fromAuthService, usersMap, auto, dryRun)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string, map[string]string, bool, bool) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string, bool, bool) *model.AppError); ok {
 		r0 = rf(c, fromAuthService, usersMap, auto, dryRun)
 	} else {
 		if ret.Get(0) != nil {

@@ -134,7 +134,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		emailArg := "nonexistentUser@example.com"
 
 		err := searchUserCmdF(c, &cobra.Command{}, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
