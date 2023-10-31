@@ -6,14 +6,21 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {Provider} from 'react-redux';
 
+import type {DialogElement as TDialogElement} from '@mattermost/types/integrations';
+
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import EmojiMap from 'utils/emoji_map';
 
-import InteractiveDialog from './interactive_dialog.jsx';
+import type {Props} from './interactive_dialog';
+import InteractiveDialog from './interactive_dialog';
+
+const submitEvent = {
+    preventDefault: jest.fn(),
+} as unknown as React.FormEvent<HTMLFormElement>;
 
 describe('components/interactive_dialog/InteractiveDialog', () => {
-    const baseProps = {
+    const baseProps: Props = {
         url: 'http://example.com',
         callbackId: 'abc',
         elements: [],
@@ -22,9 +29,9 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         submitLabel: 'Yes',
         notifyOnCancel: true,
         state: 'some state',
-        onExited: () => {},
+        onExited: jest.fn(),
         actions: {
-            submitInteractiveDialog: () => ({}),
+            submitInteractiveDialog: jest.fn(),
         },
         emojiMap: new EmojiMap(new Map()),
     };
@@ -34,14 +41,12 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
             const props = {
                 ...baseProps,
                 actions: {
-                    submitInteractiveDialog: () => ({
-                        data: {error: 'This is an error.'},
-                    }),
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {error: 'This is an error.'}}),
                 },
             };
-            const wrapper = shallow(<InteractiveDialog {...props}/>);
+            const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...props}/>);
 
-            await wrapper.instance().handleSubmit({preventDefault: jest.fn()});
+            await wrapper.instance().handleSubmit(submitEvent);
 
             const expected = (
                 <div className='error-text'>
@@ -52,8 +57,8 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         });
 
         test('should not appear when submit does not return an error', async () => {
-            const wrapper = shallow(<InteractiveDialog {...baseProps}/>);
-            await wrapper.instance().handleSubmit({preventDefault: jest.fn()});
+            const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...baseProps}/>);
+            await wrapper.instance().handleSubmit(submitEvent);
 
             expect(wrapper.find(Modal.Footer).exists('.error-text')).toBe(false);
         });
@@ -61,7 +66,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
 
     describe('default select element in Interactive Dialog', () => {
         test('should be enabled by default', () => {
-            const selectElement = {
+            const selectElement: TDialogElement = {
                 data_source: '',
                 default: 'opt3',
                 display_name: 'Option Selector',
@@ -73,10 +78,15 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                     {text: 'Option3', value: 'opt3'},
                 ],
                 type: 'select',
+                subtype: '',
+                placeholder: '',
+                help_text: '',
+                min_length: 0,
+                max_length: 0,
             };
 
             const {elements, ...rest} = baseProps;
-            elements.push(selectElement);
+            elements?.push(selectElement);
             const props = {
                 ...rest,
                 elements,
@@ -93,19 +103,25 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
     });
 
     describe('bool element in Interactive Dialog', () => {
-        const element = {
+        const element: TDialogElement = {
             data_source: '',
             display_name: 'Boolean Selector',
             name: 'somebool',
             optional: false,
             type: 'bool',
             placeholder: 'Subscribe?',
+            subtype: '',
+            default: '',
+            help_text: '',
+            min_length: 0,
+            max_length: 0,
+            options: [],
         };
         const {elements, ...rest} = baseProps;
         const props = {
             ...rest,
             elements: [
-                ...elements,
+                ...elements || [],
                 element,
             ],
         };
@@ -122,9 +138,9 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
 
         testCases.forEach((testCase) => test(`should interpret ${testCase.description}`, () => {
             if (testCase.default === undefined) {
-                delete element.default;
+                delete (element as any).default;
             } else {
-                element.default = testCase.default;
+                (element as any).default = testCase.default;
             }
 
             const store = mockStore({});

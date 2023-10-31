@@ -19,15 +19,15 @@ type OAuthProvider struct {
 }
 
 // GetSSOSettings provides a mock function with given fields: c, config, service
-func (_m *OAuthProvider) GetSSOSettings(c *request.Context, config *model.Config, service string) (*model.SSOSettings, error) {
+func (_m *OAuthProvider) GetSSOSettings(c request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {
 	ret := _m.Called(c, config, service)
 
 	var r0 *model.SSOSettings
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Config, string) (*model.SSOSettings, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Config, string) (*model.SSOSettings, error)); ok {
 		return rf(c, config, service)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Config, string) *model.SSOSettings); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Config, string) *model.SSOSettings); ok {
 		r0 = rf(c, config, service)
 	} else {
 		if ret.Get(0) != nil {
@@ -35,7 +35,7 @@ func (_m *OAuthProvider) GetSSOSettings(c *request.Context, config *model.Config
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, *model.Config, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Config, string) error); ok {
 		r1 = rf(c, config, service)
 	} else {
 		r1 = ret.Error(1)
@@ -45,15 +45,15 @@ func (_m *OAuthProvider) GetSSOSettings(c *request.Context, config *model.Config
 }
 
 // GetUserFromIdToken provides a mock function with given fields: c, idToken
-func (_m *OAuthProvider) GetUserFromIdToken(c *request.Context, idToken string) (*model.User, error) {
+func (_m *OAuthProvider) GetUserFromIdToken(c request.CTX, idToken string) (*model.User, error) {
 	ret := _m.Called(c, idToken)
 
 	var r0 *model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*request.Context, string) (*model.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.User, error)); ok {
 		return rf(c, idToken)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.User); ok {
 		r0 = rf(c, idToken)
 	} else {
 		if ret.Get(0) != nil {
@@ -61,7 +61,7 @@ func (_m *OAuthProvider) GetUserFromIdToken(c *request.Context, idToken string) 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
 		r1 = rf(c, idToken)
 	} else {
 		r1 = ret.Error(1)
@@ -71,15 +71,15 @@ func (_m *OAuthProvider) GetUserFromIdToken(c *request.Context, idToken string) 
 }
 
 // GetUserFromJSON provides a mock function with given fields: c, data, tokenUser
-func (_m *OAuthProvider) GetUserFromJSON(c *request.Context, data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (_m *OAuthProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
 	ret := _m.Called(c, data, tokenUser)
 
 	var r0 *model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*request.Context, io.Reader, *model.User) (*model.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, io.Reader, *model.User) (*model.User, error)); ok {
 		return rf(c, data, tokenUser)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, io.Reader, *model.User) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, io.Reader, *model.User) *model.User); ok {
 		r0 = rf(c, data, tokenUser)
 	} else {
 		if ret.Get(0) != nil {
@@ -87,7 +87,7 @@ func (_m *OAuthProvider) GetUserFromJSON(c *request.Context, data io.Reader, tok
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, io.Reader, *model.User) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, io.Reader, *model.User) error); ok {
 		r1 = rf(c, data, tokenUser)
 	} else {
 		r1 = ret.Error(1)
@@ -97,11 +97,11 @@ func (_m *OAuthProvider) GetUserFromJSON(c *request.Context, data io.Reader, tok
 }
 
 // IsSameUser provides a mock function with given fields: c, dbUser, oAuthUser
-func (_m *OAuthProvider) IsSameUser(c *request.Context, dbUser *model.User, oAuthUser *model.User) bool {
+func (_m *OAuthProvider) IsSameUser(c request.CTX, dbUser *model.User, oAuthUser *model.User) bool {
 	ret := _m.Called(c, dbUser, oAuthUser)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.User, *model.User) bool); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.User) bool); ok {
 		r0 = rf(c, dbUser, oAuthUser)
 	} else {
 		r0 = ret.Get(0).(bool)

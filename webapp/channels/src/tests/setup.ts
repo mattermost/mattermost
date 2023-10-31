@@ -13,10 +13,10 @@ import './react-intl_mock';
 import './react-router-dom_mock';
 import './react-tippy_mock';
 
-global.performance = {};
+global.performance = {} as any;
 require('isomorphic-fetch');
 
-configure({adapter: new Adapter()});
+configure({adapter: new (Adapter as any)()});
 
 global.window = Object.create(window);
 Object.defineProperty(window, 'location', {
@@ -32,11 +32,11 @@ Object.defineProperty(window, 'location', {
 const supportedCommands = ['copy', 'insertText'];
 
 Object.defineProperty(document, 'queryCommandSupported', {
-    value: (cmd) => supportedCommands.includes(cmd),
+    value: (cmd: string) => supportedCommands.includes(cmd),
 });
 
 Object.defineProperty(document, 'execCommand', {
-    value: (cmd) => supportedCommands.includes(cmd),
+    value: (cmd: string) => supportedCommands.includes(cmd),
 });
 
 document.documentElement.style.fontSize = '12px';
@@ -49,8 +49,8 @@ jest.mock('@mui/styled-engine', () => {
 
 // isDependencyWarning returns true when the given console.warn message is coming from a dependency using deprecated
 // React lifecycle methods.
-function isDependencyWarning(params) {
-    function paramsHasComponent(name) {
+function isDependencyWarning(params: string[]) {
+    function paramsHasComponent(name: string) {
         return params.some((param) => param.includes(name));
     }
 
@@ -67,23 +67,23 @@ function isDependencyWarning(params) {
     );
 }
 
-let warns;
-let errors;
+let warns: string[][];
+let errors: string[][];
 beforeAll(() => {
-    console.originalWarn = console.warn;
+    const originalWarn = console.warn;
     console.warn = jest.fn((...params) => {
         // Ignore any deprecation warnings coming from dependencies
         if (isDependencyWarning(params)) {
             return;
         }
 
-        console.originalWarn(...params);
+        originalWarn(...params);
         warns.push(params);
     });
 
-    console.originalError = console.error;
+    const originalError = console.error;
     console.error = jest.fn((...params) => {
-        console.originalError(...params);
+        originalError(...params);
         errors.push(params);
     });
 });

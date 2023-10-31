@@ -535,20 +535,9 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <LocalizedIcon
-                                            ariaLabel={
-                                              Object {
-                                                "defaultMessage": "Close",
-                                                "id": "user_group_popover.close",
-                                              }
-                                            }
+                                          <i
                                             className="icon icon-send"
-                                          >
-                                            <i
-                                              aria-label="Close"
-                                              className="icon icon-send"
-                                            />
-                                          </LocalizedIcon>
+                                          />
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>
@@ -754,20 +743,9 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <LocalizedIcon
-                                            ariaLabel={
-                                              Object {
-                                                "defaultMessage": "Close",
-                                                "id": "user_group_popover.close",
-                                              }
-                                            }
+                                          <i
                                             className="icon icon-send"
-                                          >
-                                            <i
-                                              aria-label="Close"
-                                              className="icon icon-send"
-                                            />
-                                          </LocalizedIcon>
+                                          />
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>
@@ -973,20 +951,9 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <LocalizedIcon
-                                            ariaLabel={
-                                              Object {
-                                                "defaultMessage": "Close",
-                                                "id": "user_group_popover.close",
-                                              }
-                                            }
+                                          <i
                                             className="icon icon-send"
-                                          >
-                                            <i
-                                              aria-label="Close"
-                                              className="icon icon-send"
-                                            />
-                                          </LocalizedIcon>
+                                          />
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>
@@ -1192,20 +1159,9 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <LocalizedIcon
-                                            ariaLabel={
-                                              Object {
-                                                "defaultMessage": "Close",
-                                                "id": "user_group_popover.close",
-                                              }
-                                            }
+                                          <i
                                             className="icon icon-send"
-                                          >
-                                            <i
-                                              aria-label="Close"
-                                              className="icon icon-send"
-                                            />
-                                          </LocalizedIcon>
+                                          />
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>
@@ -1411,20 +1367,9 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                           onMouseOut={[Function]}
                                           onMouseOver={[Function]}
                                         >
-                                          <LocalizedIcon
-                                            ariaLabel={
-                                              Object {
-                                                "defaultMessage": "Close",
-                                                "id": "user_group_popover.close",
-                                              }
-                                            }
+                                          <i
                                             className="icon icon-send"
-                                          >
-                                            <i
-                                              aria-label="Close"
-                                              className="icon icon-send"
-                                            />
-                                          </LocalizedIcon>
+                                          />
                                         </button>
                                       </DMButton>
                                     </OverlayTrigger>
