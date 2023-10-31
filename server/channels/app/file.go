@@ -718,7 +718,7 @@ func (t *UploadFileTask) init(a *App) {
 // returns a filled-out FileInfo and an optional error. A plugin may reject the
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
-func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.Reader,
+func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
 	t := &UploadFileTask{
 		ChannelId:   filepath.Base(channelID),
@@ -1398,7 +1398,7 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	return nil
 }
 
-func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
+func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 

@@ -17,7 +17,7 @@ import (
 // SyncLdap starts an LDAP sync job.
 // If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) SyncLdap(c *request.Context, includeRemovedMembers bool) {
+func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 	a.Srv().Go(func() {
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
 			if !*a.Config().LdapSettings.EnableSync {
@@ -88,7 +88,7 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSe
 	return groups, total, nil
 }
 
-func (a *App) SwitchEmailToLdap(c *request.Context, email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
+func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)
 	}
@@ -124,7 +124,7 @@ func (a *App) SwitchEmailToLdap(c *request.Context, email, password, code, ldapL
 	return "/login?extra=signin_change", nil
 }
 
-func (a *App) SwitchLdapToEmail(c *request.Context, ldapPassword, code, email, newPassword string) (string, *model.AppError) {
+func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPassword string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusForbidden)
 	}
@@ -170,7 +170,7 @@ func (a *App) SwitchLdapToEmail(c *request.Context, ldapPassword, code, email, n
 	return "/login?extra=signin_change", nil
 }
 
-func (a *App) MigrateIdLDAP(c *request.Context, toAttribute string) *model.AppError {
+func (a *App) MigrateIdLDAP(c request.CTX, toAttribute string) *model.AppError {
 	if ldapI := a.Ldap(); ldapI != nil {
 		if err := ldapI.MigrateIDAttribute(c, toAttribute); err != nil {
 			switch err := err.(type) {
