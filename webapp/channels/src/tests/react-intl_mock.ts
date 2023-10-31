@@ -20,3 +20,5 @@ jest.mock('react-intl', function() {
         },
     };
 });
+
+export default {};
