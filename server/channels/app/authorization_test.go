@@ -126,16 +126,6 @@ func TestSessionHasPermissionToTeams(t *testing.T) {
 		}
 		assert.True(t, th.App.SessionHasPermissionToTeams(th.Context, session, bothTeams, model.PermissionJoinPublicChannels))
 	})
-
-	// t.Run("System Admin user can access teams", func(t *testing.T) {
-	// 	session := model.Session{
-	// 		UserId: th.SystemAdminUser.Id,
-	// 		Roles:  model.SystemAdminRoleId,
-	// 	}
-	// 	assert.True(t, th.App.SessionHasPermissionToTeams(th.Context, session, []string{th.BasicTeam.Id}, model.PermissionManageTeam))
-	// 	assert.True(t, th.App.SessionHasPermissionToTeams(th.Context, session, []string{myTeam.Id}, model.PermissionManageTeam))
-	// 	assert.True(t, th.App.SessionHasPermissionToTeams(th.Context, session, bothTeams, model.PermissionManageTeam))
-	// })
 }
 
 func TestSessionHasPermissionToChannel(t *testing.T) {
