@@ -37,7 +37,7 @@ exports[`component/add_users_to_group_modal should match snapshot 1`] = `
     closeLabel="Close"
   >
     <button
-      aria-label="Close"
+      aria-label="Back"
       className="modal-header-back-button btn btn-icon"
       onClick={[Function]}
       type="button"
