@@ -34,7 +34,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 	return draft, nil
 }
 
-func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
+func (a *App) UpsertDraft(c request.CTX, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("CreateDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}

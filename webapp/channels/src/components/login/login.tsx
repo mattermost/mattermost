@@ -659,6 +659,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         // Record a successful login to local storage. If an unintentional logout occurs, e.g.
         // via session expiration, this bit won't get reset and we can notify the user as such.
         LocalStorageStore.setWasLoggedIn(true);
+
+        // After a user has just logged in, we set the following flag to "false" so that after
+        // a user is notified of successful login, we can set it back to "true"
+        LocalStorageStore.setWasNotifiedOfLogIn(false);
+
         if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
             history.push(redirectTo);
         } else if (team) {
