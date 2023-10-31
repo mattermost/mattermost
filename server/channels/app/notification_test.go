@@ -2334,6 +2334,12 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 		require.Equal(t, groupsMap[*group1.Name], group1)
 		require.Equal(t, groupsMap[*customGroup.Name], customGroup)
 	})
+
+	team.GroupConstrained = model.NewBool(false)
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+
+	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 4)
