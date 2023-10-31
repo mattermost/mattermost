@@ -246,13 +246,13 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 	var wg sync.WaitGroup
 	for _, mention := range possibleMentions {
 		wg.Add(1)
-		go func(rctx request.CTX, mention string) {
+		go func(mention string) {
 			defer wg.Done()
 			user, nErr := a.Srv().Store().User().GetByUsername(mention)
 
 			var nfErr *store.ErrNotFound
 			if nErr != nil && !errors.As(nErr, &nfErr) {
-				rctx.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
+				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
 				return
 			}
 
@@ -270,7 +270,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 						continue
 					}
 
-					_, err := a.GetTeamMember(rctx, teamID, userFromTrimmed.Id)
+					_, err := a.GetTeamMember(c, teamID, userFromTrimmed.Id)
 					if err != nil {
 						// The user is not in the team, so we should ignore it
 						return
@@ -283,14 +283,14 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 				return
 			}
 
-			_, err := a.GetTeamMember(rctx, teamID, user.Id)
+			_, err := a.GetTeamMember(c, teamID, user.Id)
 			if err != nil {
 				// The user is not in the team, so we should ignore it
 				return
 			}
 
 			mentionChan <- &mentionMapItem{mention, user.Id}
-		}(c.Clone(), mention)
+		}(mention)
 	}
 
 	wg.Wait()

@@ -140,13 +140,12 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
 		Server:            s,
+		Context:           request.EmptyContext(testLogger),
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
-		Context:           request.EmptyContext(testLogger),
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
 	}
-	th.Context.SetLogger(testLogger)
 
 	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
 		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine

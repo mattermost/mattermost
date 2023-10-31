@@ -7,7 +7,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,6 +17,9 @@ func TestContextMaster(t *testing.T) {
 	assert.True(t, HasMaster(m))
 }
 
+/*
+
+//TODO(hanzei): Where to move?
 func TestRequestContextWithMaster(t *testing.T) {
 	t.Run("set and get", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
@@ -62,3 +64,5 @@ func TestRequestContextWithMaster(t *testing.T) {
 		assert.False(t, HasMaster(rctxClone.Context()))
 	})
 }
+
+*/

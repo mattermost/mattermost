@@ -115,7 +115,6 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 			// gets called from (*WebConn).isMemberOfTeam and revoking a session involves
 			// clearing the webconn cache, which needs the hub again.
 			a.Srv().Go(func() {
-				// TODO(hanzei): Create a clone of c
 				err := a.RevokeSessionById(c, session.Id)
 				if err != nil {
 					c.Logger().Warn("Error while revoking session", mlog.Err(err))

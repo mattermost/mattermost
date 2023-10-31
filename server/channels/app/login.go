@@ -215,12 +215,12 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 
 	w.Header().Set(model.HeaderToken, session.Token)
 
-	c.SetSession(session)
+	c = c.WithSession(session)
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		userVal := *user
 		sessionVal := *session
 		a.Srv().Go(func() {
-			a.Ldap().UpdateProfilePictureIfNecessary(c.Clone(), userVal, sessionVal)
+			a.Ldap().UpdateProfilePictureIfNecessary(c, userVal, sessionVal)
 		})
 	}
 

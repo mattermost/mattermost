@@ -529,20 +529,18 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	}
 
 	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
-		crctx := c.Clone()
 		a.Srv().Go(func() {
-			_, err := a.SendAutoResponseIfNecessary(crctx, channel, user, post)
+			_, err := a.SendAutoResponseIfNecessary(c, channel, user, post)
 			if err != nil {
-				crctx.Logger().Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+				c.Logger().Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
 	}
 
 	if triggerWebhooks {
-		crctx := c.Clone()
 		a.Srv().Go(func() {
-			if err := a.handleWebhookEvents(crctx, post, team, channel, user); err != nil {
-				crctx.Logger().Error("Failed to handle webhook event", mlog.Err(err))
+			if err := a.handleWebhookEvents(c, post, team, channel, user); err != nil {
+				c.Logger().Error("Failed to handle webhook event", mlog.Err(err))
 			}
 		})
 	}
@@ -1378,10 +1376,9 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}, plugin.MessageHasBeenDeletedID)
 	})
 
-	crctx := c.Clone()
 	a.Srv().Go(func() {
 		if err = a.RemoveNotifications(c, post, channel); err != nil {
-			crctx.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
+			c.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
 		}
 	})
 
