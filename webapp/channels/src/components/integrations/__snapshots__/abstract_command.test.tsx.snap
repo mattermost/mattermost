@@ -106,17 +106,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="trigger"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
-                "id": "add_command.trigger.placeholder",
-              }
-            }
+            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
             type="text"
             value="trigger"
           />
@@ -174,17 +169,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="url"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Must start with http:// or https://",
-                "id": "add_command.url.placeholder",
-              }
-            }
+            placeholder="Must start with http:// or https://"
             type="text"
             value="https://google.com/command"
           />
@@ -255,17 +245,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="username"
             maxLength={64}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Username",
-                "id": "add_command.username.placeholder",
-              }
-            }
+            placeholder="Username"
             type="text"
             value="username"
           />
@@ -294,17 +279,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="iconUrl"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "https://www.example.com/myicon.png",
-                "id": "add_command.iconUrl.placeholder",
-              }
-            }
+            placeholder="https://www.example.com/myicon.png"
             type="text"
             value="https://google.com/icon"
           />
@@ -364,17 +344,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: [Patient Name]",
-                "id": "add_command.autocompleteHint.placeholder",
-              }
-            }
+            placeholder="Example: [Patient Name]"
             type="text"
             value="auto_complete_hint"
           />
@@ -403,17 +378,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="description"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
-                "id": "add_command.autocompleteDescription.placeholder",
-              }
-            }
+            placeholder="Example: \\"Returns search results for patient records\\""
             type="text"
             value="auto_complete_desc"
           />
@@ -449,7 +419,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             id="add_command.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
@@ -461,7 +431,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             defaultMessage="Footer"
             id="Footer"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
         <div>
           renderExtra
         </div>
@@ -576,17 +546,12 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="trigger"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
-                "id": "add_command.trigger.placeholder",
-              }
-            }
+            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
             type="text"
             value="trigger"
           />
@@ -644,17 +609,12 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="url"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Must start with http:// or https://",
-                "id": "add_command.url.placeholder",
-              }
-            }
+            placeholder="Must start with http:// or https://"
             type="text"
             value="https://google.com/command"
           />
@@ -725,17 +685,12 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="username"
             maxLength={64}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Username",
-                "id": "add_command.username.placeholder",
-              }
-            }
+            placeholder="Username"
             type="text"
             value="username"
           />
@@ -764,17 +719,12 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="iconUrl"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "https://www.example.com/myicon.png",
-                "id": "add_command.iconUrl.placeholder",
-              }
-            }
+            placeholder="https://www.example.com/myicon.png"
             type="text"
             value="https://google.com/icon"
           />
@@ -834,17 +784,12 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: [Patient Name]",
-                "id": "add_command.autocompleteHint.placeholder",
-              }
-            }
+            placeholder="Example: [Patient Name]"
             type="text"
             value="auto_complete_hint"
           />
@@ -873,17 +818,12 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="description"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
-                "id": "add_command.autocompleteDescription.placeholder",
-              }
-            }
+            placeholder="Example: \\"Returns search results for patient records\\""
             type="text"
             value="auto_complete_desc"
           />
@@ -919,7 +859,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
             id="add_command.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
@@ -930,7 +870,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
           <span>
             Footer as string
           </span>
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
         <div>
           renderExtra
         </div>
@@ -1046,17 +986,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="trigger"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
-                "id": "add_command.trigger.placeholder",
-              }
-            }
+            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
             type="text"
             value=""
           />
@@ -1114,17 +1049,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="url"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Must start with http:// or https://",
-                "id": "add_command.url.placeholder",
-              }
-            }
+            placeholder="Must start with http:// or https://"
             type="text"
             value="https://google.com/command"
           />
@@ -1195,17 +1125,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="username"
             maxLength={64}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Username",
-                "id": "add_command.username.placeholder",
-              }
-            }
+            placeholder="Username"
             type="text"
             value="username"
           />
@@ -1234,17 +1159,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="iconUrl"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "https://www.example.com/myicon.png",
-                "id": "add_command.iconUrl.placeholder",
-              }
-            }
+            placeholder="https://www.example.com/myicon.png"
             type="text"
             value="https://google.com/icon"
           />
@@ -1304,17 +1224,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: [Patient Name]",
-                "id": "add_command.autocompleteHint.placeholder",
-              }
-            }
+            placeholder="Example: [Patient Name]"
             type="text"
             value="auto_complete_hint"
           />
@@ -1343,17 +1258,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="description"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
-                "id": "add_command.autocompleteDescription.placeholder",
-              }
-            }
+            placeholder="Example: \\"Returns search results for patient records\\""
             type="text"
             value="auto_complete_desc"
           />
@@ -1392,7 +1302,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             id="add_command.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
@@ -1404,7 +1314,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             defaultMessage="Footer"
             id="Footer"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
         <div>
           renderExtra
         </div>
