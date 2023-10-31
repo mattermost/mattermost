@@ -71,7 +71,7 @@ func setDefaultPluginConfig(th *TestHelper, pluginID string) {
 	})
 }
 
-func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, c *request.Context) string {
+func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, c request.CTX) string {
 	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -126,8 +126,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 	return pluginDir
 }
 
-func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) string {
-
+func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c request.CTX) string {
 	asMain := pluginID != "test_db_driver"
 	return setupMultiPluginAPITest(t,
 		[]string{pluginCode}, []string{pluginManifest}, []string{pluginID},
@@ -916,7 +915,7 @@ func TestInstallPlugin(t *testing.T) {
 	// we need a modified version of setupPluginAPITest() because it wasn't possible to use it directly here
 	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
 	// dirs and this behavior tends to break this test as a result.
-	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) (func(), string) {
+	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c request.CTX) (func(), string) {
 		pluginDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		webappPluginDir, err := os.MkdirTemp("", "")
@@ -2227,14 +2226,14 @@ func TestSendPushNotification(t *testing.T) {
 	var userSessions []userSession
 	for i := 0; i < 3; i++ {
 		u := th.CreateUser()
-		sess, err := th.App.CreateSession(&model.Session{
+		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
 		// We don't need to track the 2nd session.
-		_, err = th.App.CreateSession(&model.Session{
+		_, err = th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,

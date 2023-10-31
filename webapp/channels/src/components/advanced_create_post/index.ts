@@ -44,7 +44,7 @@ import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {openModal} from 'actions/views/modals';
 import {selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
 import {setShowPreviewOnCreatePost} from 'actions/views/textbox';
-import {getEmojiMap, getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
+import {getEmojiMap} from 'selectors/emojis';
 import {getCurrentLocale} from 'selectors/i18n';
 import {makeGetChannelDraft, getIsRhsExpanded, getIsRhsOpen} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
@@ -80,8 +80,6 @@ function makeMapStateToProps() {
         const currentUserId = getCurrentUserId(state);
         const userIsOutOfOffice = getStatusForUserId(state, currentUserId) === UserStatuses.OUT_OF_OFFICE;
         const badConnection = connectionErrorCount(state) > 1;
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
-        const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
         const canPost = haveICurrentChannelPermission(state, Permissions.CREATE_POST);
         const useChannelMentions = haveICurrentChannelPermission(state, Permissions.USE_CHANNEL_MENTIONS);
         const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
@@ -127,8 +125,6 @@ function makeMapStateToProps() {
             rhsOpen: getIsRhsOpen(state),
             emojiMap: getEmojiMap(state),
             badConnection,
-            isTimezoneEnabled,
-            shortcutReactToLastPostEmittedFrom,
             canPost,
             useChannelMentions,
             shouldShowPreview: showPreviewOnCreatePost(state),
@@ -169,7 +165,7 @@ type Actions = {
     getChannelTimezones: (channelId: string) => ActionResult;
     scrollPostListToBottom: () => void;
     emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
-    getChannelMemberCountsByGroup: (channelId: string, includeTimezones: boolean) => void;
+    getChannelMemberCountsByGroup: (channelId: string) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
 }

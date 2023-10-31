@@ -70,7 +70,7 @@ import FeatureFlags from './feature_flags.tsx';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import LicenseSettings from './license_settings';
-import MessageExportSettings from './message_export_settings.jsx';
+import MessageExportSettings from './message_export_settings';
 import OpenIdConvert from './openid_convert';
 import PasswordSettings from './password_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';
@@ -1862,6 +1862,49 @@ const AdminDefinition = {
                             return displayVal;
                         },
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_LONG_TEXT,
+                        key: 'LogSettings.AdvancedLoggingJSON',
+                        label: t('admin.log.AdvancedLoggingJSONTitle'),
+                        label_default: 'Advanced Logging:',
+                        help_text: t('admin.log.AdvancedLoggingJSONDescription'),
+                        help_text_default: 'The JSON configuration for Advanced Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.',
+                        help_text_markdown: false,
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href={DocLinks.ADVANCED_LOGGING}
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        placeholder: t('admin.log.AdvancedLoggingJSONPlaceholder'),
+                        placeholder_default: 'Enter your JSON configuration',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
+                        validate: (value) => {
+                            const valid = new ValidationResult(true, '', '');
+                            if (!value) {
+                                return valid;
+                            }
+                            try {
+                                JSON.parse(value);
+                                return valid;
+                            } catch (error) {
+                                return new ValidationResult(false, '', error.message);
+                            }
+                        },
+                        onConfigLoad: (configVal) => JSON.stringify(configVal, null, '  '),
+                        onConfigSave: (displayVal) => {
+                            // Handle case where field is empty
+                            if (!displayVal) {
+                                return {undefined};
+                            }
+
+                            return JSON.parse(displayVal);
+                        },
                     },
                 ],
             },
@@ -6904,16 +6947,6 @@ const AdminDefinition = {
                         help_text_default: 'Specify the color of the SAML login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.',
                         help_text_markdown: false,
                         isHidden: it.not(it.licensedForFeature('SAML')),
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                    },
-                    {
-                        type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'DisplaySettings.ExperimentalTimezone',
-                        label: t('admin.experimental.experimentalTimezone.title'),
-                        label_default: 'Timezone:',
-                        help_text: t('admin.experimental.experimentalTimezone.desc'),
-                        help_text_default: 'Select the timezone used for timestamps in the user interface and email notifications. When true, the Timezone section is visible in the Settings and a time zone is automatically assigned in the next active session. When false, the Timezone setting is hidden in the Settings.',
-                        help_text_markdown: false,
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                     },
                     {

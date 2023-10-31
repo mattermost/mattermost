@@ -53,7 +53,8 @@ const (
 	NotificationWillBePushedID                = 35
 	UserHasBeenDeactivatedID                  = 36
 	MessageHasBeenDeletedID                   = 37
-	ServeMetricsID                            = 38
+	MessagesWillBeConsumedID                  = 38
+	ServeMetricsID                            = 39
 	TotalHooksID                              = iota
 )
 
@@ -170,6 +171,15 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+
+	// MessagesWillBeConsumed is invoked when a message is requested by a client before it is returned
+	// to the client
+	//
+	// Note that this method will be called for posts created by plugins, including the plugin that
+	// created the post.
+	//
+	// Minimum server version: 9.3
+	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
 
 	// MessageHasBeenDeleted is invoked after the message has been deleted from the database.
 	// Note that this method will be called for posts deleted by plugins, including the plugin that

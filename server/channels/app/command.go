@@ -202,17 +202,8 @@ func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.Com
 
 	args.TriggerId = triggerId
 
-	// Plugins can override built in, custom, and product commands
+	// Plugins can override built in and custom commands
 	cmd, response, appErr := a.tryExecutePluginCommand(c, args)
-	if appErr != nil {
-		return nil, appErr
-	} else if cmd != nil && response != nil {
-		response.TriggerId = clientTriggerId
-		return a.HandleCommandResponse(c, cmd, args, response, true)
-	}
-
-	// Products can override built in and custom commands
-	cmd, response, appErr = a.tryExecuteProductCommand(c, args)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
@@ -279,7 +270,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 						continue
 					}
 
-					_, err := a.GetTeamMember(teamID, userFromTrimmed.Id)
+					_, err := a.GetTeamMember(c, teamID, userFromTrimmed.Id)
 					if err != nil {
 						// The user is not in the team, so we should ignore it
 						return
@@ -292,7 +283,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 				return
 			}
 
-			_, err := a.GetTeamMember(teamID, user.Id)
+			_, err := a.GetTeamMember(c, teamID, user.Id)
 			if err != nil {
 				// The user is not in the team, so we should ignore it
 				return

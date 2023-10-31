@@ -497,7 +497,7 @@ export function getChannelTimezones(channelId: string): ActionFunc {
     };
 }
 
-export function fetchMyChannelsAndMembersREST(teamId: string): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
+export function fetchChannelsAndMembers(teamId: string): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let channels;
         let channelMembers;
@@ -1482,10 +1482,10 @@ export function patchChannelModerations(channelId: string, patch: ChannelModerat
     });
 }
 
-export function getChannelMemberCountsByGroup(channelId: string, includeTimezones: boolean): ActionFunc {
+export function getChannelMemberCountsByGroup(channelId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: async () => {
-            const channelMemberCountsByGroup = await Client4.getChannelMemberCountsByGroup(channelId, includeTimezones);
+            const channelMemberCountsByGroup = await Client4.getChannelMemberCountsByGroup(channelId, true);
             return {channelId, memberCounts: channelMemberCountsByGroup};
         },
         onSuccess: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
@@ -1503,7 +1503,7 @@ export default {
     patchChannel,
     updateChannelNotifyProps,
     getChannel,
-    fetchMyChannelsAndMembersREST,
+    fetchChannelsAndMembers,
     getChannelTimezones,
     getChannelMembersByIds,
     leaveChannel,

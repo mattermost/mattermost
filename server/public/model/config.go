@@ -1285,6 +1285,21 @@ func NewLogSettings() *LogSettings {
 	return settings
 }
 
+func (s *LogSettings) isValid() *AppError {
+	cfg := make(mlog.LoggerConfiguration)
+	err := json.Unmarshal(s.GetAdvancedLoggingConfig(), &cfg)
+	if err != nil {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	err = cfg.IsValid()
+	if err != nil {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
+}
+
 func (s *LogSettings) SetDefaults() {
 	if s.EnableConsole == nil {
 		s.EnableConsole = NewBool(true)
@@ -2090,7 +2105,6 @@ func (s *AnnouncementSettings) SetDefaults() {
 	if s.NoticesFetchFrequency == nil {
 		s.NoticesFetchFrequency = NewInt(AnnouncementSettingsDefaultNoticesFetchFrequencySeconds)
 	}
-
 }
 
 type ThemeSettings struct {
@@ -2146,7 +2160,6 @@ type TeamSettings struct {
 }
 
 func (s *TeamSettings) SetDefaults() {
-
 	if s.SiteName == nil || *s.SiteName == "" {
 		s.SiteName = NewString(TeamSettingsDefaultSiteName)
 	}
@@ -3147,9 +3160,8 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes     []string `access:"site_posts"`
-	MaxMarkdownNodes     *int     `access:"site_posts"`
-	ExperimentalTimezone *bool    `access:"experimental_features"`
+	CustomURLSchemes []string `access:"site_posts"`
+	MaxMarkdownNodes *int     `access:"site_posts"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
@@ -3160,10 +3172,6 @@ func (s *DisplaySettings) SetDefaults() {
 
 	if s.MaxMarkdownNodes == nil {
 		s.MaxMarkdownNodes = NewInt(0)
-	}
-
-	if s.ExperimentalTimezone == nil {
-		s.ExperimentalTimezone = NewBool(true)
 	}
 }
 
@@ -3550,6 +3558,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.DataRetentionSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.LogSettings.isValid(); appErr != nil {
 		return appErr
 	}
 

@@ -697,6 +697,9 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
+			if invErr.Entity == "Channel" && invErr.Field == "Name" {
+				return nil, model.NewAppError("UpdateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
@@ -1398,18 +1401,18 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 }
 
 func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	ihc := make(chan store.StoreResult, 1)
-	ohc := make(chan store.StoreResult, 1)
+	ihc := make(chan store.GenericStoreResult[[]*model.IncomingWebhook], 1)
+	ohc := make(chan store.GenericStoreResult[[]*model.OutgoingWebhook], 1)
 
 	go func() {
 		webhooks, err := a.Srv().Store().Webhook().GetIncomingByChannel(channel.Id)
-		ihc <- store.StoreResult{Data: webhooks, NErr: err}
+		ihc <- store.GenericStoreResult[[]*model.IncomingWebhook]{Data: webhooks, NErr: err}
 		close(ihc)
 	}()
 
 	go func() {
 		outgoingHooks, err := a.Srv().Store().Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
-		ohc <- store.StoreResult{Data: outgoingHooks, NErr: err}
+		ohc <- store.GenericStoreResult[[]*model.OutgoingWebhook]{Data: outgoingHooks, NErr: err}
 		close(ohc)
 	}()
 
@@ -1437,9 +1440,6 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	if ohcresult.NErr != nil {
 		return model.NewAppError("DeleteChannel", "app.webhooks.get_outgoing_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(ohcresult.NErr)
 	}
-
-	incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
-	outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
 
 	if channel.DeleteAt > 0 {
 		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.deleted.app_error", nil, "", http.StatusBadRequest)
@@ -1489,14 +1489,14 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	}
 
 	now := model.GetMillis()
-	for _, hook := range incomingHooks {
+	for _, hook := range ihcresult.Data {
 		if err := a.Srv().Store().Webhook().DeleteIncoming(hook.Id, now); err != nil {
 			c.Logger().Warn("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 		a.Srv().Platform().InvalidateCacheForWebhook(hook.Id)
 	}
 
-	for _, hook := range outgoingHooks {
+	for _, hook := range ohcresult.Data {
 		if err := a.Srv().Store().Webhook().DeleteOutgoing(hook.Id, now); err != nil {
 			c.Logger().Warn("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
@@ -1583,7 +1583,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 // AddUserToChannel adds a user to a given channel.
 func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
 	if !skipTeamMemberIntegrityCheck {
-		teamMember, nErr := a.Srv().Store().Team().GetMember(context.Background(), channel.TeamId, user.Id)
+		teamMember, nErr := a.Srv().Store().Team().GetMember(c, channel.TeamId, user.Id)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -1933,14 +1933,6 @@ func (s *Server) getChannelsForTeamForUser(c request.CTX, teamID string, userID 
 
 func (a *App) GetChannelsForTeamForUser(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
 	return a.Srv().getChannelsForTeamForUser(c, teamID, userID, opts)
-}
-
-func (a *App) GetChannelsForTeamForUserWithCursor(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetChannelsWithCursor(teamID, userID, opts, afterChannelID)
-	if err != nil {
-		return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return list, nil
 }
 
 func (a *App) GetChannelsForUser(c request.CTX, userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
@@ -2531,7 +2523,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 			return err
 		}
 		if len(currentMembers) == 0 {
-			teamMember, err := a.GetTeamMember(channel.TeamId, userIDToRemove)
+			teamMember, err := a.GetTeamMember(c, channel.TeamId, userIDToRemove)
 			if err != nil {
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
@@ -3202,7 +3194,6 @@ func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channe
 }
 
 func (a *App) postChannelMoveMessage(c request.CTX, user *model.User, channel *model.Channel, previousTeam *model.Team) *model.AppError {
-
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.move_channel.success"), previousTeam.Name),

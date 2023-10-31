@@ -105,7 +105,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	err := th.Service.RevokeAccessToken(model.NewRandomString(16))
+	err := th.Service.RevokeAccessToken(th.Context, model.NewRandomString(16))
 	require.Error(t, err, "Should have failed due to an incorrect token")
 
 	session := &model.Session{}
@@ -115,8 +115,8 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.Roles = model.SystemUserRoleId
 	th.Service.SetSessionExpireInHours(session, 24)
 
-	session, _ = th.Service.CreateSession(session)
-	err = th.Service.RevokeAccessToken(session.Token)
+	session, _ = th.Service.CreateSession(th.Context, session)
+	err = th.Service.RevokeAccessToken(th.Context, session.Token)
 	require.Error(t, err, "Should have failed does not have an access token")
 
 	accessData := &model.AccessData{}
@@ -129,6 +129,6 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	_, nErr := th.Service.Store.OAuth().SaveAccessData(accessData)
 	require.NoError(t, nErr)
 
-	err = th.Service.RevokeAccessToken(accessData.Token)
+	err = th.Service.RevokeAccessToken(th.Context, accessData.Token)
 	require.NoError(t, err)
 }

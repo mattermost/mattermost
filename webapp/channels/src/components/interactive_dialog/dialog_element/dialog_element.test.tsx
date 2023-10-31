@@ -22,6 +22,16 @@ describe('components/interactive_dialog/DialogElement', () => {
         onChange: jest.fn(),
     };
 
+    it('type textarea', () => {
+        const wrapper = shallow(
+            <DialogElement
+                {...baseDialogProps}
+                type='textarea'
+            />,
+        );
+        expect(wrapper.find(TextSetting).dive().find('textarea').exists()).toBe(true);
+    });
+
     it('subtype blank', () => {
         const wrapper = shallow(
             <DialogElement
@@ -31,6 +41,32 @@ describe('components/interactive_dialog/DialogElement', () => {
         );
 
         expect(wrapper.find(TextSetting).props().type).toEqual('text');
+    });
+
+    describe('subtype number', () => {
+        test('value is 0', () => {
+            const wrapper = shallow(
+                <DialogElement
+                    {...baseDialogProps}
+                    type='text'
+                    subtype='number'
+                    value={0}
+                />,
+            );
+            expect(wrapper.find(TextSetting).props().value).toEqual(0);
+        });
+
+        test('value is 123', () => {
+            const wrapper = shallow(
+                <DialogElement
+                    {...baseDialogProps}
+                    type='text'
+                    subtype='number'
+                    value={123}
+                />,
+            );
+            expect(wrapper.find(TextSetting).props().value).toEqual(123);
+        });
     });
 
     it('subtype email', () => {
