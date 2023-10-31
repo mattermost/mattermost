@@ -20,7 +20,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {PropsFromRedux} from './index';
 
 const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermost.html';
-const trainingResourcesLink = 'https://academy.mattermost.com/courses';
+const trainingResourcesLink = 'https://academy.mattermost.com/';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
 type Props = WrappedComponentProps & PropsFromRedux & {
