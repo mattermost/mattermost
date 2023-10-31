@@ -41,7 +41,6 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         currentChannelId,
         isCurrentChannelManuallyUnread: isManuallyUnread(state, currentChannelId),
         mfaRequired: checkIfMFARequired(getCurrentUser(state), license, config, ownProps.match.url),
-        enableTimezone: config.ExperimentalTimezone === 'true',
         showTermsOfService,
     };
 }

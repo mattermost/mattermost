@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
+func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 	return acknowledgement, nil
 }
 
-func (a *App) DeleteAcknowledgementForPost(c *request.Context, postID, userID string) *model.AppError {
+func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return err
