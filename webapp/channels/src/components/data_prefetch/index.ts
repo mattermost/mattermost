@@ -9,11 +9,9 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PostList} from '@mattermost/types/posts';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
-import {isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
@@ -39,39 +37,56 @@ enum Priority {
 // function to return a queue obj with priotiy as key and array of channelIds as values.
 // high priority has channels with mentions
 // medium priority has channels with unreads
+// <10 unread channels. Prefetch everything.
+// 10-20 unread. Prefetch only mentions, capped to 10.
+// >20 unread. Don't prefetch anything.
 const prefetchQueue = memoizeResult((
     unreadChannels: Channel[],
     memberships: RelationOneToOne<Channel, ChannelMembership>,
     collapsedThreads: boolean,
 ) => {
-    return unreadChannels.reduce((acc: Record<string, string[]>, channel: Channel) => {
+    const unreadChannelsCount = unreadChannels.length;
+    let defaultResult: {
+        1: string[];
+        2: string[];
+        3: string[];
+    } = {
+        [Priority.high]: [], // 1 being high priority requests
+        [Priority.medium]: [],
+        [Priority.low]: [], //TODO: add chanenls such as fav.
+    };
+    if (!unreadChannelsCount || unreadChannelsCount > 20) {
+        return defaultResult;
+    }
+    for (const channel of unreadChannels) {
         const channelId = channel.id;
         const membership = memberships[channelId];
+
+        if (unreadChannelsCount >= 10 && defaultResult[Priority.high].length >= 10) {
+            break;
+        }
 
         // TODO We check for muted channels 3 times here: getUnreadChannels checks it, this checks it, and the mark_unread
         // check below is equivalent to checking if its muted.
         if (membership && !isChannelMuted(membership)) {
             if (collapsedThreads ? membership.mention_count_root : membership.mention_count) {
-                return {
-                    ...acc,
-                    [Priority.high]: [...acc[Priority.high], channelId],
+                defaultResult = {
+                    ...defaultResult,
+                    [Priority.high]: [...defaultResult[Priority.high], channelId],
                 };
             } else if (
                 membership.notify_props &&
-                membership.notify_props.mark_unread !== 'mention'
+                membership.notify_props.mark_unread !== 'mention' &&
+                unreadChannelsCount < 10
             ) {
-                return {
-                    ...acc,
-                    [Priority.medium]: [...acc[Priority.medium], channelId],
+                defaultResult = {
+                    ...defaultResult,
+                    [Priority.medium]: [...defaultResult[Priority.medium], channelId],
                 };
             }
         }
-        return acc;
-    }, {
-        [Priority.high]: [], // 1 being high priority requests
-        [Priority.medium]: [],
-        [Priority.low]: [], //TODO: add chanenls such as fav.
-    });
+    }
+    return defaultResult;
 });
 
 function isSidebarLoaded(state: GlobalState) {
@@ -84,7 +99,6 @@ function mapStateToProps(state: GlobalState) {
     const unreadChannels = getUnreadChannels(state, lastUnreadChannel);
     const prefetchQueueObj = prefetchQueue(unreadChannels, memberships, isCollapsedThreadsEnabled(state));
     const prefetchRequestStatus = state.views.channel.channelPrefetchStatus;
-    const disableWebappPrefetchAllowed = isPerformanceDebuggingEnabled(state);
 
     return {
         currentChannelId: getCurrentChannelId(state),
@@ -92,8 +106,6 @@ function mapStateToProps(state: GlobalState) {
         prefetchRequestStatus,
         sidebarLoaded: isSidebarLoaded(state),
         unreadChannels,
-        disableWebappPrefetchAllowed,
-        dataPrefetchEnabled: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_DATA_PREFETCH, true),
     };
 }
 
