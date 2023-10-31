@@ -41,10 +41,10 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
-        tabIndex="0"
+        tabIndex={0}
       />
       <span
-        className="image-preview-utility-buttons-container"
+        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
       >
         <OverlayTrigger
           className="hidden-xs"
@@ -76,7 +76,6 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
             onClick={[Function]}
           >
             <LinkVariantIcon
-              className="style--none"
               size={20}
             />
           </button>
@@ -115,7 +114,6 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
             target="_blank"
           >
             <DownloadOutlineIcon
-              className="style--none"
               size={20}
             />
           </a>
@@ -167,10 +165,10 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
-        tabIndex="0"
+        tabIndex={0}
       />
       <span
-        className="image-preview-utility-buttons-container"
+        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
       >
         <OverlayTrigger
           className="hidden-xs"
@@ -202,7 +200,6 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
             onClick={[Function]}
           >
             <LinkVariantIcon
-              className="style--none"
               size={20}
             />
           </button>
@@ -240,7 +237,6 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
             target="_blank"
           >
             <DownloadOutlineIcon
-              className="style--none"
               size={20}
             />
           </a>
@@ -306,10 +302,10 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
-        tabIndex="0"
+        tabIndex={0}
       />
       <span
-        className="image-preview-utility-buttons-container"
+        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
       >
         <OverlayTrigger
           className="hidden-xs"
@@ -341,7 +337,6 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
             onClick={[Function]}
           >
             <LinkVariantIcon
-              className="style--none"
               size={20}
             />
           </button>
@@ -379,7 +374,6 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
             target="_blank"
           >
             <DownloadOutlineIcon
-              className="style--none"
               size={20}
             />
           </a>

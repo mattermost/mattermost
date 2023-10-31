@@ -11,6 +11,7 @@ import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compa
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
@@ -34,17 +35,18 @@ export type Props = {
     /*
     * dimensions object to create empty space required to prevent scroll pop
     */
-    dimensions: PostImage | undefined;
-    fileInfo: FileInfo;
+    dimensions?: Partial<PostImage>;
+    fileInfo?: FileInfo;
 
     /**
     * fileURL of the original image
     */
-    fileUrl?: string;
+    fileURL?: string;
 
     alt?: string;
     height?: string;
     width?: string;
+    title?: string;
 
     /*
     * Boolean value to pass for showing a loader when image is being loaded
@@ -64,7 +66,8 @@ export type Props = {
     /*
     * Fetch the onClick function
     */
-    onClick: any;
+    onClick?: ((e: React.MouseEvent<HTMLImageElement, globalThis.MouseEvent>, link: string) => void) |
+    ((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void);
 
     /*
     * css classes that can added to the img as well as parent div on svg for placeholder
@@ -84,7 +87,7 @@ export type Props = {
     /**
     * Action to fetch public link of an image from server.
     */
-    getFilePublicLink?: any;
+    getFilePublicLink?: () => ActionFunc;
 
     /*
     * Prevents display of utility buttons when image in a location that makes them inappropriate
@@ -115,7 +118,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         this.state = {
             loaded: false,
             isSmallImage: this.dimensionsAvailable(dimensions) ? this.isSmallImage(
-                dimensions!.width, dimensions!.height) : false,
+                dimensions?.width ?? 0, dimensions?.height ?? 0) : false,
             linkCopiedRecently: false,
             linkCopyInProgress: false,
             error: false,
@@ -133,7 +136,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         this.mounted = false;
     }
 
-    dimensionsAvailable = (dimensions?: PostImage) => {
+    dimensionsAvailable = (dimensions?: Partial<PostImage>) => {
         return dimensions && dimensions.width && dimensions.height;
     };
 
@@ -141,9 +144,9 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         return width < MIN_IMAGE_SIZE || height < MIN_IMAGE_SIZE;
     };
 
-    handleLoad = (event) => {
+    handleLoad = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
         if (this.mounted) {
-            const image = event.target;
+            const image = event.target as HTMLImageElement;
             const isSmallImage = this.isSmallImage(image.naturalWidth, image.naturalHeight);
             this.setState({
                 loaded: true,
@@ -167,11 +170,11 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         }
     };
 
-    handleImageClick = (e) => {
+    handleImageClick = (e: any) => {
         this.props.onClick?.(e, this.props.src);
     };
 
-    onEnterKeyDown = (e) => {
+    onEnterKeyDown = (e: React.KeyboardEvent<HTMLImageElement>) => {
         if (e.key === 'Enter') {
             this.handleImageClick(e);
         }
@@ -217,7 +220,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             <img
                 {...props}
                 aria-label={ariaLabelImage}
-                tabIndex='0'
+                tabIndex={0}
                 onClick={this.handleImageClick}
                 onKeyDown={this.onEnterKeyDown}
                 className={
@@ -268,15 +271,9 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     onClick={this.copyLinkToAsset}
                 >
                     {this.state.linkCopiedRecently ? (
-                        <CheckIcon
-                            className={'svg-check style--none'}
-                            size={20}
-                        />
+                        <CheckIcon size={20}/>
                     ) : (
-                        <LinkVariantIcon
-                            className={'style--none'}
-                            size={20}
-                        />
+                        <LinkVariantIcon size={20}/>
                     )}
                 </button>
             </OverlayTrigger>
@@ -311,10 +308,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     role={this.isInternalImage ? 'button' : undefined}
                     aria-label={localizeMessage('single_image_view.download_tooltip', 'Download')}
                 >
-                    <DownloadOutlineIcon
-                        className={'style--none'}
-                        size={20}
-                    />
+                    <DownloadOutlineIcon size={20}/>
                 </a>
             </OverlayTrigger>
         );
@@ -407,9 +401,9 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         let fallback;
 
         if (this.dimensionsAvailable(dimensions) && !this.state.loaded) {
-            const ratio = dimensions!.height > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / dimensions!.height : 1;
-            const height = dimensions!.height * ratio;
-            const width = dimensions!.width * ratio;
+            const ratio = (dimensions?.height ?? 0) > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / (dimensions?.height ?? 1) : 1;
+            const height = (dimensions?.height ?? 0) * ratio;
+            const width = (dimensions?.width ?? 0) * ratio;
 
             const miniPreview = getFileMiniPreviewUrl(fileInfo);
 
@@ -474,7 +468,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         }, 1500);
     };
 
-    copyLinkToAsset = () => {
+    copyLinkToAsset = async () => {
         // if linkCopyInProgress is true return
         if (this.state.linkCopyInProgress !== true) {
             // set linkCopyInProgress to true to prevent multiple api calls
@@ -488,11 +482,12 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             }
 
             // copying public link to clipboard
-            this.props.getFilePublicLink().then((data) => {
-                const fileURL = data.data.link;
+            if (this.props.getFilePublicLink) {
+                const data: any = await this.props.getFilePublicLink();
+                const fileURL = data.data?.link;
                 copyToClipboard(fileURL ?? '');
                 this.startCopyTimer();
-            });
+            }
         }
     };
 
