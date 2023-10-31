@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
@@ -555,7 +556,7 @@ func TestExtractContentFromFileInfo(t *testing.T) {
 	}
 
 	// Test that we don't process images.
-	require.NoError(t, app.ExtractContentFromFileInfo(fi))
+	require.NoError(t, app.ExtractContentFromFileInfo(request.TestContext(t), fi))
 }
 
 func TestGetLastAccessibleFileTime(t *testing.T) {
