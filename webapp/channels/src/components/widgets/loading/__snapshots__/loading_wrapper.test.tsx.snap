@@ -19,32 +19,64 @@ exports[`components/widgets/loading/LoadingWrapper showing spinner with text 1`]
   loading={true}
   text="test"
 >
-  <LoadingSpinner
+  <injectIntl(LoadingSpinner)
     text="test"
   >
-    <span
-      className="LoadingSpinner with-text"
-      data-testid="loadingSpinner"
-      id="loadingSpinner"
-    >
-      <LocalizedIcon
-        className="fa fa-spinner fa-fw fa-pulse spinner"
-        component="span"
-        title={
-          Object {
-            "defaultMessage": "Loading Icon",
-            "id": "generic_icons.loading",
-          }
+    <LoadingSpinner
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+          "wrapRichTextChunksInFragment": undefined,
         }
+      }
+      text="test"
+    >
+      <span
+        className="LoadingSpinner with-text"
+        data-testid="loadingSpinner"
+        id="loadingSpinner"
       >
         <span
           className="fa fa-spinner fa-fw fa-pulse spinner"
           title="Loading Icon"
         />
-      </LocalizedIcon>
-      test
-    </span>
-  </LoadingSpinner>
+        test
+      </span>
+    </LoadingSpinner>
+  </injectIntl(LoadingSpinner)>
 </Memo(LoadingWrapper)>
 `;
 
@@ -52,30 +84,62 @@ exports[`components/widgets/loading/LoadingWrapper showing spinner without text 
 <Memo(LoadingWrapper)
   loading={true}
 >
-  <LoadingSpinner
+  <injectIntl(LoadingSpinner)
     text={null}
   >
-    <span
-      className="LoadingSpinner"
-      data-testid="loadingSpinner"
-      id="loadingSpinner"
-    >
-      <LocalizedIcon
-        className="fa fa-spinner fa-fw fa-pulse spinner"
-        component="span"
-        title={
-          Object {
-            "defaultMessage": "Loading Icon",
-            "id": "generic_icons.loading",
-          }
+    <LoadingSpinner
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+          "wrapRichTextChunksInFragment": undefined,
         }
+      }
+      text={null}
+    >
+      <span
+        className="LoadingSpinner"
+        data-testid="loadingSpinner"
+        id="loadingSpinner"
       >
         <span
           className="fa fa-spinner fa-fw fa-pulse spinner"
           title="Loading Icon"
         />
-      </LocalizedIcon>
-    </span>
-  </LoadingSpinner>
+      </span>
+    </LoadingSpinner>
+  </injectIntl(LoadingSpinner)>
 </Memo(LoadingWrapper)>
 `;

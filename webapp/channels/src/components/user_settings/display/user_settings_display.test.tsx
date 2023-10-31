@@ -74,7 +74,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         configTeammateNameDisplay: '',
         currentUserTimezone: 'America/New_York',
-        enableTimezone: true,
         shouldAutoUpdateTimezone: true,
         lockTeammateNameDisplay: false,
         collapsedReplyThreads: '',
