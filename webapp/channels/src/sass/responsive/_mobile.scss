@@ -747,27 +747,6 @@
             padding: 0;
         }
 
-        .post-create-body {
-            padding: 0;
-
-            .send-button {
-                display: block;
-            }
-
-            textarea {
-                .app-content & {
-                    border-right: none;
-                    border-left: none;
-                }
-            }
-
-            .post-body__actions {
-                .Menu.dropdown-menu {
-                    max-height: 80vh;
-                }
-            }
-        }
-
         .msg-typing {
             display: none;
         }
@@ -1419,10 +1398,6 @@
                 background: var(--center-channel-bg);
                 border-radius: 3px;
             }
-        }
-
-        .channel-header__links {
-            display: none;
         }
     }
 

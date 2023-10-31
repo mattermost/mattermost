@@ -1,39 +1,62 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
-export default class AutocompleteSelector extends React.PureComponent {
-    static propTypes = {
-        providers: PropTypes.array.isRequired,
-        value: PropTypes.string.isRequired,
-        onSelected: PropTypes.func,
-        label: PropTypes.node,
-        labelClassName: PropTypes.string,
-        inputClassName: PropTypes.string,
-        helpText: PropTypes.node,
-        placeholder: PropTypes.string,
-        footer: PropTypes.node,
-        disabled: PropTypes.bool,
-        toggleFocus: PropTypes.func,
-        listComponent: PropTypes.elementType,
-        listPosition: PropTypes.string,
-    };
+import type ModalSuggestionList from './suggestion/modal_suggestion_list';
+import type Provider from './suggestion/provider';
 
+export type Option = {
+    text: string;
+    value: string;
+};
+export type Selected = Option | UserProfile | Channel
+
+type Props = {
+    id: string;
+    providers: Provider[];
+    value: string;
+    onSelected?: (selected: Selected) => void;
+    label?: React.ReactNode | string;
+    labelClassName: string;
+    inputClassName: string;
+    helpText?: React.ReactNode | string;
+    placeholder?: string;
+    footer?: Node;
+    disabled?: boolean;
+    toggleFocus?: ((focus: boolean) => void) | null;
+    listComponent: typeof SuggestionList | typeof ModalSuggestionList;
+    listPosition: string;
+};
+
+type State = {
+    input: string;
+    focused?: boolean;
+};
+
+type ChangeEvent = {
+    target: HTMLInputElement;
+}
+
+export default class AutocompleteSelector extends React.PureComponent<Props, State> {
     static defaultProps = {
-        value: '',
         id: '',
+        value: '',
         labelClassName: '',
         inputClassName: '',
         listComponent: SuggestionList,
         listPosition: 'top',
     };
 
-    constructor(props) {
+    suggestionRef?: HTMLElement;
+
+    constructor(props: Props) {
         super(props);
 
         this.state = {
@@ -41,7 +64,7 @@ export default class AutocompleteSelector extends React.PureComponent {
         };
     }
 
-    onChange = (e) => {
+    onChange = (e: ChangeEvent) => {
         if (!e || !e.target) {
             return;
         }
@@ -49,7 +72,7 @@ export default class AutocompleteSelector extends React.PureComponent {
         this.setState({input: e.target.value});
     };
 
-    handleSelected = (selected) => {
+    handleSelected = (selected: Selected) => {
         this.setState({input: ''});
 
         if (this.props.onSelected) {
@@ -63,7 +86,7 @@ export default class AutocompleteSelector extends React.PureComponent {
         });
     };
 
-    setSuggestionRef = (ref) => {
+    setSuggestionRef = (ref: HTMLElement) => {
         this.suggestionRef = ref;
     };
 

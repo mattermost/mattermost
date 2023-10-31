@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/slackimport"
 )
 
-func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
+func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	actions := slackimport.Actions{
 		UpdateActive: func(user *model.User, active bool) (*model.User, *model.AppError) {
 			return a.UpdateActive(c, user, active)

@@ -693,6 +693,7 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	users, err := getUsersFromArgs(c, args)
 	if err != nil {
 		printer.PrintError(err.Error())
+		return err
 	}
 
 	for i, user := range users {

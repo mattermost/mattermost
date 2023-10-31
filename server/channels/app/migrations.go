@@ -554,7 +554,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	}
 }
 
-func (s *Server) doElasticsearchFixChannelIndex(c *request.Context) {
+func (s *Server) doElasticsearchFixChannelIndex(c request.CTX) {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
 		return
@@ -572,7 +572,7 @@ func (s *Server) doElasticsearchFixChannelIndex(c *request.Context) {
 	}
 }
 
-func (s *Server) doCloudS3PathMigrations(c *request.Context) {
+func (s *Server) doCloudS3PathMigrations(c request.CTX) {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
 		return
@@ -600,7 +600,7 @@ func (s *Server) doCloudS3PathMigrations(c *request.Context) {
 	}
 }
 
-func (s *Server) doDeleteEmptyDraftsMigration(c *request.Context) {
+func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteEmptyDrafts); err == nil {
 		return
