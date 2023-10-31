@@ -412,6 +412,11 @@ func NewServer(options ...Option) (*Server, error) {
 		})
 	}
 
+	// Check if the command is called by root user
+	if os.Geteuid() == 0 {
+		mlog.Warn("Running Mattermost as root is not recommended. Please use a separate user")
+	}
+	
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
 	}
@@ -995,11 +1000,6 @@ func (s *Server) Start() error {
 
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
-
-	// Check if the command is called by root user
-	if os.Geteuid() == 0 {
-		mlog.Warn("Running Mattermost as root is not recommended. Please use a separate user")
-	}
 
 	m := &autocert.Manager{
 		Cache:  autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
