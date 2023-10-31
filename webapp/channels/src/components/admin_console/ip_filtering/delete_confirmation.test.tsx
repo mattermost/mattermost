@@ -7,7 +7,7 @@ import React from 'react';
 import DeleteConfirmationModal from './delete_confirmation';
 
 describe('DeleteConfirmationModal', () => {
-    const onClose = jest.fn();
+    const onExited = jest.fn();
     const onConfirm = jest.fn();
     const filterToDelete = {
         cidr_block: '192.168.0.0/16',
@@ -17,7 +17,7 @@ describe('DeleteConfirmationModal', () => {
     };
 
     const baseProps = {
-        onClose,
+        onExited,
         onConfirm,
         filterToDelete,
     };
@@ -50,7 +50,7 @@ describe('DeleteConfirmationModal', () => {
 
         fireEvent.click(getByText('Cancel'));
 
-        expect(onClose).toHaveBeenCalled();
+        expect(onExited).toHaveBeenCalled();
         expect(onConfirm).not.toHaveBeenCalled();
     });
 

@@ -17,7 +17,7 @@ jest.mock('components/external_link', () => {
 });
 
 describe('IPFilteringAddOrEditModal', () => {
-    const onClose = jest.fn();
+    const onExited = jest.fn();
     const onSave = jest.fn();
     const existingRange: AllowedIPRange = {
         cidr_block: '192.168.0.0/16',
@@ -28,7 +28,7 @@ describe('IPFilteringAddOrEditModal', () => {
     const currentIP = '192.168.0.1';
 
     const baseProps = {
-        onClose,
+        onExited,
         onSave,
         existingRange,
         currentIP,
@@ -84,7 +84,7 @@ describe('IPFilteringAddOrEditModal', () => {
                 enabled: true,
                 owner_id: '',
             }, existingRange);
-            expect(onClose).toHaveBeenCalled();
+            expect(onExited).toHaveBeenCalled();
         });
     });
 
@@ -107,7 +107,7 @@ describe('IPFilteringAddOrEditModal', () => {
                 enabled: true,
                 owner_id: '',
             });
-            expect(onClose).toHaveBeenCalled();
+            expect(onExited).toHaveBeenCalled();
         });
     });
 
@@ -125,7 +125,7 @@ describe('IPFilteringAddOrEditModal', () => {
         await waitFor(() => {
             expect(getByText('Invalid CIDR address range')).toBeInTheDocument();
             expect(onSave).not.toHaveBeenCalled();
-            expect(onClose).not.toHaveBeenCalled();
+            expect(onExited).not.toHaveBeenCalled();
         });
     });
 

@@ -12,7 +12,7 @@ import ExternalLink from 'components/external_link';
 import './save_confirmation_modal.scss';
 
 type Props = {
-    onClose?: () => void;
+    onExited: () => void;
     onConfirm?: () => void;
     title?: string;
     subtitle: JSX.Element | string;
@@ -20,14 +20,15 @@ type Props = {
     includeDisclaimer?: boolean;
 }
 
-export default function SaveConfirmationModal({onClose, onConfirm, title, subtitle, includeDisclaimer, buttonText}: Props) {
+export default function SaveConfirmationModal({onExited, onConfirm, title, subtitle, includeDisclaimer, buttonText}: Props) {
     const {formatMessage} = useIntl();
     return (
         <Modal
             className={'SaveConfirmationModal'}
             dialogClassName={'SaveConfirmationModal__dialog'}
             show={true}
-            onHide={() => onClose?.()}
+            onExited={onExited}
+            onHide={onExited}
         >
             <Modal.Header closeButton={true}>
                 <div className='title'>
@@ -66,7 +67,7 @@ export default function SaveConfirmationModal({onClose, onConfirm, title, subtit
                 <button
                     type='button'
                     className='btn-cancel'
-                    onClick={() => onClose?.()}
+                    onClick={onExited}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
                 </button>
