@@ -722,6 +722,31 @@ export function highlightWithoutNotificationKeywords(
 ) {
     let output = text;
 
+    // Store the new tokens in a separate map since we can't add objects to a map during iteration
+    const newTokens = new Map();
+
+    // Look for highlighting keywords in the tokens
+    tokens.forEach((token, alias) => {
+        const tokenOriginalText = token.originalText.toLowerCase();
+
+        if (highlightKeys.findIndex((highlightKey) => highlightKey.key.toLowerCase() === tokenOriginalText) !== -1) {
+            const newIndex = tokens.size + newTokens.size;
+            const newAlias = `$MM_HIGHLIGHTKEYWORD${newIndex}$`;
+
+            newTokens.set(newAlias, {
+                value: `<span class="non-notification-highlight">${alias}</span>`,
+                originalText: token.originalText,
+            });
+            output = output.replace(alias, newAlias);
+        }
+    });
+
+    // Copy the new tokens to the tokens map
+    newTokens.forEach((newToken, newAlias) => {
+        tokens.set(newAlias, newToken);
+    });
+
+    // Look for highlighting keywords in the text
     function replaceHighlightKeywordsWithToken(
         _: string,
         prefix: string,
@@ -730,6 +755,8 @@ export function highlightWithoutNotificationKeywords(
     ) {
         const index = tokens.size;
         const alias = `$MM_HIGHLIGHTKEYWORD${index}$`;
+
+        console.log('3. replaceHighlightKeywordsWithToken', prefix, highlightKey, suffix, alias, tokens);
 
         // Set the token map with the replacement value so that it can be replaced back later
         tokens.set(alias, {
@@ -740,23 +767,25 @@ export function highlightWithoutNotificationKeywords(
         return prefix + alias + suffix;
     }
 
-    highlightKeys.forEach(({key}) => {
-        if (!key) {
-            return;
-        }
+    highlightKeys.
+        sort((a, b) => b.key.length - a.key.length).
+        forEach(({key}) => {
+            if (!key) {
+                return;
+            }
 
-        let pattern;
-        if (cjkrPattern.test(key)) {
+            let pattern;
+            if (cjkrPattern.test(key)) {
             // If the key contains Chinese, Japanese, Korean or Russian characters, don't mark word boundaries
-            pattern = new RegExp(`()(${escapeRegex(key)})()`, 'gi');
-        } else {
+                pattern = new RegExp(`()(${escapeRegex(key)})()`, 'gi');
+            } else {
             // If the key contains only English characters, mark word boundaries
-            pattern = new RegExp(`(^|\\W)(${escapeRegex(key)})(\\b|_+\\b)`, 'gi');
-        }
+                pattern = new RegExp(`(^|\\W)(${escapeRegex(key)})(\\b|_+\\b)`, 'gi');
+            }
 
-        // Replace the key with the token for each occurrence of the key
-        output = output.replace(pattern, replaceHighlightKeywordsWithToken);
-    });
+            // Replace the key with the token for each occurrence of the key
+            output = output.replace(pattern, replaceHighlightKeywordsWithToken);
+        });
 
     return output;
 }
