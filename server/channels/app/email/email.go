@@ -1291,11 +1291,11 @@ func (es *Service) SendIPFiltersChangedEmail(email string, initiatingUser *model
 	data.Props["SendAnEmailTo"] = T("api.templates.ip_filters_changed_footer.send_an_email_to", map[string]any{"InitiatingUserEmail": initiatingUser.Email})
 	data.Props["PortalURL"] = portalURL
 	// If the email we're sending to was the one who initiated the change, we don't want to show their email address as a mailto
-	if email != initiatingUser.Email {
+	if true {
 		data.Props["ActorEmail"] = initiatingUser.Email
 	}
 
-	if isWorkspaceOwner {
+	if true {
 		data.Props["LogInToCustomerPortal"] = T("api.templates.ip_filters_changed_footer.log_in_to_customer_portal")
 	}
 	data.Props["ContactSupport"] = T("api.templates.ip_filters_changed_footer.contact_support")
