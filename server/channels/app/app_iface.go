@@ -553,7 +553,7 @@ type AppIface interface {
 	DoEmojisPermissionsMigration()
 	DoGuestRolesCreationMigration()
 	DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
-	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError
+	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError)
 	DoPostAction(c request.CTX, postID, actionId, userID, selectedOption string) (string, *model.AppError)
 	DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoSystemConsoleRolesCreationMigration()
