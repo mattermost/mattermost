@@ -417,9 +417,7 @@
         "ChimeraOAuthProxyURL": ""
     },
     "DisplaySettings": {
-        "CustomURLSchemes": [],
-        "MaxMarkdownNodes": 0,
-        "ExperimentalTimezone": false
+        "CustomURLSchemes": []
     },
     "GuestAccountsSettings": {
         "Enable": true,

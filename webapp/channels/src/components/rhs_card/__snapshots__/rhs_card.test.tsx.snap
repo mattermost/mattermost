@@ -4,7 +4,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
 <div
   className="sidebar-right__body sidebar-right__card"
 >
-  <Connect(RhsCardHeader)
+  <Connect(injectIntl(RhsCardHeader))
     previousRhsState={Object {}}
   />
   <Scrollbars
@@ -108,7 +108,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
 <div
   className="sidebar-right__body sidebar-right__card"
 >
-  <Connect(RhsCardHeader)
+  <Connect(injectIntl(RhsCardHeader))
     previousRhsState={Object {}}
   />
   <Scrollbars
@@ -212,7 +212,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
 <div
   className="sidebar-right__body sidebar-right__card"
 >
-  <Connect(RhsCardHeader)
+  <Connect(injectIntl(RhsCardHeader))
     previousRhsState={Object {}}
   />
   <Scrollbars

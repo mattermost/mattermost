@@ -13,11 +13,12 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import configureStore from 'store';
 
+import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
+import {WebSocketContext} from 'utils/use_websocket';
 
 import type {GlobalState} from 'types/store';
-
 export * from '@testing-library/react';
 export {userEvent};
 
@@ -63,7 +64,9 @@ export const renderWithFullContext = (component: React.ReactNode | React.ReactNo
                     <IntlProvider
                         locale={renderState.locale}
                     >
-                        {renderState.component}
+                        <WebSocketContext.Provider value={WebSocketClient}>
+                            {renderState.component}
+                        </WebSocketContext.Provider>
                     </IntlProvider>
                 </Router>
             </Provider>
