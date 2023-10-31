@@ -72,7 +72,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 
 	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventDraftCreated, "", dt.ChannelId, dt.UserId, nil, connectionID)
+	message := model.NewWebSocketEvent(model.DraftCreated, "", dt.ChannelId, dt.UserId, nil, connectionID)
 	draftJSON, jsonErr := json.Marshal(dt)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))
@@ -158,7 +158,7 @@ func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*mode
 		mlog.Warn("Failed to encode draft to JSON")
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventDraftDeleted, "", draft.ChannelId, draft.UserId, nil, connectionID)
+	message := model.NewWebSocketEvent(model.DraftDeleted, "", draft.ChannelId, draft.UserId, nil, connectionID)
 	message.Add("draft", string(draftJSON))
 	a.Publish(message)
 

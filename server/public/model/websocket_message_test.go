@@ -241,7 +241,7 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 var err error
 
 func BenchmarkEncodeJSON(b *testing.B) {
-	message := NewWebSocketEvent(WebsocketEventUserAdded, "", "channelID", "", nil, "")
+	message := NewWebSocketEvent(UserAdded, "", "channelID", "", nil, "")
 	message.Add("user_id", "userID")
 	message.Add("team_id", "teamID")
 

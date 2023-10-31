@@ -58,7 +58,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 	})
 
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WebsocketEventReactionAdded, reaction, post)
+		a.sendReactionEvent(model.ReactionAdded, reaction, post)
 	})
 
 	return reaction, nil
@@ -131,7 +131,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 	})
 
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WebsocketEventReactionRemoved, reaction, post)
+		a.sendReactionEvent(model.ReactionRemoved, reaction, post)
 	})
 
 	return nil

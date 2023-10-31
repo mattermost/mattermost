@@ -49,7 +49,7 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 	a.invalidateCacheForChannelPosts(channel.Id)
 
 	a.Srv().Go(func() {
-		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
+		a.sendAcknowledgementEvent(model.AcknowledgementAdded, acknowledgement, post)
 	})
 
 	return acknowledgement, nil
@@ -95,7 +95,7 @@ func (a *App) DeleteAcknowledgementForPost(c *request.Context, postID, userID st
 	a.invalidateCacheForChannelPosts(channel.Id)
 
 	a.Srv().Go(func() {
-		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementRemoved, oldAck, post)
+		a.sendAcknowledgementEvent(model.AcknowledgementRemoved, oldAck, post)
 	})
 
 	return nil

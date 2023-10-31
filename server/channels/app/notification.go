@@ -542,7 +542,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 			if a.IsCRTEnabledForUser(c, uid) {
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil, "")
+				message := model.NewWebSocketEvent(model.ThreadUpdated, team.Id, "", uid, nil, "")
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
 					tm, err := a.Srv().Store().Thread().GetMembershipForUser(uid, post.RootId)
@@ -738,7 +738,7 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 					mlog.Warn("Failed to encode thread to JSON")
 				}
 
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
+				message := model.NewWebSocketEvent(model.ThreadUpdated, team.Id, "", userID, nil, "")
 				message.Add("thread", string(payload))
 				message.Add("previous_unread_mentions", previousUnreadMentions)
 				message.Add("previous_unread_replies", previousUnreadReplies)

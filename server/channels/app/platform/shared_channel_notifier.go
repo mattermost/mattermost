@@ -18,8 +18,8 @@ var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.Websocket
 	model.Posted,
 	model.PostEdited,
 	model.PostDeleted,
-	model.WebsocketEventReactionAdded,
-	model.WebsocketEventReactionRemoved,
+	model.ReactionAdded,
+	model.ReactionRemoved,
 }
 
 var sharedChannelEventsForInvitation model.WebsocketEventTypeArray = []model.WebsocketEventType{

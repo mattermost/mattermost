@@ -2435,7 +2435,7 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 }
 
 func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSocketClient, email string) {
-	assertExpectedWebsocketEvent(t, client, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+	assertExpectedWebsocketEvent(t, client, model.UserUpdated, func(event *model.WebSocketEvent) {
 		eventUser, ok := event.GetData()["user"].(*model.User)
 		require.True(t, ok, "expected user")
 		assert.Equal(t, email, eventUser.Email)
@@ -5671,12 +5671,12 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.NoError(t, err)
 		defer th.SystemAdminClient.PromoteGuestToUser(context.Background(), user.Id)
 
-		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+		assertExpectedWebsocketEvent(t, webSocketClient, model.UserUpdated, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_guest", eventUser.Roles)
 		})
-		assertExpectedWebsocketEvent(t, adminWebSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+		assertExpectedWebsocketEvent(t, adminWebSocketClient, model.UserUpdated, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_guest", eventUser.Roles)
@@ -5736,12 +5736,12 @@ func TestPromoteGuestToUser(t *testing.T) {
 		require.NoError(t, err)
 		defer th.SystemAdminClient.DemoteUserToGuest(context.Background(), user.Id)
 
-		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+		assertExpectedWebsocketEvent(t, webSocketClient, model.UserUpdated, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_user", eventUser.Roles)
 		})
-		assertExpectedWebsocketEvent(t, adminWebSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+		assertExpectedWebsocketEvent(t, adminWebSocketClient, model.UserUpdated, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_user", eventUser.Roles)
@@ -6562,7 +6562,7 @@ func TestThreadSocketEvents(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventThreadUpdated {
+					if ev.EventType() == model.ThreadUpdated {
 						caught = true
 						var thread model.ThreadResponse
 						jsonErr := json.Unmarshal([]byte(ev.GetData()["thread"].(string)), &thread)
@@ -6578,7 +6578,7 @@ func TestThreadSocketEvents(t *testing.T) {
 				}
 			}
 		}()
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
+		require.Truef(t, caught, "User should have received %s event", model.ThreadUpdated)
 	})
 
 	resp, err = th.Client.UpdateThreadFollowForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
@@ -6591,7 +6591,7 @@ func TestThreadSocketEvents(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventThreadFollowChanged {
+					if ev.EventType() == model.ThreadFollowChanged {
 						caught = true
 						require.Equal(t, ev.GetData()["state"], false)
 						require.Equal(t, ev.GetData()["reply_count"], float64(1))
@@ -6601,7 +6601,7 @@ func TestThreadSocketEvents(t *testing.T) {
 				}
 			}
 		}()
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadFollowChanged)
+		require.Truef(t, caught, "User should have received %s event", model.ThreadFollowChanged)
 	})
 
 	_, resp, err = th.Client.UpdateThreadReadForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, replyPost.CreateAt+1)
@@ -6614,7 +6614,7 @@ func TestThreadSocketEvents(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventThreadReadChanged {
+					if ev.EventType() == model.ThreadReadChanged {
 						caught = true
 
 						data := ev.GetData()
@@ -6630,7 +6630,7 @@ func TestThreadSocketEvents(t *testing.T) {
 			}
 		}()
 
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadReadChanged)
+		require.Truef(t, caught, "User should have received %s event", model.ThreadReadChanged)
 	})
 
 	_, resp, err = th.Client.SetThreadUnreadByPostId(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, rpost.Id)
@@ -6643,7 +6643,7 @@ func TestThreadSocketEvents(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventThreadReadChanged {
+					if ev.EventType() == model.ThreadReadChanged {
 						caught = true
 
 						data := ev.GetData()
@@ -6659,7 +6659,7 @@ func TestThreadSocketEvents(t *testing.T) {
 			}
 		}()
 
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadReadChanged)
+		require.Truef(t, caught, "User should have received %s event", model.ThreadReadChanged)
 	})
 
 	// read the thread
@@ -6729,7 +6729,7 @@ func TestThreadSocketEvents(t *testing.T) {
 				for {
 					select {
 					case ev := <-userWSClient.EventChannel:
-						if ev.EventType() == model.WebsocketEventThreadUpdated {
+						if ev.EventType() == model.ThreadUpdated {
 							caught = true
 							data := ev.GetData()
 							var thread model.ThreadResponse
@@ -6747,7 +6747,7 @@ func TestThreadSocketEvents(t *testing.T) {
 				}
 			}()
 
-			require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
+			require.Truef(t, caught, "User should have received %s event", model.ThreadUpdated)
 		}
 	})
 
@@ -6774,7 +6774,7 @@ func TestThreadSocketEvents(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventThreadUpdated {
+					if ev.EventType() == model.ThreadUpdated {
 						count++
 						data := ev.GetData()
 						var thread model.ThreadResponse
@@ -6792,7 +6792,7 @@ func TestThreadSocketEvents(t *testing.T) {
 			}
 		}()
 
-		require.Equalf(t, 1, count, "User should have received 1 %s event", model.WebsocketEventThreadUpdated)
+		require.Equalf(t, 1, count, "User should have received 1 %s event", model.ThreadUpdated)
 	})
 }
 
@@ -7558,7 +7558,7 @@ func TestUserUpdateEvents(t *testing.T) {
 		require.NoError(t, err)
 		CheckUserSanitization(t, ruser)
 
-		assertExpectedWebsocketEvent(t, WebSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+		assertExpectedWebsocketEvent(t, WebSocketClient, model.UserUpdated, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
 			require.True(t, ok, "expected user")
 			// assert eventUser.Id is same as th.BasicUser.Id
@@ -7566,7 +7566,7 @@ func TestUserUpdateEvents(t *testing.T) {
 			// assert eventUser.NotifyProps isn't empty
 			require.NotEmpty(t, eventUser.NotifyProps, "user event for source user should not be sanitized")
 		})
-		assertExpectedWebsocketEvent(t, WebSocketClient2, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+		assertExpectedWebsocketEvent(t, WebSocketClient2, model.UserUpdated, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
 			require.True(t, ok, "expected user")
 			// assert eventUser.Id is same as th.BasicUser.Id

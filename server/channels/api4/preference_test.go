@@ -292,7 +292,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.EventType() != model.WebsocketEventPreferencesChanged {
+			if event.EventType() != model.PreferencesChanged {
 				// Ignore any other events
 				continue
 			}
@@ -625,7 +625,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.EventType() != model.WebsocketEventPreferencesDeleted {
+			if event.EventType() != model.PreferencesDeleted {
 				// Ignore any other events
 				continue
 			}

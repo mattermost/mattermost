@@ -147,7 +147,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventSidebarCategoryUpdated {
+					if ev.EventType() == model.SidebarCategoryUpdated {
 						caught = true
 						data := ev.GetData()
 
@@ -161,7 +161,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			}
 		}()
 
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventSidebarCategoryUpdated)
+		require.Truef(t, caught, "User should have received %s event", model.SidebarCategoryUpdated)
 	})
 }
 

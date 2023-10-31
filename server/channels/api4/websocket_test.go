@@ -121,7 +121,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
 
 	wsr := <-WebSocketClient.EventChannel
-	require.Equal(t, wsr.EventType(), model.WebsocketEventHello, "missing hello")
+	require.Equal(t, wsr.EventType(), model.Hello, "missing hello")
 
 	stop := make(chan bool)
 	count := 0
@@ -213,7 +213,7 @@ func TestWebSocketReconnectRace(t *testing.T) {
 	WebSocketClient.Listen()
 
 	ev := <-WebSocketClient.EventChannel
-	require.Equal(t, model.WebsocketEventHello, ev.EventType())
+	require.Equal(t, model.Hello, ev.EventType())
 	evData := ev.GetData()
 	connID := evData["connection_id"].(string)
 	seq := int(ev.GetSequence())
@@ -395,7 +395,7 @@ func TestWebSocketStatuses(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.EventType() == model.WebsocketEventStatusChange && resp.GetData()["user_id"].(string) == th.BasicUser.Id {
+				if resp.EventType() == model.StatusChange && resp.GetData()["user_id"].(string) == th.BasicUser.Id {
 					status := resp.GetData()["status"].(string)
 					if status == model.StatusOnline {
 						onlineHit = true
