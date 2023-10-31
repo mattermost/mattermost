@@ -146,7 +146,6 @@ func (c *Context) WithLogger(logger mlog.LoggerIFace) CTX {
 }
 
 type CTX interface {
-	//Clone() CTX
 	T(string, ...interface{}) string
 	GetT() i18n.TranslateFunc
 	Session() *model.Session
