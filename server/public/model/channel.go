@@ -339,6 +339,9 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	}
 
 	userIds := strings.Split(o.Name, "__")
+	if len(userIds) != 2 {
+		return ""
+	}
 
 	var otherUserId string
 

@@ -33,11 +33,11 @@ func (s *permissionsServiceWrapper) HasPermissionTo(userID string, permission *m
 	return s.app.HasPermissionTo(userID, permission)
 }
 
-func (s *permissionsServiceWrapper) HasPermissionToTeam(c *request.Context, userID string, teamID string, permission *model.Permission) bool {
+func (s *permissionsServiceWrapper) HasPermissionToTeam(c request.CTX, userID string, teamID string, permission *model.Permission) bool {
 	return s.app.HasPermissionToTeam(c, userID, teamID, permission)
 }
 
-func (s *permissionsServiceWrapper) HasPermissionToChannel(c *request.Context, askingUserID string, channelID string, permission *model.Permission) bool {
+func (s *permissionsServiceWrapper) HasPermissionToChannel(c request.CTX, askingUserID string, channelID string, permission *model.Permission) bool {
 	return s.app.HasPermissionToChannel(c, askingUserID, channelID, permission)
 }
 
