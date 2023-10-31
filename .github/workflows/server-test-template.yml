@@ -40,9 +40,7 @@ jobs:
           docker-compose --ansi never ps
       - name: Run Tests
         run: |
-          if [[ ${{ github.ref_name }} == 'master' ]]; then
-            export RACE_MODE="-race"
-          fi
+          export RACE_MODE="-race"
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
