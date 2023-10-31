@@ -138,33 +138,30 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 
 	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 	var channelRoles []string
-	if err == nil {
-		for _, channelID := range channelIDs {
+	for _, channelID := range channelIDs {
+		if err == nil {
 			if roles, ok := ids[channelID]; ok {
 				channelRoles = strings.Fields(roles)
 				if a.RolesGrantPermission(channelRoles, permission.Id) {
 					continue
 				}
-			} else {
-				channel, appErr := a.GetChannel(c, channelID)
-				if appErr != nil && appErr.StatusCode == http.StatusNotFound {
-					return false
-				}
-
-				if appErr == nil && channel.TeamId != "" {
-					if !a.SessionHasPermissionToTeam(session, channel.TeamId, permission) {
-						return false
-					}
-				}
-				if !a.SessionHasPermissionTo(session, permission) {
-					return false
-				}
 			}
 		}
-		return true
+		channel, appErr := a.GetChannel(c, channelID)
+		if appErr != nil && appErr.StatusCode == http.StatusNotFound {
+			return false
+		}
+
+		if appErr == nil && channel.TeamId != "" {
+			if !a.SessionHasPermissionToTeam(session, channel.TeamId, permission) {
+				return false
+			}
+		}
+		if !a.SessionHasPermissionTo(session, permission) {
+			return false
+		}
 	}
-	mlog.Warn("Failed to retrieve channel members for user.", mlog.String("UserId", session.UserId), mlog.Err(err))
-	return false
+	return true
 }
 
 func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool {
@@ -334,7 +331,6 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 
 		permissions := role.Permissions
 		for _, permission := range permissions {
-			mlog.Debug(role.Name + " = " + permission)
 			if permission == permissionId {
 				return true
 			}
