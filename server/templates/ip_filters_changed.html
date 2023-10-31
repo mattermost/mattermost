@@ -472,6 +472,7 @@
                                   <div style="font-family: Open Sans, sans-serif; text-align: center; font-weight: 600; font-size: 16px; line-height: 24px; color: #3F4350; padding: 0px 0px 4px 0px;">{{.Props.TroubleAccessingTitle}}</div>
                                 </td>
                               </tr>
+                              {{if .Props.ActorEmail}}
                               <tr>
                                 <td align="center" vertical-align="middle" style="font-size:0px;padding:0px;padding-top:0;padding-bottom:6px;word-break:break-word;">
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
@@ -485,7 +486,6 @@
                                   </table>
                                 </td>
                               </tr>
-                              {{ if .Props.LogInToCustomerPortal}}
                               <tr>
                                 <td align="center" class="divider" style="opacity: 12%; font-size: 0px; padding: 0; word-break: break-word;">
                                   <p style="border-top:solid 1px #3F4350;font-size:1px;margin:0px auto;width:313px;">
@@ -494,6 +494,7 @@
 </td></tr></table><![endif]-->
                                 </td>
                               </tr>
+                              {{end}}{{ if .Props.LogInToCustomerPortal}}
                               <tr>
                                 <td align="center" vertical-align="middle" style="font-size:0px;padding:0px;padding-top:6px;padding-bottom:6px;word-break:break-word;">
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
@@ -507,7 +508,6 @@
                                   </table>
                                 </td>
                               </tr>
-                              {{end}}
                               <tr>
                                 <td align="center" class="divider" style="opacity: 12%; font-size: 0px; padding: 0; word-break: break-word;">
                                   <p style="border-top:solid 1px #3F4350;font-size:1px;margin:0px auto;width:313px;">
@@ -516,6 +516,7 @@
 </td></tr></table><![endif]-->
                                 </td>
                               </tr>
+                              {{end}}
                               <tr>
                                 <td align="center" vertical-align="middle" style="font-size:0px;padding:0px;padding-top:6px;word-break:break-word;">
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">

@@ -17,16 +17,18 @@
                     <mj-text padding-bottom="24px" css-class="footerTitle" padding="0px">
                             {{.Props.TroubleAccessingTitle}}
                     </mj-text>
+                    <mj-raw>{{if .Props.ActorEmail}}</mj-raw>
                     <mj-button padding-top="0" padding-bottom="6px" font-size="14px" line-height="20px" background-color="transparent" color="#1C58D9" href="mailto:{{.Props.ActorEmail}}">
                         {{.Props.SendAnEmailTo}}
                     </mj-button>
-                    <mj-raw>{{ if .Props.LogInToCustomerPortal}}</mj-raw>
                     <mj-divider padding="0" css-class="divider"  width="313px" border-width="1px" border-color="#3F4350"/>
+                    <mj-raw>{{end}}</mj-raw>
+                    <mj-raw>{{ if .Props.LogInToCustomerPortal}}</mj-raw>
                     <mj-button padding-top="6px" padding-bottom="6px" font-size="14px" line-height="20px"  background-color="transparent" color="#1C58D9" href="{{.Props.PortalURL}}/console/cloud/ip-filtering">
                         {{.Props.LogInToCustomerPortal}}
                     </mj-button>
-                    <mj-raw>{{end}}</mj-raw>
                     <mj-divider padding="0" css-class="divider" width="313px" border-width="1px" border-color="#3F4350"/>
+                    <mj-raw>{{end}}</mj-raw>
                     <mj-button padding-top="6px" font-size="14px" line-height="20px"  background-color="transparent" color="#1C58D9" href="mailto:{{.Props.SupportEmail}}">
                         {{.Props.ContactSupport}}
                     </mj-button>
