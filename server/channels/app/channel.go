@@ -1401,18 +1401,18 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 }
 
 func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	ihc := make(chan store.StoreResult, 1)
-	ohc := make(chan store.StoreResult, 1)
+	ihc := make(chan store.GenericStoreResult[[]*model.IncomingWebhook], 1)
+	ohc := make(chan store.GenericStoreResult[[]*model.OutgoingWebhook], 1)
 
 	go func() {
 		webhooks, err := a.Srv().Store().Webhook().GetIncomingByChannel(channel.Id)
-		ihc <- store.StoreResult{Data: webhooks, NErr: err}
+		ihc <- store.GenericStoreResult[[]*model.IncomingWebhook]{Data: webhooks, NErr: err}
 		close(ihc)
 	}()
 
 	go func() {
 		outgoingHooks, err := a.Srv().Store().Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
-		ohc <- store.StoreResult{Data: outgoingHooks, NErr: err}
+		ohc <- store.GenericStoreResult[[]*model.OutgoingWebhook]{Data: outgoingHooks, NErr: err}
 		close(ohc)
 	}()
 
@@ -1440,9 +1440,6 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	if ohcresult.NErr != nil {
 		return model.NewAppError("DeleteChannel", "app.webhooks.get_outgoing_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(ohcresult.NErr)
 	}
-
-	incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
-	outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
 
 	if channel.DeleteAt > 0 {
 		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.deleted.app_error", nil, "", http.StatusBadRequest)
@@ -1492,14 +1489,14 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	}
 
 	now := model.GetMillis()
-	for _, hook := range incomingHooks {
+	for _, hook := range ihcresult.Data {
 		if err := a.Srv().Store().Webhook().DeleteIncoming(hook.Id, now); err != nil {
 			c.Logger().Warn("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 		a.Srv().Platform().InvalidateCacheForWebhook(hook.Id)
 	}
 
-	for _, hook := range outgoingHooks {
+	for _, hook := range ohcresult.Data {
 		if err := a.Srv().Store().Webhook().DeleteOutgoing(hook.Id, now); err != nil {
 			c.Logger().Warn("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}

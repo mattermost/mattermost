@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	post, err := a.GetSinglePost(reaction.PostId, false)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reac
 	return reactions
 }
 
-func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError {
+func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError {
 	post, err := a.GetSinglePost(reaction.PostId, false)
 	if err != nil {
 		return err

@@ -201,7 +201,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	falseValues := []string{"0", "f", "F", "FALSE", "false", "False"}
 	trueString := trueValues[rand.Intn(len(trueValues))]
 	falseString := falseValues[rand.Intn(len(falseValues))]
-	mlog.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
+	testLogger.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
 	th.Client.SetBoolString(true, trueString)
 	th.Client.SetBoolString(false, falseString)
 

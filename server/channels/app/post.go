@@ -42,7 +42,7 @@ type postServiceWrapper struct {
 	app AppIface
 }
 
-func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) (*model.Post, *model.AppError) {
+func (s *postServiceWrapper) CreatePost(ctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
 	return s.app.CreatePostMissingChannel(ctx, post, true, true)
 }
 
@@ -50,7 +50,7 @@ func (s *postServiceWrapper) GetPostsByIds(postIDs []string) ([]*model.Post, int
 	return s.app.GetPostsByIds(postIDs)
 }
 
-func (s *postServiceWrapper) SendEphemeralPost(ctx *request.Context, userID string, post *model.Post) *model.Post {
+func (s *postServiceWrapper) SendEphemeralPost(ctx request.CTX, userID string, post *model.Post) *model.Post {
 	return s.app.SendEphemeralPost(ctx, userID, post)
 }
 
@@ -58,11 +58,11 @@ func (s *postServiceWrapper) GetPost(postID string) (*model.Post, *model.AppErro
 	return s.app.GetSinglePost(postID, false)
 }
 
-func (s *postServiceWrapper) DeletePost(ctx *request.Context, postID, productID string) (*model.Post, *model.AppError) {
+func (s *postServiceWrapper) DeletePost(ctx request.CTX, postID, productID string) (*model.Post, *model.AppError) {
 	return s.app.DeletePost(ctx, postID, productID)
 }
 
-func (s *postServiceWrapper) UpdatePost(ctx *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (s *postServiceWrapper) UpdatePost(ctx request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	return s.app.UpdatePost(ctx, post, false)
 }
 
@@ -627,7 +627,7 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c *request.Context, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	receivedUpdatedPost.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
@@ -825,7 +825,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	return true, nil
 }
 
-func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
@@ -1400,7 +1400,7 @@ func (a *App) deletePostFiles(postID string) {
 	}
 }
 
-func (a *App) parseAndFetchChannelIdByNameFromInFilter(c *request.Context, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
+func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIDs []string
 		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
@@ -1477,7 +1477,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 	return posts, nil
 }
 
-func (a *App) convertChannelNamesToChannelIds(c *request.Context, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
+func (a *App) convertChannelNamesToChannelIds(c request.CTX, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(c, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
@@ -1608,7 +1608,7 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
