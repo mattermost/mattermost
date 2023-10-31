@@ -492,6 +492,22 @@ func (_m *Store) OAuth() store.OAuthStore {
 	return r0
 }
 
+// OAuthOutgoingConnection provides a mock function with given fields:
+func (_m *Store) OAuthOutgoingConnection() store.OAuthOutgoingConnectionStore {
+	ret := _m.Called()
+
+	var r0 store.OAuthOutgoingConnectionStore
+	if rf, ok := ret.Get(0).(func() store.OAuthOutgoingConnectionStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.OAuthOutgoingConnectionStore)
+		}
+	}
+
+	return r0
+}
+
 // Plugin provides a mock function with given fields:
 func (_m *Store) Plugin() store.PluginStore {
 	ret := _m.Called()
