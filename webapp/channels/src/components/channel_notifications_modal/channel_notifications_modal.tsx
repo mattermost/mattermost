@@ -43,8 +43,10 @@ type Props = PropsFromRedux & {
 };
 
 function getUseSameDesktopSetting(currentUserNotifyProps: UserNotifyProps, channelMemberNotifyProps?: ChannelMemberNotifyProps) {
-    const isSameAsDesktop = channelMemberNotifyProps?.desktop === channelMemberNotifyProps?.push || currentUserNotifyProps.push === currentUserNotifyProps.desktop;
-    const isSameAsDesktopThreads = channelMemberNotifyProps?.desktop_threads === channelMemberNotifyProps?.push_threads || currentUserNotifyProps.push_threads === currentUserNotifyProps.desktop_threads;
+    const isSameAsDesktop = channelMemberNotifyProps ? channelMemberNotifyProps?.desktop === channelMemberNotifyProps?.push :
+        currentUserNotifyProps.push === currentUserNotifyProps.desktop;
+    const isSameAsDesktopThreads = channelMemberNotifyProps ? channelMemberNotifyProps?.desktop_threads === channelMemberNotifyProps?.push_threads :
+        currentUserNotifyProps.push_threads === currentUserNotifyProps.desktop_threads;
     return isSameAsDesktop && isSameAsDesktopThreads;
 }
 
@@ -89,7 +91,6 @@ export default function ChannelNotificationsModal(props: Props) {
     const [show, setShow] = useState(true);
     const [serverError, setServerError] = useState('');
     const [mobileSettingsSameAsDesktop, setMobileSettingsSameAsDesktop] = useState<boolean>(getUseSameDesktopSetting(props.currentUser.notify_props, props.channelMember?.notify_props));
-
     const [settings, setSettings] = useState<SettingsType>(getStateFromNotifyProps(props.currentUser.notify_props, props.channelMember?.notify_props));
 
     function handleHide() {
@@ -102,8 +103,8 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const handleMobileSettingsChange = useCallback(() => {
         setMobileSettingsSameAsDesktop((prevSettings) => !prevSettings);
-        setSettings((prevSettings) => ({...prevSettings, push: settings.desktop, push_threads: settings.desktop_threads}));
-    }, []);
+        setSettings((prevSettings) => ({...prevSettings, push: prevSettings.desktop, push_threads: prevSettings.desktop_threads}));
+    }, [setSettings, setMobileSettingsSameAsDesktop]);
 
     const MuteIgnoreSectionContent = (
         <>
@@ -199,10 +200,10 @@ export default function ChannelNotificationsModal(props: Props) {
 
         const resetToDefault = (settingName: string) => {
             if (settingName === 'desktop') {
-                setSettings((prevSettings) => ({...prevSettings, desktop: defaultSettings.desktop, desktop_threads: defaultSettings.desktop_threads || settings.desktop_threads}));
+                setSettings({...settings, desktop: defaultSettings.desktop, desktop_threads: defaultSettings.desktop_threads || settings.desktop_threads});
             }
             if (settingName === 'push') {
-                setSettings((prevSettings) => ({...prevSettings, push: defaultSettings.desktop, push_threads: defaultSettings.push_threads || settings.push_threads}));
+                setSettings({...settings, push: defaultSettings.desktop, push_threads: defaultSettings.push_threads || settings.push_threads});
             }
         };
 

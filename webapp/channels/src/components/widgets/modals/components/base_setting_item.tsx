@@ -5,7 +5,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
-import './section_item_creator.scss';
+import './base_setting_item.scss';
 
 export type BaseSettingItemProps = {
     title?: MessageDescriptor;
