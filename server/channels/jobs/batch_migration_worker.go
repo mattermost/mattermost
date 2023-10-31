@@ -34,7 +34,7 @@ type BatchMigrationWorker struct {
 	store     store.Store
 	app       BatchMigrationWorkerAppIFace
 
-	stop    chan bool
+	stop    chan struct{}
 	stopped chan bool
 	closed  atomic.Bool
 	jobs    chan model.Job
@@ -51,7 +51,7 @@ func MakeBatchMigrationWorker(jobServer *JobServer, store store.Store, app Batch
 		logger:             jobServer.Logger().With(mlog.String("worker_name", migrationKey)),
 		store:              store,
 		app:                app,
-		stop:               make(chan bool, 1),
+		stop:               make(chan struct{}),
 		stopped:            make(chan bool, 1),
 		jobs:               make(chan model.Job),
 		migrationKey:       migrationKey,
@@ -67,7 +67,7 @@ func (worker *BatchMigrationWorker) Run() {
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
 	if worker.closed.CompareAndSwap(true, false) {
-		worker.stop = make(chan bool, 1)
+		worker.stop = make(chan struct{})
 	}
 
 	defer func() {
