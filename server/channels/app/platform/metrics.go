@@ -213,7 +213,7 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 	subpath, err := utils.GetSubpathFromConfig(pm.cfgFn())
 	if err != nil {
 		appErr := model.NewAppError("ServePluginMetricsRequest", "app.plugin.subpath_parse.app_error",
-			nil, "Failed to parse SiteURL subpath", http.StatusInternalServerError)
+			nil, "Failed to parse SiteURL subpath", http.StatusInternalServerError).Wrap(err)
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
