@@ -998,7 +998,7 @@ func (s *Server) Start() error {
 
 	// Check if the command is called by root user
 	if os.Geteuid() == 0 {
-		mlog.Warn("Running as root is not recommended")
+		mlog.Warn("Running Mattermost as root is not recommended. Please use a separate user")
 	}
 
 	m := &autocert.Manager{
