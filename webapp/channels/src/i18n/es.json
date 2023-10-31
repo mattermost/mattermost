@@ -233,7 +233,6 @@
   "admin.billing.company_info.city": "Ciudad",
   "admin.billing.company_info.companyAddress": "Dirección de la empresa",
   "admin.billing.company_info.companyName": "Nombre de empresa",
-  "admin.billing.company_info.country": "País",
   "admin.billing.company_info.employees": "{employees} empleados",
   "admin.billing.company_info.numEmployees": "Número de empleados (opcional)",
   "admin.billing.company_info.title": "Información de la empresa",

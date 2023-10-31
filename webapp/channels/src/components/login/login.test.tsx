@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {MemoryRouter} from 'react-router-dom';
@@ -20,6 +20,7 @@ import SaveButton from 'components/save_button';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants, {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -152,7 +153,7 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(true);
         mockConfig.EnableSignInWithEmail = 'true';
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <MemoryRouter><Login/></MemoryRouter>,
         );
 
@@ -174,7 +175,7 @@ describe('components/login/Login', () => {
             messages: {},
         };
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <IntlProvider {...intlProviderProps}>
                 <MemoryRouter>
                     <Login/>
@@ -195,7 +196,7 @@ describe('components/login/Login', () => {
             messages: {},
         };
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <IntlProvider {...intlProviderProps}>
                 <Login/>
             </IntlProvider>,
@@ -210,7 +211,7 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(true);
         mockConfig.EnableSignInWithEmail = 'true';
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <MemoryRouter>
                 <Login/>
             </MemoryRouter>,
@@ -231,7 +232,7 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(true);
         mockConfig.EnableSignInWithEmail = 'true';
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <MemoryRouter>
                 <Login/>
             </MemoryRouter>,
@@ -297,7 +298,7 @@ describe('components/login/Login', () => {
         mockConfig.EnableSignInWithEmail = 'true';
         const redirectPath = '/boards/team/teamID/boardID';
         mockLocation.search = '?redirect_to=' + redirectPath;
-        mount(
+        mountWithIntl(
             <MemoryRouter>
                 <Login/>
             </MemoryRouter>,

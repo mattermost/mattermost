@@ -407,8 +407,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
+
+			pageLoadContext := r.Header.Get("X-Page-Load-Context")
+			if pageLoadContext != "page_load" && pageLoadContext != "reconnect" {
+				pageLoadContext = ""
+			}
+
 			originClient := string(originClient(r))
-			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originClient, elapsed)
+
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originClient, pageLoadContext, elapsed)
 		}
 	}
 }

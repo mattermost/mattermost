@@ -248,8 +248,8 @@ type ChannelStore interface {
 	PermanentDeleteMembersByChannel(channelID string) error
 	UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
-	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error)
-	CountUrgentPostsAfter(channelID string, timestamp int64, userID string) (int, error)
+	CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error)
+	CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error)
 	IncrementMentionCount(channelID string, userIDs []string, isRoot, isUrgent bool) error
 	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
@@ -488,7 +488,7 @@ type BotStore interface {
 type SessionStore interface {
 	Get(c request.CTX, sessionIDOrToken string) (*model.Session, error)
 	Save(c request.CTX, session *model.Session) (*model.Session, error)
-	GetSessions(c *request.Context, userID string) ([]*model.Session, error)
+	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
@@ -736,12 +736,12 @@ type JobStore interface {
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
-	Get(c *request.Context, id string) (*model.Job, error)
-	GetAllByType(c *request.Context, jobType string) ([]*model.Job, error)
-	GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error)
-	GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error)
-	GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error)
-	GetAllByStatus(c *request.Context, status string) ([]*model.Job, error)
+	Get(c request.CTX, id string) (*model.Job, error)
+	GetAllByType(c request.CTX, jobType string) ([]*model.Job, error)
+	GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error)
+	GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error)
+	GetAllByStatus(c request.CTX, status string) ([]*model.Job, error)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)
