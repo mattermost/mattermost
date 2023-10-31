@@ -6951,16 +6951,6 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'DisplaySettings.ExperimentalTimezone',
-                        label: t('admin.experimental.experimentalTimezone.title'),
-                        label_default: 'Timezone:',
-                        help_text: t('admin.experimental.experimentalTimezone.desc'),
-                        help_text_default: 'Select the timezone used for timestamps in the user interface and email notifications. When true, the Timezone section is visible in the Settings and a time zone is automatically assigned in the next active session. When false, the Timezone setting is hidden in the Settings.',
-                        help_text_markdown: false,
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                    },
-                    {
-                        type: Constants.SettingsTypes.TYPE_BOOL,
                         key: 'EmailSettings.UseChannelInEmailNotifications',
                         label: t('admin.experimental.useChannelInEmailNotifications.title'),
                         label_default: 'Use Channel Name in Email Notifications:',
