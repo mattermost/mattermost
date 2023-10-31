@@ -12,7 +12,6 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {makeGetPostsForIds} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
 import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook} from 'mattermost-redux/utils/post_utils';
@@ -62,8 +61,7 @@ export function makeFilterPostsAndAddSeparators() {
         (state) => state.entities.posts.selectedPostId,
         getCurrentUser,
         shouldShowJoinLeaveMessages,
-        isTimezoneEnabled,
-        (posts, lastViewedAt, indicateNewMessages, selectedPostId, currentUser, showJoinLeave, timeZoneEnabled) => {
+        (posts, lastViewedAt, indicateNewMessages, selectedPostId, currentUser, showJoinLeave) => {
             if (posts.length === 0 || !currentUser) {
                 return [];
             }
@@ -90,15 +88,13 @@ export function makeFilterPostsAndAddSeparators() {
 
                 // Push on a date header if the last post was on a different day than the current one
                 const postDate = new Date(post.create_at);
-                if (timeZoneEnabled) {
-                    const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
-                    const timezone = getUserCurrentTimezone(currentUser.timezone);
-                    if (timezone) {
-                        const zone = moment.tz.zone(timezone);
-                        if (zone) {
-                            const timezoneOffset = zone.utcOffset(post.create_at) * 60 * 1000;
-                            postDate.setTime(post.create_at + (currentOffset - timezoneOffset));
-                        }
+                const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
+                const timezone = getUserCurrentTimezone(currentUser.timezone);
+                if (timezone) {
+                    const zone = moment.tz.zone(timezone);
+                    if (zone) {
+                        const timezoneOffset = zone.utcOffset(postDate.getTime()) * 60 * 1000;
+                        postDate.setTime(postDate.getTime() + (currentOffset - timezoneOffset));
                     }
                 }
 

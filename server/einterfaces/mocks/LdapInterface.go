@@ -16,11 +16,11 @@ type LdapInterface struct {
 }
 
 // CheckPassword provides a mock function with given fields: c, id, password
-func (_m *LdapInterface) CheckPassword(c *request.Context, id string, password string) *model.AppError {
+func (_m *LdapInterface) CheckPassword(c request.CTX, id string, password string) *model.AppError {
 	ret := _m.Called(c, id, password)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AppError); ok {
 		r0 = rf(c, id, password)
 	} else {
 		if ret.Get(0) != nil {
@@ -32,11 +32,11 @@ func (_m *LdapInterface) CheckPassword(c *request.Context, id string, password s
 }
 
 // CheckPasswordAuthData provides a mock function with given fields: c, authData, password
-func (_m *LdapInterface) CheckPasswordAuthData(c *request.Context, authData string, password string) *model.AppError {
+func (_m *LdapInterface) CheckPasswordAuthData(c request.CTX, authData string, password string) *model.AppError {
 	ret := _m.Called(c, authData, password)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AppError); ok {
 		r0 = rf(c, authData, password)
 	} else {
 		if ret.Get(0) != nil {
@@ -48,11 +48,11 @@ func (_m *LdapInterface) CheckPasswordAuthData(c *request.Context, authData stri
 }
 
 // CheckProviderAttributes provides a mock function with given fields: c, LS, ouser, patch
-func (_m *LdapInterface) CheckProviderAttributes(c *request.Context, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
+func (_m *LdapInterface) CheckProviderAttributes(c request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
 	ret := _m.Called(c, LS, ouser, patch)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.LdapSettings, *model.User, *model.UserPatch) string); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings, *model.User, *model.UserPatch) string); ok {
 		r0 = rf(c, LS, ouser, patch)
 	} else {
 		r0 = ret.Get(0).(string)
@@ -62,15 +62,15 @@ func (_m *LdapInterface) CheckProviderAttributes(c *request.Context, LS *model.L
 }
 
 // DoLogin provides a mock function with given fields: c, id, password
-func (_m *LdapInterface) DoLogin(c *request.Context, id string, password string) (*model.User, *model.AppError) {
+func (_m *LdapInterface) DoLogin(c request.CTX, id string, password string) (*model.User, *model.AppError) {
 	ret := _m.Called(c, id, password)
 
 	var r0 *model.User
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string, string) (*model.User, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.User, *model.AppError)); ok {
 		return rf(c, id, password)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string, string) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.User); ok {
 		r0 = rf(c, id, password)
 	} else {
 		if ret.Get(0) != nil {
@@ -78,7 +78,7 @@ func (_m *LdapInterface) DoLogin(c *request.Context, id string, password string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
 		r1 = rf(c, id, password)
 	} else {
 		if ret.Get(1) != nil {
@@ -90,11 +90,11 @@ func (_m *LdapInterface) DoLogin(c *request.Context, id string, password string)
 }
 
 // FirstLoginSync provides a mock function with given fields: c, user, userAuthService, userAuthData, email
-func (_m *LdapInterface) FirstLoginSync(c *request.Context, user *model.User, userAuthService string, userAuthData string, email string) *model.AppError {
+func (_m *LdapInterface) FirstLoginSync(c request.CTX, user *model.User, userAuthService string, userAuthData string, email string) *model.AppError {
 	ret := _m.Called(c, user, userAuthService, userAuthData, email)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.User, string, string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, string, string, string) *model.AppError); ok {
 		r0 = rf(c, user, userAuthService, userAuthData, email)
 	} else {
 		if ret.Get(0) != nil {
@@ -155,15 +155,15 @@ func (_m *LdapInterface) GetAllGroupsPage(page int, perPage int, opts model.Ldap
 }
 
 // GetAllLdapUsers provides a mock function with given fields: c
-func (_m *LdapInterface) GetAllLdapUsers(c *request.Context) ([]*model.User, *model.AppError) {
+func (_m *LdapInterface) GetAllLdapUsers(c request.CTX) ([]*model.User, *model.AppError) {
 	ret := _m.Called(c)
 
 	var r0 []*model.User
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context) ([]*model.User, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX) ([]*model.User, *model.AppError)); ok {
 		return rf(c)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context) []*model.User); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX) []*model.User); ok {
 		r0 = rf(c)
 	} else {
 		if ret.Get(0) != nil {
@@ -171,7 +171,7 @@ func (_m *LdapInterface) GetAllLdapUsers(c *request.Context) ([]*model.User, *mo
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX) *model.AppError); ok {
 		r1 = rf(c)
 	} else {
 		if ret.Get(1) != nil {
@@ -211,11 +211,11 @@ func (_m *LdapInterface) GetGroup(groupUID string) (*model.Group, *model.AppErro
 }
 
 // GetSAMLIdFromADLdapId provides a mock function with given fields: c, authData
-func (_m *LdapInterface) GetSAMLIdFromADLdapId(c *request.Context, authData string) string {
+func (_m *LdapInterface) GetSAMLIdFromADLdapId(c request.CTX, authData string) string {
 	ret := _m.Called(c, authData)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*request.Context, string) string); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
 		r0 = rf(c, authData)
 	} else {
 		r0 = ret.Get(0).(string)
@@ -225,15 +225,15 @@ func (_m *LdapInterface) GetSAMLIdFromADLdapId(c *request.Context, authData stri
 }
 
 // GetUser provides a mock function with given fields: c, id
-func (_m *LdapInterface) GetUser(c *request.Context, id string) (*model.User, *model.AppError) {
+func (_m *LdapInterface) GetUser(c request.CTX, id string) (*model.User, *model.AppError) {
 	ret := _m.Called(c, id)
 
 	var r0 *model.User
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string) (*model.User, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.User, *model.AppError)); ok {
 		return rf(c, id)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.User); ok {
 		r0 = rf(c, id)
 	} else {
 		if ret.Get(0) != nil {
@@ -241,7 +241,7 @@ func (_m *LdapInterface) GetUser(c *request.Context, id string) (*model.User, *m
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
 		r1 = rf(c, id)
 	} else {
 		if ret.Get(1) != nil {
@@ -305,11 +305,11 @@ func (_m *LdapInterface) GetVendorNameAndVendorVersion() (string, string) {
 }
 
 // MigrateIDAttribute provides a mock function with given fields: c, toAttribute
-func (_m *LdapInterface) MigrateIDAttribute(c *request.Context, toAttribute string) error {
+func (_m *LdapInterface) MigrateIDAttribute(c request.CTX, toAttribute string) error {
 	ret := _m.Called(c, toAttribute)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*request.Context, string) error); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
 		r0 = rf(c, toAttribute)
 	} else {
 		r0 = ret.Error(0)
@@ -335,15 +335,15 @@ func (_m *LdapInterface) RunTest() *model.AppError {
 }
 
 // StartSynchronizeJob provides a mock function with given fields: c, waitForJobToFinish, includeRemovedMembers
-func (_m *LdapInterface) StartSynchronizeJob(c *request.Context, waitForJobToFinish bool, includeRemovedMembers bool) (*model.Job, *model.AppError) {
+func (_m *LdapInterface) StartSynchronizeJob(c request.CTX, waitForJobToFinish bool, includeRemovedMembers bool) (*model.Job, *model.AppError) {
 	ret := _m.Called(c, waitForJobToFinish, includeRemovedMembers)
 
 	var r0 *model.Job
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, bool, bool) (*model.Job, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, bool, bool) (*model.Job, *model.AppError)); ok {
 		return rf(c, waitForJobToFinish, includeRemovedMembers)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, bool, bool) *model.Job); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, bool, bool) *model.Job); ok {
 		r0 = rf(c, waitForJobToFinish, includeRemovedMembers)
 	} else {
 		if ret.Get(0) != nil {
@@ -351,7 +351,7 @@ func (_m *LdapInterface) StartSynchronizeJob(c *request.Context, waitForJobToFin
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, bool, bool) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, bool, bool) *model.AppError); ok {
 		r1 = rf(c, waitForJobToFinish, includeRemovedMembers)
 	} else {
 		if ret.Get(1) != nil {
@@ -363,11 +363,11 @@ func (_m *LdapInterface) StartSynchronizeJob(c *request.Context, waitForJobToFin
 }
 
 // SwitchToLdap provides a mock function with given fields: c, userID, ldapID, ldapPassword
-func (_m *LdapInterface) SwitchToLdap(c *request.Context, userID string, ldapID string, ldapPassword string) *model.AppError {
+func (_m *LdapInterface) SwitchToLdap(c request.CTX, userID string, ldapID string, ldapPassword string) *model.AppError {
 	ret := _m.Called(c, userID, ldapID, ldapPassword)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string, string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) *model.AppError); ok {
 		r0 = rf(c, userID, ldapID, ldapPassword)
 	} else {
 		if ret.Get(0) != nil {

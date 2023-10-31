@@ -47,11 +47,11 @@ func (_m *MockAppIface) AddUserToChannel(c request.CTX, user *model.User, channe
 }
 
 // AddUserToTeamByTeamId provides a mock function with given fields: c, teamId, user
-func (_m *MockAppIface) AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError {
+func (_m *MockAppIface) AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError {
 	ret := _m.Called(c, teamId, user)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string, *model.User) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.User) *model.AppError); ok {
 		r0 = rf(c, teamId, user)
 	} else {
 		if ret.Get(0) != nil {
@@ -175,11 +175,11 @@ func (_m *MockAppIface) DeletePost(c request.CTX, postID string, deleteByID stri
 }
 
 // DeleteReactionForPost provides a mock function with given fields: c, reaction
-func (_m *MockAppIface) DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError {
+func (_m *MockAppIface) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError {
 	ret := _m.Called(c, reaction)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Reaction) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) *model.AppError); ok {
 		r0 = rf(c, reaction)
 	} else {
 		if ret.Get(0) != nil {
@@ -359,15 +359,15 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 }
 
 // SaveReactionForPost provides a mock function with given fields: c, reaction
-func (_m *MockAppIface) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (_m *MockAppIface) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	ret := _m.Called(c, reaction)
 
 	var r0 *model.Reaction
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Reaction) (*model.Reaction, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) (*model.Reaction, *model.AppError)); ok {
 		return rf(c, reaction)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Reaction) *model.Reaction); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) *model.Reaction); ok {
 		r0 = rf(c, reaction)
 	} else {
 		if ret.Get(0) != nil {
@@ -375,7 +375,7 @@ func (_m *MockAppIface) SaveReactionForPost(c *request.Context, reaction *model.
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, *model.Reaction) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Reaction) *model.AppError); ok {
 		r1 = rf(c, reaction)
 	} else {
 		if ret.Get(1) != nil {
