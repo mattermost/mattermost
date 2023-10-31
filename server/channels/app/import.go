@@ -171,11 +171,11 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 	}
 }
 
-func (a *App) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
+func (a *App) BulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
 }
 
