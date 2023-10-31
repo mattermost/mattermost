@@ -56,7 +56,7 @@ export type Props = {
     /*
     * A callback that is called as soon as the image component has a height value
     */
-    onImageLoaded?: (input: {height: number; width: number}) => void;
+    onImageLoaded?: ({height, width}: {height: number; width: number}) => void;
 
     /*
     * A callback that is called when image load fails
