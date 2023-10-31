@@ -114,10 +114,7 @@ const IPFiltering = () => {
             dialogType: IPFilteringAddOrEditModal,
             dialogProps: {
                 currentIP: currentUsersIP!,
-                onClose: () => dispatch(closeModal(ModalIdentifiers.IP_FILTERING_ADD_EDIT_MODAL)),
-                onSave: (filter: AllowedIPRange) => {
-                    handleAddFilter(filter);
-                },
+                onSave: handleAddFilter,
             },
         }));
     }
@@ -128,7 +125,6 @@ const IPFiltering = () => {
             dialogType: IPFilteringAddOrEditModal,
             dialogProps: {
                 currentIP: currentUsersIP!,
-                onClose: () => dispatch(closeModal(ModalIdentifiers.IP_FILTERING_ADD_EDIT_MODAL)),
                 onSave: handleEditFilter,
                 existingRange: editFilter!,
             },
@@ -140,7 +136,6 @@ const IPFiltering = () => {
             modalId: ModalIdentifiers.IP_FILTERING_DELETE_CONFIRMATION_MODAL,
             dialogType: DeleteConfirmationModal,
             dialogProps: {
-                onClose: () => dispatch(closeModal(ModalIdentifiers.IP_FILTERING_DELETE_CONFIRMATION_MODAL)),
                 onConfirm: handleDeleteFilter,
                 filterToDelete: filter,
             },
@@ -150,16 +145,18 @@ const IPFiltering = () => {
     function handleDeleteFilter(filter: AllowedIPRange) {
         dispatch(closeModal(ModalIdentifiers.IP_FILTERING_DELETE_CONFIRMATION_MODAL));
         setIpFilters((prevIpFilters) => prevIpFilters?.filter((f) => f.cidr_block !== filter.cidr_block) ?? null);
+        setSaveNeeded(true);
     }
 
     function handleAddFilter(filter: AllowedIPRange) {
+        dispatch(closeModal(ModalIdentifiers.IP_FILTERING_ADD_EDIT_MODAL));
         setIpFilters((prevIpFilters) => [...(prevIpFilters ?? []), filter]);
         setSaveNeeded(true);
     }
 
     function handleSave() {
         setSaving(true);
-        closeModal(ModalIdentifiers.IP_FILTERING_SAVE_CONFIRMATION_MODAL);
+        dispatch(closeModal(ModalIdentifiers.IP_FILTERING_SAVE_CONFIRMATION_MODAL));
 
         const success = (data: AllowedIPRange[]) => {
             setIpFilters(data);
@@ -172,9 +169,6 @@ const IPFiltering = () => {
 
     function handleSaveClick() {
         const saveConfirmModalProps = {
-            onClose: () => {
-                closeModal(ModalIdentifiers.IP_FILTERING_SAVE_CONFIRMATION_MODAL);
-            },
             onConfirm: handleSave,
         } as any;
         if (!ipFilters?.length && filterToggle) {

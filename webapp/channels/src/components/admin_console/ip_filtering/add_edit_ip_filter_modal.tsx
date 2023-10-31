@@ -16,7 +16,7 @@ import Input from 'components/widgets/inputs/input/input';
 import './add_edit_ip_filter_modal.scss';
 
 type Props = {
-    onClose: () => void;
+    onExited: () => void;
     onSave: (allowedIPRange: AllowedIPRange, oldIPRange?: AllowedIPRange) => void;
     existingRange?: AllowedIPRange;
     currentIP?: string;
@@ -26,7 +26,7 @@ function validateCIDR(cidr: string) {
     return cidrRegex.v4({exact: true}).test(cidr) || cidrRegex.v6({exact: true}).test(cidr);
 }
 
-export default function IPFilteringAddOrEditModal({onClose, onSave, existingRange, currentIP}: Props) {
+export default function IPFilteringAddOrEditModal({onExited, onSave, existingRange, currentIP}: Props) {
     const {formatMessage} = useIntl();
     const [name, setName] = useState(existingRange?.description || '');
     const [CIDR, setCIDR] = useState(existingRange?.cidr_block || '');
@@ -47,7 +47,7 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
             onSave(allowedIPRange);
         }
 
-        onClose();
+        onExited();
     };
 
     const handleCIDRChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,8 +67,8 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
             className={'IPFilteringAddOrEditModal'}
             dialogClassName={'IPFilteringAddOrEditModal__dialog'}
             show={true}
-            onExited={onClose}
-            onHide={onClose}
+            onExited={onExited}
+            onHide={onExited}
         >
             <Modal.Header closeButton={true}>
                 <div className='title'>
@@ -131,7 +131,7 @@ export default function IPFilteringAddOrEditModal({onClose, onSave, existingRang
                 <button
                     type='button'
                     className='btn-cancel'
-                    onClick={onClose}
+                    onClick={onExited}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
                 </button>

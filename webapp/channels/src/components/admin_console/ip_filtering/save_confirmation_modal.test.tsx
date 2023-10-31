@@ -15,14 +15,14 @@ jest.mock('components/external_link', () => {
 });
 
 describe('SaveConfirmationModal', () => {
-    const onCloseMock = jest.fn();
+    const onExitedMock = jest.fn();
     const onConfirmMock = jest.fn();
     const title = 'Test Title';
     const subtitle = 'Test Subtitle';
     const buttonText = 'Test Button Text';
 
     const baseProps = {
-        onClose: onCloseMock,
+        onExited: onExitedMock,
         onConfirm: onConfirmMock,
         title,
         subtitle,
@@ -60,7 +60,7 @@ describe('SaveConfirmationModal', () => {
 
         fireEvent.click(getByText('Cancel'));
 
-        expect(onCloseMock).toHaveBeenCalledTimes(1);
+        expect(onExitedMock).toHaveBeenCalledTimes(1);
     });
 
     test('calls onConfirm when the confirm button is clicked', () => {

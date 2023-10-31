@@ -36,17 +36,21 @@ export function isIPAddressInRanges(ipAddress: string, allowedIPRanges: AllowedI
         // Convert the subnet mask to a number
         const subnetMaskNumber = parseInt(subnetMask, 10);
 
-        // Calculate the subnet mask bits
-        const subnetMaskBits = isIPv4 ?
-            (1 << 32 - subnetMaskNumber) - 1 :
-            (1 << 128 - subnetMaskNumber) - 1;
+        try {
+            // Calculate the subnet mask bits
+            const subnetMaskBits = isIPv4 ?
+                (1 << 32 - subnetMaskNumber) - 1 :
+                (1 << 128 - subnetMaskNumber) - 1;
 
-        // Invert the subnet mask bits to get the subnet mask number inverted
-        const subnetMaskNumberInverted = ~subnetMaskBits;
+            // Invert the subnet mask bits to get the subnet mask number inverted
+            const subnetMaskNumberInverted = ~subnetMaskBits;
 
-        // Check if the IP address is within the current allowed IP range
-        if ((ipAddressNumber & subnetMaskNumberInverted) === (cidrBlockNumber & subnetMaskNumberInverted)) {
-            return true;
+            // Check if the IP address is within the current allowed IP range
+            if ((ipAddressNumber & subnetMaskNumberInverted) === (cidrBlockNumber & subnetMaskNumberInverted)) {
+                return true;
+            }
+        } catch (e) {
+            return false;
         }
     }
 

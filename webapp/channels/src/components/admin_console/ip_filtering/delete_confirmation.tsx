@@ -10,19 +10,20 @@ import type {AllowedIPRange} from '@mattermost/types/config';
 import './delete_confirmation.scss';
 
 type Props = {
-    onClose?: () => void;
+    onExited: () => void;
     onConfirm?: (filter: AllowedIPRange) => void;
     filterToDelete?: AllowedIPRange;
 }
 
-export default function DeleteConfirmationModal({onClose, onConfirm, filterToDelete}: Props) {
+export default function DeleteConfirmationModal({onExited, onConfirm, filterToDelete}: Props) {
     const {formatMessage} = useIntl();
     return (
         <Modal
             className={'DeleteConfirmationModal'}
             dialogClassName={'DeleteConfirmationModal__dialog'}
             show={true}
-            onHide={() => onClose?.()}
+            onExited={onExited}
+            onHide={onExited}
         >
             <Modal.Header closeButton={true}>
                 <div className='title'>
@@ -41,7 +42,7 @@ export default function DeleteConfirmationModal({onClose, onConfirm, filterToDel
                 <button
                     type='button'
                     className='btn-cancel'
-                    onClick={() => onClose?.()}
+                    onClick={onExited}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
                 </button>
