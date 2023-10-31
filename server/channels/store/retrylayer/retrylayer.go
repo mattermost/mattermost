@@ -5584,7 +5584,7 @@ func (s *RetryLayerJobStore) Delete(id string) (string, error) {
 
 }
 
-func (s *RetryLayerJobStore) Get(c *request.Context, id string) (*model.Job, error) {
+func (s *RetryLayerJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 
 	tries := 0
 	for {
@@ -5605,7 +5605,7 @@ func (s *RetryLayerJobStore) Get(c *request.Context, id string) (*model.Job, err
 
 }
 
-func (s *RetryLayerJobStore) GetAllByStatus(c *request.Context, status string) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
 
 	tries := 0
 	for {
@@ -5626,7 +5626,7 @@ func (s *RetryLayerJobStore) GetAllByStatus(c *request.Context, status string) (
 
 }
 
-func (s *RetryLayerJobStore) GetAllByType(c *request.Context, jobType string) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
 
 	tries := 0
 	for {
@@ -5647,7 +5647,7 @@ func (s *RetryLayerJobStore) GetAllByType(c *request.Context, jobType string) ([
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
 
 	tries := 0
 	for {
@@ -5668,7 +5668,7 @@ func (s *RetryLayerJobStore) GetAllByTypeAndStatus(c *request.Context, jobType s
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0
 	for {
@@ -5689,7 +5689,7 @@ func (s *RetryLayerJobStore) GetAllByTypePage(c *request.Context, jobType string
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0
 	for {
@@ -9451,7 +9451,7 @@ func (s *RetryLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*m
 
 }
 
-func (s *RetryLayerSessionStore) GetSessions(c *request.Context, userID string) ([]*model.Session, error) {
+func (s *RetryLayerSessionStore) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
 
 	tries := 0
 	for {
