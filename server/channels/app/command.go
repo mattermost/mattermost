@@ -32,7 +32,7 @@ var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
 type CommandProvider interface {
 	GetTrigger() string
 	GetCommand(a *App, T i18n.TranslateFunc) *model.Command
-	DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse
+	DoCommand(a *App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse
 }
 
 var commandProviders = make(map[string]CommandProvider)
@@ -179,7 +179,7 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 }
 
 // @openTracingParams args
-func (a *App) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
 	message := ""
 	index := strings.IndexFunc(args.Command, unicode.IsSpace)
@@ -346,7 +346,7 @@ func (a *App) MentionsToPublicChannels(c request.CTX, message, teamID string) mo
 
 // tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
-func (a *App) tryExecuteBuiltInCommand(c *request.Context, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
+func (a *App) tryExecuteBuiltInCommand(c request.CTX, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
 	provider := GetCommandProvider(trigger)
 	if provider == nil {
 		return nil, nil

@@ -731,10 +731,10 @@ func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID s
 	return err
 }
 
-func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
+func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
+	result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, excludedUserID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -747,10 +747,10 @@ func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, userID string) (int, error) {
+func (s *TimerLayerChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.CountUrgentPostsAfter(channelID, timestamp, userID)
+	result, err := s.ChannelStore.CountUrgentPostsAfter(channelID, timestamp, excludedUserID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4497,7 +4497,7 @@ func (s *TimerLayerJobStore) Delete(id string) (string, error) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) Get(c *request.Context, id string) (*model.Job, error) {
+func (s *TimerLayerJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	start := time.Now()
 
 	result, err := s.JobStore.Get(c, id)
@@ -4513,7 +4513,7 @@ func (s *TimerLayerJobStore) Get(c *request.Context, id string) (*model.Job, err
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByStatus(c *request.Context, status string) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
 	start := time.Now()
 
 	result, err := s.JobStore.GetAllByStatus(c, status)
@@ -4529,7 +4529,7 @@ func (s *TimerLayerJobStore) GetAllByStatus(c *request.Context, status string) (
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByType(c *request.Context, jobType string) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
 	start := time.Now()
 
 	result, err := s.JobStore.GetAllByType(c, jobType)
@@ -4545,7 +4545,7 @@ func (s *TimerLayerJobStore) GetAllByType(c *request.Context, jobType string) ([
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
 	start := time.Now()
 
 	result, err := s.JobStore.GetAllByTypeAndStatus(c, jobType, status)
@@ -4561,7 +4561,7 @@ func (s *TimerLayerJobStore) GetAllByTypeAndStatus(c *request.Context, jobType s
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
 	start := time.Now()
 
 	result, err := s.JobStore.GetAllByTypePage(c, jobType, offset, limit)
@@ -4577,7 +4577,7 @@ func (s *TimerLayerJobStore) GetAllByTypePage(c *request.Context, jobType string
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 	start := time.Now()
 
 	result, err := s.JobStore.GetAllByTypesPage(c, jobTypes, offset, limit)
@@ -7487,7 +7487,7 @@ func (s *TimerLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*m
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) GetSessions(c *request.Context, userID string) ([]*model.Session, error) {
+func (s *TimerLayerSessionStore) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
 	start := time.Now()
 
 	result, err := s.SessionStore.GetSessions(c, userID)

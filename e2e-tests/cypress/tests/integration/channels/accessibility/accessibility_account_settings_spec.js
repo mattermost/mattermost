@@ -72,9 +72,6 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             ServiceSettings: {
                 EnableMultifactorAuthentication: true,
             },
-            DisplaySettings: {
-                ExperimentalTimezone: true,
-            },
             SamlSettings: {
                 Enable: false,
             },
