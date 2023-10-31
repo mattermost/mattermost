@@ -34,7 +34,7 @@ export type Props = {
 
 type State = {
     pdf: PDFDocumentProxy | null;
-    pdfPages: PDFPageProxy[];
+    pdfPages: Record<number, PDFPageProxy>;
     pdfPagesLoaded: Record<number, boolean>;
     numPages: number;
     loading: boolean;
