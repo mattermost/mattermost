@@ -95,7 +95,9 @@ export default class SettingItemMin extends React.PureComponent<Props> {
                 className={classNames('section-min', {isDisabled: this.props.isDisabled})}
                 onClick={this.handleClick}
             >
-                <div>
+                <div
+                    className='secion-min__header'
+                >
                     <h4
                         id={this.props.section + 'Title'}
                         className={classNames('section-min__title', {isDisabled: this.props.isDisabled})}
