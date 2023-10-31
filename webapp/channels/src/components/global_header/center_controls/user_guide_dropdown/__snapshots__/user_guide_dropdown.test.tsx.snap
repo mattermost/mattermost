@@ -60,7 +60,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         id="trainingResourcesLink"
         show={true}
         text="Training resources"
-        url="https://academy.mattermost.com/courses"
+        url="https://academy.mattermost.com/"
       />
       <MenuItemExternalLink
         iconClassName="icon-help"
