@@ -16,7 +16,7 @@ import (
 type Scheduler interface {
 	Enabled(cfg *model.Config) bool
 	NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time
-	ScheduleJob(c *request.Context, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError)
+	ScheduleJob(c request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError)
 }
 
 type Schedulers struct {
@@ -155,7 +155,7 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, name string, now
 	mlog.Debug("Next run time for scheduler", mlog.String("scheduler_name", name), mlog.String("next_runtime", fmt.Sprintf("%v", schedulers.nextRunTimes[name])))
 }
 
-func (schedulers *Schedulers) scheduleJob(c *request.Context, cfg *model.Config, name string, scheduler Scheduler) (*model.Job, *model.AppError) {
+func (schedulers *Schedulers) scheduleJob(c request.CTX, cfg *model.Config, name string, scheduler Scheduler) (*model.Job, *model.AppError) {
 	pendingJobs, err := schedulers.jobs.CheckForPendingJobsByType(name)
 	if err != nil {
 		return nil, err
