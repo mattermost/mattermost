@@ -1189,6 +1189,15 @@ func TestGetGroupsByTeam(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Empty(t, groups)
 	})
+
+	th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		groups, _, _, err := client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
+		require.NotNil(t, groups[0].SchemeAdmin)
+		require.True(t, *groups[0].SchemeAdmin)
+	})
 }
 
 func TestGetGroups(t *testing.T) {
