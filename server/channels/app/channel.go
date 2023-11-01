@@ -2223,7 +2223,7 @@ func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) 
 		return nil
 	}
 
-	user := uresult.Data.(*model.User)
+	user := uresult.Data
 
 	if channel.Type != model.ChannelTypeOpen {
 		return model.NewAppError("JoinChannel", "api.channel.join_channel.permissions.app_error", nil, "", http.StatusBadRequest)
