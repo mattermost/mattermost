@@ -2308,10 +2308,10 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		close(uc)
 	}()
 
-	mcc := make(chan store.GenericStoreResult[*model.ChannelMembers], 1)
+	mcc := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := a.Srv().Store().Channel().GetMemberCount(channelID, false)
-		mcc <- store.GenericStoreResult[*model.ChannelMembers]{Data: count, NErr: err}
+		mcc <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(mcc)
 	}()
 
