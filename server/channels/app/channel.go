@@ -2340,9 +2340,9 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(ccresult.NErr)
 	}
 
-	channel := cresult.Data.(*model.Channel)
-	user := uresult.Data.(*model.User)
-	membersCount := ccresult.Data.(int64)
+	channel := cresult.Data
+	user := uresult.Data
+	membersCount := ccresult.Data
 
 	if channel.IsGroupOrDirect() {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
