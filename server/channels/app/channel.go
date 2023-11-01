@@ -2193,16 +2193,16 @@ func (a *App) GetChannelUnread(c request.CTX, channelID, userID string) (*model.
 }
 
 func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	userChan := make(chan store.GenericStoreResult[[]*model.User], 1)
-	memberChan := make(chan store.GenericStoreResult[[]*model.Member], 1)
+	userChan := make(chan store.GenericStoreResult[*model.User], 1)
+	memberChan := make(chan store.GenericStoreResult[*model.Member], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		userChan <- store.GenericStoreResult[[]*model.User]{Data: user, NErr: err}
+		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 	go func() {
 		member, err := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, userID)
-		memberChan <- store.GenericStoreResult[[]*model.Member]{Data: member, NErr: err}
+		memberChan <- store.GenericStoreResult[*model.Member]{Data: member, NErr: err}
 		close(memberChan)
 	}()
 
