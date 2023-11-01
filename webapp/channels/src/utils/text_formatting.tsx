@@ -756,8 +756,6 @@ export function highlightWithoutNotificationKeywords(
         const index = tokens.size;
         const alias = `$MM_HIGHLIGHTKEYWORD${index}$`;
 
-        console.log('3. replaceHighlightKeywordsWithToken', prefix, highlightKey, suffix, alias, tokens);
-
         // Set the token map with the replacement value so that it can be replaced back later
         tokens.set(alias, {
             value: `<span class="non-notification-highlight">${highlightKey}</span>`,
