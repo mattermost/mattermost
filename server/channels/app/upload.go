@@ -203,7 +203,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}()
 
 	// fetch the session from store to check for inconsistencies.
-	c = RequestContextWithMaster(c)
+	c = c.With(RequestContextWithMaster)
 	if storedSession, err := a.GetUploadSession(c, us.Id); err != nil {
 		return nil, err
 	} else if us.FileOffset != storedSession.FileOffset {

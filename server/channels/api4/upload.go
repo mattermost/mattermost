@@ -123,7 +123,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "upload_id", c.Params.UploadId)
 
-	c.AppContext = app.RequestContextWithMaster(c.AppContext)
+	c.AppContext = c.AppContext.With(app.RequestContextWithMaster)
 	us, err := c.App.GetUploadSession(c.AppContext, c.Params.UploadId)
 	if err != nil {
 		c.Err = err

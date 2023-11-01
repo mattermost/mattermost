@@ -138,11 +138,14 @@ func (c *Context) WithContext(ctx context.Context) CTX {
 	rctx.context = ctx
 	return rctx
 }
-
 func (c *Context) WithLogger(logger mlog.LoggerIFace) CTX {
 	rctx := c.clone()
 	rctx.logger = logger
 	return rctx
+}
+
+func (c *Context) With(f func(ctx CTX) CTX) CTX {
+	return f(c)
 }
 
 type CTX interface {
@@ -167,4 +170,5 @@ type CTX interface {
 	WithAcceptLanguage(string) CTX
 	WithLogger(mlog.LoggerIFace) CTX
 	WithContext(ctx context.Context) CTX
+	With(func(ctx CTX) CTX) CTX
 }
