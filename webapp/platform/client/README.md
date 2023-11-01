@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@mattermost/client?style=flat)](https://www.npmjs.com/package/@mattermost/client)
 
-This package contains the JavaScript/TypeScript client for [Mattermost](https://github.com/mattermost/mattermost-server). It's used by [the Mattermost web app](https://github.com/mattermost/mattermost-webapp) and related projects.
+This package contains the JavaScript/TypeScript client for [Mattermost](https://github.com/mattermost/mattermost). It's used by [the Mattermost web app](https://github.com/mattermost/mattermost/tree/master/webapp/channels) and related projects.
 
 ## Installation
 
