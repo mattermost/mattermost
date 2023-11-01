@@ -1160,7 +1160,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 		}
 		for _, group := range customgroups {
 			if group.Name != nil {
-				groupsMap[*group.Name] = group
+				groupsMap[group.Id] = group
 			}
 		}
 		return groupsMap, nil
