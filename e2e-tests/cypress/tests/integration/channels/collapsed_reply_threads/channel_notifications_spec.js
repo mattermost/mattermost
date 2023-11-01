@@ -89,7 +89,7 @@ describe('CRT Desktop notifications', () => {
         // # Set users notification settings
         cy.uiOpenChannelMenu('Notification Preferences');
         cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-none').should('be.checked');
-        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-all').should('be.visible').click();
+        cy.get('.channel-notifications-settings-modal__body').get('#desktopNotification-all').scrollIntoView().should('be.visible').click();
 
         cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
 
@@ -141,13 +141,12 @@ describe('CRT Desktop notifications', () => {
             cy.get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
         });
         cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
-        cy.get('.channel-notifications-settings-modal__body').scrollTo('bottom').get('[data-testid="sameMobileSettingsDesktop"]').should('be.checked').then(() => {
+        cy.get('.channel-notifications-settings-modal__body').get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().click().should('be.checked').then(() => {
             cy.findByText('Notify me about…').should('not.be.visible');
         });
 
         // check the box to see if the additional settings appears
-        cy.get('.channel-notifications-settings-modal__body').scrollTo('bottom').get('[data-testid="sameMobileSettingsDesktop"]').click();
-
+        cy.get('.channel-notifications-settings-modal__body').get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().click();
         cy.get('.mm-modal-generic-section-item__title').should('be.visible').and('contain', 'Notify me about');
 
         cy.get('#MobileNotification-all').should('be.visible').click();
@@ -167,6 +166,9 @@ describe('CRT Desktop notifications', () => {
 
         // Setup notification spy
         spyNotificationAs('notifySpy', 'granted');
+        cy.uiOpenChannelMenu('Notification Preferences');
+        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-mention').should('be.visible').click();
+        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
 
         // # Post a root message as other user
         cy.postMessageAs({sender, message: 'This is a not followed root message', channelId: testChannelId, rootId: ''}).then(({id: postId}) => {
@@ -292,32 +294,3 @@ describe('CRT Desktop notifications', () => {
         });
     });
 });
-
-function setCRTDesktopNotification(type) {
-    if (['ALL', 'MENTION'].indexOf(type) === -1) {
-        throw new Error(`${type} is invalid`);
-    }
-
-    // # Open settings modal
-    cy.uiOpenChannelMenu('Notification Preferences');
-
-    // # Click "Desktop Notifications"
-    cy.get('#desktopTitle').
-        scrollIntoView().
-        should('be.visible').
-        and('contain', 'Desktop notifications').click();
-
-    // # Select mentions category for messages.
-    cy.get('#channelNotificationMentions').scrollIntoView().check();
-
-    if (type === 'ALL') {
-        // # Check notify for all replies.
-        cy.get('#desktopThreadsNotificationAllActivity').scrollIntoView().check().should('be.checked');
-    } else if (type === 'MENTION') {
-        // # Check notify only for mentions.
-        cy.get('#desktopThreadsNotificationAllActivity').scrollIntoView().uncheck().should('not.be.checked');
-    }
-
-    // # Click "Save" and close the modal
-    cy.uiSaveAndClose();
-}
