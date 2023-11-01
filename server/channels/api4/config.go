@@ -428,7 +428,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 					return true
 				}
 			} else {
-				mlog.Warn("Unrecognized config permissions tag value.", mlog.String("tag_value", permissionID))
+				c.Logger.Warn("Unrecognized config permissions tag value.", mlog.String("tag_value", permissionID))
 			}
 		}
 
