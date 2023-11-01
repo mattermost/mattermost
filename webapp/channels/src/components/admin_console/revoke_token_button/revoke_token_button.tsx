@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from "react";
-import { FormattedMessage } from "react-intl";
+import React from 'react';
+import { FormattedMessage } from 'react-intl';
 
-import type { ActionFunc, ActionResult } from "mattermost-redux/types/actions";
+import type { ActionFunc, ActionResult } from 'mattermost-redux/types/actions';
 
-import { trackEvent } from "actions/telemetry_actions.jsx";
+import { trackEvent } from 'actions/telemetry_actions.jsx';
 
 interface RevokeTokenButtonProps {
     actions: {
