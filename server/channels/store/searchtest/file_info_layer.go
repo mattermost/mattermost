@@ -1237,7 +1237,6 @@ func testFileInfoAlwaysSupportWildcards(t *testing.T, th *SearchTestHelper) {
 
 		require.Len(t, results2.FileInfos, 0)
 	})
-
 }
 
 func testFileInfoNotSupportPrecedingWildcards(t *testing.T, th *SearchTestHelper) {
