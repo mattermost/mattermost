@@ -2193,16 +2193,16 @@ func (a *App) GetChannelUnread(c request.CTX, channelID, userID string) (*model.
 }
 
 func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	userChan := make(chan store.StoreResult, 1)
-	memberChan := make(chan store.StoreResult, 1)
+	userChan := make(chan store.GenericStoreResult[[]*model.User], 1)
+	memberChan := make(chan store.GenericStoreResult[[]*model.Member], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		userChan <- store.StoreResult{Data: user, NErr: err}
+		userChan <- store.GenericStoreResult[[]*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 	go func() {
 		member, err := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, userID)
-		memberChan <- store.StoreResult{Data: member, NErr: err}
+		memberChan <- store.GenericStoreResult[[]*model.Member]{Data: member, NErr: err}
 		close(memberChan)
 	}()
 
@@ -2294,24 +2294,24 @@ func (a *App) postJoinTeamMessage(c request.CTX, user *model.User, channel *mode
 }
 
 func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError {
-	sc := make(chan store.StoreResult, 1)
+	sc := make(chan store.GenericStoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().Get(channelID, true)
-		sc <- store.StoreResult{Data: channel, NErr: err}
+		sc <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(sc)
 	}()
 
-	uc := make(chan store.StoreResult, 1)
+	uc := make(chan store.GenericStoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		uc <- store.StoreResult{Data: user, NErr: err}
+		uc <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(uc)
 	}()
 
-	mcc := make(chan store.StoreResult, 1)
+	mcc := make(chan store.GenericStoreResult[*model.Count], 1)
 	go func() {
 		count, err := a.Srv().Store().Channel().GetMemberCount(channelID, false)
-		mcc <- store.StoreResult{Data: count, NErr: err}
+		mcc <- store.GenericStoreResult[*model.Count]{Data: count, NErr: err}
 		close(mcc)
 	}()
 
