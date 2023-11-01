@@ -32,7 +32,7 @@ const defaultOptions: Required<Pick<TooltipOptions, 'strategy' | 'hoverDelay' | 
 const transitionTime = 150;
 
 export default function useTooltip(options: TooltipOptions) {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
     const [visible, setVisible] = useState(false);
     const transition = useRef<NodeJS.Timeout>(null);
     const arrowRef = useRef(null);
@@ -56,6 +56,7 @@ export default function useTooltip(options: TooltipOptions) {
     } = useFloating({
         open,
         onOpenChange: (nowOpen) => {
+            nowOpen = true;
             if (transition.current) {
                 clearTimeout(transition.current);
             }
@@ -92,6 +93,8 @@ export default function useTooltip(options: TooltipOptions) {
             },
         ),
     ]);
+    // const getReferenceProps = () => ({});
+    // const getFloatingProps = (p) => p;
 
     const content = (
         <div

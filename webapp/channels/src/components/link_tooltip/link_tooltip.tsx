@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useFloating} from '@floating-ui/react-dom';
 import classNames from 'classnames';
 import Popper from 'popper.js';
-import React from 'react';
+import React, {useState} from 'react';
 import type {RefObject, CSSProperties} from 'react';
 import ReactDOM from 'react-dom';
+
+import useTooltip from 'components/common/hooks/useTooltip';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
@@ -32,7 +35,7 @@ type State = {
     show: boolean;
 }
 
-export default class LinkTooltip extends React.PureComponent<Props, State> {
+class LinkTooltipOld extends React.PureComponent<Props, State> {
     private tooltipContainerRef: RefObject<HTMLDivElement>;
     private hideTimeout: number;
     private showTimeout: number;
@@ -136,3 +139,122 @@ export default class LinkTooltip extends React.PureComponent<Props, State> {
         );
     }
 }
+
+let foo = false;
+export function setFoo(val) {
+    foo = val;
+}
+
+function LinkTooltipNew(props: Props) {
+    const {href, children, attributes} = props;
+
+    const [show] = useState(true);
+
+    let ref;
+    let refProps = {};
+    let tooltip;
+    if (foo) {
+        const {
+            refs,
+            strategy,
+            x,
+            y,
+        } = useFloating<HTMLSpanElement>({
+            placement: 'bottom',
+            strategy: 'fixed',
+        });
+
+        ref = refs.reference;
+
+        tooltip = (
+            <div
+                style={{
+                    position: strategy,
+                    left: x ?? 0,
+                    top: y ?? 0,
+                }}
+                ref={refs.floating as any}
+                className={classNames('tooltip-container', {visible: show})}
+            >
+                <Pluggable
+                    href={href}
+                    show={show}
+                    pluggableName='LinkTooltip'
+                />
+            </div>
+        );
+    } else {
+        const {
+            reference,
+            getReferenceProps,
+            tooltip: tooltipContents,
+        } = useTooltip({
+            message: (
+                <div
+                    className={classNames('tooltip-container', {visible: show})}
+                    // style={tooltipContainerStyles}
+                >
+                    <Pluggable
+                        href={href}
+                        show={show}
+                        pluggableName='LinkTooltip'
+                    />
+                </div>
+            ),
+            placement: 'bottom',
+        });
+
+        ref = reference;
+        refProps = getReferenceProps();
+        tooltip = tooltipContents;
+    }
+
+    return (
+        <>
+
+            {tooltip}
+            <span
+                ref={ref}
+                {...refProps}
+                data-channel-mention={attributes['data-channel-mention']}
+                data-hashag={attributes['data-hashtag']}
+                data-link={attributes['data-link']}
+            >
+                {children}
+            </span>
+        </>
+    );
+
+    // const dataAttributes = {
+    //     'data-hashtag': attributes['data-hashtag'],
+    //     'data-link': attributes['data-link'],
+    //     'data-channel-mention': attributes['data-channel-mention'],
+    // };
+    // return (
+    //     <React.Fragment>
+    //         {ReactDOM.createPortal(
+    //             <div
+    //                 style={tooltipContainerStyles}
+    //                 ref={this.tooltipContainerRef}
+    //                 className={classNames('tooltip-container', {visible: this.state.show})}
+    //             >
+    //                 <Pluggable
+    //                     href={href}
+    //                     show={this.state.show}
+    //                     pluggableName='LinkTooltip'
+    //                 />
+    //             </div>,
+    //             document.getElementById('root') as HTMLElement,
+    //         )}
+    //         <span
+    //             onMouseOver={this.showTooltip}
+    //             onMouseLeave={this.hideTooltip}
+    //             {...dataAttributes}
+    //         >
+    //             {children}
+    //         </span>
+    //     </React.Fragment>
+    // );
+}
+
+export default LinkTooltipNew;
