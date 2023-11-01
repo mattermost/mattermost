@@ -1,21 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Preferences} from 'mattermost-redux/constants';
 
-import {getState} from 'stores/redux_store';
+import Store from 'stores/redux_store';
 
 import mockStore from 'tests/test_store';
+import {TestHelper} from 'utils/test_helper';
 
 import SwitchChannelProvider from './switch_channel_provider';
 
-const latestPost = {
+const getState = Store.getState;
+
+const latestPost = TestHelper.getPostMock({
     id: 'latest_post_id',
     user_id: 'current_user_id',
     message: 'test msg',
     channel_id: 'other_gm_channel',
     create_at: Date.now(),
-};
+});
 
 jest.mock('stores/redux_store', () => ({
     dispatch: jest.fn(),
@@ -146,11 +151,10 @@ describe('components/SwitchChannelProvider', () => {
         getState.mockImplementation(store.getState);
 
         const users = [
-            {
+            TestHelper.getUserMock({
                 id: 'other_user',
-                display_name: 'other_user',
                 username: 'other_user',
-            },
+            }),
         ];
         const channels = [{
             id: 'channel_other_user',
@@ -168,13 +172,19 @@ describe('components/SwitchChannelProvider', () => {
         }];
         const searchText = 'other';
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         const result = switchProvider.formatList(searchText, channels, users);
 
-        var set = new Set(result.terms);
+        const set = new Set(result.terms);
         expect(set.size).toEqual(result.items.length);
 
-        var set2 = new Set(result.items.map((o) => o.channel.name));
+        const set2 = new Set(result.items.map((o) => {
+            if ('channel' in o) {
+                return o.channel.name;
+            }
+
+            return null;
+        }));
         expect(set2.size).toEqual(1);
         expect(result.items.length).toEqual(2);
     });
@@ -185,11 +195,11 @@ describe('components/SwitchChannelProvider', () => {
 
         getState.mockImplementation(store.getState);
 
-        const users = [{
-            id: 'other_user',
-            display_name: 'other_user',
-            username: 'other_user',
-        }];
+        const users = [
+            TestHelper.getUserMock({
+                id: 'other_user',
+                username: 'other_user',
+            })];
         const channels = [{
             id: 'channel_other_user',
             type: 'O',
@@ -199,13 +209,19 @@ describe('components/SwitchChannelProvider', () => {
         }];
         const searchText = 'other';
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         const result = switchProvider.formatList(searchText, channels, users);
 
-        var set = new Set(result.terms);
+        const set = new Set(result.terms);
         expect(set.size).toEqual(result.items.length);
 
-        var set2 = new Set(result.items.map((o) => o.channel.name));
+        const set2 = new Set(result.items.map((o) => {
+            if ('channel' in o) {
+                return o.channel.name;
+            }
+
+            return null;
+        }));
         expect(set2.size).toEqual(1);
         expect(result.items.length).toEqual(2);
     });
@@ -216,7 +232,7 @@ describe('components/SwitchChannelProvider', () => {
 
         getState.mockImplementation(store.getState);
 
-        const users = [];
+        const users: UserProfile[] = [];
         const channels = [{
             id: 'channel_other_user',
             type: 'O',
@@ -233,7 +249,7 @@ describe('components/SwitchChannelProvider', () => {
         }];
         const searchText = 'something else';
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         const results = switchProvider.formatList(searchText, channels, users);
 
         expect(results.terms.length).toEqual(0);
@@ -243,15 +259,16 @@ describe('components/SwitchChannelProvider', () => {
     it('should correctly format the display name depending on the preferences', () => {
         const switchProvider = new SwitchChannelProvider();
 
-        const user = {
+        const user = TestHelper.getUserMock({
             id: 'id',
             username: 'username',
             first_name: 'fn',
             last_name: 'ln',
-        };
-        const channel = {
+        });
+
+        const channel = TestHelper.getChannelMock({
             id: 'channel_id',
-        };
+        });
 
         let res = switchProvider.userWrappedChannel(user, channel);
         expect(res.channel.display_name).toEqual('fn ln');
@@ -323,16 +340,14 @@ describe('components/SwitchChannelProvider', () => {
         }];
 
         const users = [
-            {
+            TestHelper.getUserMock({
                 id: 'other_user2',
-                display_name: 'other_user2',
                 username: 'other_user2',
-            },
-            {
+            }),
+            TestHelper.getUserMock({
                 id: 'other_user1',
-                display_name: 'other_user1',
                 username: 'other_user1',
-            },
+            }),
         ];
 
         const modifiedState = {
@@ -364,7 +379,7 @@ describe('components/SwitchChannelProvider', () => {
 
         const searchText = 'other';
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         const results = switchProvider.formatList(searchText, channels, users);
 
         const expectedOrder = [
@@ -414,26 +429,22 @@ describe('components/SwitchChannelProvider', () => {
         getState.mockImplementation(store.getState);
 
         const users = [
-            {
+            TestHelper.getUserMock({
                 id: 'other_user1',
-                display_name: 'other_user1',
                 username: 'other_user1',
-            },
-            {
+            }),
+            TestHelper.getUserMock({
                 id: 'other_user2',
-                display_name: 'other_user2',
                 username: 'other_user2',
-            },
-            {
-                id: 'other_user4',
-                display_name: 'other_user4',
-                username: 'other_user4',
-            },
-            {
+            }),
+            TestHelper.getUserMock({
                 id: 'other_user3',
-                display_name: 'other_user3',
                 username: 'other_user3',
-            },
+            }),
+            TestHelper.getUserMock({
+                id: 'other_user4',
+                username: 'other_user4',
+            }),
         ];
 
         const channels = [{
@@ -464,7 +475,7 @@ describe('components/SwitchChannelProvider', () => {
 
         const searchText = 'other';
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         const results = switchProvider.formatList(searchText, channels, users);
 
         const expectedOrder = [
@@ -536,7 +547,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
         const resultsCallback = jest.fn();
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         await switchProvider.fetchUsersAndChannels(searchText, resultsCallback);
         const expectedOrder = [
             'other_gm_channel',
@@ -625,7 +636,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other.';
         const resultsCallback = jest.fn();
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         await switchProvider.fetchUsersAndChannels(searchText, resultsCallback);
         const expectedOrder = [
             'other_user1',
@@ -716,7 +727,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
         const resultsCallback = jest.fn();
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         await switchProvider.fetchUsersAndChannels(searchText, resultsCallback);
         const expectedOrder = [
             'other_user1',
@@ -801,11 +812,10 @@ describe('components/SwitchChannelProvider', () => {
         getState.mockImplementation(store.getState);
 
         const users = [
-            {
+            TestHelper.getUserMock({
                 id: 'other_user1',
-                display_name: 'other_user1',
                 username: 'other_user1',
-            },
+            }),
         ];
 
         const channels = [{
@@ -820,7 +830,7 @@ describe('components/SwitchChannelProvider', () => {
 
         const searchText = 'other current';
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         const results = switchProvider.formatList(searchText, channels, users);
 
         const expectedOrder = [
@@ -872,7 +882,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'chan';
         const resultsCallback = jest.fn();
 
-        switchProvider.startNewRequest();
+        switchProvider.startNewRequest('');
         await switchProvider.fetchUsersAndChannels(searchText, resultsCallback);
         const channelsFromActiveTeams = [
             'channel_1',
