@@ -180,6 +180,7 @@ type Subscription struct {
 	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
 	ComplianceBlocked       string   `json:"compliance_blocked"`
 	BillingType             string   `json:"billing_type"`
+	CancelAt                *int64   `json:"cancel_at"`
 }
 
 // Subscription History model represents true up event in a yearly subscription

@@ -42,6 +42,7 @@ export type Subscription = {
     delinquent_since?: number;
     compliance_blocked?: string;
     billing_type?: string;
+    cancel_at?: number;
 }
 
 export type Product = {
