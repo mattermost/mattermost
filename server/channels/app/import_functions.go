@@ -591,7 +591,7 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 			}
 		}
 		if password != "" {
-			if appErr = a.UpdatePassword(user, password); appErr != nil {
+			if appErr = a.UpdatePassword(c, user, password); appErr != nil {
 				return appErr
 			}
 		} else {

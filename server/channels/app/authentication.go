@@ -79,7 +79,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, pa
 		}
 	}
 
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+	if err := a.CheckUserMfa(rctx, user, mfaToken); err != nil {
 		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
 		// about the MFA state of the user in question
 		if mfaToken != "" {
@@ -99,7 +99,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, pa
 
 	a.InvalidateCacheForUser(user.Id)
 
-	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
 		return err
 	}
 
@@ -149,7 +149,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, ldapId *stri
 		return nil, err
 	}
 
-	if err := a.CheckUserMfa(ldapUser, mfaToken); err != nil {
+	if err := a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
 		return nil, err
 	}
 
@@ -166,7 +166,7 @@ func (a *App) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.U
 		return err
 	}
 
-	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
 		return err
 	}
 
@@ -189,7 +189,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *m
 	return nil
 }
 
-func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
+func (a *App) CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError {
 	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -197,7 +197,7 @@ func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model
 	return nil
 }
 
-func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
+func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError {
 	if !user.MfaActive || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
