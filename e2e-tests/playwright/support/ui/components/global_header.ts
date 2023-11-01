@@ -7,12 +7,14 @@ export default class GlobalHeader {
     readonly container: Locator;
 
     readonly productSwitchMenu;
+    readonly recentMentionsButton;
     readonly settingsButton;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.productSwitchMenu = container.getByRole('button', {name: 'Product switch menu'});
+        this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
     }
 
@@ -26,7 +28,13 @@ export default class GlobalHeader {
     }
 
     async openSettings() {
+        await expect(this.settingsButton).toBeVisible();
         await this.settingsButton.click();
+    }
+
+    async openRecentMentions() {
+        await expect(this.recentMentionsButton).toBeVisible();
+        await this.recentMentionsButton.click();
     }
 }
 
