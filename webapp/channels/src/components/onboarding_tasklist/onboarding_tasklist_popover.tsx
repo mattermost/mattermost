@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Placement} from 'popper.js';
+import type {Placement} from '@popperjs/core';
 import React from 'react';
 import type {RefObject} from 'react';
 import {usePopper} from 'react-popper';
