@@ -201,7 +201,7 @@ func TestSearchFileInfoStore(t *testing.T, s store.Store, testEngine *SearchTest
 }
 
 func testFileInfoSearchFileInfosIncludingDMs(t *testing.T, th *SearchTestHelper) {
-	direct, err := th.createDirectChannel(th.Team.Id, "direct-"+th.Team.Id, "direct-"+th.Team.Id, []*model.User{th.User, th.User2})
+	direct, err := th.createDirectChannel(th.Team.Id, "direct-"+th.Team.Id, []*model.User{th.User, th.User2})
 	require.NoError(t, err)
 	defer th.deleteChannel(direct)
 
@@ -242,7 +242,7 @@ func testFileInfoSearchFileInfosIncludingDMs(t *testing.T, th *SearchTestHelper)
 }
 
 func testFileInfoSearchFileInfosWithPagination(t *testing.T, th *SearchTestHelper) {
-	direct, err := th.createDirectChannel(th.Team.Id, "direct", "direct", []*model.User{th.User, th.User2})
+	direct, err := th.createDirectChannel(th.Team.Id, "direct", []*model.User{th.User, th.User2})
 	require.NoError(t, err)
 	defer th.deleteChannel(direct)
 
@@ -656,7 +656,7 @@ func testFileInfoSearchOrExcludeFileInfosInChannel(t *testing.T, th *SearchTestH
 }
 
 func testFileInfoSearchOrExcludeFileInfosInDMGM(t *testing.T, th *SearchTestHelper) {
-	direct, err := th.createDirectChannel(th.Team.Id, "direct", "direct", []*model.User{th.User, th.User2})
+	direct, err := th.createDirectChannel(th.Team.Id, "direct", []*model.User{th.User, th.User2})
 	require.NoError(t, err)
 	defer th.deleteChannel(direct)
 
