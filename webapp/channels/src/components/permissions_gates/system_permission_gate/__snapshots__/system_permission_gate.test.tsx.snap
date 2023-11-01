@@ -24,7 +24,6 @@ exports[`components/permissions_gates SystemPermissionGate should match snapshot
     <SystemPermissionGate
       dispatch={[Function]}
       hasPermission={true}
-      invert={false}
       permissions={
         Array [
           "test_system_permission",
@@ -63,7 +62,6 @@ exports[`components/permissions_gates SystemPermissionGate should match snapshot
     <SystemPermissionGate
       dispatch={[Function]}
       hasPermission={true}
-      invert={false}
       permissions={
         Array [
           "test_system_permission",
@@ -136,7 +134,6 @@ exports[`components/permissions_gates SystemPermissionGate should match snapshot
     <SystemPermissionGate
       dispatch={[Function]}
       hasPermission={false}
-      invert={false}
       permissions={
         Array [
           "invalid_permission",
