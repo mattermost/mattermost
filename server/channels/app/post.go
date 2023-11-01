@@ -42,7 +42,7 @@ type postServiceWrapper struct {
 	app AppIface
 }
 
-func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) (*model.Post, *model.AppError) {
+func (s *postServiceWrapper) CreatePost(ctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
 	return s.app.CreatePostMissingChannel(ctx, post, true, true)
 }
 
@@ -50,7 +50,7 @@ func (s *postServiceWrapper) GetPostsByIds(postIDs []string) ([]*model.Post, int
 	return s.app.GetPostsByIds(postIDs)
 }
 
-func (s *postServiceWrapper) SendEphemeralPost(ctx *request.Context, userID string, post *model.Post) *model.Post {
+func (s *postServiceWrapper) SendEphemeralPost(ctx request.CTX, userID string, post *model.Post) *model.Post {
 	return s.app.SendEphemeralPost(ctx, userID, post)
 }
 
@@ -58,11 +58,11 @@ func (s *postServiceWrapper) GetPost(postID string) (*model.Post, *model.AppErro
 	return s.app.GetSinglePost(postID, false)
 }
 
-func (s *postServiceWrapper) DeletePost(ctx *request.Context, postID, productID string) (*model.Post, *model.AppError) {
+func (s *postServiceWrapper) DeletePost(ctx request.CTX, postID, productID string) (*model.Post, *model.AppError) {
 	return s.app.DeletePost(ctx, postID, productID)
 }
 
-func (s *postServiceWrapper) UpdatePost(ctx *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (s *postServiceWrapper) UpdatePost(ctx request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	return s.app.UpdatePost(ctx, post, false)
 }
 
@@ -199,7 +199,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// Validate recipients counts in case it's not DM
 	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
-		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 			if maxRecipients := *a.Config().ServiceSettings.PersistentNotificationMaxRecipients; len(mentions.Mentions) > maxRecipients {
 				return model.NewAppError("CreatePost", "api.post.post_priority.max_recipients_persistent_notification_post.request_error", map[string]any{"MaxRecipients": maxRecipients}, "", http.StatusBadRequest)
 			} else if len(mentions.Mentions) == 0 {
@@ -362,7 +362,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if len(post.FileIds) > 0 {
 		if err = a.attachFilesToPost(post); err != nil {
-			c.Logger().Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
+			c.Logger().Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Array("file_ids", post.FileIds), mlog.Err(err))
 		}
 
 		if a.Metrics() != nil {
@@ -627,7 +627,7 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c *request.Context, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	receivedUpdatedPost.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
@@ -702,7 +702,7 @@ func (a *App) UpdatePost(c *request.Context, receivedUpdatedPost *model.Post, sa
 	pluginContext := pluginContext(c)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
-		return receivedUpdatedPost != nil
+		return newPost != nil
 	}, plugin.MessageWillBeUpdatedID)
 	if newPost == nil {
 		return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
@@ -825,7 +825,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	return true, nil
 }
 
-func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
@@ -1400,7 +1400,7 @@ func (a *App) deletePostFiles(postID string) {
 	}
 }
 
-func (a *App) parseAndFetchChannelIdByNameFromInFilter(c *request.Context, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
+func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIDs []string
 		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
@@ -1477,7 +1477,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 	return posts, nil
 }
 
-func (a *App) convertChannelNamesToChannelIds(c *request.Context, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
+func (a *App) convertChannelNamesToChannelIds(c request.CTX, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(c, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
@@ -1608,7 +1608,7 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
@@ -1780,8 +1780,8 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		return 0, err
 	}
 
-	keywords := addMentionKeywordsForUser(
-		map[string][]string{},
+	keywords := MentionKeywords{}
+	keywords.AddUser(
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
@@ -1795,7 +1795,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 
 	count := 0
 
-	if channel.Type == model.ChannelTypeDirect {
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		// In a DM channel, every post made by the other user is a mention
 		otherId := channel.GetOtherUserIdForDM(user.Id)
 		for _, p := range posts {
@@ -1820,9 +1820,11 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		return 0, model.NewAppError("countThreadMentions", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
+	keywords.AddGroupsMap(groups)
+
 	for _, p := range posts {
 		if p.CreateAt >= timestamp {
-			mentions := getExplicitMentions(p, keywords, groups)
+			mentions := getExplicitMentions(p, keywords)
 			if _, ok := mentions.Mentions[user.Id]; ok {
 				count += 1
 			}
@@ -1840,16 +1842,16 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		return 0, 0, 0, err
 	}
 
-	if channel.Type == model.ChannelTypeDirect {
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		// In a DM channel, every post made by the other user is a mention
-		count, countRoot, nErr := a.Srv().Store().Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+		count, countRoot, nErr := a.Srv().Store().Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, user.Id)
 		if nErr != nil {
 			return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 
 		var urgentCount int
 		if a.IsPostPriorityEnabled() {
-			urgentCount, nErr = a.Srv().Store().Channel().CountUrgentPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+			urgentCount, nErr = a.Srv().Store().Channel().CountUrgentPostsAfter(post.ChannelId, post.CreateAt-1, user.Id)
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_urgent_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
@@ -1863,8 +1865,8 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		return 0, 0, 0, err
 	}
 
-	keywords := addMentionKeywordsForUser(
-		map[string][]string{},
+	keywords := MentionKeywords{}
+	keywords.AddUser(
 		user,
 		channelMember.NotifyProps,
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
@@ -1989,14 +1991,14 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	return mentioned
 }
 
-func isPostMention(user *model.User, post *model.Post, keywords map[string][]string, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
+func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
 	// Prevent the user from mentioning themselves
 	if post.UserId == user.Id && post.GetProp("from_webhook") != "true" {
 		return false
 	}
 
 	// Check for keyword mentions
-	mentions := getExplicitMentions(post, keywords, make(map[string]*model.Group))
+	mentions := getExplicitMentions(post, keywords)
 	if _, ok := mentions.Mentions[user.Id]; ok {
 		return true
 	}
