@@ -6,6 +6,8 @@ import React from 'react';
 
 import SystemNotice from 'components/system_notice/system_notice';
 
+import type {MockIntl} from 'tests/helpers/intl-test-helper';
+
 describe('components/SystemNotice', () => {
     const baseProps = {
         currentUserId: 'someid',
@@ -17,6 +19,9 @@ describe('components/SystemNotice', () => {
         license: {IsLicensed: 'true'},
         config: {},
         analytics: {TOTAL_USERS: 300},
+        intl: {
+            formatMessage: jest.fn(),
+        } as MockIntl,
         actions: {
             savePreferences: jest.fn(),
             dismissNotice: jest.fn(),
