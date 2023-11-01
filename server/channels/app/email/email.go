@@ -1276,7 +1276,7 @@ func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale
 	return nil
 }
 
-func (es *Service) SendIPFiltersChangedEmail(email string, initiatingUser *model.User, siteURL, portalURL, locale string, isWorkspaceOwner bool) (bool, error) {
+func (es *Service) SendIPFiltersChangedEmail(email string, initiatingUser *model.User, siteURL, portalURL, locale string, isWorkspaceOwner bool) error {
 	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.ip_filters_changed.subject")
@@ -1291,11 +1291,11 @@ func (es *Service) SendIPFiltersChangedEmail(email string, initiatingUser *model
 	data.Props["SendAnEmailTo"] = T("api.templates.ip_filters_changed_footer.send_an_email_to", map[string]any{"InitiatingUserEmail": initiatingUser.Email})
 	data.Props["PortalURL"] = portalURL
 	// If the email we're sending to was the one who initiated the change, we don't want to show their email address as a mailto
-	if true {
+	if email != initiatingUser.Email {
 		data.Props["ActorEmail"] = initiatingUser.Email
 	}
 
-	if true {
+	if isWorkspaceOwner {
 		data.Props["LogInToCustomerPortal"] = T("api.templates.ip_filters_changed_footer.log_in_to_customer_portal")
 	}
 	data.Props["ContactSupport"] = T("api.templates.ip_filters_changed_footer.contact_support")
@@ -1303,12 +1303,12 @@ func (es *Service) SendIPFiltersChangedEmail(email string, initiatingUser *model
 
 	body, err := es.templatesContainer.RenderToString("ip_filters_changed", data)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if err := es.sendMail(email, subject, body, "PasswordResetEmail"); err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }

@@ -106,7 +106,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, user := range users {
-			if _, err = c.App.Srv().EmailService.SendIPFiltersChangedEmail(user.Email, initiatingUser[0], *c.App.Config().ServiceSettings.SiteURL, *c.App.Config().CloudSettings.CWSURL, user.Locale, cloudWorkspaceOwnerEmailAddress == user.Email); err != nil {
+			if err = c.App.Srv().EmailService.SendIPFiltersChangedEmail(user.Email, initiatingUser[0], *c.App.Config().ServiceSettings.SiteURL, *c.App.Config().CloudSettings.CWSURL, user.Locale, cloudWorkspaceOwnerEmailAddress == user.Email); err != nil {
 				mlog.Error("Error while sending IP filters changed email", mlog.Err(err))
 			}
 		}

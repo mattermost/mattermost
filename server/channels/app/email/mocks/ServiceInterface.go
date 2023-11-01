@@ -311,27 +311,17 @@ func (_m *ServiceInterface) SendGuestInviteEmails(team *model.Team, channels []*
 }
 
 // SendIPFiltersChangedEmail provides a mock function with given fields: _a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner
-func (_m *ServiceInterface) SendIPFiltersChangedEmail(_a0 string, userWhoChangedFilter *model.User, siteURL string, portalURL string, locale string, isWorkspaceOwner bool) (bool, error) {
+func (_m *ServiceInterface) SendIPFiltersChangedEmail(_a0 string, userWhoChangedFilter *model.User, siteURL string, portalURL string, locale string, isWorkspaceOwner bool) error {
 	ret := _m.Called(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
 
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *model.User, string, string, string, bool) (bool, error)); ok {
-		return rf(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
-	}
-	if rf, ok := ret.Get(0).(func(string, *model.User, string, string, string, bool) bool); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *model.User, string, string, string, bool) error); ok {
 		r0 = rf(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
 	} else {
-		r0 = ret.Get(0).(bool)
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, *model.User, string, string, string, bool) error); ok {
-		r1 = rf(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // SendInviteEmails provides a mock function with given fields: team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent, isSystemAdmin, isFirstAdmin
