@@ -130,7 +130,7 @@ export default class SystemNotice extends React.PureComponent<Props> {
 
         return (
             <div
-                className='system-notice bg--white shadow--2'
+                className='system-notice bg--white'
             >
                 <div className='system-notice__logo'>
                     {icon}

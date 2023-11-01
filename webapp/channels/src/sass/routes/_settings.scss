@@ -658,14 +658,13 @@
         text-decoration: underline;
     }
 
-    > div {
+    > .secion-min__header {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
     }
 
     &.isDisabled {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
         cursor: default;
 
         &:hover {

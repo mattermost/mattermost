@@ -1974,6 +1974,28 @@ func TestPatchUser(t *testing.T) {
 		require.Nil(t, ruser)
 	})
 
+	t.Run("Licence check should block when updating highlight keys in NotifyProps", func(t *testing.T) {
+		notifyProps := th.BasicUser2.NotifyProps
+		notifyProps[model.HighlightsNotifyProp] = "hello"
+		patch := &model.UserPatch{NotifyProps: notifyProps}
+		_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
+
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("Licence check should not block when updating highlight key with valid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+		notifyProps := th.BasicUser2.NotifyProps
+		notifyProps[model.HighlightsNotifyProp] = "sample_highlight_key"
+		patch := &model.UserPatch{NotifyProps: notifyProps}
+		_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
+
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
 	patch := &model.UserPatch{}
 	patch.Password = model.NewString("testpassword")
 	patch.Nickname = model.NewString("Joram Wilander")

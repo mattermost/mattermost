@@ -83,6 +83,13 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
     const [didOnce, setDidOnce] = useState(false);
 
+    const isUserSettingsModalOpen = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.USER_SETTINGS));
+    useEffect(() => {
+        if (isUserSettingsModalOpen) {
+            dispatch(closeModal(ModalIdentifiers.USER_SETTINGS));
+        }
+    }, []);
+
     const handleValidateBusinessEmail = async (email: string) => {
         setDidOnce(true);
         if (!email) {

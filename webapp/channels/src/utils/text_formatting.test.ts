@@ -311,17 +311,17 @@ describe('highlightWithoutNotificationKeywords', () => {
         const text = 'This is a test message with some keywords';
         const tokens = new Map();
         const highlightKeys = [
-            {key: 'test'},
             {key: 'keywords'},
+            {key: 'test'},
         ];
 
-        const expectedOutput = 'This is a $MM_HIGHLIGHTKEYWORD0$ message with some $MM_HIGHLIGHTKEYWORD1$';
+        const expectedOutput = 'This is a $MM_HIGHLIGHTKEYWORD1$ message with some $MM_HIGHLIGHTKEYWORD0$';
         const expectedTokens = new Map([
-            ['$MM_HIGHLIGHTKEYWORD0$', {
+            ['$MM_HIGHLIGHTKEYWORD1$', {
                 value: '<span class="non-notification-highlight">test</span>',
                 originalText: 'test',
             }],
-            ['$MM_HIGHLIGHTKEYWORD1$', {
+            ['$MM_HIGHLIGHTKEYWORD0$', {
                 value: '<span class="non-notification-highlight">keywords</span>',
                 originalText: 'keywords',
             }],
@@ -368,29 +368,29 @@ describe('highlightWithoutNotificationKeywords', () => {
         const text = 'This is a test message with some keywords: 你好, 안녕하세요, привет, こんにちは';
         const tokens = new Map();
         const highlightKeys = [
-            {key: '你好'}, // Chinese hello
+            {key: 'こんにちは'}, // Japanese hello
             {key: '안녕하세요'}, // Korean hello
             {key: 'привет'}, // Russian hello
-            {key: 'こんにちは'}, // Japanese hello
+            {key: '你好'}, // Chinese hello
         ];
 
-        const expectedOutput = 'This is a test message with some keywords: $MM_HIGHLIGHTKEYWORD0$, $MM_HIGHLIGHTKEYWORD1$, $MM_HIGHLIGHTKEYWORD2$, $MM_HIGHLIGHTKEYWORD3$';
+        const expectedOutput = 'This is a test message with some keywords: $MM_HIGHLIGHTKEYWORD3$, $MM_HIGHLIGHTKEYWORD2$, $MM_HIGHLIGHTKEYWORD0$, $MM_HIGHLIGHTKEYWORD1$';
         const expectedTokens = new Map([
             ['$MM_HIGHLIGHTKEYWORD0$', {
-                value: '<span class="non-notification-highlight">你好</span>',
-                originalText: '你好',
-            }],
-            ['$MM_HIGHLIGHTKEYWORD1$', {
-                value: '<span class="non-notification-highlight">안녕하세요</span>',
-                originalText: '안녕하세요',
-            }],
-            ['$MM_HIGHLIGHTKEYWORD2$', {
                 value: '<span class="non-notification-highlight">привет</span>',
                 originalText: 'привет',
             }],
-            ['$MM_HIGHLIGHTKEYWORD3$', {
+            ['$MM_HIGHLIGHTKEYWORD1$', {
                 value: '<span class="non-notification-highlight">こんにちは</span>',
                 originalText: 'こんにちは',
+            }],
+            ['$MM_HIGHLIGHTKEYWORD2$', {
+                value: '<span class="non-notification-highlight">안녕하세요</span>',
+                originalText: '안녕하세요',
+            }],
+            ['$MM_HIGHLIGHTKEYWORD3$', {
+                value: '<span class="non-notification-highlight">你好</span>',
+                originalText: '你好',
             }],
         ]);
 

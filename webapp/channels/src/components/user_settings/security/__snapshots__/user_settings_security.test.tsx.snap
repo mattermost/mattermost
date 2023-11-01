@@ -24,15 +24,10 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         className="modal-back"
       >
-        <LocalizedIcon
+        <i
           className="fa fa-angle-left"
           onClick={[MockFunction]}
-          title={
-            Object {
-              "defaultMessage": "Collapse Icon",
-              "id": "generic_icons.collapse",
-            }
-          }
+          title="Collapse Icon"
         />
       </div>
       <MemoizedFormattedMessage
@@ -131,14 +126,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       id="viewAccessHistory"
       modalId="access_history"
     >
-      <LocalizedIcon
+      <i
         className="fa fa-clock-o"
-        title={
-          Object {
-            "defaultMessage": "Access History Icon",
-            "id": "user.settings.security.viewHistory.icon",
-          }
-        }
+        title="Access History Icon"
       />
       <MemoizedFormattedMessage
         defaultMessage="View Access History"
@@ -158,14 +148,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       id="viewAndLogOutOfActiveSessions"
       modalId="activity_log"
     >
-      <LocalizedIcon
+      <i
         className="fa fa-clock-o"
-        title={
-          Object {
-            "defaultMessage": "Active Sessions Icon",
-            "id": "user.settings.security.logoutActiveSessions.icon",
-          }
-        }
+        title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
         defaultMessage="View and Log Out of Active Sessions"
@@ -200,15 +185,10 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         className="modal-back"
       >
-        <LocalizedIcon
+        <i
           className="fa fa-angle-left"
           onClick={[MockFunction]}
-          title={
-            Object {
-              "defaultMessage": "Collapse Icon",
-              "id": "generic_icons.collapse",
-            }
-          }
+          title="Collapse Icon"
         />
       </div>
       <MemoizedFormattedMessage
@@ -307,14 +287,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       id="viewAccessHistory"
       modalId="access_history"
     >
-      <LocalizedIcon
+      <i
         className="fa fa-clock-o"
-        title={
-          Object {
-            "defaultMessage": "Access History Icon",
-            "id": "user.settings.security.viewHistory.icon",
-          }
-        }
+        title="Access History Icon"
       />
       <MemoizedFormattedMessage
         defaultMessage="View Access History"
@@ -334,14 +309,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       id="viewAndLogOutOfActiveSessions"
       modalId="activity_log"
     >
-      <LocalizedIcon
+      <i
         className="fa fa-clock-o"
-        title={
-          Object {
-            "defaultMessage": "Active Sessions Icon",
-            "id": "user.settings.security.logoutActiveSessions.icon",
-          }
-        }
+        title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
         defaultMessage="View and Log Out of Active Sessions"
@@ -376,15 +346,10 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         className="modal-back"
       >
-        <LocalizedIcon
+        <i
           className="fa fa-angle-left"
           onClick={[MockFunction]}
-          title={
-            Object {
-              "defaultMessage": "Collapse Icon",
-              "id": "generic_icons.collapse",
-            }
-          }
+          title="Collapse Icon"
         />
       </div>
       <MemoizedFormattedMessage
@@ -483,14 +448,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       id="viewAccessHistory"
       modalId="access_history"
     >
-      <LocalizedIcon
+      <i
         className="fa fa-clock-o"
-        title={
-          Object {
-            "defaultMessage": "Access History Icon",
-            "id": "user.settings.security.viewHistory.icon",
-          }
-        }
+        title="Access History Icon"
       />
       <MemoizedFormattedMessage
         defaultMessage="View Access History"
@@ -510,14 +470,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       id="viewAndLogOutOfActiveSessions"
       modalId="activity_log"
     >
-      <LocalizedIcon
+      <i
         className="fa fa-clock-o"
-        title={
-          Object {
-            "defaultMessage": "Active Sessions Icon",
-            "id": "user.settings.security.logoutActiveSessions.icon",
-          }
-        }
+        title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
         defaultMessage="View and Log Out of Active Sessions"
@@ -552,15 +507,10 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         className="modal-back"
       >
-        <LocalizedIcon
+        <i
           className="fa fa-angle-left"
           onClick={[MockFunction]}
-          title={
-            Object {
-              "defaultMessage": "Collapse Icon",
-              "id": "generic_icons.collapse",
-            }
-          }
+          title="Collapse Icon"
         />
       </div>
       <MemoizedFormattedMessage
@@ -659,14 +609,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       id="viewAccessHistory"
       modalId="access_history"
     >
-      <LocalizedIcon
+      <i
         className="fa fa-clock-o"
-        title={
-          Object {
-            "defaultMessage": "Access History Icon",
-            "id": "user.settings.security.viewHistory.icon",
-          }
-        }
+        title="Access History Icon"
       />
       <MemoizedFormattedMessage
         defaultMessage="View Access History"
@@ -686,14 +631,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       id="viewAndLogOutOfActiveSessions"
       modalId="activity_log"
     >
-      <LocalizedIcon
+      <i
         className="fa fa-clock-o"
-        title={
-          Object {
-            "defaultMessage": "Active Sessions Icon",
-            "id": "user.settings.security.logoutActiveSessions.icon",
-          }
-        }
+        title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
         defaultMessage="View and Log Out of Active Sessions"

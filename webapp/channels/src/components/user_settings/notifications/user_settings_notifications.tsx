@@ -901,7 +901,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
             expandedSection = (
                 <SettingItemMax
-                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger Notifications'})}
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords That Trigger Notifications'})}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     saving={this.state.isSaving}
@@ -932,7 +932,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         return (
             <SettingItem
-                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger Notifications'})}
+                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords That Trigger Notifications'})}
                 section='keysWithNotification'
                 active={isSectionExpanded}
                 areAllSectionsInactive={this.props.activeSection === ''}
@@ -991,7 +991,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
             expandedSection = (
                 <SettingItemMax
-                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (without notifications)'})}
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (Without Notifications)'})}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     saving={this.state.isSaving}
@@ -1065,7 +1065,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         return (
             <SettingItem
-                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (without notifications)'})}
+                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (Without Notifications)'})}
                 section='keysWithHighlight'
                 active={isSectionExpanded}
                 areAllSectionsInactive={this.props.activeSection === ''}
@@ -1099,7 +1099,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     <legend className='form-legend hidden-label'>
                         <FormattedMessage
                             id='user.settings.notifications.comments'
-                            defaultMessage='Reply notifications'
+                            defaultMessage='Reply Notifications'
                         />
                     </legend>
                     <div className='radio'>
@@ -1163,7 +1163,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
-                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.comments', defaultMessage: 'Reply notifications'})}
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.comments', defaultMessage: 'Reply Notifications'})}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
