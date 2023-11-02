@@ -24,10 +24,28 @@ jobs:
           description: Artifacts upload and build for mattermost team platform
           status: pending
 
+  ## We need to determine if we're trying to merge to a pre-8.x branch, but 'workflow_run' doesn't give us information about the target branch.
+  ## But we can determine this also by checking if we're in the monorepo directory structure or not.
+  determine-if-monorepo:
+    runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
+    steps:
+      - name: cd/checkout-mattermost
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: cd/determine-if-monorepo
+        run: |
+          # Assert that the 'server' directory doesn't exist. But if it does, set 'is_monorepo=true'
+          IS_MONOREPO=$([  -d server ] || echo -n 'true')" #TESTING remove me
+          #IS_MONOREPO=$([ ! -d server ] || echo -n 'true')"
+          echo "is_monorepo=$IS_MONOREPO" | tee -a "$GITHUB_OUTPUT"
+
   upload-artifacts:
     runs-on: ubuntu-22.04
     needs:
       - update-initial-status
+      - determine-if-monorepo
+    if: needs['determine-if-monorepo'].outputs.is_monorepo
     steps:
       - name: cd/configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 #v3.0.1
@@ -103,6 +121,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs:
       - build-docker
+      - determine-if-monorepo
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@a74f6d87f847326c04d326bf1908da40cb9b3556
         env:
@@ -119,6 +138,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs:
       - build-docker
+      - determine-if-monorepo
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@a74f6d87f847326c04d326bf1908da40cb9b3556
         env:
