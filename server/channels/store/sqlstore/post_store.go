@@ -26,6 +26,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
+// Regex to get quoted strings
+var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
+
 type SqlPostStore struct {
 	*SqlStore
 	metrics           einterfaces.MetricsInterface
@@ -2035,27 +2038,38 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
 
-		excludeClause := ""
-		if excludedTerms != "" {
-			excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
-		}
-
-		var termsClause string
-		if params.OrTerms {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
-		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
-		} else {
-			tsVectorSearchQuery := strings.Join(strings.Fields(terms), " & ")
-			if params.IsHashtag {
-				tsVectorSearchQuery = terms
+		// Replace spaces with to_tsquery symbols
+		replaceSpaces := func(input string, excludedInput bool) string {
+			if input == "" {
+				return input
 			}
 
-			termsClause = "(" + tsVectorSearchQuery + ")" + excludeClause
+			// Remove extra spaces
+			input = strings.Join(strings.Fields(input), " ")
+
+			// Replace spaces within quoted strings with '<->'
+			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
+				return strings.Replace(match, " ", "<->", -1)
+			})
+
+			// Replace spaces outside of quoted substrings with '&' or '|'
+			replacer := "&"
+			if excludedInput || params.OrTerms {
+				replacer = "|"
+			}
+			input = strings.Replace(input, " ", replacer, -1)
+
+			return input
+		}
+
+		tsQueryClause := replaceSpaces(terms, false)
+		excludedClause := replaceSpaces(excludedTerms, true)
+		if excludedClause != "" {
+			tsQueryClause += " &!(" + excludedClause + ")"
 		}
 
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
-		baseQuery = baseQuery.Where(searchClause, termsClause)
+		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
 			terms, err = removeMysqlStopWordsFromTerms(terms)
