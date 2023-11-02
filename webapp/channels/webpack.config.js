@@ -5,12 +5,13 @@
 
 const path = require('path');
 const url = require('url');
+
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
-const webpack = require('webpack');
-const {ModuleFederationPlugin} = require('webpack').container;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const webpack = require('webpack');
+const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
 
 // const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
@@ -337,7 +338,6 @@ async function initializeModuleFederation() {
                 '@mattermost/client',
                 '@mattermost/types',
                 'luxon',
-                'prop-types',
             ], false),
 
             // Other containers will be forced to use the exact versions of shared modules that the web app provides.

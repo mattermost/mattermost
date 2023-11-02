@@ -2644,7 +2644,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	return times, nil
 }
 
-func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64, userId string) (int, error) {
+func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64, excludedUserID string) (int, error) {
 	query := s.getQueryBuilder().
 		Select("count(*)").
 		From("PostsPriority").
@@ -2656,8 +2656,8 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 			sq.Eq{"Posts.DeleteAt": 0},
 		})
 
-	if userId != "" {
-		query = query.Where(sq.Eq{"Posts.UserId": userId})
+	if excludedUserID != "" {
+		query = query.Where(sq.NotEq{"Posts.UserId": excludedUserID})
 	}
 
 	var urgent int64
@@ -2669,8 +2669,8 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 	return int(urgent), nil
 }
 
-// CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by that user.
-func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, int, error) {
+// CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by any other user.
+func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, excludedUserID string) (int, int, error) {
 	joinLeavePostTypes := []string{
 		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
 		model.PostTypeJoinLeave,
@@ -2694,8 +2694,8 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 			sq.Eq{"DeleteAt": 0},
 		})
 
-	if userId != "" {
-		query = query.Where(sq.Eq{"UserId": userId})
+	if excludedUserID != "" {
+		query = query.Where(sq.NotEq{"UserId": excludedUserID})
 	}
 	sql, args, err := query.ToSql()
 	if err != nil {

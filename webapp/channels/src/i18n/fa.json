@@ -228,7 +228,6 @@
   "admin.billing.company_info.city": "شهر",
   "admin.billing.company_info.companyAddress": "آدرس شرکت",
   "admin.billing.company_info.companyName": "نام شرکت",
-  "admin.billing.company_info.country": "کشور",
   "admin.billing.company_info.employees": "{employees} کارمندان",
   "admin.billing.company_info.numEmployees": "تعداد کارمندان (اختیاری)",
   "admin.billing.company_info.title": "اطلاعات شرکت",

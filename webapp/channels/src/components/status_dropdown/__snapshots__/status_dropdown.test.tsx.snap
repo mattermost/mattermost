@@ -37,7 +37,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
     id="statusDropdownMenu"
     listId="status-drop-down-menu-list"
   >
-    <MenuHeader
+    <Memo(MenuHeader)
       onClick={[Function]}
     >
       <div
@@ -57,7 +57,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
           @undefined
         </Text>
       </div>
-    </MenuHeader>
+    </Memo(MenuHeader)>
     <MenuGroup>
       <MenuItemAction
         ariaLabel="out of office"
@@ -271,7 +271,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
     id="statusDropdownMenu"
     listId="status-drop-down-menu-list"
   >
-    <MenuHeader
+    <Memo(MenuHeader)
       onClick={[Function]}
     >
       <div
@@ -291,7 +291,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
           @undefined
         </Text>
       </div>
-    </MenuHeader>
+    </Memo(MenuHeader)>
     <MenuGroup>
       <MenuItemAction
         ariaLabel="out of office"
@@ -586,7 +586,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
     id="statusDropdownMenu"
     listId="status-drop-down-menu-list"
   >
-    <MenuHeader
+    <Memo(MenuHeader)
       onClick={[Function]}
     >
       <div
@@ -606,7 +606,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
           @undefined
         </Text>
       </div>
-    </MenuHeader>
+    </Memo(MenuHeader)>
     <MenuGroup>
       <MenuItemAction
         ariaLabel="out of office"
@@ -631,7 +631,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
           <span
             className="custom_status__icon"
           >
-            <EmojiIcon
+            <Memo(EmojiIcon)
               className="custom-status-emoji"
             />
           </span>
@@ -853,7 +853,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
     id="statusDropdownMenu"
     listId="status-drop-down-menu-list"
   >
-    <MenuHeader
+    <Memo(MenuHeader)
       onClick={[Function]}
     >
       <div
@@ -873,7 +873,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
           @undefined
         </Text>
       </div>
-    </MenuHeader>
+    </Memo(MenuHeader)>
     <MenuGroup>
       <MenuItemAction
         ariaLabel="out of office"
@@ -898,7 +898,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
           <span
             className="custom_status__icon"
           >
-            <EmojiIcon
+            <Memo(EmojiIcon)
               className="custom-status-emoji"
             />
           </span>
@@ -1120,7 +1120,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
     id="statusDropdownMenu"
     listId="status-drop-down-menu-list"
   >
-    <MenuHeader
+    <Memo(MenuHeader)
       onClick={[Function]}
     >
       <div
@@ -1140,7 +1140,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
           @undefined
         </Text>
       </div>
-    </MenuHeader>
+    </Memo(MenuHeader)>
     <MenuGroup>
       <MenuItemAction
         ariaLabel="out of office"
@@ -1165,7 +1165,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
           <span
             className="custom_status__icon"
           >
-            <EmojiIcon
+            <Memo(EmojiIcon)
               className="custom-status-emoji"
             />
           </span>
@@ -1392,7 +1392,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
     id="statusDropdownMenu"
     listId="status-drop-down-menu-list"
   >
-    <MenuHeader
+    <Memo(MenuHeader)
       onClick={[Function]}
     >
       <Memo(Avatar)
@@ -1416,7 +1416,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
           @undefined
         </Text>
       </div>
-    </MenuHeader>
+    </Memo(MenuHeader)>
     <MenuGroup>
       <MenuItemAction
         ariaLabel="out of office"
@@ -1630,7 +1630,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
     id="statusDropdownMenu"
     listId="status-drop-down-menu-list"
   >
-    <MenuHeader
+    <Memo(MenuHeader)
       onClick={[Function]}
     >
       <div
@@ -1650,7 +1650,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
           @undefined
         </Text>
       </div>
-    </MenuHeader>
+    </Memo(MenuHeader)>
     <MenuGroup>
       <MenuItemAction
         ariaLabel="out of office"
@@ -1864,7 +1864,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
     id="statusDropdownMenu"
     listId="status-drop-down-menu-list"
   >
-    <MenuHeader
+    <Memo(MenuHeader)
       onClick={[Function]}
     >
       <div
@@ -1884,7 +1884,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
           @undefined
         </Text>
       </div>
-    </MenuHeader>
+    </Memo(MenuHeader)>
     <MenuGroup>
       <MenuItemAction
         ariaLabel="out of office"
@@ -1909,7 +1909,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
           <span
             className="custom_status__icon"
           >
-            <EmojiIcon
+            <Memo(EmojiIcon)
               className="custom-status-emoji"
             />
           </span>
@@ -2131,7 +2131,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
     id="statusDropdownMenu"
     listId="status-drop-down-menu-list"
   >
-    <MenuHeader
+    <Memo(MenuHeader)
       onClick={[Function]}
     >
       <div
@@ -2151,7 +2151,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
           @undefined
         </Text>
       </div>
-    </MenuHeader>
+    </Memo(MenuHeader)>
     <MenuGroup>
       <MenuItemAction
         ariaLabel="out of office"

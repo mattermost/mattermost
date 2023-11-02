@@ -987,7 +987,7 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "无法创建表情符号。另一个具有相同名称的表情符号已存在。"
+    "translation": "无法创建表情符。另一个具有相同名称的表情符号已存在。"
   },
   {
     "id": "api.emoji.create.other_user.app_error",
@@ -1003,11 +1003,11 @@
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "自定义表情符号已被系统管理员禁用。"
+    "translation": "自定义表情符已被系统管理员禁用。"
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "无法解码表情符号图像文件。"
+    "translation": "无法解码表情符图像文件。"
   },
   {
     "id": "api.emoji.get_image.read.app_error",
@@ -1019,7 +1019,7 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "无法创建表情符号。文件类型必须是PNG，JPEG，或GIF。"
+    "translation": "无法创建表情符。文件类型必须是 PNG、JPEG 或 GIF。"
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
@@ -9964,5 +9964,9 @@
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
     "translation": "无法将频道中的所有主题标记为已读"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "无法根据名称获取过多的表情符。每次最多只能请求 {{.MaxNames}} 个表情符。"
   }
 ]

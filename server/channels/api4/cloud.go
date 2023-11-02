@@ -57,7 +57,7 @@ func (api *API) InitCloud() {
 	// GET /api/v4/cloud/cws-health-check
 	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods("GET")
 
-	api.BaseRoutes.Cloud.Handle("/delete-workspace", api.APISessionRequired(selfServeDeleteWorkspace)).Methods(http.MethodDelete)
+	api.BaseRoutes.Cloud.Handle("/delete-workspace", api.APISessionRequired(selfServeDeleteWorkspace)).Methods("DELETE")
 }
 
 func ensureCloudInterface(c *Context, where string) bool {
@@ -319,7 +319,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusForbidden)
 			emailResp := model.ValidateBusinessEmailResponse{IsValid: false}
 			if err := json.NewEncoder(w).Encode(emailResp); err != nil {
-				mlog.Warn("Error while writing response", mlog.Err(err))
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
 			return
 		}
@@ -328,7 +328,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 	// if any of the emails is valid, return ok
 	emailResp := model.ValidateBusinessEmailResponse{IsValid: true}
 	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

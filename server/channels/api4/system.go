@@ -153,7 +153,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Enhanced ping health check:
 	// If an extra form value is provided then perform extra health checks for
 	// database and file storage backends.
-	if r.FormValue("get_server_status") != "" {
+	if r.FormValue("get_server_status") == "true" {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.StatusOk
 
@@ -172,7 +172,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if s[dbStatusKey] == model.StatusOk {
-			mlog.Debug("Able to write to database.")
+			c.Logger.Debug("Able to write to database.")
 		}
 
 		filestoreStatusKey := "filestore_status"
@@ -853,7 +853,7 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
@@ -884,7 +884,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
@@ -920,13 +920,13 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 	}
 
 	if model.BuildEnterpriseReady != "true" {
-		mlog.Debug("Not Enterprise Edition, skip.")
+		c.Logger.Debug("Not Enterprise Edition, skip.")
 		return
 	}
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
