@@ -20,7 +20,13 @@ func TestPostPersistentNotificationStore(t *testing.T, rctx request.CTX, ss stor
 	t.Run("UpdateLastSentAt", func(t *testing.T) { testPostPersistentNotificationStoreUpdateLastSentAt(t, rctx, ss) })
 }
 
+<<<<<<< HEAD
 func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
+=======
+func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
+	rctx := request.TestContext(t)
+
+>>>>>>> a56ceac80d (2nd try)
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
@@ -85,7 +91,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 	require.NoError(t, err)
 	require.Equal(t, -1, errIdx)
 
-	defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+	defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 	defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id, p4.Id, p5.Id})
 
 	t.Run("Get Single", func(t *testing.T) {
@@ -142,7 +148,13 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 	})
 }
 
+<<<<<<< HEAD
 func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, rctx request.CTX, ss store.Store) {
+=======
+func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.Store) {
+	rctx := request.TestContext(t)
+
+>>>>>>> a56ceac80d (2nd try)
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
@@ -160,7 +172,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, rctx requ
 	require.NoError(t, err)
 	require.Equal(t, -1, errIdx)
 
-	defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+	defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 	defer ss.PostPersistentNotification().Delete([]string{p1.Id})
 
 	// Update from 0 value
@@ -194,7 +206,13 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, rctx requ
 	assert.WithinDuration(t, now, model.GetTimeForMillis(pn[0].LastSentAt), delta)
 }
 
+<<<<<<< HEAD
 func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
+=======
+func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
+	rctx := request.TestContext(t)
+
+>>>>>>> a56ceac80d (2nd try)
 	t.Run("Delete", func(t *testing.T) {
 		p1 := model.Post{}
 		p1.ChannelId = model.NewId()
@@ -239,7 +257,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+		defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 		defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id})
 
 		err = ss.PostPersistentNotification().Delete([]string{p1.Id, p3.Id})
@@ -325,8 +343,8 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
-		defer ss.Post().PermanentDeleteByChannel(p4.ChannelId)
+		defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
+		defer ss.Post().PermanentDeleteByChannel(rctx, p4.ChannelId)
 		defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id, p4.Id, p5.Id})
 
 		err = ss.PostPersistentNotification().DeleteByChannel([]string{p1.ChannelId})
@@ -429,9 +447,9 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		defer ss.Post().PermanentDeleteByChannel(c1.Id)
-		defer ss.Post().PermanentDeleteByChannel(c2.Id)
-		defer ss.Post().PermanentDeleteByChannel(c3.Id)
+		defer ss.Post().PermanentDeleteByChannel(rctx, c1.Id)
+		defer ss.Post().PermanentDeleteByChannel(rctx, c2.Id)
+		defer ss.Post().PermanentDeleteByChannel(rctx, c3.Id)
 		defer ss.Channel().PermanentDeleteByTeam(t1.Id)
 		defer ss.Channel().PermanentDeleteByTeam(t2.Id)
 		defer ss.Team().PermanentDelete(t1.Id)

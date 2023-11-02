@@ -1939,7 +1939,7 @@ func testShouldNotReturnLinksEmbeddedInMarkdown(t *testing.T, th *SearchTestHelp
 func testSearchAcrossTeams(t *testing.T, th *SearchTestHelper) {
 	err := th.addUserToChannels(th.User, []string{th.ChannelAnotherTeam.Id})
 	require.NoError(t, err)
-	defer th.Store.Channel().RemoveMember(th.ChannelAnotherTeam.Id, th.User.Id)
+	defer th.Store.Channel().RemoveMember(th.Context, th.ChannelAnotherTeam.Id, th.User.Id)
 
 	_, err = th.createPost(th.User.Id, th.ChannelAnotherTeam.Id, "text to search", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)

@@ -28,14 +28,14 @@ type SearchEngineInterface interface {
 	IndexPost(post *model.Post, teamId string) *model.AppError
 	SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError)
 	DeletePost(post *model.Post) *model.AppError
-	DeleteChannelPosts(channelID string) *model.AppError
+	DeleteChannelPosts(rctx request.CTX, channelID string) *model.AppError
 	DeleteUserPosts(userID string) *model.AppError
 	// IndexChannel indexes a given channel. The userIDs are only populated
 	// for private channels.
-	IndexChannel(c *request.Context, channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError
+	IndexChannel(c request.CTX, channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError
 	SearchChannels(teamId, userID, term string, isGuest bool) ([]string, *model.AppError)
 	DeleteChannel(channel *model.Channel) *model.AppError
-	IndexUser(c *request.Context, user *model.User, teamsIds, channelsIds []string) *model.AppError
+	IndexUser(c request.CTX, user *model.User, teamsIds, channelsIds []string) *model.AppError
 	SearchUsersInChannel(teamId, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError)
 	SearchUsersInTeam(teamId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, *model.AppError)
 	DeleteUser(user *model.User) *model.AppError
@@ -46,7 +46,7 @@ type SearchEngineInterface interface {
 	DeleteUserFiles(userID string) *model.AppError
 	DeleteFilesBatch(endTime, limit int64) *model.AppError
 	TestConfig(cfg *model.Config) *model.AppError
-	PurgeIndexes(c *request.Context) *model.AppError
-	RefreshIndexes(c *request.Context) *model.AppError
+	PurgeIndexes(c request.CTX) *model.AppError
+	RefreshIndexes(c request.CTX) *model.AppError
 	DataRetentionDeleteIndexes(cutoff time.Time) *model.AppError
 }

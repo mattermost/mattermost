@@ -442,7 +442,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	assert.Zero(t, len(l2))
 
 	channel1.SchemeId = &scheme1.Id
-	channel1, err = th.App.Srv().Store().Channel().Update(channel1)
+	channel1, err = th.App.Srv().Store().Channel().Update(th.Context, channel1)
 	assert.NoError(t, err)
 
 	l3, _, err := th.SystemAdminClient.GetChannelsForScheme(context.Background(), scheme1.Id, 0, 100)

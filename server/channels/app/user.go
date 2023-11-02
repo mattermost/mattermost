@@ -974,7 +974,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		user.DeleteAt = user.UpdateAt
 	}
 
-	userUpdate, err := a.ch.srv.userService.UpdateUser(user, true)
+	userUpdate, err := a.ch.srv.userService.UpdateUser(c, user, true)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -1222,7 +1222,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 		}
 	}
 
-	userUpdate, err := a.ch.srv.userService.UpdateUser(user, false)
+	userUpdate, err := a.ch.srv.userService.UpdateUser(c, user, false)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -1606,7 +1606,7 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	user.Roles = newRoles
 	uchan := make(chan store.GenericStoreResult[*model.UserUpdate], 1)
 	go func() {
-		userUpdate, err := a.Srv().Store().User().Update(user, true)
+		userUpdate, err := a.Srv().Store().User().Update(c, user, true)
 		uchan <- store.GenericStoreResult[*model.UserUpdate]{Data: userUpdate, NErr: err}
 		close(uchan)
 	}()
@@ -1689,7 +1689,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(user.Id); err != nil {
+	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(c, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1697,7 +1697,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Post().PermanentDeleteByUser(user.Id); err != nil {
+	if err := a.Srv().Store().Post().PermanentDeleteByUser(c, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1756,7 +1756,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 
 	if errProfileImageExists != nil {
 		fileHandlingErrorsFound = true
-		mlog.Warn(
+		c.Logger().Warn(
 			"Error checking existence of profile image.",
 			mlog.String("path", profileImagePath),
 			mlog.Err(errProfileImageExists),
@@ -1768,7 +1768,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 
 		if errRemoveDirectory != nil {
 			fileHandlingErrorsFound = true
-			mlog.Warn(
+			c.Logger().Warn(
 				"Unable to remove profile image directory",
 				mlog.String("path", profileImageDirectory),
 				mlog.Err(errRemoveDirectory),
@@ -1776,7 +1776,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		}
 	}
 
-	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(user.Id); err != nil {
+	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(c, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1788,7 +1788,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Team().RemoveAllMembersByUser(user.Id); err != nil {
+	if err := a.Srv().Store().Team().RemoveAllMembersByUser(c, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2136,7 +2136,7 @@ func (a *App) UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *mode
 	}
 
 	if userAttrsChanged {
-		users, err := a.Srv().Store().User().Update(user, true)
+		users, err := a.Srv().Store().User().Update(c, user, true)
 		if err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput

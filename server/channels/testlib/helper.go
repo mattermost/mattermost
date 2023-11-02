@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
@@ -28,6 +29,7 @@ type MainHelper struct {
 	SearchEngine     *searchengine.Broker
 	SQLStore         *sqlstore.SqlStore
 	ClusterInterface *FakeClusterInterface
+	Logger           mlog.LoggerIFace
 
 	status           int
 	testResourcePath string

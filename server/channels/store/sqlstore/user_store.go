@@ -18,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -162,7 +163,7 @@ func (us SqlUserStore) DeactivateGuests() ([]string, error) {
 	return userIds, nil
 }
 
-func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
+func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
 	user.PreUpdate()
 
 	if err := user.IsValid(); err != nil {

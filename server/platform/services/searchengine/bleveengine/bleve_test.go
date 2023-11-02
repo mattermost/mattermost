@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchtest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
@@ -29,10 +30,13 @@ type BleveEngineTestSuite struct {
 	Store        *searchlayer.SearchStore
 	BleveEngine  *BleveEngine
 	IndexDir     string
+	Context      request.CTX
 }
 
 func TestBleveEngineTestSuite(t *testing.T) {
-	suite.Run(t, new(BleveEngineTestSuite))
+	suite.Run(t, &BleveEngineTestSuite{
+		Context: request.TestContext(t),
+	})
 }
 
 func (s *BleveEngineTestSuite) setupIndexes() {
@@ -110,7 +114,7 @@ func (s *BleveEngineTestSuite) TestBleveSearchStoreTests() {
 
 func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 	s.Run("Should remove all the posts that belongs to a channel", func() {
-		s.BleveEngine.PurgeIndexes()
+		s.BleveEngine.PurgeIndexes(s.Context)
 		teamID := model.NewId()
 		userID := model.NewId()
 		channelID := model.NewId()
@@ -135,7 +139,7 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 	})
 
 	s.Run("Shouldn't do anything if there is not posts for the selected channel", func() {
-		s.BleveEngine.PurgeIndexes()
+		s.BleveEngine.PurgeIndexes(s.Context)
 		teamID := model.NewId()
 		userID := model.NewId()
 		channelID := model.NewId()
@@ -156,7 +160,7 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 
 func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 	s.Run("Should remove all the posts that belongs to a user", func() {
-		s.BleveEngine.PurgeIndexes()
+		s.BleveEngine.PurgeIndexes(s.Context)
 		teamID := model.NewId()
 		userID := model.NewId()
 		userToAvoidID := model.NewId()
@@ -181,7 +185,7 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 	})
 
 	s.Run("Shouldn't do anything if there is not posts for the selected user", func() {
-		s.BleveEngine.PurgeIndexes()
+		s.BleveEngine.PurgeIndexes(s.Context)
 		teamID := model.NewId()
 		userID := model.NewId()
 		userToDeleteID := model.NewId()
@@ -201,7 +205,7 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 }
 
 func (s *BleveEngineTestSuite) TestDeletePosts() {
-	s.BleveEngine.PurgeIndexes()
+	s.BleveEngine.PurgeIndexes(s.Context)
 	teamID := model.NewId()
 	userID := model.NewId()
 	userToAvoidID := model.NewId()

@@ -77,6 +77,7 @@ var searchChannelStoreTests = []searchTest{
 
 func TestSearchChannelStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
 	th := &SearchTestHelper{
+
 		Store: s,
 	}
 	err := th.SetupBasicFixtures()

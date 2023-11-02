@@ -1884,7 +1884,7 @@ func (a *OpenTracingAppLayer) CopyFileInfos(userID string, fileIDs []string) ([]
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateBot")
 
@@ -4063,7 +4063,7 @@ func (a *OpenTracingAppLayer) EnableUserAccessToken(c request.CTX, token *model.
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
+func (a *OpenTracingAppLayer) EnsureBot(rctx request.CTX, productID string, bot *model.Bot) (string, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnsureBot")
 
@@ -4075,7 +4075,7 @@ func (a *OpenTracingAppLayer) EnsureBot(c *request.Context, productID string, bo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.EnsureBot(c, productID, bot)
+	resultVar0, resultVar1 := a.app.EnsureBot(rctx, productID, bot)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12809,7 +12809,7 @@ func (a *OpenTracingAppLayer) OverrideIconURLIfEmoji(c request.CTX, post *model.
 	a.app.OverrideIconURLIfEmoji(c, post)
 }
 
-func (a *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchBot")
 
@@ -12821,7 +12821,7 @@ func (a *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatc
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.PatchBot(botUserId, botPatch)
+	resultVar0, resultVar1 := a.app.PatchBot(rctx, botUserId, botPatch)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13461,7 +13461,7 @@ func (a *OpenTracingAppLayer) PublishUserTyping(userID string, channelID string,
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PurgeBleveIndexes(c *request.Context) *model.AppError {
+func (a *OpenTracingAppLayer) PurgeBleveIndexes(c request.CTX) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeBleveIndexes")
 
@@ -13483,7 +13483,7 @@ func (a *OpenTracingAppLayer) PurgeBleveIndexes(c *request.Context) *model.AppEr
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c *request.Context) *model.AppError {
+func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeElasticsearchIndexes")
 

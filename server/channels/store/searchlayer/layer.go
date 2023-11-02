@@ -67,21 +67,21 @@ func (s *SearchStore) User() store.UserStore {
 	return s.user
 }
 
-func (s *SearchStore) indexUserFromID(c *request.Context, userId string) {
-	user, err := s.User().Get(c.Context(), userId)
+func (s *SearchStore) indexUserFromID(rctx request.CTX, userId string) {
+	user, err := s.User().Get(rctx.Context(), userId)
 	if err != nil {
 		return
 	}
-	s.indexUser(c, user)
+	s.indexUser(rctx, user)
 }
 
-func (s *SearchStore) indexUser(c *request.Context, user *model.User) {
+func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 	for _, engine := range s.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
+			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
 				userTeams, nErr := s.Team().GetTeamsByUserId(user.Id)
 				if nErr != nil {
-					c.Logger().Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(nErr))
+					rctx.Logger().Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(nErr))
 					return
 				}
 
@@ -92,7 +92,7 @@ func (s *SearchStore) indexUser(c *request.Context, user *model.User) {
 
 				userChannelMembers, err := s.Channel().GetAllChannelMembersForUser(user.Id, false, true)
 				if err != nil {
-					c.Logger().Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					rctx.Logger().Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
 
@@ -101,22 +101,22 @@ func (s *SearchStore) indexUser(c *request.Context, user *model.User) {
 					userChannelsIds = append(userChannelsIds, channelId)
 				}
 
-				if err := engineCopy.IndexUser(c, user, userTeamsIds, userChannelsIds); err != nil {
-					c.Logger().Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+				if err := engineCopy.IndexUser(rctx, user, userTeamsIds, userChannelsIds); err != nil {
+					rctx.Logger().Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				c.Logger().Debug("Indexed user in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
+				rctx.Logger().Debug("Indexed user in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
 			})
 		}
 	}
 }
 
 // Runs an indexing function synchronously or asynchronously depending on the engine
-func runIndexFn(c *request.Context, engine searchengine.SearchEngineInterface, indexFn func(searchengine.SearchEngineInterface)) {
+func runIndexFn(rctx request.CTX, engine searchengine.SearchEngineInterface, indexFn func(searchengine.SearchEngineInterface)) {
 	if engine.IsIndexingSync() {
 		indexFn(engine)
-		if err := engine.RefreshIndexes(c); err != nil {
-			c.Logger().Error("Encountered error refresh the indexes", mlog.Err(err))
+		if err := engine.RefreshIndexes(rctx); err != nil {
+			rctx.Logger().Error("Encountered error refresh the indexes", mlog.Err(err))
 		}
 	} else {
 		go (func(engineCopy searchengine.SearchEngineInterface) {

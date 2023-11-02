@@ -1218,7 +1218,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID)
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
+				a.Srv().Store().FileInfo().PermanentDelete(c, fileID)
 			}
 		}
 		reply.FileIds = make([]string, 0)
@@ -1521,7 +1521,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		fileIDs := a.uploadAttachments(rctx, line.Post.Attachments, post, team.Id)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
+				a.Srv().Store().FileInfo().PermanentDelete(c, fileID)
 			}
 		}
 		post.FileIds = make([]string, 0)
@@ -1720,7 +1720,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	if data.Header != nil {
 		channel.Header = *data.Header
-		if _, appErr := a.Srv().Store().Channel().Update(channel); appErr != nil {
+		if _, appErr := a.Srv().Store().Channel().Update(c, channel); appErr != nil {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, "", http.StatusBadRequest).Wrap(appErr)
 		}
 	}
@@ -1834,7 +1834,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		fileIDs := a.uploadAttachments(rctx, line.DirectPost.Attachments, post, "noteam")
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
+				a.Srv().Store().FileInfo().PermanentDelete(c, fileID)
 			}
 		}
 		post.FileIds = make([]string, 0)

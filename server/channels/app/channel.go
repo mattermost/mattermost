@@ -429,7 +429,7 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 	return channel, nil
 }
 
-func (a *App) getOrCreateDirectChannelWithUser(c *request.Context, user, otherUser *model.User) (*model.Channel, *model.AppError) {
+func (a *App) getOrCreateDirectChannelWithUser(c request.CTX, user, otherUser *model.User) (*model.Channel, *model.AppError) {
 	channel, nErr := a.getDirectChannel(c, user.Id, otherUser.Id)
 	if nErr != nil {
 		return nil, nErr
@@ -691,7 +691,7 @@ func (a *App) GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, 
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
-	_, err := a.Srv().Store().Channel().Update(channel)
+	_, err := a.Srv().Store().Channel().Update(c, channel)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -1372,7 +1372,7 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 }
 
 func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	member, err := a.Srv().Store().Channel().UpdateMember(member)
+	member, err := a.Srv().Store().Channel().UpdateMember(c, member)
 	if err != nil {
 		var appErr *model.AppError
 		var nfErr *store.ErrNotFound
@@ -2526,7 +2526,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 		return err
 	}
 
-	if err := a.Srv().Store().Channel().RemoveMember(channel.Id, userIDToRemove); err != nil {
+	if err := a.Srv().Store().Channel().RemoveMember(c, channel.Id, userIDToRemove); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
@@ -2547,7 +2547,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
-			if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
+			if err := a.ch.srv.teamService.RemoveTeamMember(c, teamMember); err != nil {
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
@@ -3064,11 +3064,11 @@ func (a *App) ViewChannel(c request.CTX, view *model.ChannelView, userID string,
 }
 
 func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError {
-	if err := a.Srv().Store().Post().PermanentDeleteByChannel(channel.Id); err != nil {
+	if err := a.Srv().Store().Post().PermanentDeleteByChannel(c, channel.Id); err != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.post.permanent_delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
+	if err := a.Srv().Store().Channel().PermanentDeleteMembersByChannel(c, channel.Id); err != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -3086,7 +3086,7 @@ func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *mod
 
 	deleteAt := model.GetMillis()
 
-	if nErr := a.Srv().Store().Channel().PermanentDelete(channel.Id); nErr != nil {
+	if nErr := a.Srv().Store().Channel().PermanentDelete(c, channel.Id); nErr != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
@@ -3101,7 +3101,7 @@ func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *mod
 }
 
 func (a *App) RemoveAllDeactivatedMembersFromChannel(c request.CTX, channel *model.Channel) *model.AppError {
-	err := a.Srv().Store().Channel().RemoveAllDeactivatedMembers(channel.Id)
+	err := a.Srv().Store().Channel().RemoveAllDeactivatedMembers(c, channel.Id)
 	if err != nil {
 		return model.NewAppError("RemoveAllDeactivatedMembersFromChannel", "app.channel.remove_all_deactivated_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3160,7 +3160,7 @@ func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channe
 	}
 
 	channel.TeamId = team.Id
-	if _, err := a.Srv().Store().Channel().Update(channel); err != nil {
+	if _, err := a.Srv().Store().Channel().Update(c, channel); err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
 		switch {

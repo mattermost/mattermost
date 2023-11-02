@@ -484,7 +484,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	member, nErr = a.Srv().Store().Team().UpdateMember(member)
+	member, nErr = a.Srv().Store().Team().UpdateMember(c, member)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -523,7 +523,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 		member.ExplicitRoles = RemoveRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
 	}
 
-	member, nErr := a.Srv().Store().Team().UpdateMember(member)
+	member, nErr := a.Srv().Store().Team().UpdateMember(c, member)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -1259,7 +1259,7 @@ func (a *App) LeaveTeam(c request.CTX, team *model.Team, user *model.User, reque
 	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
-			if nErr = a.Srv().Store().Channel().RemoveMember(channel.Id, user.Id); nErr != nil {
+			if nErr = a.Srv().Store().Channel().RemoveMember(c, channel.Id, user.Id); nErr != nil {
 				return model.NewAppError("LeaveTeam", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
@@ -1288,7 +1288,7 @@ func (a *App) LeaveTeam(c request.CTX, team *model.Team, user *model.User, reque
 		}
 	}
 
-	if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
+	if err := a.ch.srv.teamService.RemoveTeamMember(c, teamMember); err != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

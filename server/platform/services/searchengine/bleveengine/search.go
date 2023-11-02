@@ -304,7 +304,7 @@ func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) IndexChannel(c *request.Context, channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError {
+func (b *BleveEngine) IndexChannel(c request.CTX, channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
@@ -403,7 +403,7 @@ func (b *BleveEngine) DeleteChannel(channel *model.Channel) *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) IndexUser(_ *request.Context, user *model.User, teamsIds, channelsIds []string) *model.AppError {
+func (b *BleveEngine) IndexUser(_ request.CTX, user *model.User, teamsIds, channelsIds []string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 

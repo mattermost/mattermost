@@ -218,7 +218,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		// Clean up all posts from this user.
 		// There are some dummy messages like "user joined team" etc.
 		// which needs to be cleaned up.
-		require.NoError(t, th.GetSqlStore().Post().PermanentDeleteByUser(th.BasicUser.Id))
+		require.NoError(t, th.GetSqlStore().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id))
 
 		savedPost, err := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,

@@ -1428,8 +1428,8 @@ func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId strin
 			params.ExcludedChannels = a.convertChannelNamesToChannelIds(c, params.ExcludedChannels, userId, teamId, includeDeletedChannels)
 
 			// Convert usernames to user IDs
-			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
-			params.ExcludedUsers = a.convertUserNameToUserIds(params.ExcludedUsers)
+			params.FromUsers = a.convertUserNameToUserIds(c, params.FromUsers)
+			params.ExcludedUsers = a.convertUserNameToUserIds(c, params.ExcludedUsers)
 
 			finalParamsList = append(finalParamsList, params)
 		}

@@ -116,12 +116,12 @@ func createEmoji(ss store.Store, userId string) *model.Emoji {
 	return emoji
 }
 
-func createFileInfo(ss store.Store, postId, channelId, userId string) *model.FileInfo {
+func createFileInfo(rctx request.CTX, ss store.Store, postId, channelId, userId string) *model.FileInfo {
 	m := model.FileInfo{}
 	m.PostId = postId
 	m.CreatorId = userId
 	m.Path = "some/path/to/file"
-	info, _ := ss.FileInfo().Save(&m)
+	info, _ := ss.FileInfo().Save(rctx, &m)
 	return info
 }
 
@@ -493,7 +493,7 @@ func TestCheckChannelsChannelMembersIntegrity(t *testing.T) {
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &member.ChannelId,
 			}, data.Records[0])
-			ss.Channel().PermanentDeleteMembersByChannel(member.ChannelId)
+			ss.Channel().PermanentDeleteMembersByChannel(rctx, member.ChannelId)
 		})
 	})
 }
@@ -625,7 +625,7 @@ func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			postId := model.NewId()
-			info := createFileInfo(ss, postId, model.NewId(), model.NewId())
+			info := createFileInfo(rctx, ss, postId, model.NewId(), model.NewId())
 			result := checkPostsFileInfoIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
@@ -821,7 +821,7 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			channel := createChannelWithTeamId(ss, model.NewId())
 			userA := createUser(ss)
 			userB := createUser(ss)
-			direct, err := ss.Channel().CreateDirectChannel(userA, userB)
+			direct, err := ss.Channel().CreateDirectChannel(rctx, userA, userB)
 			require.NoError(t, err)
 			require.NotNil(t, direct)
 			result := checkTeamsChannelsIntegrity(store)
@@ -842,7 +842,7 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			channel := createChannelWithTeamId(ss, model.NewId())
 			userA := createUser(ss)
 			userB := createUser(ss)
-			direct, err := ss.Channel().CreateDirectChannel(userA, userB)
+			direct, err := ss.Channel().CreateDirectChannel(rctx, userA, userB)
 			require.NoError(t, err)
 			require.NotNil(t, direct)
 			_, err = dbmap.Exec(`UPDATE Channels SET TeamId = 'test' WHERE Id = '` + direct.Id + `'`)
@@ -1120,7 +1120,7 @@ func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
 				ParentId: &member.UserId,
 			}, data.Records[0])
 			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)
-			ss.Channel().PermanentDeleteMembersByUser(member.UserId)
+			ss.Channel().PermanentDeleteMembersByUser(rctx, member.UserId)
 		})
 	})
 }
@@ -1228,7 +1228,7 @@ func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			user := createUser(ss)
 			userId := user.Id
-			info := createFileInfo(ss, model.NewId(), model.NewId(), userId)
+			info := createFileInfo(rctx, ss, model.NewId(), model.NewId(), userId)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 			result := checkUsersFileInfoIntegrity(store)
 			require.NoError(t, result.Err)

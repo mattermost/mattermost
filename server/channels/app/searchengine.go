@@ -36,7 +36,7 @@ func (a *App) SetSearchEngine(se *searchengine.Broker) {
 	a.ch.srv.platform.SearchEngine = se
 }
 
-func (a *App) PurgeElasticsearchIndexes(c *request.Context) *model.AppError {
+func (a *App) PurgeElasticsearchIndexes(c request.CTX) *model.AppError {
 	engine := a.SearchEngine().ElasticsearchEngine
 	if engine == nil {
 		err := model.NewAppError("PurgeElasticsearchIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
@@ -50,7 +50,7 @@ func (a *App) PurgeElasticsearchIndexes(c *request.Context) *model.AppError {
 	return nil
 }
 
-func (a *App) PurgeBleveIndexes(c *request.Context) *model.AppError {
+func (a *App) PurgeBleveIndexes(c request.CTX) *model.AppError {
 	engine := a.SearchEngine().BleveEngine
 	if engine == nil {
 		err := model.NewAppError("PurgeBleveIndexes", "searchengine.bleve.disabled.error", nil, "", http.StatusNotImplemented)

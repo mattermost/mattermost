@@ -10,6 +10,8 @@ import (
 	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
+	request "github.com/mattermost/mattermost/server/public/shared/request"
+
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -1568,25 +1570,25 @@ func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOpt
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: user, allowRoleUpdate
-func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
-	ret := _m.Called(user, allowRoleUpdate)
+// Update provides a mock function with given fields: rctx, user, allowRoleUpdate
+func (_m *UserStore) Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
+	ret := _m.Called(rctx, user, allowRoleUpdate)
 
 	var r0 *model.UserUpdate
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.User, bool) (*model.UserUpdate, error)); ok {
-		return rf(user, allowRoleUpdate)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, bool) (*model.UserUpdate, error)); ok {
+		return rf(rctx, user, allowRoleUpdate)
 	}
-	if rf, ok := ret.Get(0).(func(*model.User, bool) *model.UserUpdate); ok {
-		r0 = rf(user, allowRoleUpdate)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, bool) *model.UserUpdate); ok {
+		r0 = rf(rctx, user, allowRoleUpdate)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UserUpdate)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.User, bool) error); ok {
-		r1 = rf(user, allowRoleUpdate)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, bool) error); ok {
+		r1 = rf(rctx, user, allowRoleUpdate)
 	} else {
 		r1 = ret.Error(1)
 	}

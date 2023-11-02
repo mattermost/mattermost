@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -20,15 +21,15 @@ type SearchUserStore struct {
 	rootStore *SearchStore
 }
 
-func (s *SearchUserStore) deleteUserIndex(user *model.User) {
+func (s *SearchUserStore) deleteUserIndex(rctx request.CTX, user *model.User) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
+			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteUser(user); err != nil {
-					mlog.Error("Encountered error deleting user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					rctx.Logger().Error("Encountered error deleting user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Removed user from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
+				rctx.Logger().Debug("Removed user from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
 			})
 		}
 	}
@@ -71,32 +72,36 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 	return s.UserStore.Search(teamId, term, options)
 }
 
-func (s *SearchUserStore) Update(user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
-	userUpdate, err := s.UserStore.Update(user, trustedUpdateData)
+func (s *SearchUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
+	userUpdate, err := s.UserStore.Update(rctx, user, trustedUpdateData)
 
 	if err == nil {
-		s.rootStore.indexUser(userUpdate.New)
+		s.rootStore.indexUser(rctx, userUpdate.New)
 	}
 	return userUpdate, err
 }
 
 func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
+	//TODO: Use the actuall request context from the App layer
+	rctx := request.EmptyContext(s.rootStore.Logger())
 	nuser, err := s.UserStore.Save(user)
 
 	if err == nil {
-		s.rootStore.indexUser(nuser)
+		s.rootStore.indexUser(rctx, nuser)
 	}
 	return nuser, err
 }
 
 func (s *SearchUserStore) PermanentDelete(userId string) error {
+	//TODO: Use the actuall request context from the App layer
+	rctx := request.EmptyContext(s.rootStore.Logger())
 	user, userErr := s.UserStore.Get(context.Background(), userId)
 	if userErr != nil {
-		mlog.Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
+		rctx.Logger().Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}
 	err := s.UserStore.PermanentDelete(userId)
 	if err == nil && userErr == nil {
-		s.deleteUserIndex(user)
+		s.deleteUserIndex(rctx, user)
 	}
 	return err
 }

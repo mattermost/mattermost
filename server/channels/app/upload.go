@@ -306,7 +306,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}
 
 	var storeErr error
-	if info, storeErr = a.Srv().Store().FileInfo().Save(info); storeErr != nil {
+	if info, storeErr = a.Srv().Store().FileInfo().Save(c, info); storeErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(storeErr, &appErr):

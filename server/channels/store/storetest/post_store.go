@@ -934,10 +934,10 @@ func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 	o4, err = ss.Post().Save(o4)
 	require.NoError(t, err)
 
-	err = ss.Post().Delete(o2.Id, model.GetMillis(), o2.UserId)
+	err = ss.Post().Delete(rctx, o2.Id, model.GetMillis(), o2.UserId)
 	require.NoError(t, err)
 
-	err = ss.Post().Delete(o4.Id, model.GetMillis(), o4.UserId)
+	err = ss.Post().Delete(rctx, o4.Id, model.GetMillis(), o4.UserId)
 	require.NoError(t, err)
 
 	post, err := ss.Post().GetSingle(o1.Id, false)
@@ -1006,7 +1006,7 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o1a := ro1.Clone()
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	_, err = ss.Post().Update(o1a, ro1)
+	_, err = ss.Post().Update(rctx, o1a, ro1)
 	require.NoError(t, err)
 
 	r1, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -1017,7 +1017,7 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o2a := ro2.Clone()
 	o2a.Message = ro2.Message + "DDDDDDD"
-	_, err = ss.Post().Update(o2a, ro2)
+	_, err = ss.Post().Update(rctx, o2a, ro2)
 	require.NoError(t, err)
 
 	r2, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -1028,7 +1028,7 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	o3a := ro3.Clone()
 	o3a.Message = ro3.Message + "WWWWWWW"
-	_, err = ss.Post().Update(o3a, ro3)
+	_, err = ss.Post().Update(rctx, o3a, ro3)
 	require.NoError(t, err)
 
 	r3, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -1061,7 +1061,7 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	o4a := ro4.Clone()
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
-	_, err = ss.Post().Update(o4a, ro4)
+	_, err = ss.Post().Update(rctx, o4a, ro4)
 	require.NoError(t, err)
 
 	r4, err = ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -1103,7 +1103,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		// Mark the post as deleted by the user identified with deleteByID.
 		deleteByID := model.NewId()
-		err = ss.Post().Delete(rootPost.Id, model.GetMillis(), deleteByID)
+		err = ss.Post().Delete(rctx, rootPost.Id, model.GetMillis(), deleteByID)
 		require.NoError(t, err)
 
 		// Ensure the appropriate posts prop reflects the user deleting the post.
@@ -1150,7 +1150,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Delete the root post
-		err = ss.Post().Delete(rootPost.Id, model.GetMillis(), "")
+		err = ss.Post().Delete(rctx, rootPost.Id, model.GetMillis(), "")
 		require.NoError(t, err)
 
 		// Verify the root post deleted
@@ -1217,7 +1217,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Delete the root post
-		err = ss.Post().Delete(rootPost1.Id, model.GetMillis(), "")
+		err = ss.Post().Delete(rctx, rootPost1.Id, model.GetMillis(), "")
 		require.NoError(t, err)
 
 		// Verify the root post and replies deleted
@@ -1285,7 +1285,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
 
 		// Delete the reply previous to last
-		err = ss.Post().Delete(replyPost2.Id, model.GetMillis(), "")
+		err = ss.Post().Delete(rctx, replyPost2.Id, model.GetMillis(), "")
 		require.NoError(t, err)
 
 		thread, err = ss.Thread().Get(rootPost1.Id)
@@ -1294,7 +1294,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
 
 		// Delete the last reply
-		err = ss.Post().Delete(replyPost3.Id, model.GetMillis(), "")
+		err = ss.Post().Delete(rctx, replyPost3.Id, model.GetMillis(), "")
 		require.NoError(t, err)
 
 		thread, err = ss.Thread().Get(rootPost1.Id)
@@ -1303,7 +1303,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, replyPost1.CreateAt, thread.LastReplyAt)
 
 		// Delete the last reply
-		err = ss.Post().Delete(replyPost1.Id, model.GetMillis(), "")
+		err = ss.Post().Delete(rctx, replyPost1.Id, model.GetMillis(), "")
 		require.NoError(t, err)
 
 		thread, err = ss.Thread().Get(rootPost1.Id)
@@ -1346,14 +1346,14 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    rootPost1.Id,
 		})
 		require.NoError(t, err)
-		file11, err := ss.FileInfo().Save(&model.FileInfo{
+		file11, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 			Id:        model.NewId(),
 			PostId:    replyPost1.Id,
 			CreatorId: replyPost1.UserId,
 			Path:      "file1.txt",
 		})
 		require.NoError(t, err)
-		file12, err := ss.FileInfo().Save(&model.FileInfo{
+		file12, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 			Id:        model.NewId(),
 			PostId:    replyPost1.Id,
 			CreatorId: replyPost1.UserId,
@@ -1369,7 +1369,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    rootPost2.Id,
 		})
 		require.NoError(t, err)
-		file21, err := ss.FileInfo().Save(&model.FileInfo{
+		file21, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 			Id:        model.NewId(),
 			PostId:    replyPost2.Id,
 			CreatorId: replyPost2.UserId,
@@ -1378,7 +1378,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Delete the first root post
-		err = ss.Post().Delete(rootPost1.Id, model.GetMillis(), "")
+		err = ss.Post().Delete(rctx, rootPost1.Id, model.GetMillis(), "")
 		require.NoError(t, err)
 
 		// Verify the reply post's files are deleted
@@ -1504,7 +1504,7 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 	require.EqualValues(t, 2, thread.ReplyCount)
 	require.EqualValues(t, model.StringArray{o2.UserId}, thread.Participants)
 
-	err2 := ss.Post().PermanentDeleteByUser(o2.UserId)
+	err2 := ss.Post().PermanentDeleteByUser(rctx, o2.UserId)
 	require.NoError(t, err2)
 
 	thread, err = ss.Thread().Get(o1.Id)
@@ -1535,7 +1535,7 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 	require.NotEmpty(t, thread)
 
-	err = ss.Post().PermanentDeleteByChannel(o3.ChannelId)
+	err = ss.Post().PermanentDeleteByChannel(rctx, o3.ChannelId)
 	require.NoError(t, err)
 
 	thread, err = ss.Thread().Get(o5.Id)
@@ -1606,7 +1606,7 @@ func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Sto
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
-	err2 := ss.Post().PermanentDeleteByUser(o1.UserId)
+	err2 := ss.Post().PermanentDeleteByUser(rctx, o1.UserId)
 	require.NoError(t, err2)
 
 	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -1657,7 +1657,7 @@ func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store
 
 	require.Len(t, pl.Posts, 3, "invalid returned post")
 
-	dErr := ss.Post().Delete(o3.Id, model.GetMillis(), "")
+	dErr := ss.Post().Delete(rctx, o3.Id, model.GetMillis(), "")
 	require.NoError(t, dErr)
 
 	pl, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -1665,7 +1665,7 @@ func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store
 
 	require.Len(t, pl.Posts, 2, "invalid returned post")
 
-	dErr = ss.Post().Delete(o2.Id, model.GetMillis(), "")
+	dErr = ss.Post().Delete(rctx, o2.Id, model.GetMillis(), "")
 	require.NoError(t, dErr)
 
 	pl, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -2478,7 +2478,7 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return all posts in a channel included deleted posts", func(t *testing.T) {
-		err := ss.Post().Delete(post1.Id, 1, userId)
+		err := ss.Post().Delete(rctx, post1.Id, 1, userId)
 		require.NoError(t, err)
 
 		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: true}, false, map[string]bool{})
@@ -2503,7 +2503,7 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return all posts in a channel included deleted posts without threads", func(t *testing.T) {
-		err := ss.Post().Delete(post5.Id, 1, userId)
+		err := ss.Post().Delete(rctx, post5.Id, 1, userId)
 		require.NoError(t, err)
 
 		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: true}, false, map[string]bool{})
@@ -2526,7 +2526,7 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return the lasts posts created in channel without include deleted posts", func(t *testing.T) {
-		err := ss.Post().Delete(post6.Id, 1, userId)
+		err := ss.Post().Delete(rctx, post6.Id, 1, userId)
 		require.NoError(t, err)
 
 		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: false}, false, map[string]bool{})
@@ -2982,7 +2982,7 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, int64(2), c)
 
 	// delete 1 post
-	err = ss.Post().Delete(p2.Id, 1, p2.UserId)
+	err = ss.Post().Delete(rctx, p2.Id, 1, p2.UserId)
 	require.NoError(t, err)
 
 	// total for single team with the deleted post excluded
@@ -3069,7 +3069,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	m2.UserId = model.NewId()
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	c2, err = ss.Channel().SaveDirectChannel(c2, m1, m2)
+	c2, err = ss.Channel().SaveDirectChannel(rctx, c2, m1, m2)
 	require.NoError(t, err)
 
 	o5 := &model.Post{}
@@ -3783,17 +3783,17 @@ func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("overwrite changing message", func(t *testing.T) {
 		o1a := ro1.Clone()
 		o1a.Message = ro1.Message + "BBBBBBBBBB"
-		_, err = ss.Post().Overwrite(o1a)
+		_, err = ss.Post().Overwrite(rctx, o1a)
 		require.NoError(t, err)
 
 		o2a := ro2.Clone()
 		o2a.Message = ro2.Message + "DDDDDDD"
-		_, err = ss.Post().Overwrite(o2a)
+		_, err = ss.Post().Overwrite(rctx, o2a)
 		require.NoError(t, err)
 
 		o3a := ro3.Clone()
 		o3a.Message = ro3.Message + "WWWWWWW"
-		_, err = ss.Post().Overwrite(o3a)
+		_, err = ss.Post().Overwrite(rctx, o3a)
 		require.NoError(t, err)
 
 		r1, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -3817,7 +3817,7 @@ func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {
 		o4a := ro4.Clone()
 		o4a.Filenames = []string{}
 		o4a.FileIds = []string{model.NewId()}
-		_, err = ss.Post().Overwrite(o4a)
+		_, err = ss.Post().Overwrite(rctx, o4a)
 		require.NoError(t, err)
 
 		r4, err = ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -3882,7 +3882,7 @@ func testPostStoreGetPostsByIds(t *testing.T, rctx request.CTX, ss store.Store) 
 	require.NoError(t, err)
 	require.Len(t, posts, 3, "Expected 3 posts in results. Got %v", len(posts))
 
-	err = ss.Post().Delete(ro1.Id, model.GetMillis(), "")
+	err = ss.Post().Delete(rctx, ro1.Id, model.GetMillis(), "")
 	require.NoError(t, err)
 
 	posts, err = ss.Post().GetPostsByIds(postIds)
@@ -4391,7 +4391,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.S
 
 	// Checking whether replies by deleted user are exported
 	u1.DeleteAt = 1002
-	_, err = ss.User().Update(&u1, false)
+	_, err = ss.User().Update(rctx, &u1, false)
 	require.NoError(t, err)
 
 	r1, err = ss.Post().GetRepliesForExport(p1.Id)
@@ -4440,7 +4440,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, rctx request.
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
 
 	p1 := &model.Post{}
 	p1.ChannelId = o1.Id
@@ -4496,7 +4496,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
 
 	o1.DeleteAt = 1
 	nErr = ss.Channel().SetDeleteAt(o1.Id, 1, 1)
@@ -4513,7 +4513,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 	o1a := p1.Clone()
 	o1a.DeleteAt = 1
 	o1a.Message = p1.Message + "BBBBBBBBBB"
-	_, nErr = ss.Post().Update(o1a, p1)
+	_, nErr = ss.Post().Update(rctx, o1a, p1)
 	require.NoError(t, nErr)
 
 	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
@@ -4562,7 +4562,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 		m2.UserId = u2.Id
 		m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-		ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+		ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
 
 		p1 := &model.Post{}
 		p1.ChannelId = o1.Id
@@ -4646,7 +4646,7 @@ func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, err)
 		assert.True(t, exists)
 
-		err = ss.Post().Delete(post3.Id, time.Now().Unix(), userId)
+		err = ss.Post().Delete(rctx, post3.Id, time.Now().Unix(), userId)
 		require.NoError(t, err)
 
 		exists, err = ss.Post().HasAutoResponsePostByUserSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post2.CreateAt}, userId)
@@ -5026,7 +5026,7 @@ func testGetEditHistoryForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		// create an edit
 		updatedPost := originalPost.Clone()
 		updatedPost.Message = "test edited"
-		savedUpdatedPost, err := ss.Post().Update(updatedPost, originalPost)
+		savedUpdatedPost, err := ss.Post().Update(rctx, updatedPost, originalPost)
 		require.NoError(t, err)
 		// get edit history
 		edits, err := ss.Post().GetEditHistoryForPost(savedUpdatedPost.Id)
@@ -5067,7 +5067,7 @@ func testGetEditHistoryForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		originalPost, err := ss.Post().Save(post)
 		require.NoError(t, err)
 		// delete post
-		err = ss.Post().Delete(post.Id, 100, post.UserId)
+		err = ss.Post().Delete(rctx, post.Id, 100, post.UserId)
 		require.NoError(t, err)
 		// get edit history
 		_, err = ss.Post().GetEditHistoryForPost(originalPost.Id)
@@ -5086,10 +5086,10 @@ func testGetEditHistoryForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		// create an edit
 		updatedPost := originalPost.Clone()
 		updatedPost.Message = "test edited"
-		savedUpdatedPost, err := ss.Post().Update(updatedPost, originalPost)
+		savedUpdatedPost, err := ss.Post().Update(rctx, updatedPost, originalPost)
 		require.NoError(t, err)
 		// delete edit
-		err = ss.Post().Delete(savedUpdatedPost.Id, 100, savedUpdatedPost.UserId)
+		err = ss.Post().Delete(rctx, savedUpdatedPost.Id, 100, savedUpdatedPost.UserId)
 		require.NoError(t, err)
 		// get edit history
 		_, err = ss.Post().GetEditHistoryForPost(savedUpdatedPost.Id)

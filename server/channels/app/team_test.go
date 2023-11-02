@@ -327,14 +327,14 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 		guestEmail := rguest.Email
 		rguest.Email = "test@restricted.com"
-		_, err := th.App.Srv().Store().User().Update(rguest, false)
+		_, err := th.App.Srv().Store().User().Update(th.Context, rguest, false)
 		th.App.InvalidateCacheForUser(rguest.Id)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		_, _, appErr := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
 		require.Nil(t, appErr)
 		rguest.Email = guestEmail
-		_, err = th.App.Srv().Store().User().Update(rguest, false)
+		_, err = th.App.Srv().Store().User().Update(th.Context, rguest, false)
 		require.NoError(t, err)
 	})
 
@@ -351,7 +351,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
-		_, err = th.App.Srv().Store().User().Update(rguest, false)
+		_, err = th.App.Srv().Store().User().Update(th.Context, rguest, false)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		_, _, appErr := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)

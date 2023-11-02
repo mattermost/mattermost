@@ -1008,7 +1008,7 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 }
 
 func (api *PluginAPI) PatchBot(userID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	return api.app.PatchBot(userID, botPatch)
+	return api.app.PatchBot(api.ctx, userID, botPatch)
 }
 
 func (api *PluginAPI) GetBot(userID string, includeDeleted bool) (*model.Bot, *model.AppError) {

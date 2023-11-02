@@ -90,7 +90,7 @@ type AppIface interface {
 	// Create/ Update a subscription history event
 	SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error)
 	// CreateBot creates the given bot and corresponding user.
-	CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError)
+	CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError)
 	// CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
 	CreateChannelScheme(c request.CTX, channel *model.Channel) (*model.Scheme, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
@@ -142,7 +142,7 @@ type AppIface interface {
 	// any ensureBotOptions hence it is not required for now.
 	// TODO: Once the focalboard migration completed, we should add this logic to the app and
 	// let plugin-api use the same code
-	EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error)
+	EnsureBot(rctx request.CTX, productID string, bot *model.Bot) (string, error)
 	// Expand announcements in incoming webhooks from Slack. Those announcements
 	// can be found in the text attribute, or in the pretext, text, title and value
 	// attributes of the attachment structure. The Slack attachment structure is
@@ -273,7 +273,7 @@ type AppIface interface {
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(c request.CTX, post *model.Post)
 	// PatchBot applies the given patch to the bot and corresponding user.
-	PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+	PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
 	// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	// Perform an HTTP POST request to an integration's action endpoint.
@@ -952,8 +952,8 @@ type AppIface interface {
 	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
-	PurgeBleveIndexes(c *request.Context) *model.AppError
-	PurgeElasticsearchIndexes(c *request.Context) *model.AppError
+	PurgeBleveIndexes(c request.CTX) *model.AppError
+	PurgeElasticsearchIndexes(c request.CTX) *model.AppError
 	QueryLogs(c request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	RecycleDatabaseConnection(c request.CTX)

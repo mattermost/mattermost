@@ -199,7 +199,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	require.NoError(t, err1, "couldn't save user")
 
 	deletedUser.DeleteAt = model.GetMillis()
-	_, err2 := ss.User().Update(&deletedUser, true)
+	_, err2 := ss.User().Update(rctx, &deletedUser, true)
 	require.NoError(t, err2, "couldn't delete user")
 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(deletedUser.Id)) }()

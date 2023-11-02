@@ -131,6 +131,7 @@ type SqlStore struct {
 	license           *model.License
 	licenseMutex      sync.RWMutex
 	metrics           einterfaces.MetricsInterface
+	logger            mlog.LoggerIFace
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
@@ -139,12 +140,13 @@ type SqlStore struct {
 	wgMonitor   *sync.WaitGroup
 }
 
-func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
+func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface, logger mlog.LoggerIFace) (*SqlStore, error) {
 	store := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
 		settings:    &settings,
 		metrics:     metrics,
+		logger:      logger,
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
 	}
@@ -289,6 +291,10 @@ func (ss *SqlStore) SetContext(context context.Context) {
 
 func (ss *SqlStore) Context() context.Context {
 	return ss.context
+}
+
+func (ss *SqlStore) Logger() mlog.LoggerIFace {
+	return ss.logger
 }
 
 func noOpMapper(s string) string { return s }

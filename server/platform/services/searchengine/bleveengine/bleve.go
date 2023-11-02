@@ -232,7 +232,7 @@ func (b *BleveEngine) IsIndexingSync() bool {
 	return b.indexSync
 }
 
-func (b *BleveEngine) RefreshIndexes(_ *request.Context) *model.AppError {
+func (b *BleveEngine) RefreshIndexes(_ request.CTX) *model.AppError {
 	return nil
 }
 
@@ -272,7 +272,7 @@ func (b *BleveEngine) deleteIndexes() *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) PurgeIndexes(c *request.Context) *model.AppError {
+func (b *BleveEngine) PurgeIndexes(c request.CTX) *model.AppError {
 	if *b.cfg.BleveSettings.IndexDir == "" {
 		return nil
 	}
