@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-interface PostEmojiProps {
+interface Props {
     name: string;
     imageUrl: string;
 }
@@ -13,11 +13,12 @@ declare module 'react' {
     }
 }
 
-const PostEmoji = ({name, imageUrl}: PostEmojiProps): JSX.Element => {
-    const emojiText = ':' + name + ':';
+const PostEmoji = ({name, imageUrl}: Props): JSX.Element => {
+  const emojiText = `:${name}:`;
+  const backgroundImageUrl = `url(${imageUrl})`;
 
     if (!imageUrl) {
-        return <span>{emojiText}</span>;
+        return <>{emojiText}</>;
     }
 
     return (
@@ -25,7 +26,7 @@ const PostEmoji = ({name, imageUrl}: PostEmojiProps): JSX.Element => {
             alt={emojiText}
             className='emoticon'
             title={emojiText}
-            style={{backgroundImage: 'url(' + imageUrl + ')'}}
+            style={{backgroundImage: backgroundImageUrl}}
         >
             {emojiText}
         </span>
