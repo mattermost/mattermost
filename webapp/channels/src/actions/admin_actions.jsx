@@ -38,7 +38,7 @@ export async function adminResetMfa(userId, success, error) {
 }
 
 export async function getClusterStatus(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.getClusterStatus());
+    const {data, error: err} = await AdminActions.getClusterStatus()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -47,7 +47,7 @@ export async function getClusterStatus(success, error) {
 }
 
 export async function ldapTest(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.testLdap());
+    const {data, error: err} = await AdminActions.testLdap()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -56,7 +56,7 @@ export async function ldapTest(success, error) {
 }
 
 export async function invalidateAllCaches(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.invalidateCaches());
+    const {data, error: err} = await AdminActions.invalidateCaches()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -65,7 +65,7 @@ export async function invalidateAllCaches(success, error) {
 }
 
 export async function recycleDatabaseConnection(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.recycleDatabase());
+    const {data, error: err} = await AdminActions.recycleDatabase()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -83,7 +83,7 @@ export async function adminResetEmail(user, success, error) {
 }
 
 export async function samlCertificateStatus(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.getSamlCertificateStatus());
+    const {data, error: err} = await AdminActions.getSamlCertificateStatus()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -147,7 +147,7 @@ export async function uploadBrandImage(brandImage, success, error) {
 }
 
 export async function deleteBrandImage(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.deleteBrandImage());
+    const {data, error: err} = await AdminActions.deleteBrandImage()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -200,7 +200,7 @@ export async function uploadIdpSamlCertificate(file, success, error) {
 }
 
 export async function removePublicSamlCertificate(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.removePublicSamlCertificate());
+    const {data, error: err} = await AdminActions.removePublicSamlCertificate()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -209,7 +209,7 @@ export async function removePublicSamlCertificate(success, error) {
 }
 
 export async function removePrivateSamlCertificate(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.removePrivateSamlCertificate());
+    const {data, error: err} = await AdminActions.removePrivateSamlCertificate()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -218,7 +218,7 @@ export async function removePrivateSamlCertificate(success, error) {
 }
 
 export async function removePublicLdapCertificate(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.removePublicLdapCertificate());
+    const {data, error: err} = await AdminActions.removePublicLdapCertificate()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -227,7 +227,7 @@ export async function removePublicLdapCertificate(success, error) {
 }
 
 export async function removePrivateLdapCertificate(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.removePrivateLdapCertificate());
+    const {data, error: err} = await AdminActions.removePrivateLdapCertificate()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -236,7 +236,7 @@ export async function removePrivateLdapCertificate(success, error) {
 }
 
 export async function removeIdpSamlCertificate(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.removeIdpSamlCertificate());
+    const {data, error: err} = await AdminActions.removeIdpSamlCertificate()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -274,7 +274,7 @@ export async function elasticsearchTest(config, success, error) {
 }
 
 export async function testS3Connection(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.testS3Connection());
+    const {data, error: err} = await AdminActions.testS3Connection()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -283,7 +283,7 @@ export async function testS3Connection(success, error) {
 }
 
 export async function elasticsearchPurgeIndexes(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.purgeElasticsearchIndexes());
+    const {data, error: err} = await AdminActions.purgeElasticsearchIndexes()(dispatch, getState);
     if (data && success) {
         success(data);
     } else if (err && error) {
