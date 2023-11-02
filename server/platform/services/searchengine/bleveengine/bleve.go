@@ -292,7 +292,7 @@ func (b *BleveEngine) PurgeIndexes(c request.CTX) *model.AppError {
 	return b.openIndexes()
 }
 
-func (b *BleveEngine) DataRetentionDeleteIndexes(cutoff time.Time) *model.AppError {
+func (b *BleveEngine) DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError {
 	return nil
 }
 

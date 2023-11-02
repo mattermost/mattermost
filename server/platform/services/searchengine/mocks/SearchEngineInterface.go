@@ -17,13 +17,13 @@ type SearchEngineInterface struct {
 	mock.Mock
 }
 
-// DataRetentionDeleteIndexes provides a mock function with given fields: cutoff
-func (_m *SearchEngineInterface) DataRetentionDeleteIndexes(cutoff time.Time) *model.AppError {
-	ret := _m.Called(cutoff)
+// DataRetentionDeleteIndexes provides a mock function with given fields: rctx, cutoff
+func (_m *SearchEngineInterface) DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError {
+	ret := _m.Called(rctx, cutoff)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(time.Time) *model.AppError); ok {
-		r0 = rf(cutoff)
+	if rf, ok := ret.Get(0).(func(request.CTX, time.Time) *model.AppError); ok {
+		r0 = rf(rctx, cutoff)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -81,13 +81,13 @@ func (_m *SearchEngineInterface) DeleteFile(fileID string) *model.AppError {
 	return r0
 }
 
-// DeleteFilesBatch provides a mock function with given fields: endTime, limit
-func (_m *SearchEngineInterface) DeleteFilesBatch(endTime int64, limit int64) *model.AppError {
-	ret := _m.Called(endTime, limit)
+// DeleteFilesBatch provides a mock function with given fields: rctx, endTime, limit
+func (_m *SearchEngineInterface) DeleteFilesBatch(rctx request.CTX, endTime int64, limit int64) *model.AppError {
+	ret := _m.Called(rctx, endTime, limit)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(int64, int64) *model.AppError); ok {
-		r0 = rf(endTime, limit)
+	if rf, ok := ret.Get(0).(func(request.CTX, int64, int64) *model.AppError); ok {
+		r0 = rf(rctx, endTime, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -113,13 +113,13 @@ func (_m *SearchEngineInterface) DeletePost(post *model.Post) *model.AppError {
 	return r0
 }
 
-// DeletePostFiles provides a mock function with given fields: postID
-func (_m *SearchEngineInterface) DeletePostFiles(postID string) *model.AppError {
-	ret := _m.Called(postID)
+// DeletePostFiles provides a mock function with given fields: rctx, postID
+func (_m *SearchEngineInterface) DeletePostFiles(rctx request.CTX, postID string) *model.AppError {
+	ret := _m.Called(rctx, postID)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(postID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AppError); ok {
+		r0 = rf(rctx, postID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -145,13 +145,13 @@ func (_m *SearchEngineInterface) DeleteUser(user *model.User) *model.AppError {
 	return r0
 }
 
-// DeleteUserFiles provides a mock function with given fields: userID
-func (_m *SearchEngineInterface) DeleteUserFiles(userID string) *model.AppError {
-	ret := _m.Called(userID)
+// DeleteUserFiles provides a mock function with given fields: rctx, userID
+func (_m *SearchEngineInterface) DeleteUserFiles(rctx request.CTX, userID string) *model.AppError {
+	ret := _m.Called(rctx, userID)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AppError); ok {
+		r0 = rf(rctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -161,13 +161,13 @@ func (_m *SearchEngineInterface) DeleteUserFiles(userID string) *model.AppError 
 	return r0
 }
 
-// DeleteUserPosts provides a mock function with given fields: userID
-func (_m *SearchEngineInterface) DeleteUserPosts(userID string) *model.AppError {
-	ret := _m.Called(userID)
+// DeleteUserPosts provides a mock function with given fields: rctx, userID
+func (_m *SearchEngineInterface) DeleteUserPosts(rctx request.CTX, userID string) *model.AppError {
+	ret := _m.Called(rctx, userID)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AppError); ok {
+		r0 = rf(rctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -235,13 +235,13 @@ func (_m *SearchEngineInterface) GetVersion() int {
 	return r0
 }
 
-// IndexChannel provides a mock function with given fields: c, channel, userIDs, teamMemberIDs
-func (_m *SearchEngineInterface) IndexChannel(c request.CTX, channel *model.Channel, userIDs []string, teamMemberIDs []string) *model.AppError {
-	ret := _m.Called(c, channel, userIDs, teamMemberIDs)
+// IndexChannel provides a mock function with given fields: rctx, channel, userIDs, teamMemberIDs
+func (_m *SearchEngineInterface) IndexChannel(rctx request.CTX, channel *model.Channel, userIDs []string, teamMemberIDs []string) *model.AppError {
+	ret := _m.Called(rctx, channel, userIDs, teamMemberIDs)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, []string, []string) *model.AppError); ok {
-		r0 = rf(c, channel, userIDs, teamMemberIDs)
+		r0 = rf(rctx, channel, userIDs, teamMemberIDs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -283,13 +283,13 @@ func (_m *SearchEngineInterface) IndexPost(post *model.Post, teamId string) *mod
 	return r0
 }
 
-// IndexUser provides a mock function with given fields: c, user, teamsIds, channelsIds
-func (_m *SearchEngineInterface) IndexUser(c request.CTX, user *model.User, teamsIds []string, channelsIds []string) *model.AppError {
-	ret := _m.Called(c, user, teamsIds, channelsIds)
+// IndexUser provides a mock function with given fields: rctx, user, teamsIds, channelsIds
+func (_m *SearchEngineInterface) IndexUser(rctx request.CTX, user *model.User, teamsIds []string, channelsIds []string) *model.AppError {
+	ret := _m.Called(rctx, user, teamsIds, channelsIds)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, []string, []string) *model.AppError); ok {
-		r0 = rf(c, user, teamsIds, channelsIds)
+		r0 = rf(rctx, user, teamsIds, channelsIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -383,13 +383,13 @@ func (_m *SearchEngineInterface) IsSearchEnabled() bool {
 	return r0
 }
 
-// PurgeIndexes provides a mock function with given fields: c
-func (_m *SearchEngineInterface) PurgeIndexes(c request.CTX) *model.AppError {
-	ret := _m.Called(c)
+// PurgeIndexes provides a mock function with given fields: rctx
+func (_m *SearchEngineInterface) PurgeIndexes(rctx request.CTX) *model.AppError {
+	ret := _m.Called(rctx)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
-		r0 = rf(c)
+		r0 = rf(rctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -399,13 +399,13 @@ func (_m *SearchEngineInterface) PurgeIndexes(c request.CTX) *model.AppError {
 	return r0
 }
 
-// RefreshIndexes provides a mock function with given fields: c
-func (_m *SearchEngineInterface) RefreshIndexes(c request.CTX) *model.AppError {
-	ret := _m.Called(c)
+// RefreshIndexes provides a mock function with given fields: rctx
+func (_m *SearchEngineInterface) RefreshIndexes(rctx request.CTX) *model.AppError {
+	ret := _m.Called(rctx)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
-		r0 = rf(c)
+		r0 = rf(rctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

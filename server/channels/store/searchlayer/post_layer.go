@@ -55,7 +55,7 @@ func (s SearchPostStore) deleteChannelPostsIndex(rctx request.CTX, channelID str
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if err := engineCopy.DeleteChannelPosts(channelID); err != nil {
+				if err := engineCopy.DeleteChannelPosts(rctx, channelID); err != nil {
 					rctx.Logger().Warn("Encountered error deleting channel posts", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
@@ -69,7 +69,7 @@ func (s SearchPostStore) deleteUserPostsIndex(rctx request.CTX, userID string) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if err := engineCopy.DeleteUserPosts(userID); err != nil {
+				if err := engineCopy.DeleteUserPosts(rctx, userID); err != nil {
 					rctx.Logger().Warn("Encountered error deleting user posts", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}

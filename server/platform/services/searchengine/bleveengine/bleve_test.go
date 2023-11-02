@@ -128,7 +128,7 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 		appErr := s.SearchEngine.BleveEngine.IndexPost(postToAvoid, teamID)
 		require.Nil(s.T(), appErr)
 
-		s.SearchEngine.BleveEngine.DeleteChannelPosts(channelID)
+		s.SearchEngine.BleveEngine.DeleteChannelPosts(s.Context, channelID)
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 		require.NoError(s.T(), err)
@@ -148,7 +148,7 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 		appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 		require.Nil(s.T(), appErr)
 
-		s.SearchEngine.BleveEngine.DeleteChannelPosts(channelToDeleteID)
+		s.SearchEngine.BleveEngine.DeleteChannelPosts(s.Context, channelToDeleteID)
 
 		_, err := s.BleveEngine.PostIndex.Document(post.Id)
 		require.NoError(s.T(), err)
@@ -174,7 +174,7 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 		appErr := s.SearchEngine.BleveEngine.IndexPost(postToAvoid, teamID)
 		require.Nil(s.T(), appErr)
 
-		s.SearchEngine.BleveEngine.DeleteUserPosts(userID)
+		s.SearchEngine.BleveEngine.DeleteUserPosts(s.Context, userID)
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 		require.NoError(s.T(), err)
@@ -194,7 +194,7 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 		appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 		require.Nil(s.T(), appErr)
 
-		s.SearchEngine.BleveEngine.DeleteUserPosts(userToDeleteID)
+		s.SearchEngine.BleveEngine.DeleteUserPosts(s.Context, userToDeleteID)
 
 		_, err := s.BleveEngine.PostIndex.Document(post.Id)
 		require.NoError(s.T(), err)

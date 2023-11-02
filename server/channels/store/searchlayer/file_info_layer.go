@@ -55,7 +55,7 @@ func (s SearchFileInfoStore) deleteFileIndexForUser(rctx request.CTX, userID str
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if err := engineCopy.DeleteUserFiles(userID); err != nil {
+				if err := engineCopy.DeleteUserFiles(rctx, userID); err != nil {
 					rctx.Logger().Error("Encountered error deleting files for user", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
@@ -69,7 +69,7 @@ func (s SearchFileInfoStore) deleteFileIndexForPost(rctx request.CTX, postID str
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if err := engineCopy.DeletePostFiles(postID); err != nil {
+				if err := engineCopy.DeletePostFiles(rctx, postID); err != nil {
 					rctx.Logger().Error("Encountered error deleting files for post", mlog.String("post_id", postID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
@@ -83,7 +83,7 @@ func (s SearchFileInfoStore) deleteFileIndexBatch(rctx request.CTX, endTime, lim
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if err := engineCopy.DeleteFilesBatch(endTime, limit); err != nil {
+				if err := engineCopy.DeleteFilesBatch(rctx, endTime, limit); err != nil {
 					rctx.Logger().Error("Encountered error deleting a batch of files", mlog.Int64("limit", limit), mlog.Int64("end_time", endTime), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
