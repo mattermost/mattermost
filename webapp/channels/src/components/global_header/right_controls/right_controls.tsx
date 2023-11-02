@@ -39,11 +39,17 @@ const RightControlsContainer = styled.div`
         margin-left: 8px;
     }
 `;
-const CustomizeYourExperienceTourWrapper = styled.div`
+
+const StyledCustomizeYourExperienceTour = styled.div`
     display: flex;
     align-items: center;
     height: 100%
 `;
+
+const StyledStatusDropdown = styled.div`
+    margin-left: 8px;
+`
+
 export type Props = {
     productId?: ProductIdentifier;
 }
@@ -72,7 +78,7 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                     pluggableId={productId}
                 />
             )}
-            <CustomizeYourExperienceTourWrapper id='CustomizeYourExperienceTour'>
+            <StyledCustomizeYourExperienceTour id='CustomizeYourExperienceTour'>
                 {
                     isChannels(productId) ? (
                         <>
@@ -81,11 +87,10 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                         </>
                     ) : null
                 }
-                <div style={{marginLeft: '8px'}}>
+                <StyledStatusDropdown>
                     <StatusDropdown/>
-                </div>
-            </CustomizeYourExperienceTourWrapper>
-
+                </StyledStatusDropdown>
+            </StyledCustomizeYourExperienceTour>
         </RightControlsContainer>
     );
 };
