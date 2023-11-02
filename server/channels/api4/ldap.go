@@ -55,7 +55,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	var opts LdapSyncOptions
 	err := json.NewDecoder(r.Body).Decode(&opts)
 	if err != nil {
-		c.Logger.Warn("Error decoding LDAP sync options", mlog.Err(err))
+		c.Logger.LogM(mlog.MlvlLDAPInfo, "Error decoding LDAP sync options", mlog.Err(err))
 	}
 
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)

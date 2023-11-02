@@ -2553,6 +2553,7 @@
   "admin.user_item.makeInactive": "Deactivate",
   "admin.user_item.makeMember": "Make Team Member",
   "admin.user_item.makeTeamAdmin": "Make Team Admin",
+  "admin.user_item.managedByLdap": "Managed by LDAP",
   "admin.user_item.manageRoles": "Manage Roles",
   "admin.user_item.manageTeams": "Manage Teams",
   "admin.user_item.manageTokens": "Manage Tokens",
