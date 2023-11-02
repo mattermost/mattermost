@@ -1318,7 +1318,7 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 			oldHash := sha1.Sum(oldFileData)
 
 			if bytes.Equal(oldHash[:], newHash[:]) {
-				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", name))
+				mlog.Info("Skipping uploading of file because name already exists", mlog.String("file_name", name))
 				return oldFile, nil
 			}
 		}
@@ -1645,7 +1645,7 @@ func (a *App) uploadAttachments(c request.CTX, attachments *[]imports.Attachment
 func (a *App) updateFileInfoWithPostId(post *model.Post) {
 	for _, fileID := range post.FileIds {
 		if err := a.Srv().Store().FileInfo().AttachToPost(fileID, post.Id, post.ChannelId, post.UserId); err != nil {
-			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
+			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Array("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
 }
