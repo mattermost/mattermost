@@ -54,15 +54,14 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		},
 	}
 
-	executable := filepath.Clean(filepath.Join(
-		".",
-		pluginInfo.Manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH),
-	))
+	executable := pluginInfo.Manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH)
 	if executable == "" {
-		return nil, fmt.Errorf("backend executable not found for environment %s/%s", runtime.GOOS, runtime.GOARCH)
+		return nil, fmt.Errorf("backend executable not found for environment: %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
+
+	executable = filepath.Clean(filepath.Join(".", executable))
 	if strings.HasPrefix(executable, "..") {
-		return nil, fmt.Errorf("invalid backend executable")
+		return nil, fmt.Errorf("invalid backend executable: %s", executable)
 	}
 
 	executable = filepath.Join(pluginInfo.Path, executable)
