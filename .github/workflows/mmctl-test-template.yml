@@ -14,8 +14,7 @@ on:
       logsartifact:
         required: true
         type: string
-env:
-  go-version: "1.20.7"
+
 jobs:
   test:
     name: ${{ inputs.name }}
@@ -26,15 +25,20 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        working-directory: ${{ github.workspace }}
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: server/go.sum
       - name: Run setup-go-work
         run: |
           cd server
           make setup-go-work
-      - name: Setup needed prepackaged plugins 
+      - name: Setup needed prepackaged plugins
         run: |
           cd server
           make prepackaged-plugins PLUGIN_PACKAGES=mattermost-plugin-jira-v3.2.5
