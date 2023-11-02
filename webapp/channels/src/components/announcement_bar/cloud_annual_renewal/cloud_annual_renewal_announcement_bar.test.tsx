@@ -3,17 +3,13 @@
 
 import React from 'react';
 
+import {unixTimestampFromNow} from 'tests/helpers/date';
 import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 import {CloudBanners, CloudProducts, Preferences} from 'utils/constants';
 
 import CloudAnnualRenewalAnnouncementBar, {getCurrentYearAsString} from './index';
 
 describe('components/announcement_bar/cloud_delinquency', () => {
-    const unixTimestampFromNow = (daysFromNow: number) => {
-        const now = new Date();
-        return Math.ceil(new Date(now.getTime() + (daysFromNow * 24 * 60 * 60 * 1000)).getTime() / 1000);
-    };
-
     const initialState = {
         views: {
             announcementBar: {

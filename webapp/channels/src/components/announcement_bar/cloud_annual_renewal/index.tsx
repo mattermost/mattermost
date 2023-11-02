@@ -15,6 +15,7 @@ import {useDelinquencySubscription} from 'components/common/hooks/useDelinquency
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 
+import {daysToExpiration} from 'utils/cloud_utils';
 import {Preferences, AnnouncementBarTypes, CloudBanners} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -44,21 +45,12 @@ const CloudAnnualRenewalAnnouncementBar = () => {
     const hasDismissed60DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_60_DAY}_${getCurrentYearAsString()}`)) === 'true';
     const hasDismissed30DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_30_DAY}_${getCurrentYearAsString()}`)) === 'true';
 
-    const daysToExpiration = useMemo(() => {
-        if (!subscription || !subscription.cancel_at) {
+    const daysUntilExpiration = useMemo(() => {
+        if (!subscription || !subscription.end_at || !subscription.cancel_at) {
             return 0;
         }
 
-        const endDate = new Date(subscription.end_at * 1000);
-        const now = new Date();
-
-        // Calculate the difference between the two dates in milliseconds
-        const differenceInMs = endDate.getTime() - now.getTime();
-
-        // Convert the difference to days
-        const differenceInDays = Math.ceil(differenceInMs / (1000 * 60 * 60 * 24));
-
-        return differenceInDays;
+        return daysToExpiration(subscription.end_at * 1000);
     }, [subscription]);
 
     const handleDismiss = (banner: string) => {
@@ -88,32 +80,32 @@ const CloudAnnualRenewalAnnouncementBar = () => {
             ...defaultProps,
             type: '',
         };
-        if (between(daysToExpiration, 31, 60) && !hasDismissed60DayBanner) {
+        if (between(daysUntilExpiration, 31, 60) && !hasDismissed60DayBanner) {
             if (hasDismissed60DayBanner) {
                 return null;
             }
             bannerProps = {
                 ...defaultProps,
-                message: (<>{formatMessage({id: 'cloud_annual_renewal.banner.message.60', defaultMessage: 'Your annual subscription expires in {days} days. Please renew to avoid any disruption.'}, {days: daysToExpiration})}</>),
+                message: (<>{formatMessage({id: 'cloud_annual_renewal.banner.message.60', defaultMessage: 'Your annual subscription expires in {days} days. Please renew to avoid any disruption.'}, {days: daysUntilExpiration})}</>),
                 icon: (<InformationOutlineIcon size={18}/>),
                 type: AnnouncementBarTypes.ANNOUNCEMENT,
                 handleClose: () => handleDismiss(CloudBanners.ANNUAL_RENEWAL_60_DAY),
             };
-        } else if (between(daysToExpiration, 8, 30)) {
+        } else if (between(daysUntilExpiration, 8, 30)) {
             if (hasDismissed30DayBanner) {
                 return null;
             }
             bannerProps = {
                 ...defaultProps,
-                message: (<>{formatMessage({id: 'cloud_annual_renewal.banner.message.30', defaultMessage: 'Your annual subscription expires in {days} days. Please renew to avoid any disruption.'}, {days: daysToExpiration})}</>),
+                message: (<>{formatMessage({id: 'cloud_annual_renewal.banner.message.30', defaultMessage: 'Your annual subscription expires in {days} days. Please renew to avoid any disruption.'}, {days: daysUntilExpiration})}</>),
                 icon: (<InformationOutlineIcon size={18}/>),
                 type: AnnouncementBarTypes.ADVISOR,
                 handleClose: () => handleDismiss(CloudBanners.ANNUAL_RENEWAL_30_DAY),
             };
-        } else if (between(daysToExpiration, 0, 7) && !isDelinquencySubscription()) {
+        } else if (between(daysUntilExpiration, 0, 7) && !isDelinquencySubscription()) {
             bannerProps = {
                 ...defaultProps,
-                message: (<>{formatMessage({id: 'cloud_annual_renewal.banner.message.7', defaultMessage: 'Your annual subscription expires in {days} days. Failure to renew will result in your workspace being deleted.'}, {days: daysToExpiration})}</>),
+                message: (<>{formatMessage({id: 'cloud_annual_renewal.banner.message.7', defaultMessage: 'Your annual subscription expires in {days} days. Failure to renew will result in your workspace being deleted.'}, {days: daysUntilExpiration})}</>),
                 icon: (<i className='icon icon-alert-outline'/>),
                 type: AnnouncementBarTypes.CRITICAL,
                 showCloseButton: false,
@@ -121,7 +113,7 @@ const CloudAnnualRenewalAnnouncementBar = () => {
         }
 
         return <AnnouncementBar {...bannerProps}/>;
-    }, [daysToExpiration, hasDismissed60DayBanner, hasDismissed30DayBanner]);
+    }, [daysUntilExpiration, hasDismissed60DayBanner, hasDismissed30DayBanner]);
 
     // Delinquent subscriptions will have a cancel_at time, but the banner is handled separately
     if (!subscription || !subscription.cancel_at || isDelinquencySubscription() || !isAdmin) {
