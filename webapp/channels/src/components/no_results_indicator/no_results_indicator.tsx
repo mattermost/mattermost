@@ -38,6 +38,7 @@ const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
     [NoResultsVariant.ChannelFilesFiltered]: <ChannelFilesSVG className='no-results__icon'/>,
     [NoResultsVariant.UserGroups]: <UserGroupsSVG className='no-results__icon'/>,
     [NoResultsVariant.UserGroupMembers]: <UserGroupMembersSVG className='no-results__icon'/>,
+    [NoResultsVariant.UserGroupsArchived]: <UserGroupsSVG className='no-results__icon'/>,
 };
 
 const titleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
@@ -68,6 +69,9 @@ const titleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
     [NoResultsVariant.UserGroupMembers]: {
         id: t('no_results.user_group_members.title'),
     },
+    [NoResultsVariant.UserGroupsArchived]: {
+        id: t('no_results.user_groups.archived.title'),
+    },
 };
 
 const subtitleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
@@ -97,6 +101,9 @@ const subtitleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
     },
     [NoResultsVariant.UserGroupMembers]: {
         id: t('no_results.user_group_members.subtitle'),
+    },
+    [NoResultsVariant.UserGroupsArchived]: {
+        id: t('no_results.user_groups.archived.subtitle'),
     },
 };
 

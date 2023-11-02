@@ -173,7 +173,7 @@ const UserGroupsModal = (props: Props) => {
 
     const noResultsType = useMemo(() => {
         if (selectedFilter === 'archived') {
-            return NoResultsVariant.UserGroupMembers;
+            return NoResultsVariant.UserGroupsArchived;
         }
         return NoResultsVariant.UserGroups;
     }, [selectedFilter]);

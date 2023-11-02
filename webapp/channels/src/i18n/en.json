@@ -4167,6 +4167,8 @@
   "no_results.search.title": "No results for {channelName}",
   "no_results.user_group_members.subtitle": "There are currently no members in this group, please add one.",
   "no_results.user_group_members.title": "No members yet",
+  "no_results.user_groups.archived.subtitle": "Groups that are no longer relevant or are not being used can be archived",
+  "no_results.user_groups.archived.title": "No archived groups",
   "no_results.user_groups.subtitle": "Groups are a custom collection of users that can be used for mentions and invites.",
   "no_results.user_groups.title": "No groups yet",
   "notification.crt": "Reply in {title}",

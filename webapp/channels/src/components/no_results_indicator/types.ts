@@ -11,6 +11,7 @@ export enum NoResultsVariant {
     ChannelFilesFiltered = 'ChannelFilesFiltered',
     UserGroups = 'UserGroups',
     UserGroupMembers = 'UserGroupMembers',
+    UserGroupsArchived = 'UserGroupsArchived',
 }
 
 export enum NoResultsLayout {
