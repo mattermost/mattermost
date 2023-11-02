@@ -48,7 +48,7 @@ const StyledCustomizeYourExperienceTour = styled.div`
 
 const StyledStatusDropdown = styled.div`
     margin-left: 8px;
-`
+`;
 
 export type Props = {
     productId?: ProductIdentifier;
