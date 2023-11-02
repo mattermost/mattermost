@@ -40,7 +40,7 @@ func (*msgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command 
 	}
 }
 
-func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	splitMessage := strings.SplitN(message, " ", 2)
 
 	parsedMessage := ""
