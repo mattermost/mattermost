@@ -411,11 +411,6 @@ func NewServer(options ...Option) (*Server, error) {
 			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		})
 	}
-
-	// Check if the command is called by root user
-	if os.Geteuid() == 0 {
-		mlog.Warn("Running Mattermost as root is not recommended. Please use a separate user")
-	}
 	
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
