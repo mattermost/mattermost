@@ -2812,7 +2812,7 @@
   "backstage_sidebar.integrations.oauthApps": "OAuth 2.0 Applications",
   "backstage_sidebar.integrations.outgoing_webhooks": "Outgoing Webhooks",
   "billing_subscriptions.cloud_annual_renewal_alert_banner_title": "Your annual subscription expires in {days} days. Please renew now to avoid any disruption",
-  "billing_subscriptions.cloud_annual_renewal_alert_banner_title_expired": "",
+  "billing_subscriptions.cloud_annual_renewal_alert_banner_title_expired": "Your subscription has expired. Your workspace will be deleted in {days} days. Please renew now to avoid any disruption",
   "billing.subscription.info.mostRecentPaymentFailed": "Your most recent payment failed",
   "billing.subscription.info.mostRecentPaymentFailed.description.mostRecentPaymentFailed": "It looks your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.",
   "bot.add.description": "Description",
