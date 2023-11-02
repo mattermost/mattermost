@@ -6,10 +6,9 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 type Props = {
-    text: React.ReactNode;
+    text?: React.ReactNode;
     style?: React.CSSProperties;
 }
-
 const LoadingSpinner = ({text = null, style}: Props) => {
     const {formatMessage} = useIntl();
     return (
