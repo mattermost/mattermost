@@ -14,8 +14,8 @@ declare module 'react' {
 }
 
 const PostEmoji = ({name, imageUrl}: Props): JSX.Element => {
-  const emojiText = `:${name}:`;
-  const backgroundImageUrl = `url(${imageUrl})`;
+    const emojiText = `:${name}:`;
+    const backgroundImageUrl = `url(${imageUrl})`;
 
     if (!imageUrl) {
         return <>{emojiText}</>;
