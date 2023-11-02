@@ -58,5 +58,3 @@ Notes:
 
 ##### For code changes:
 * `make fmt-ci` to format and check yaml files and shell scripts.
-
-#### DUMMY CHANGE
