@@ -119,16 +119,6 @@
 
 // Tablet and desktop
 @media screen and (min-width: 769px) {
-    // ensure the global header always sits on top of its immediate sibling
-    > header {
-        z-index: 2;
-
-        + * {
-            position: relative;
-            z-index: 1;
-        }
-    }
-
     .search-help-popover {
         width: 274px;
     }
