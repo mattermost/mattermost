@@ -35,7 +35,7 @@ const SavedPostsButton = (): JSX.Element | null => {
         <Tooltip id='recentMentions'>
             <FormattedMessage
                 id='channel_header.flagged'
-                defaultMessage='Saved posts'
+                defaultMessage='Saved Messages'
             />
         </Tooltip>
     );
@@ -56,7 +56,7 @@ const SavedPostsButton = (): JSX.Element | null => {
                 compact={true}
                 aria-expanded={rhsState === RHSStates.FLAG}
                 aria-controls='searchContainer' // Must be changed if the ID of the container changes
-                aria-label={formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved posts'})}
+                aria-label={formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved Messages'})}
             />
         </OverlayTrigger>
     );

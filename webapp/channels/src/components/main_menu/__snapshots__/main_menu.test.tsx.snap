@@ -686,7 +686,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
       id="flaggedPosts"
       onClick={[Function]}
       show={true}
-      text="Saved Posts"
+      text="Saved Messages"
     />
   </MenuGroup>
   <MenuGroup>
@@ -1299,7 +1299,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
       id="flaggedPosts"
       onClick={[Function]}
       show={true}
-      text="Saved Posts"
+      text="Saved Messages"
     />
   </MenuGroup>
   <MenuGroup>
@@ -1929,7 +1929,7 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       id="flaggedPosts"
       onClick={[Function]}
       show={true}
-      text="Saved Posts"
+      text="Saved Messages"
     />
   </MenuGroup>
   <MenuGroup>

@@ -21,7 +21,6 @@ import NoResultsIndicator from 'components/no_results_indicator/no_results_indic
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
-import FlagIcon from 'components/widgets/icons/flag_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes} from 'utils/constants';
@@ -191,19 +190,19 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         titleDescriptor.defaultMessage = 'Recent Mentions';
     } else if (isFlaggedPosts) {
         noResultsProps.variant = NoResultsVariant.FlaggedPosts;
-        noResultsProps.subtitleValues = {icon: <FlagIcon className='icon  no-results__mini_icon'/>};
+        noResultsProps.subtitleValues = {buttonText: <strong>{Utils.localizeMessage('flag_post.flag', 'Save Message')}</strong>};
 
         titleDescriptor.id = t('search_header.title3');
-        titleDescriptor.defaultMessage = 'Saved Posts';
+        titleDescriptor.defaultMessage = 'Saved Messages';
     } else if (isPinnedPosts) {
         noResultsProps.variant = NoResultsVariant.PinnedPosts;
-        noResultsProps.subtitleValues = {text: <strong>{'Pin to Channel'}</strong>};
+        noResultsProps.subtitleValues = {text: <strong>{Utils.localizeMessage('post_info.pin', 'Pin to Channel')}</strong>};
 
         sortedResults = [...results];
         sortedResults.sort((postA: Post|FileSearchResultItemType, postB: Post|FileSearchResultItemType) => postB.create_at - postA.create_at);
 
-        titleDescriptor.id = t('search_header.pinnedPosts');
-        titleDescriptor.defaultMessage = 'Pinned Posts';
+        titleDescriptor.id = t('search_header.pinnedMessages');
+        titleDescriptor.defaultMessage = 'Pinned Messages';
     } else if (isChannelFiles) {
         if (searchFilterType === 'all') {
             noResultsProps.variant = NoResultsVariant.ChannelFiles;
@@ -220,7 +219,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         titleDescriptor.id = t('search_header.search');
         titleDescriptor.defaultMessage = 'Search';
     } else {
-        noResultsProps.titleValues = {channelName: `"${searchTerms}"`};
+        noResultsProps.titleValues = {channelName: `“${searchTerms}”`};
 
         titleDescriptor.id = t('search_header.results');
         titleDescriptor.defaultMessage = 'Search Results';
