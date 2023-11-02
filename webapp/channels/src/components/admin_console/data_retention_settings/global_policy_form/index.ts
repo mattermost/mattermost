@@ -5,14 +5,14 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
+import type {AdminConfig} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {
     updateConfig,
 } from 'mattermost-redux/actions/admin';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {AdminConfig} from '@mattermost/types/config';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
