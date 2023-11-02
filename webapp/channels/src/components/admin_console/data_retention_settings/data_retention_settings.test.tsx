@@ -21,8 +21,8 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         },
         customPolicies: {},
         customPoliciesCount: 0,
-        globalMessageRetentionHours: 2400,
-        globalFileRetentionHours: 2400,
+        globalMessageRetentionHours: '2400',
+        globalFileRetentionHours: '2400',
         actions: {
             getDataRetentionCustomPolicies: jest.fn().mockResolvedValue([]),
             createJob: jest.fn(),

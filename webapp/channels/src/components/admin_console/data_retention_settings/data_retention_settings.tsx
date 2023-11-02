@@ -37,8 +37,8 @@ type Props = {
     config: DeepPartial<AdminConfig>;
     customPolicies: DataRetentionCustomPolicies;
     customPoliciesCount: number;
-    globalMessageRetentionHours: number | undefined;
-    globalFileRetentionHours: number | undefined;
+    globalMessageRetentionHours: string | undefined;
+    globalFileRetentionHours: string | undefined;
     actions: {
         getDataRetentionCustomPolicies: (page: number) => Promise<{ data: DataRetentionCustomPolicies }>;
         createJob: (job: JobTypeBase) => Promise<{ data: any }>;
@@ -150,7 +150,7 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
         return columns;
     };
 
-    getGlobalRetentionSetting = (enabled: boolean | undefined, hours: number | undefined): JSX.Element => {
+    getGlobalRetentionSetting = (enabled: boolean | undefined, hours: string | undefined): JSX.Element => {
         if (!enabled) {
             return (
                 <FormattedMessage
@@ -159,8 +159,9 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 />
             );
         }
-        if (hours && hours % 8760 === 0) {
-            const years = hours / 8760;
+        const hoursInt = parseInt(hours || '', 10);
+        if (hoursInt && hoursInt % 8760 === 0) {
+            const years = hoursInt / 8760;
             return (
                 <FormattedMessage
                     id='admin.data_retention.retention_years'
@@ -171,8 +172,8 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 />
             );
         }
-        if (hours && hours % 24 === 0) {
-            const days = hours / 24;
+        if (hoursInt && hoursInt % 24 === 0) {
+            const days = hoursInt / 24;
             return (
                 <FormattedMessage
                     id='admin.data_retention.retention_days'

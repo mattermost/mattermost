@@ -33,9 +33,7 @@ export type ClientConfig = {
     CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
-    DataRetentionFileRetentionDays: string;
     DataRetentionFileRetentionHours: string;
-    DataRetentionMessageRetentionDays: string;
     DataRetentionMessageRetentionHours: string;
     DefaultClientLocale: string;
     DefaultTheme: string;

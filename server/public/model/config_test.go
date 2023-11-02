@@ -1583,11 +1583,11 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 	})
 }
 
-func TestConfigGetMessageRetentionTime(t *testing.T) {
+func TestConfigGetMessageRetentionHours(t *testing.T) {
 	t.Run("should return MessageRetentionDays config value in hours by default", func(t *testing.T) {
 		c1 := Config{}
 		c1.SetDefaults()
-		require.Equal(t, 8760, c1.DataRetentionSettings.GetMessageRetentionTime())
+		require.Equal(t, 8760, c1.DataRetentionSettings.GetMessageRetentionHours())
 	})
 	t.Run("should return MessageRetentionHours config value", func(t *testing.T) {
 		c1 := Config{
@@ -1596,7 +1596,7 @@ func TestConfigGetMessageRetentionTime(t *testing.T) {
 			},
 		}
 		c1.SetDefaults()
-		require.Equal(t, 48, c1.DataRetentionSettings.GetMessageRetentionTime())
+		require.Equal(t, 48, c1.DataRetentionSettings.GetMessageRetentionHours())
 	})
 	t.Run("should return MessageRetentionHours config value", func(t *testing.T) {
 		c1 := Config{
@@ -1606,7 +1606,7 @@ func TestConfigGetMessageRetentionTime(t *testing.T) {
 			},
 		}
 		c1.SetDefaults()
-		require.Equal(t, 48, c1.DataRetentionSettings.GetMessageRetentionTime())
+		require.Equal(t, 48, c1.DataRetentionSettings.GetMessageRetentionHours())
 	})
 	t.Run("should return MessageRetentionDays config value in hours", func(t *testing.T) {
 		c1 := Config{
@@ -1616,15 +1616,15 @@ func TestConfigGetMessageRetentionTime(t *testing.T) {
 			},
 		}
 		c1.SetDefaults()
-		require.Equal(t, 1200, c1.DataRetentionSettings.GetMessageRetentionTime())
+		require.Equal(t, 1200, c1.DataRetentionSettings.GetMessageRetentionHours())
 	})
 }
 
-func TestConfigGetFileRetentionTime(t *testing.T) {
+func TestConfigGetFileRetentionHours(t *testing.T) {
 	t.Run("should return FileRetentionDays config value in hours by default", func(t *testing.T) {
 		c1 := Config{}
 		c1.SetDefaults()
-		require.Equal(t, 8760, c1.DataRetentionSettings.GetFileRetentionTime())
+		require.Equal(t, 8760, c1.DataRetentionSettings.GetFileRetentionHours())
 	})
 	t.Run("should return FileRetentionHours config value", func(t *testing.T) {
 		c1 := Config{
@@ -1633,7 +1633,7 @@ func TestConfigGetFileRetentionTime(t *testing.T) {
 			},
 		}
 		c1.SetDefaults()
-		require.Equal(t, 48, c1.DataRetentionSettings.GetFileRetentionTime())
+		require.Equal(t, 48, c1.DataRetentionSettings.GetFileRetentionHours())
 	})
 	t.Run("should return FileRetentionHours config value", func(t *testing.T) {
 		c1 := Config{
@@ -1643,7 +1643,7 @@ func TestConfigGetFileRetentionTime(t *testing.T) {
 			},
 		}
 		c1.SetDefaults()
-		require.Equal(t, 48, c1.DataRetentionSettings.GetFileRetentionTime())
+		require.Equal(t, 48, c1.DataRetentionSettings.GetFileRetentionHours())
 	})
 	t.Run("should return FileRetentionDays config value in hours", func(t *testing.T) {
 		c1 := Config{
@@ -1653,6 +1653,6 @@ func TestConfigGetFileRetentionTime(t *testing.T) {
 			},
 		}
 		c1.SetDefaults()
-		require.Equal(t, 1200, c1.DataRetentionSettings.GetFileRetentionTime())
+		require.Equal(t, 1200, c1.DataRetentionSettings.GetFileRetentionHours())
 	})
 }

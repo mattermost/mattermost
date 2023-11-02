@@ -2943,9 +2943,9 @@ func (s *DataRetentionSettings) SetDefaults() {
 	}
 }
 
-// GetMessageRetentionTime returns the message retention time as an int.
+// GetMessageRetentionHours returns the message retention time as an int.
 // MessageRetentionHours takes precedence over the deprecated MessageRetentionDays.
-func (s *DataRetentionSettings) GetMessageRetentionTime() int {
+func (s *DataRetentionSettings) GetMessageRetentionHours() int {
 	if s.MessageRetentionHours != nil && *s.MessageRetentionHours > 0 {
 		return *s.MessageRetentionHours
 	}
@@ -2955,9 +2955,9 @@ func (s *DataRetentionSettings) GetMessageRetentionTime() int {
 	return DataRetentionSettingsDefaultMessageRetentionDays * 24
 }
 
-// GetFileRetentionTime returns the message retention time as an int.
+// GetFileRetentionHours returns the message retention time as an int.
 // FileRetentionHours takes precedence over the deprecated FileRetentionDays.
-func (s *DataRetentionSettings) GetFileRetentionTime() int {
+func (s *DataRetentionSettings) GetFileRetentionHours() int {
 	if s.FileRetentionHours != nil && *s.FileRetentionHours > 0 {
 		return *s.FileRetentionHours
 	}

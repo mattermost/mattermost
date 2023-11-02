@@ -26,8 +26,8 @@ type ValueType = {
 }
 type Props = {
     config: DeepPartial<AdminConfig>;
-    messageRetentionHours: number | undefined;
-    fileRetentionHours: number | undefined;
+    messageRetentionHours: string | undefined;
+    fileRetentionHours: string | undefined;
     actions: {
         updateConfig: (config: Record<string, any>) => Promise<{ data?: AdminConfig; error?: ServerError }>;
         setNavigationBlocked: (blocked: boolean) => void;
@@ -60,31 +60,33 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         };
     }
 
-    getDefaultInputValue = (isEnabled: boolean | undefined, hours: number | undefined): string => {
+    getDefaultInputValue = (isEnabled: boolean | undefined, hours: string | undefined): string => {
         if (!isEnabled || hours === undefined) {
             return '';
         }
+        const hoursInt = parseInt(hours, 10);
 
         // 8760 hours in a year
-        if (hours % 8760 === 0) {
-            return (hours / 8760).toString();
+        if (hoursInt % 8760 === 0) {
+            return (hoursInt / 8760).toString();
         }
-        if (hours % 24 === 0) {
-            return (hours / 24).toString();
+        if (hoursInt % 24 === 0) {
+            return (hoursInt / 24).toString();
         }
 
         return hours.toString();
     };
-    getDefaultDropdownValue = (isEnabled: boolean | undefined, hours: number | undefined) => {
+    getDefaultDropdownValue = (isEnabled: boolean | undefined, hours: string | undefined) => {
         if (!isEnabled || hours === undefined) {
             return keepForeverOption();
         }
+        const hoursInt = parseInt(hours, 10);
 
         // 8760 hours in a year
-        if (hours % 8760 === 0) {
+        if (hoursInt % 8760 === 0) {
             return yearsOption();
         }
-        if (hours % 24 === 0) {
+        if (hoursInt % 24 === 0) {
             return daysOption();
         }
 
