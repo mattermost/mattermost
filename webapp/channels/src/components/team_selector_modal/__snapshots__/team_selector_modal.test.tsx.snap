@@ -75,10 +75,8 @@ exports[`components/TeamSelectorModal should hide group constrained teams when e
         />
       }
     />
-    <MultiSelect
-      ariaLabelRenderer={[Function]}
+    <injectIntl(MultiSelect)
       buttonSubmitText="Add"
-      focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
       handleInput={[Function]}
@@ -137,16 +135,13 @@ exports[`components/TeamSelectorModal should hide group constrained teams when e
       }
       perPage={50}
       placeholderText="Search and add teams"
-      saveButtonPosition="top"
       saving={false}
-      savingEnabled={true}
       selectedItemRef={
         Object {
           "current": null,
         }
       }
       valueRenderer={[Function]}
-      valueWithImage={false}
       values={Array []}
     />
   </ModalBody>
@@ -228,10 +223,8 @@ exports[`components/TeamSelectorModal should match snapshot 1`] = `
         />
       }
     />
-    <MultiSelect
-      ariaLabelRenderer={[Function]}
+    <injectIntl(MultiSelect)
       buttonSubmitText="Add"
-      focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
       handleInput={[Function]}
@@ -309,16 +302,13 @@ exports[`components/TeamSelectorModal should match snapshot 1`] = `
       }
       perPage={50}
       placeholderText="Search and add teams"
-      saveButtonPosition="top"
       saving={false}
-      savingEnabled={true}
       selectedItemRef={
         Object {
           "current": null,
         }
       }
       valueRenderer={[Function]}
-      valueWithImage={false}
       values={Array []}
     />
   </ModalBody>
