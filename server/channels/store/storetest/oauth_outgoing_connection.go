@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -168,49 +169,44 @@ func testGetOauthOutgoingConnection(t *testing.T, ss store.Store) {
 func testGetOauthOutgoingConnections(t *testing.T, ss store.Store) {
 	c := request.TestContext(t)
 
-	t.Run("get all", func(t *testing.T) {
-		t.Cleanup(cleanupOAuthOutgoingConnections(t, ss))
+	// Define test data
+	connection1 := newValidOAuthOutgoingConnection()
+	connection2 := newValidOAuthOutgoingConnection()
+	connection3 := newValidOAuthOutgoingConnection()
 
-		// Define test data
-		connection1 := newValidOAuthOutgoingConnection()
-		connection2 := newValidOAuthOutgoingConnection()
+	// Save the connections
+	connection1, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection1)
+	require.NoError(t, err)
+	connection2, err = ss.OAuthOutgoingConnection().SaveConnection(c, connection2)
+	require.NoError(t, err)
+	connection3, err = ss.OAuthOutgoingConnection().SaveConnection(c, connection3)
+	require.NoError(t, err)
 
-		// Save the connections
-		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection1)
-		require.NoError(t, err)
-		_, err = ss.OAuthOutgoingConnection().SaveConnection(c, connection2)
-		require.NoError(t, err)
-
-		// Retrieve the connections
-		conns, err := ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{Limit: 10})
-		require.NoError(t, err)
-		require.Len(t, conns, 2)
+	connections := []*model.OAuthOutgoingConnection{connection1, connection2, connection3}
+	sort.Slice(connections, func(i, j int) bool {
+		return connections[i].Id < connections[j].Id
 	})
 
-	t.Run("get second page", func(t *testing.T) {
-		t.Cleanup(cleanupOAuthOutgoingConnections(t, ss))
-
-		// Define test data
-		connection1 := newValidOAuthOutgoingConnection()
-		connection2 := newValidOAuthOutgoingConnection()
-
-		// Save the connections
-		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection1)
+	t.Run("get all", func(t *testing.T) {
+		// Retrieve the connections
+		conns, err := ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{Limit: 3})
 		require.NoError(t, err)
-		_, err = ss.OAuthOutgoingConnection().SaveConnection(c, connection2)
-		require.NoError(t, err)
+		require.Len(t, conns, 3)
+	})
 
+	t.Run("get connections using pagination", func(t *testing.T) {
 		// Retrieve the firt page
 		conns, err := ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{Limit: 1})
 		require.NoError(t, err)
 		require.Len(t, conns, 1)
-		require.Equal(t, connection1.Id, conns[0].Id)
+		require.Equal(t, connections[0].Id, conns[0].Id, "should return the first connection")
 
 		// Retrieve the second page
-		conns, err = ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{OffsetId: connection1.Id, Limit: 1})
+		conns, err = ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{OffsetId: connections[0].Id})
 		require.NoError(t, err)
-		require.Len(t, conns, 1)
-		require.Equal(t, connection2.Id, conns[0].Id)
+		require.Len(t, conns, 2)
+		require.Equal(t, connections[1].Id, conns[0].Id, "should return the second connection")
+		require.Equal(t, connections[2].Id, conns[1].Id, "should return the third connection")
 	})
 }
 
