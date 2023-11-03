@@ -109,6 +109,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         const messageHours = this.setRetentionHours(messageRetentionDropdownValue.value, messageRetentionInputValue);
         if (messageHours >= 1) {
             newConfig.DataRetentionSettings.MessageRetentionHours = messageHours;
+            newConfig.DataRetentionSettings.MessageRetentionDays = 0;
         }
 
         newConfig.DataRetentionSettings.EnableFileDeletion = this.setDeletionEnabled(fileRetentionDropdownValue.value);
@@ -116,6 +117,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         const fileHours = this.setRetentionHours(fileRetentionDropdownValue.value, fileRetentionInputValue);
         if (fileHours >= 1) {
             newConfig.DataRetentionSettings.FileRetentionHours = fileHours;
+            newConfig.DataRetentionSettings.FileRetentionDays = 0;
         }
 
         const {error} = await this.props.actions.updateConfig(newConfig);
