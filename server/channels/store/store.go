@@ -15,8 +15,18 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
+// Deprecated: Use GenericStoreResult instead.
 type StoreResult struct {
 	Data any
+
+	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
+	NErr error
+}
+
+// GenericStoreResult is a type safe version of StoreResult.
+// Once all the code is migrated to use GenericStoreResult, it should be renamed to StoreResult.
+type GenericStoreResult[T any] struct {
+	Data T
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
 	NErr error
@@ -490,7 +500,7 @@ type BotStore interface {
 type SessionStore interface {
 	Get(c request.CTX, sessionIDOrToken string) (*model.Session, error)
 	Save(c request.CTX, session *model.Session) (*model.Session, error)
-	GetSessions(c *request.Context, userID string) ([]*model.Session, error)
+	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
@@ -738,12 +748,12 @@ type JobStore interface {
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
-	Get(c *request.Context, id string) (*model.Job, error)
-	GetAllByType(c *request.Context, jobType string) ([]*model.Job, error)
-	GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error)
-	GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error)
-	GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error)
-	GetAllByStatus(c *request.Context, status string) ([]*model.Job, error)
+	Get(c request.CTX, id string) (*model.Job, error)
+	GetAllByType(c request.CTX, jobType string) ([]*model.Job, error)
+	GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error)
+	GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error)
+	GetAllByStatus(c request.CTX, status string) ([]*model.Job, error)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)

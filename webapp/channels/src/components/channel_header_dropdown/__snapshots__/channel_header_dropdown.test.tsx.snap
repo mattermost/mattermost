@@ -774,7 +774,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       }
       id="channelCloseMessage"
     />
-    <Connect(CloseChannel)
+    <Connect(Component)
       isArchived={false}
     />
   </MenuGroup>
@@ -1603,7 +1603,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       }
       id="channelCloseMessage"
     />
-    <Connect(CloseChannel)
+    <Connect(Component)
       isArchived={false}
     />
   </MenuGroup>

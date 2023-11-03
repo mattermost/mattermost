@@ -146,6 +146,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
+    const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId);
 
     const query = new URLSearchParams(search);
     const redirectTo = query.get('redirect_to');
@@ -659,6 +660,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         // Record a successful login to local storage. If an unintentional logout occurs, e.g.
         // via session expiration, this bit won't get reset and we can notify the user as such.
         LocalStorageStore.setWasLoggedIn(true);
+
+        // After a user has just logged in, we set the following flag to "false" so that after
+        // a user is notified of successful login, we can set it back to "true"
+        LocalStorageStore.setWasNotifiedOfLogIn(false);
+
         if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
             history.push(redirectTo);
         } else if (team) {
@@ -735,7 +741,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const getResetPasswordLink = () => {
-        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false' || onlyLdapEnabled) {
             return null;
         }
 

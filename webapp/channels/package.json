@@ -56,7 +56,7 @@
     "memoize-one": "6.0.0",
     "moment-timezone": "0.5.38",
     "p-queue": "7.3.0",
-    "pdfjs-dist": "2.15.349",
+    "pdfjs-dist": "3.11.174",
     "popper.js": "1.16.1",
     "process": "0.11.10",
     "prop-types": "15.8.1",
@@ -178,8 +178,7 @@
     "stylelint-scss": "3.19.0",
     "webpack-bundle-analyzer": "4.7.0",
     "webpack-pwa-manifest": "4.3.0",
-    "yargs": "16.2.0",
-    "yup": "0.32.11"
+    "yargs": "16.2.0"
   },
   "scripts": {
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",
