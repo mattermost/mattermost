@@ -1449,12 +1449,11 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
         }
     } else if (channelMentionAttribute) {
         e.preventDefault();
-        if(channelMentionTeamAttribute) {
-            getHistory().push('/'+ channelMentionTeamAttribute.value + '/channels/' + channelMentionAttribute.value);
+        if (channelMentionTeamAttribute) {
+            getHistory().push('/' + channelMentionTeamAttribute.value + '/channels/' + channelMentionAttribute.value);
         } else {
             getHistory().push(currentRelativeTeamUrl + '/channels/' + channelMentionAttribute.value);
         }
-
     }
 }
 
