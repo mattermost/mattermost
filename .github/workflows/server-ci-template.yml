@@ -17,7 +17,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -43,7 +42,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -69,7 +67,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -93,7 +90,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -119,7 +115,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -147,7 +142,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -199,7 +193,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -225,7 +218,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -251,7 +243,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -319,7 +310,6 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Calculate Golang Version
         id: go
-        working-directory: ${{ github.workspace }}
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
