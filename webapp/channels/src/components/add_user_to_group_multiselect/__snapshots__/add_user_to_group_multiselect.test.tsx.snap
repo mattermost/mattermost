@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`component/add_user_to_group_multiselect should match snapshot with different submit button text 1`] = `
-<MultiSelect
+<injectIntl(MultiSelect)
   ariaLabelRenderer={[Function]}
   buttonSubmitLoadingText="Updating..."
   buttonSubmitText="Update Group"
@@ -47,7 +47,7 @@ exports[`component/add_user_to_group_multiselect should match snapshot with diff
 `;
 
 exports[`component/add_user_to_group_multiselect should match snapshot with profiles 1`] = `
-<MultiSelect
+<injectIntl(MultiSelect)
   ariaLabelRenderer={[Function]}
   buttonSubmitLoadingText="Creating..."
   buttonSubmitText="Create Group"
@@ -93,7 +93,7 @@ exports[`component/add_user_to_group_multiselect should match snapshot with prof
 `;
 
 exports[`component/add_user_to_group_multiselect should match snapshot without any profiles 1`] = `
-<MultiSelect
+<injectIntl(MultiSelect)
   ariaLabelRenderer={[Function]}
   buttonSubmitLoadingText="Creating..."
   buttonSubmitText="Create Group"
