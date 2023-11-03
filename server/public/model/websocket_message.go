@@ -20,7 +20,7 @@ func ToStringArray(arr []WebsocketEventType) StringArray {
 }
 
 const (
-	WebsocketEventTyping                                   WebsocketEventType = "typing"
+	WebsocketEventTyping                     WebsocketEventType = "typing"
 	Posted                                   WebsocketEventType = "posted"
 	PostEdited                               WebsocketEventType = "post_edited"
 	PostDeleted                              WebsocketEventType = "post_deleted"
