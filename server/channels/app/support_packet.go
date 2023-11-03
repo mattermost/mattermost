@@ -96,7 +96,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 
 	var vendorName, vendorVersion string
 	if ldapInterface := a.Ldap(); ldapInterface != nil {
-		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
+		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion(c)
 	}
 
 	/* Elastic Search */
