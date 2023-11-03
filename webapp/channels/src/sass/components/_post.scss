@@ -70,6 +70,26 @@
     }
 }
 
+.textarea-wrapper.textarea-wrapper-preview {
+    .textbox-preview-area {
+        display: block;
+    }
+
+    .textbox-edit-area {
+        display: none;
+    }
+}
+
+.textarea-wrapper:not(.textarea-wrapper-preview) {
+    .textbox-preview-area {
+        display: none;
+    }
+
+    .textbox-edit-area {
+        display: block;
+    }
+}
+
 .help__format-text {
     display: inline-block;
     font-size: 0.85em;

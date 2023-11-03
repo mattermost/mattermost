@@ -57,7 +57,9 @@ tags:
 
       #### Official Drivers
 
-      * [Mattermost JavaScript Driver](https://github.com/mattermost/mattermost-redux/blob/master/src/client/client4.ts)
+      * Mattermost JavaScript/TypeScript Driver
+        * [NPM](https://www.npmjs.com/package/@mattermost/client)
+        * [Source](https://github.com/mattermost/mattermost/tree/master/webapp/platform/client)
 
       * [Mattermost Golang Driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/client4.go)
 
