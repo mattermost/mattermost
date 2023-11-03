@@ -4771,7 +4771,7 @@ func (a *OpenTracingAppLayer) GetAllChannelsCount(c request.CTX, opts model.Chan
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllLdapGroupsPage(rctx request.CTX, page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllLdapGroupsPage")
 
@@ -4783,7 +4783,7 @@ func (a *OpenTracingAppLayer) GetAllLdapGroupsPage(page int, perPage int, opts m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.GetAllLdapGroupsPage(page, perPage, opts)
+	resultVar0, resultVar1, resultVar2 := a.app.GetAllLdapGroupsPage(rctx, page, perPage, opts)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
@@ -7232,7 +7232,7 @@ func (a *OpenTracingAppLayer) GetLatestVersion(latestVersionUrl string) (*model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLdapGroup(rctx request.CTX, ldapGroupID string) (*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLdapGroup")
 
@@ -7244,7 +7244,7 @@ func (a *OpenTracingAppLayer) GetLdapGroup(ldapGroupID string) (*model.Group, *m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLdapGroup(ldapGroupID)
+	resultVar0, resultVar1 := a.app.GetLdapGroup(rctx, ldapGroupID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16919,7 +16919,7 @@ func (a *OpenTracingAppLayer) TestFileStoreConnectionWithConfig(cfg *model.FileS
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TestLdap() *model.AppError {
+func (a *OpenTracingAppLayer) TestLdap(rctx request.CTX) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestLdap")
 
@@ -16931,7 +16931,7 @@ func (a *OpenTracingAppLayer) TestLdap() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestLdap()
+	resultVar0 := a.app.TestLdap(rctx)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
