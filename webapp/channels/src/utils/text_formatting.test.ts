@@ -311,17 +311,17 @@ describe('highlightWithoutNotificationKeywords', () => {
         const text = 'This is a test message with some keywords';
         const tokens = new Map();
         const highlightKeys = [
+            {key: 'test message'},
             {key: 'keywords'},
-            {key: 'test'},
         ];
 
-        const expectedOutput = 'This is a $MM_HIGHLIGHTKEYWORD1$ message with some $MM_HIGHLIGHTKEYWORD0$';
+        const expectedOutput = 'This is a $MM_HIGHLIGHTKEYWORD0$ with some $MM_HIGHLIGHTKEYWORD1$';
         const expectedTokens = new Map([
-            ['$MM_HIGHLIGHTKEYWORD1$', {
-                value: '<span class="non-notification-highlight">test</span>',
-                originalText: 'test',
-            }],
             ['$MM_HIGHLIGHTKEYWORD0$', {
+                value: '<span class="non-notification-highlight">test message</span>',
+                originalText: 'test message',
+            }],
+            ['$MM_HIGHLIGHTKEYWORD1$', {
                 value: '<span class="non-notification-highlight">keywords</span>',
                 originalText: 'keywords',
             }],
@@ -365,7 +365,7 @@ describe('highlightWithoutNotificationKeywords', () => {
     });
 
     test('should handle Chinese, Korean, Russian, and Japanese words', () => {
-        const text = 'This is a test message with some keywords: 你好, 안녕하세요, привет, こんにちは';
+        const text = 'This is a test message with some keywords: привет, こんにちは, 안녕하세요, 你好';
         const tokens = new Map();
         const highlightKeys = [
             {key: 'こんにちは'}, // Japanese hello
@@ -374,7 +374,7 @@ describe('highlightWithoutNotificationKeywords', () => {
             {key: '你好'}, // Chinese hello
         ];
 
-        const expectedOutput = 'This is a test message with some keywords: $MM_HIGHLIGHTKEYWORD3$, $MM_HIGHLIGHTKEYWORD2$, $MM_HIGHLIGHTKEYWORD0$, $MM_HIGHLIGHTKEYWORD1$';
+        const expectedOutput = 'This is a test message with some keywords: $MM_HIGHLIGHTKEYWORD0$, $MM_HIGHLIGHTKEYWORD1$, $MM_HIGHLIGHTKEYWORD2$, $MM_HIGHLIGHTKEYWORD3$';
         const expectedTokens = new Map([
             ['$MM_HIGHLIGHTKEYWORD0$', {
                 value: '<span class="non-notification-highlight">привет</span>',

@@ -151,7 +151,7 @@ function getDefaultStateFromProps(props: Props): State {
     const customKeysWithHighlight: MultiInputValue[] = [];
 
     if (props.user.notify_props) {
-        if (props.user.notify_props.mention_keys.length > 0) {
+        if (props.user.notify_props?.mention_keys?.length > 0) {
             const mentionKeys = props.user.notify_props.mention_keys.split(',').filter((key) => key.length > 0);
             mentionKeys.forEach((mentionKey) => {
                 // Remove username(s) from list of keys
