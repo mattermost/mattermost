@@ -13,7 +13,7 @@ declare module 'react' {
     }
 }
 
-const PostEmoji = ({name, imageUrl}: Props): JSX.Element => {
+const PostEmoji = ({name, imageUrl}: Props) => {
     const emojiText = `:${name}:`;
     const backgroundImageUrl = `url(${imageUrl})`;
 
