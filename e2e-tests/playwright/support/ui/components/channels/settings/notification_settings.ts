@@ -28,12 +28,14 @@ export default class NotificationsSettings {
 
         if (section === 'keysWithHighlight') {
             await expect(
-                this.container.getByText('Enter non case-sensitive keywords, press Tab or use commas to separate them:')
+                this.container.getByText(
+                    'Enter non case-sensitive keywords, press Tab or use commas to separate them:',
+                ),
             ).toBeVisible();
             await expect(
                 this.container.getByText(
-                    'These keywords will be shown to you with a highlight when anyone sends a message that includes them.'
-                )
+                    'These keywords will be shown to you with a highlight when anyone sends a message that includes them.',
+                ),
             ).toBeVisible();
         }
     }

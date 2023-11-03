@@ -60,7 +60,10 @@ test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on t
     await expect(channelPage.settingsModal.notificationsSettings.container.getByText(keywords[2])).toBeVisible();
 });
 
-test('MM-T5465-2 Should highlight the keywords when a message is sent with the keyword in center', async ({pw, pages}) => {
+test('MM-T5465-2 Should highlight the keywords when a message is sent with the keyword in center', async ({
+    pw,
+    pages,
+}) => {
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
@@ -100,7 +103,7 @@ test('MM-T5465-2 Should highlight the keywords when a message is sent with the k
     // * Verify that the keywords are not highlighted
     await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).toBeVisible();
     await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).not.toHaveClass(
-        highlightWithoutNotificationClass
+        highlightWithoutNotificationClass,
     );
 
     // # Post a message with the keyword
@@ -158,12 +161,14 @@ test('MM-T5465-3 Should highlight the keywords when a message is sent with the k
 
     // # Post a message with the keyword in the RHS
     const messageWithKeyword = `This message contains the keyword ${keywords[3]}`;
-    await channelPage.sidebarRight.postCreate.postMessage(messageWithKeyword)
+    await channelPage.sidebarRight.postCreate.postMessage(messageWithKeyword);
 
     // * Verify that the keywords are highlighted
     const lastPostWithHighlightInRHS = await channelPage.sidebarRight.getLastPost();
     await expect(lastPostWithHighlightInRHS.container.getByText(messageWithKeyword)).toBeVisible();
-    await expect(lastPostWithHighlightInRHS.container.getByText(keywords[3])).toHaveClass(highlightWithoutNotificationClass);
+    await expect(lastPostWithHighlightInRHS.container.getByText(keywords[3])).toHaveClass(
+        highlightWithoutNotificationClass,
+    );
 });
 
 test('MM-T5465-4 Highlighted keywords should not appear in the Recent Mentions', async ({pw, pages}) => {
@@ -260,5 +265,7 @@ test('MM-T5465-5 Should highlight keywords in message sent from another user', a
     // * Verify that the keywords are highlighted in the last message recieved
     const lastPostWithHighlight = await channelPage.centerView.getLastPost();
     await expect(lastPostWithHighlight.container.getByText(messageWithKeyword)).toBeVisible();
-    await expect(lastPostWithHighlight.container.getByText(highlightKeyword)).toHaveClass(highlightWithoutNotificationClass);
+    await expect(lastPostWithHighlight.container.getByText(highlightKeyword)).toHaveClass(
+        highlightWithoutNotificationClass,
+    );
 });
