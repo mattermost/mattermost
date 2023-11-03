@@ -17,13 +17,11 @@ import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
-import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus} from 'utils/constants';
-import {t} from 'utils/i18n';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
@@ -1279,12 +1277,12 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         ref={this.drawerRef}
                     >
                         <div className='modal-back'>
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-angle-left'
-                                ariaLabel={{
-                                    id: t('generic_icons.collapse'),
+                                aria-label={this.props.intl.formatMessage({
+                                    id: 'generic_icons.collapse',
                                     defaultMessage: 'Collapse Icon',
-                                }}
+                                })}
                                 onClick={this.props.collapseModal}
                             />
                         </div>
