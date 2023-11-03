@@ -409,7 +409,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
 	if user.AuthService == model.UserAuthServiceLdap ||
 		(user.AuthService == model.UserAuthServiceSaml && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
-		return api.app.Ldap().GetUserAttributes(*user.AuthData, attributes)
+		return api.app.Ldap().GetUserAttributes(api.ctx, *user.AuthData, attributes)
 	}
 
 	return map[string]string{}, nil
