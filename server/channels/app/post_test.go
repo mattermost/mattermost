@@ -513,7 +513,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 				}
 
 				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
-					newPost.Message = newPost.Message + " 2"
+					newPost.Message = "2 " + newPost.Message
 					return newPost, ""
 				}
 
@@ -541,7 +541,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
 		require.Nil(t, err)
 		require.NotNil(t, updatedPost)
-		require.Equal(t, "new message 1 2", updatedPost.Message)
+		require.Equal(t, "2 new message 1", updatedPost.Message)
 	})
 }
 
