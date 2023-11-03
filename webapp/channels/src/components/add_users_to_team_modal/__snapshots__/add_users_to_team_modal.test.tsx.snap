@@ -55,11 +55,10 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
     bsClass="modal-body"
     componentClass="div"
   >
-    <MultiSelect
+    <injectIntl(MultiSelect)
       ariaLabelRenderer={[Function]}
       buttonSubmitLoadingText="Adding..."
       buttonSubmitText="Add"
-      focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
       handleInput={[Function]}
@@ -170,16 +169,13 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
       }
       perPage={50}
       placeholderText="Search and add members"
-      saveButtonPosition="top"
       saving={false}
-      savingEnabled={true}
       selectedItemRef={
         Object {
           "current": null,
         }
       }
       valueRenderer={[Function]}
-      valueWithImage={false}
       values={Array []}
     />
   </ModalBody>
@@ -241,11 +237,10 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
     bsClass="modal-body"
     componentClass="div"
   >
-    <MultiSelect
+    <injectIntl(MultiSelect)
       ariaLabelRenderer={[Function]}
       buttonSubmitLoadingText="Adding..."
       buttonSubmitText="Add"
-      focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
       handleInput={[Function]}
@@ -356,16 +351,13 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
       }
       perPage={50}
       placeholderText="Search and add members"
-      saveButtonPosition="top"
       saving={false}
-      savingEnabled={true}
       selectedItemRef={
         Object {
           "current": null,
         }
       }
       valueRenderer={[Function]}
-      valueWithImage={false}
       values={Array []}
     />
   </ModalBody>
