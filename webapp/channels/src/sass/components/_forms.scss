@@ -169,6 +169,11 @@
             border-color: rgba(var(--center-channel-color-rgb), 0.4);
         }
 
+        &[disabled],
+        &[readonly] {
+            color: var(--center-channel-color);
+        }
+
         &.inline {
             display: inline-block;
             width: auto;

@@ -251,7 +251,7 @@ func selfHostedInvoices(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	invoices, err := c.App.Cloud().GetSelfHostedInvoices()
+	invoices, err := c.App.Cloud().GetSelfHostedInvoices(c.AppContext)
 
 	if err != nil {
 		if err.Error() == "404" {

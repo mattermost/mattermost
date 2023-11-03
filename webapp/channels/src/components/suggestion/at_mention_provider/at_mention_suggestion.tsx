@@ -109,10 +109,10 @@ const AtMentionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Ite
 
         if (item.isCurrentUser) {
             if (item.first_name || item.last_name) {
-                description = Utils.getFullName(item);
+                description = <span>{Utils.getFullName(item)}</span>;
             }
         } else if (item.first_name || item.last_name || item.nickname) {
-            description = `${Utils.getFullName(item)} ${item.nickname ? `(${item.nickname})` : ''}`.trim();
+            description = <span>{`${Utils.getFullName(item)} ${item.nickname ? `(${item.nickname})` : ''}`.trim()}</span>;
         }
 
         icon = (

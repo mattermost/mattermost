@@ -207,7 +207,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         const genericError = (
             <FormattedMessage
                 id='add_emoji.failedToAdd'
-                defaultMessage='Something when wrong when adding the custom emoji.'
+                defaultMessage='Something went wrong when adding the custom emoji.'
             />
         );
 
@@ -385,6 +385,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 />
                             </Link>
                             <SpinnerButton
+                                data-testid='save-button'
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}

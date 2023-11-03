@@ -48,6 +48,7 @@ export type Props = Attrs & {
     highlightedPostId?: Post['id'];
     selectedPostFocusedAt?: number;
     isThreadView?: boolean;
+    inputPlaceholder?: string;
 };
 
 type State = {
@@ -212,6 +213,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                             <FileUploadOverlay overlayType='right'/>
                             {this.props.selected && (
                                 <DeferredThreadViewerVirt
+                                    inputPlaceholder={this.props.inputPlaceholder}
                                     key={this.props.selected.id}
                                     channel={this.props.channel}
                                     onCardClick={this.handleCardClick}
