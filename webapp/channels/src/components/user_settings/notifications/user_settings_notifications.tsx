@@ -469,6 +469,10 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
+    handleCloseSettingsModal = () => {
+        this.props.closeModal();
+    };
+
     createPushNotificationSection = () => {
         const active = this.props.activeSection === 'push';
         const inputs = [];
@@ -1058,6 +1062,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         defaultMessage='Professional'
                     />
                 }
+                clickCallback={this.handleCloseSettingsModal}
             />
         );
 

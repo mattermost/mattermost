@@ -77,7 +77,9 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="desktopTitle"
@@ -110,7 +112,9 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="emailTitle"
@@ -143,7 +147,9 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="pushTitle"
@@ -176,12 +182,14 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="keysWithNotificationTitle"
               >
-                Keywords that trigger Notifications
+                Keywords That Trigger Notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -209,12 +217,14 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="keysWithHighlightTitle"
               >
-                Keywords That Get Highlighted (without notifications)
+                Keywords That Get Highlighted (Without Notifications)
               </h4>
               <button
                 aria-expanded="false"
@@ -319,7 +329,9 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="desktopTitle"
@@ -352,7 +364,9 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="emailTitle"
@@ -385,7 +399,9 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="pushTitle"
@@ -418,12 +434,14 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="keysWithNotificationTitle"
             >
-              Keywords that trigger Notifications
+              Keywords That Trigger Notifications
             </h4>
             <button
               aria-expanded="false"
@@ -451,12 +469,14 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="keysWithHighlightTitle"
             >
-              Keywords That Get Highlighted (without notifications)
+              Keywords That Get Highlighted (Without Notifications)
             </h4>
             <button
               aria-expanded="false"
@@ -620,7 +640,9 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="desktopTitle"
@@ -653,7 +675,9 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="emailTitle"
@@ -686,7 +710,9 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="pushTitle"
@@ -719,12 +745,14 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="keysWithNotificationTitle"
               >
-                Keywords that trigger Notifications
+                Keywords That Trigger Notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -755,12 +783,14 @@ Object {
           <div
             class="section-min isDisabled"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title isDisabled"
                 id="keysWithHighlightTitle"
               >
-                Keywords That Get Highlighted (without notifications)
+                Keywords That Get Highlighted (Without Notifications)
               </h4>
               <span
                 class="RestrictedIndicator__icon-tooltip-container"
@@ -865,7 +895,9 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="desktopTitle"
@@ -898,7 +930,9 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="emailTitle"
@@ -931,7 +965,9 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="pushTitle"
@@ -964,12 +1000,14 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="keysWithNotificationTitle"
             >
-              Keywords that trigger Notifications
+              Keywords That Trigger Notifications
             </h4>
             <button
               aria-expanded="false"
@@ -1000,12 +1038,14 @@ Object {
         <div
           class="section-min isDisabled"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title isDisabled"
               id="keysWithHighlightTitle"
             >
-              Keywords That Get Highlighted (without notifications)
+              Keywords That Get Highlighted (Without Notifications)
             </h4>
             <span
               class="RestrictedIndicator__icon-tooltip-container"
@@ -1169,7 +1209,9 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="desktopTitle"
@@ -1202,7 +1244,9 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="emailTitle"
@@ -1235,7 +1279,9 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="pushTitle"
@@ -1268,12 +1314,14 @@ Object {
           <div
             class="section-min"
           >
-            <div>
+            <div
+              class="secion-min__header"
+            >
               <h4
                 class="section-min__title"
                 id="keysWithNotificationTitle"
               >
-                Keywords that trigger Notifications
+                Keywords That Trigger Notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -1378,7 +1426,9 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="desktopTitle"
@@ -1411,7 +1461,9 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="emailTitle"
@@ -1444,7 +1496,9 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="pushTitle"
@@ -1477,12 +1531,14 @@ Object {
         <div
           class="section-min"
         >
-          <div>
+          <div
+            class="secion-min__header"
+          >
             <h4
               class="section-min__title"
               id="keysWithNotificationTitle"
             >
-              Keywords that trigger Notifications
+              Keywords That Trigger Notifications
             </h4>
             <button
               aria-expanded="false"

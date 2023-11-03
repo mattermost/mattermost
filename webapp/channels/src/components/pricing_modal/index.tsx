@@ -32,14 +32,7 @@ function PricingModal(props: Props) {
     const isCloud = useSelector(isCurrentLicenseCloud);
     const isCloudPurchaseModalOpen = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.CLOUD_PURCHASE));
 
-    const isUserSettingsModalOpen = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.USER_SETTINGS));
-
     const onHide = () => {
-        // When user is directed to the pricing modal from the user settings modal, we want to close the user settings modals
-        if (isUserSettingsModalOpen) {
-            dispatch(closeModal(ModalIdentifiers.USER_SETTINGS));
-        }
-
         // this fixes problem when both pricing modal and purchase modal are open and subsequently, when a user closes the pricing modal,
         // the purchase modal becomes unresponsive for sometime because the pricing modal is still in the DOM.
         if (isCloudPurchaseModalOpen) {

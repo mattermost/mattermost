@@ -5,7 +5,9 @@ exports[`components/SettingItemMin should match snapshot 1`] = `
   className="section-min"
   onClick={[Function]}
 >
-  <div>
+  <div
+    className="secion-min__header"
+  >
     <h4
       className="section-min__title"
       id="sectionTitle"
@@ -40,7 +42,9 @@ exports[`components/SettingItemMin should match snapshot, on disableOpen to true
   className="section-min"
   onClick={[Function]}
 >
-  <div>
+  <div
+    className="secion-min__header"
+  >
     <h4
       className="section-min__title"
       id="sectionTitle"
