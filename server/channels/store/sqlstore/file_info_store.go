@@ -660,7 +660,7 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 	items := []fileInfoWithChannelID{}
 	err = fs.GetSearchReplicaX().Select(&items, queryString, args...)
 	if err != nil {
-		mlog.Warn("Query error searching files.", mlog.String("error", trimInput(err.Error())))
+		rctx.Logger().Warn("Query error searching files.", mlog.String("error", trimInput(err.Error())))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, item := range items {
