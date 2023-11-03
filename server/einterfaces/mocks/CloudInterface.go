@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -512,25 +513,25 @@ func (_m *CloudInterface) GetSelfHostedInvoicePDF(invoiceID string) ([]byte, str
 	return r0, r1, r2
 }
 
-// GetSelfHostedInvoices provides a mock function with given fields:
-func (_m *CloudInterface) GetSelfHostedInvoices() ([]*model.Invoice, error) {
-	ret := _m.Called()
+// GetSelfHostedInvoices provides a mock function with given fields: rctx
+func (_m *CloudInterface) GetSelfHostedInvoices(rctx request.CTX) ([]*model.Invoice, error) {
+	ret := _m.Called(rctx)
 
 	var r0 []*model.Invoice
 	var r1 error
-	if rf, ok := ret.Get(0).(func() ([]*model.Invoice, error)); ok {
-		return rf()
+	if rf, ok := ret.Get(0).(func(request.CTX) ([]*model.Invoice, error)); ok {
+		return rf(rctx)
 	}
-	if rf, ok := ret.Get(0).(func() []*model.Invoice); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(request.CTX) []*model.Invoice); ok {
+		r0 = rf(rctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Invoice)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
+		r1 = rf(rctx)
 	} else {
 		r1 = ret.Error(1)
 	}

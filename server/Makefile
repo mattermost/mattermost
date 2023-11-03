@@ -150,7 +150,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
+PLUGIN_PACKAGES += mattermost-plugin-todo-v0.7.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
@@ -515,14 +515,13 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
+test-data: export MM_SERVICESETTINGS_ENABLELOCALMODE := true
 test-data: run-server inject-test-data stop-server ## start a local instance and add test data to it.
 
 inject-test-data: # add test data to the local instance.
 	@if ! ./scripts/wait-for-system-start.sh; then \
 		make stop-server; \
 	fi
-
-	@echo ServiceSettings.EnableLocalMode must be set to true.
 
 	bin/mmctl config set TeamSettings.MaxUsersPerTeam 100 --local
 	bin/mmctl sampledata -u 60 --local
