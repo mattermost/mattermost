@@ -190,13 +190,20 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         titleDescriptor.defaultMessage = 'Recent Mentions';
     } else if (isFlaggedPosts) {
         noResultsProps.variant = NoResultsVariant.FlaggedPosts;
-        noResultsProps.subtitleValues = {buttonText: <strong>{Utils.localizeMessage('flag_post.flag', 'Save Message')}</strong>};
-
+        noResultsProps.subtitleValues = {buttonText: <strong>{
+            intl.formatMessage({
+                id: 'flag_post.flag',
+                defaultMessage: 'Save Message'},
+            )}</strong>};
         titleDescriptor.id = t('search_header.title3');
         titleDescriptor.defaultMessage = 'Saved Messages';
     } else if (isPinnedPosts) {
         noResultsProps.variant = NoResultsVariant.PinnedPosts;
-        noResultsProps.subtitleValues = {text: <strong>{Utils.localizeMessage('post_info.pin', 'Pin to Channel')}</strong>};
+        noResultsProps.subtitleValues = {text: <strong>{
+            intl.formatMessage({
+                id: 'post_info.pin',
+                defaultMessage: 'Pin to Channel',
+            })}</strong>};
 
         sortedResults = [...results];
         sortedResults.sort((postA: Post|FileSearchResultItemType, postB: Post|FileSearchResultItemType) => postB.create_at - postA.create_at);
