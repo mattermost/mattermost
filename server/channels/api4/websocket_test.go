@@ -44,7 +44,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	omitUser := make(map[string]bool, 1)
 	omitUser["somerandomid"] = true
-	evt1 := model.NewWebSocketEvent(model.Typing, "", th.BasicChannel.Id, "", omitUser, "")
+	evt1 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", omitUser, "")
 	evt1.Add("user_id", "somerandomid")
 	th.App.Publish(evt1)
 
@@ -57,7 +57,7 @@ func TestWebSocketEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.EventType() == model.Typing && resp.GetData()["user_id"].(string) == "somerandomid" {
+				if resp.EventType() == model.WebsocketEventTyping && resp.GetData()["user_id"].(string) == "somerandomid" {
 					eventHit = true
 				}
 			case <-stop:
@@ -72,7 +72,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	require.True(t, eventHit, "did not receive typing event")
 
-	evt2 := model.NewWebSocketEvent(model.Typing, "", "somerandomid", "", nil, "")
+	evt2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "somerandomid", "", nil, "")
 	th.App.Publish(evt2)
 	time.Sleep(300 * time.Millisecond)
 
@@ -82,7 +82,7 @@ func TestWebSocketEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.EventType() == model.Typing {
+				if resp.EventType() == model.WebsocketEventTyping {
 					eventHit = true
 				}
 			case <-stop:
