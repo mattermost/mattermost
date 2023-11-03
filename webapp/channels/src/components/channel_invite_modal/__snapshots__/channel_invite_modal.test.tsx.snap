@@ -61,12 +61,11 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     <div
       className="channel-invite__content"
     >
-      <MultiSelect
+      <injectIntl(MultiSelect)
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
         customNoOptionsMessage={null}
-        focusOnLoad={true}
         handleAdd={[Function]}
         handleCancel={[Function]}
         handleDelete={[Function]}
@@ -80,7 +79,6 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         perPage={50}
         saveButtonPosition="bottom"
         saving={false}
-        savingEnabled={true}
         selectedItemRef={
           Object {
             "current": null,
@@ -160,12 +158,11 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     <div
       className="channel-invite__content"
     >
-      <MultiSelect
+      <injectIntl(MultiSelect)
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
         customNoOptionsMessage={null}
-        focusOnLoad={true}
         handleAdd={[Function]}
         handleCancel={[Function]}
         handleDelete={[Function]}
@@ -179,7 +176,6 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         perPage={50}
         saveButtonPosition="bottom"
         saving={false}
-        savingEnabled={true}
         selectedItemRef={
           Object {
             "current": null,
@@ -281,12 +277,11 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
     <div
       className="channel-invite__content"
     >
-      <MultiSelect
+      <injectIntl(MultiSelect)
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
         customNoOptionsMessage={null}
-        focusOnLoad={true}
         handleAdd={[Function]}
         handleCancel={[Function]}
         handleDelete={[Function]}
@@ -300,7 +295,6 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         perPage={50}
         saveButtonPosition="bottom"
         saving={false}
-        savingEnabled={true}
         selectedItemRef={
           Object {
             "current": null,
