@@ -68,11 +68,24 @@ func (s *SqlOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string
 	return conn, nil
 }
 
-func (s *SqlOAuthOutgoingConnectionStore) GetConnections(c request.CTX, offset, limit int) ([]*model.OAuthOutgoingConnection, error) {
+func (s *SqlOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
+	filters.SetDefaults()
+
 	conns := []*model.OAuthOutgoingConnection{}
-	if err := s.GetReplicaX().Select(&conns, `SELECT * FROM OAuthOutgoingConnection LIMIT ? OFFSET ?`, limit, offset); err != nil {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("OAuthOutgoingConnection").
+		OrderBy("Id").
+		Limit(uint64(filters.Limit))
+
+	if filters.OffsetId != "" {
+		query = query.Where("Id > ?", filters.OffsetId)
+	}
+
+	if err := s.GetReplicaX().SelectBuilder(&conns, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get OAuthOutgoingConnections")
 	}
+
 	return conns, nil
 }
 

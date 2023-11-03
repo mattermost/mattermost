@@ -27,7 +27,9 @@ func newValidOAuthOutgoingConnection() *model.OAuthOutgoingConnection {
 func cleanupOAuthOutgoingConnections(t *testing.T, ss store.Store) func() {
 	return func() {
 		// Delete all outgoing connections
-		connections, err := ss.OAuthOutgoingConnection().GetConnections(request.TestContext(t), 0, 100)
+		connections, err := ss.OAuthOutgoingConnection().GetConnections(request.TestContext(t), model.OAuthOutgoingConnectionGetConnectionsFilter{
+			Limit: 100,
+		})
 		require.NoError(t, err)
 		for _, conn := range connections {
 			err := ss.OAuthOutgoingConnection().DeleteConnection(request.TestContext(t), conn.Id)
@@ -167,6 +169,8 @@ func testGetOauthOutgoingConnections(t *testing.T, ss store.Store) {
 	c := request.TestContext(t)
 
 	t.Run("get all", func(t *testing.T) {
+		t.Cleanup(cleanupOAuthOutgoingConnections(t, ss))
+
 		// Define test data
 		connection1 := newValidOAuthOutgoingConnection()
 		connection2 := newValidOAuthOutgoingConnection()
@@ -178,9 +182,35 @@ func testGetOauthOutgoingConnections(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// Retrieve the connections
-		conns, err := ss.OAuthOutgoingConnection().GetConnections(c, 0, 10)
+		conns, err := ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{Limit: 10})
 		require.NoError(t, err)
 		require.Len(t, conns, 2)
+	})
+
+	t.Run("get second page", func(t *testing.T) {
+		t.Cleanup(cleanupOAuthOutgoingConnections(t, ss))
+
+		// Define test data
+		connection1 := newValidOAuthOutgoingConnection()
+		connection2 := newValidOAuthOutgoingConnection()
+
+		// Save the connections
+		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection1)
+		require.NoError(t, err)
+		_, err = ss.OAuthOutgoingConnection().SaveConnection(c, connection2)
+		require.NoError(t, err)
+
+		// Retrieve the firt page
+		conns, err := ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{Limit: 1})
+		require.NoError(t, err)
+		require.Len(t, conns, 1)
+		require.Equal(t, connection1.Id, conns[0].Id)
+
+		// Retrieve the second page
+		conns, err = ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{OffsetId: connection1.Id, Limit: 1})
+		require.NoError(t, err)
+		require.Len(t, conns, 1)
+		require.Equal(t, connection2.Id, conns[0].Id)
 	})
 }
 

@@ -55,25 +55,25 @@ func (_m *OAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string) 
 	return r0, r1
 }
 
-// GetConnections provides a mock function with given fields: c, offset, limit
-func (_m *OAuthOutgoingConnectionStore) GetConnections(c request.CTX, offset int, limit int) ([]*model.OAuthOutgoingConnection, error) {
-	ret := _m.Called(c, offset, limit)
+// GetConnections provides a mock function with given fields: c, filters
+func (_m *OAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
+	ret := _m.Called(c, filters)
 
 	var r0 []*model.OAuthOutgoingConnection
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, int, int) ([]*model.OAuthOutgoingConnection, error)); ok {
-		return rf(c, offset, limit)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error)); ok {
+		return rf(c, filters)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, int, int) []*model.OAuthOutgoingConnection); ok {
-		r0 = rf(c, offset, limit)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.OAuthOutgoingConnectionGetConnectionsFilter) []*model.OAuthOutgoingConnection); ok {
+		r0 = rf(c, filters)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.OAuthOutgoingConnection)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, int, int) error); ok {
-		r1 = rf(c, offset, limit)
+	if rf, ok := ret.Get(1).(func(request.CTX, model.OAuthOutgoingConnectionGetConnectionsFilter) error); ok {
+		r1 = rf(c, filters)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -12,6 +12,8 @@ type GrantType string
 
 const (
 	GrantTypeClientCredentials GrantType = "client_credentials"
+
+	defaultGetConnectionsLimit = 50
 )
 
 type OAuthOutgoingConnection struct {
@@ -115,4 +117,17 @@ func (oa *OAuthOutgoingConnection) Etag() string {
 func (oa *OAuthOutgoingConnection) Sanitize() {
 	oa.ClientId = ""
 	oa.ClientSecret = ""
+}
+
+// OAuthOutgoingConnectionGetConnectionsFilter is used to filter outgoing connections
+type OAuthOutgoingConnectionGetConnectionsFilter struct {
+	OffsetId string
+	Limit    int
+}
+
+// SetDefaults sets the default values for the filter
+func (oaf *OAuthOutgoingConnectionGetConnectionsFilter) SetDefaults() {
+	if oaf.Limit == 0 {
+		oaf.Limit = defaultGetConnectionsLimit
+	}
 }

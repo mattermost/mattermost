@@ -5801,7 +5801,7 @@ func (s *OpenTracingLayerOAuthOutgoingConnectionStore) GetConnection(c request.C
 	return result, err
 }
 
-func (s *OpenTracingLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, offset int, limit int) ([]*model.OAuthOutgoingConnection, error) {
+func (s *OpenTracingLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthOutgoingConnectionStore.GetConnections")
 	s.Root.Store.SetContext(newCtx)
@@ -5810,7 +5810,7 @@ func (s *OpenTracingLayerOAuthOutgoingConnectionStore) GetConnections(c request.
 	}()
 
 	defer span.Finish()
-	result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, offset, limit)
+	result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, filters)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -5259,10 +5259,10 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id
 	return result, err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, offset int, limit int) ([]*model.OAuthOutgoingConnection, error) {
+func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
 	start := time.Now()
 
-	result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, offset, limit)
+	result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, filters)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

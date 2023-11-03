@@ -6581,11 +6581,11 @@ func (s *RetryLayerOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id
 
 }
 
-func (s *RetryLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, offset int, limit int) ([]*model.OAuthOutgoingConnection, error) {
+func (s *RetryLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
 
 	tries := 0
 	for {
-		result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, offset, limit)
+		result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, filters)
 		if err == nil {
 			return result, nil
 		}
