@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
-func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
+func (a *App) TestElasticsearch(rctx request.CTX, cfg *model.Config) *model.AppError {
 	if *cfg.ElasticsearchSettings.Password == model.FakeSetting {
 		if *cfg.ElasticsearchSettings.ConnectionURL == *a.Config().ElasticsearchSettings.ConnectionURL && *cfg.ElasticsearchSettings.Username == *a.Config().ElasticsearchSettings.Username {
 			*cfg.ElasticsearchSettings.Password = *a.Config().ElasticsearchSettings.Password
@@ -25,7 +25,7 @@ func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 		err := model.NewAppError("TestElasticsearch", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 		return err
 	}
-	if err := seI.TestConfig(cfg); err != nil {
+	if err := seI.TestConfig(rctx, cfg); err != nil {
 		return err
 	}
 

@@ -605,13 +605,13 @@ func (_m *SearchEngineInterface) Stop() *model.AppError {
 	return r0
 }
 
-// TestConfig provides a mock function with given fields: cfg
-func (_m *SearchEngineInterface) TestConfig(cfg *model.Config) *model.AppError {
-	ret := _m.Called(cfg)
+// TestConfig provides a mock function with given fields: rctx, cfg
+func (_m *SearchEngineInterface) TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError {
+	ret := _m.Called(rctx, cfg)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Config) *model.AppError); ok {
-		r0 = rf(cfg)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Config) *model.AppError); ok {
+		r0 = rf(rctx, cfg)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

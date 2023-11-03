@@ -2852,7 +2852,7 @@ func (a *App) AutocompleteChannels(c request.CTX, userID, term string) (model.Ch
 		return nil, appErr
 	}
 
-	channelList, err := a.Srv().Store().Channel().Autocomplete(userID, term, includeDeleted, user.IsGuest())
+	channelList, err := a.Srv().Store().Channel().Autocomplete(c, userID, term, includeDeleted, user.IsGuest())
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2869,7 +2869,7 @@ func (a *App) AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term st
 		return nil, appErr
 	}
 
-	channelList, err := a.Srv().Store().Channel().AutocompleteInTeam(teamID, userID, term, includeDeleted, user.IsGuest())
+	channelList, err := a.Srv().Store().Channel().AutocompleteInTeam(c, teamID, userID, term, includeDeleted, user.IsGuest())
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

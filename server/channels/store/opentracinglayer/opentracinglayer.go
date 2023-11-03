@@ -641,7 +641,7 @@ func (s *OpenTracingLayerChannelStore) AnalyticsTypeCount(teamID string, channel
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
+func (s *OpenTracingLayerChannelStore) Autocomplete(rctx request.CTX, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Autocomplete")
 	s.Root.Store.SetContext(newCtx)
@@ -650,7 +650,7 @@ func (s *OpenTracingLayerChannelStore) Autocomplete(userID string, term string, 
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted, isGuest)
+	result, err := s.ChannelStore.Autocomplete(rctx, userID, term, includeDeleted, isGuest)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -659,7 +659,7 @@ func (s *OpenTracingLayerChannelStore) Autocomplete(userID string, term string, 
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
+func (s *OpenTracingLayerChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.AutocompleteInTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -668,7 +668,7 @@ func (s *OpenTracingLayerChannelStore) AutocompleteInTeam(teamID string, userID 
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted, isGuest)
+	result, err := s.ChannelStore.AutocompleteInTeam(rctx, teamID, userID, term, includeDeleted, isGuest)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6715,7 +6715,7 @@ func (s *OpenTracingLayerPostStore) Search(teamID string, userID string, params 
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+func (s *OpenTracingLayerPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.SearchPostsForUser")
 	s.Root.Store.SetContext(newCtx)
@@ -6724,7 +6724,7 @@ func (s *OpenTracingLayerPostStore) SearchPostsForUser(paramsList []*model.Searc
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.SearchPostsForUser(paramsList, userID, teamID, page, perPage)
+	result, err := s.PostStore.SearchPostsForUser(rctx, paramsList, userID, teamID, page, perPage)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -11038,7 +11038,7 @@ func (s *OpenTracingLayerUserStore) AnalyticsGetSystemAdminCount() (int64, error
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (s *OpenTracingLayerUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.AutocompleteUsersInChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -11047,7 +11047,7 @@ func (s *OpenTracingLayerUserStore) AutocompleteUsersInChannel(teamID string, ch
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.AutocompleteUsersInChannel(teamID, channelID, term, options)
+	result, err := s.UserStore.AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -11993,7 +11993,7 @@ func (s *OpenTracingLayerUserStore) Save(user *model.User) (*model.User, error) 
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) Search(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *OpenTracingLayerUserStore) Search(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.Search")
 	s.Root.Store.SetContext(newCtx)
@@ -12002,7 +12002,7 @@ func (s *OpenTracingLayerUserStore) Search(teamID string, term string, options *
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.Search(teamID, term, options)
+	result, err := s.UserStore.Search(rctx, teamID, term, options)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

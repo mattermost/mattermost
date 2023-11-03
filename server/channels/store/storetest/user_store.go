@@ -2864,6 +2864,7 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := ss.User().Search(
+				rctx,
 				testCase.TeamId,
 				testCase.Term,
 				testCase.Options,

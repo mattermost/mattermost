@@ -35,12 +35,12 @@ func (s *SearchUserStore) deleteUserIndex(rctx request.CTX, user *model.User) {
 	}
 }
 
-func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *SearchUserStore) Search(rctx request.CTX, teamId, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
 			listOfAllowedChannels, nErr := s.getListOfAllowedChannels(teamId, "", options.ViewRestrictions)
 			if nErr != nil {
-				mlog.Warn("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+				rctx.Logger().Warn("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 
@@ -52,24 +52,24 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 
 			usersIds, err := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, sanitizedTerm, options)
 			if err != nil {
-				mlog.Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+				rctx.Logger().Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 
 			users, nErr := s.UserStore.GetProfileByIds(context.Background(), usersIds, nil, false)
 			if nErr != nil {
-				mlog.Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+				rctx.Logger().Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 
-			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
+			rctx.Logger().Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
 			return users, nil
 		}
 	}
 
-	mlog.Debug("Using database search because no other search engine is available")
+	rctx.Logger().Debug("Using database search because no other search engine is available")
 
-	return s.UserStore.Search(teamId, term, options)
+	return s.UserStore.Search(rctx, teamId, term, options)
 }
 
 func (s *SearchUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
@@ -211,12 +211,12 @@ func (s *SearchUserStore) getListOfAllowedChannels(teamId, channelId string, vie
 	return []string{}, nil
 }
 
-func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (s *SearchUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsAutocompletionEnabled() {
 			listOfAllowedChannels, nErr := s.getListOfAllowedChannels(teamId, channelId, options.ViewRestrictions)
 			if nErr != nil {
-				mlog.Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+				rctx.Logger().Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 			if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
@@ -226,14 +226,14 @@ func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term str
 
 			autocomplete, nErr := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
 			if nErr != nil {
-				mlog.Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+				rctx.Logger().Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
-			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
+			rctx.Logger().Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
 			return autocomplete, nil
 		}
 	}
 
-	mlog.Debug("Using database search because no other search engine is available")
-	return s.UserStore.AutocompleteUsersInChannel(teamId, channelId, term, options)
+	rctx.Logger().Debug("Using database search because no other search engine is available")
+	return s.UserStore.AutocompleteUsersInChannel(rctx, teamId, channelId, term, options)
 }

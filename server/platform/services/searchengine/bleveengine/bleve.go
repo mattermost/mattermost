@@ -252,7 +252,7 @@ func (b *BleveEngine) GetName() string {
 	return EngineName
 }
 
-func (b *BleveEngine) TestConfig(cfg *model.Config) *model.AppError {
+func (b *BleveEngine) TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError {
 	return nil
 }
 

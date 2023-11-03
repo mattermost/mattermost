@@ -691,11 +691,11 @@ func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 
 }
 
-func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
+func (s *RetryLayerChannelStore) Autocomplete(rctx request.CTX, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted, isGuest)
+		result, err := s.ChannelStore.Autocomplete(rctx, userID, term, includeDeleted, isGuest)
 		if err == nil {
 			return result, nil
 		}
@@ -712,11 +712,11 @@ func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includ
 
 }
 
-func (s *RetryLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
+func (s *RetryLayerChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted, isGuest)
+		result, err := s.ChannelStore.AutocompleteInTeam(rctx, teamID, userID, term, includeDeleted, isGuest)
 		if err == nil {
 			return result, nil
 		}
@@ -7603,11 +7603,11 @@ func (s *RetryLayerPostStore) Search(teamID string, userID string, params *model
 
 }
 
-func (s *RetryLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+func (s *RetryLayerPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.SearchPostsForUser(paramsList, userID, teamID, page, perPage)
+		result, err := s.PostStore.SearchPostsForUser(rctx, paramsList, userID, teamID, page, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -12619,11 +12619,11 @@ func (s *RetryLayerUserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 
 }
 
-func (s *RetryLayerUserStore) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (s *RetryLayerUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.AutocompleteUsersInChannel(teamID, channelID, term, options)
+		result, err := s.UserStore.AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
 		if err == nil {
 			return result, nil
 		}
@@ -13669,11 +13669,11 @@ func (s *RetryLayerUserStore) Save(user *model.User) (*model.User, error) {
 
 }
 
-func (s *RetryLayerUserStore) Search(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *RetryLayerUserStore) Search(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.Search(teamID, term, options)
+		result, err := s.UserStore.Search(rctx, teamID, term, options)
 		if err == nil {
 			return result, nil
 		}

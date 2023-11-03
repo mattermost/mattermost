@@ -68,25 +68,25 @@ func (_m *ChannelStore) AnalyticsTypeCount(teamID string, channelType model.Chan
 	return r0, r1
 }
 
-// Autocomplete provides a mock function with given fields: userID, term, includeDeleted, isGuest
-func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
-	ret := _m.Called(userID, term, includeDeleted, isGuest)
+// Autocomplete provides a mock function with given fields: rctx, userID, term, includeDeleted, isGuest
+func (_m *ChannelStore) Autocomplete(rctx request.CTX, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
+	ret := _m.Called(rctx, userID, term, includeDeleted, isGuest)
 
 	var r0 model.ChannelListWithTeamData
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool) (model.ChannelListWithTeamData, error)); ok {
-		return rf(userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool, bool) (model.ChannelListWithTeamData, error)); ok {
+		return rf(rctx, userID, term, includeDeleted, isGuest)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool) model.ChannelListWithTeamData); ok {
-		r0 = rf(userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool, bool) model.ChannelListWithTeamData); ok {
+		r0 = rf(rctx, userID, term, includeDeleted, isGuest)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelListWithTeamData)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, bool, bool) error); ok {
-		r1 = rf(userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, bool, bool) error); ok {
+		r1 = rf(rctx, userID, term, includeDeleted, isGuest)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -94,25 +94,25 @@ func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted 
 	return r0, r1
 }
 
-// AutocompleteInTeam provides a mock function with given fields: teamID, userID, term, includeDeleted, isGuest
-func (_m *ChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
-	ret := _m.Called(teamID, userID, term, includeDeleted, isGuest)
+// AutocompleteInTeam provides a mock function with given fields: rctx, teamID, userID, term, includeDeleted, isGuest
+func (_m *ChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
+	ret := _m.Called(rctx, teamID, userID, term, includeDeleted, isGuest)
 
 	var r0 model.ChannelList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string, bool, bool) (model.ChannelList, error)); ok {
-		return rf(teamID, userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, bool, bool) (model.ChannelList, error)); ok {
+		return rf(rctx, teamID, userID, term, includeDeleted, isGuest)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string, bool, bool) model.ChannelList); ok {
-		r0 = rf(teamID, userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, bool, bool) model.ChannelList); ok {
+		r0 = rf(rctx, teamID, userID, term, includeDeleted, isGuest)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string, bool, bool) error); ok {
-		r1 = rf(teamID, userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string, bool, bool) error); ok {
+		r1 = rf(rctx, teamID, userID, term, includeDeleted, isGuest)
 	} else {
 		r1 = ret.Error(1)
 	}

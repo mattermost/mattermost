@@ -164,25 +164,25 @@ func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	return r0, r1
 }
 
-// AutocompleteUsersInChannel provides a mock function with given fields: teamID, channelID, term, options
-func (_m *UserStore) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
-	ret := _m.Called(teamID, channelID, term, options)
+// AutocompleteUsersInChannel provides a mock function with given fields: rctx, teamID, channelID, term, options
+func (_m *UserStore) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+	ret := _m.Called(rctx, teamID, channelID, term, options)
 
 	var r0 *model.UserAutocompleteInChannel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string, *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)); ok {
-		return rf(teamID, channelID, term, options)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)); ok {
+		return rf(rctx, teamID, channelID, term, options)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string, *model.UserSearchOptions) *model.UserAutocompleteInChannel); ok {
-		r0 = rf(teamID, channelID, term, options)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, *model.UserSearchOptions) *model.UserAutocompleteInChannel); ok {
+		r0 = rf(rctx, teamID, channelID, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UserAutocompleteInChannel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(teamID, channelID, term, options)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string, *model.UserSearchOptions) error); ok {
+		r1 = rf(rctx, teamID, channelID, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1388,25 +1388,25 @@ func (_m *UserStore) Save(user *model.User) (*model.User, error) {
 	return r0, r1
 }
 
-// Search provides a mock function with given fields: teamID, term, options
-func (_m *UserStore) Search(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
-	ret := _m.Called(teamID, term, options)
+// Search provides a mock function with given fields: rctx, teamID, term, options
+func (_m *UserStore) Search(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	ret := _m.Called(rctx, teamID, term, options)
 
 	var r0 []*model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) ([]*model.User, error)); ok {
-		return rf(teamID, term, options)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, *model.UserSearchOptions) ([]*model.User, error)); ok {
+		return rf(rctx, teamID, term, options)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
-		r0 = rf(teamID, term, options)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, *model.UserSearchOptions) []*model.User); ok {
+		r0 = rf(rctx, teamID, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(teamID, term, options)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, *model.UserSearchOptions) error); ok {
+		r1 = rf(rctx, teamID, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}

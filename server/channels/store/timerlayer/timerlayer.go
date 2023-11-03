@@ -621,10 +621,10 @@ func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
+func (s *TimerLayerChannelStore) Autocomplete(rctx request.CTX, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted, isGuest)
+	result, err := s.ChannelStore.Autocomplete(rctx, userID, term, includeDeleted, isGuest)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -637,10 +637,10 @@ func (s *TimerLayerChannelStore) Autocomplete(userID string, term string, includ
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
+func (s *TimerLayerChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted, isGuest)
+	result, err := s.ChannelStore.AutocompleteInTeam(rctx, teamID, userID, term, includeDeleted, isGuest)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6079,10 +6079,10 @@ func (s *TimerLayerPostStore) Search(teamID string, userID string, params *model
 	return result, err
 }
 
-func (s *TimerLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+func (s *TimerLayerPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.SearchPostsForUser(paramsList, userID, teamID, page, perPage)
+	result, err := s.PostStore.SearchPostsForUser(rctx, paramsList, userID, teamID, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9932,10 +9932,10 @@ func (s *TimerLayerUserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerUserStore) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (s *TimerLayerUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.AutocompleteUsersInChannel(teamID, channelID, term, options)
+	result, err := s.UserStore.AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10808,10 +10808,10 @@ func (s *TimerLayerUserStore) Save(user *model.User) (*model.User, error) {
 	return result, err
 }
 
-func (s *TimerLayerUserStore) Search(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *TimerLayerUserStore) Search(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.Search(teamID, term, options)
+	result, err := s.UserStore.Search(rctx, teamID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

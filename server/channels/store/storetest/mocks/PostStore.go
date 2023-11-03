@@ -1074,25 +1074,25 @@ func (_m *PostStore) Search(teamID string, userID string, params *model.SearchPa
 	return r0, r1
 }
 
-// SearchPostsForUser provides a mock function with given fields: paramsList, userID, teamID, page, perPage
-func (_m *PostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
-	ret := _m.Called(paramsList, userID, teamID, page, perPage)
+// SearchPostsForUser provides a mock function with given fields: rctx, paramsList, userID, teamID, page, perPage
+func (_m *PostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+	ret := _m.Called(rctx, paramsList, userID, teamID, page, perPage)
 
 	var r0 *model.PostSearchResults
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, int, int) (*model.PostSearchResults, error)); ok {
-		return rf(paramsList, userID, teamID, page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.SearchParams, string, string, int, int) (*model.PostSearchResults, error)); ok {
+		return rf(rctx, paramsList, userID, teamID, page, perPage)
 	}
-	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, int, int) *model.PostSearchResults); ok {
-		r0 = rf(paramsList, userID, teamID, page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.SearchParams, string, string, int, int) *model.PostSearchResults); ok {
+		r0 = rf(rctx, paramsList, userID, teamID, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostSearchResults)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]*model.SearchParams, string, string, int, int) error); ok {
-		r1 = rf(paramsList, userID, teamID, page, perPage)
+	if rf, ok := ret.Get(1).(func(request.CTX, []*model.SearchParams, string, string, int, int) error); ok {
+		r1 = rf(rctx, paramsList, userID, teamID, page, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}

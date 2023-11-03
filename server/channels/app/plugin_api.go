@@ -512,7 +512,7 @@ func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *mod
 		AllowInactive: search.AllowInactive,
 		Limit:         search.Limit,
 	}
-	return api.app.SearchUsers(search, pluginSearchUsersOptions)
+	return api.app.SearchUsers(api.ctx, search, pluginSearchUsersOptions)
 }
 
 func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {

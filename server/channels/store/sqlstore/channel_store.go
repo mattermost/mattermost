@@ -3036,7 +3036,7 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 	return teamMemberIDs, nil
 }
 
-func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
+func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
 	query := s.getQueryBuilder().Select("c.*",
 		"t.DisplayName AS TeamDisplayName",
 		"t.Name AS TeamName",
@@ -3091,7 +3091,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGue
 	return channels, nil
 }
 
-func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
+func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
 	query := s.getQueryBuilder().Select("*").
 		From("Channels c").
 		Where(sq.Eq{"c.TeamId": teamID}).

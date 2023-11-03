@@ -881,7 +881,7 @@ func (a *OpenTracingAppLayer) AutocompleteChannelsForTeam(c request.CTX, teamID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+func (a *OpenTracingAppLayer) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AutocompleteUsersInChannel")
 
@@ -893,7 +893,7 @@ func (a *OpenTracingAppLayer) AutocompleteUsersInChannel(teamID string, channelI
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AutocompleteUsersInChannel(teamID, channelID, term, options)
+	resultVar0, resultVar1 := a.app.AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -903,7 +903,7 @@ func (a *OpenTracingAppLayer) AutocompleteUsersInChannel(teamID string, channelI
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AutocompleteUsersInTeam(teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
+func (a *OpenTracingAppLayer) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AutocompleteUsersInTeam")
 
@@ -915,7 +915,7 @@ func (a *OpenTracingAppLayer) AutocompleteUsersInTeam(teamID string, term string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AutocompleteUsersInTeam(teamID, term, options)
+	resultVar0, resultVar1 := a.app.AutocompleteUsersInTeam(rctx, teamID, term, options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15212,7 +15212,7 @@ func (a *OpenTracingAppLayer) SearchUserAccessTokens(term string) ([]*model.User
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchUsers(rctx request.CTX, props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsers")
 
@@ -15224,7 +15224,7 @@ func (a *OpenTracingAppLayer) SearchUsers(props *model.UserSearch, options *mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchUsers(props, options)
+	resultVar0, resultVar1 := a.app.SearchUsers(rctx, props, options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15278,7 +15278,7 @@ func (a *OpenTracingAppLayer) SearchUsersInGroup(groupID string, term string, op
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchUsersInTeam(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersInTeam")
 
@@ -15290,7 +15290,7 @@ func (a *OpenTracingAppLayer) SearchUsersInTeam(teamID string, term string, opti
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchUsersInTeam(teamID, term, options)
+	resultVar0, resultVar1 := a.app.SearchUsersInTeam(rctx, teamID, term, options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16833,7 +16833,7 @@ func (a *OpenTracingAppLayer) TelemetryId() string {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TestElasticsearch(cfg *model.Config) *model.AppError {
+func (a *OpenTracingAppLayer) TestElasticsearch(rctx request.CTX, cfg *model.Config) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestElasticsearch")
 
@@ -16845,7 +16845,7 @@ func (a *OpenTracingAppLayer) TestElasticsearch(cfg *model.Config) *model.AppErr
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestElasticsearch(cfg)
+	resultVar0 := a.app.TestElasticsearch(rctx, cfg)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

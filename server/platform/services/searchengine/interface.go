@@ -45,7 +45,7 @@ type SearchEngineInterface interface {
 	DeletePostFiles(rctx request.CTX, postID string) *model.AppError
 	DeleteUserFiles(rctx request.CTX, userID string) *model.AppError
 	DeleteFilesBatch(rctx request.CTX, endTime, limit int64) *model.AppError
-	TestConfig(cfg *model.Config) *model.AppError
+	TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError
 	PurgeIndexes(rctx request.CTX) *model.AppError
 	RefreshIndexes(rctx request.CTX) *model.AppError
 	DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError

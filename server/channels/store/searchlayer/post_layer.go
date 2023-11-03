@@ -178,12 +178,12 @@ func (s SearchPostStore) searchPostsForUserByEngine(engine searchengine.SearchEn
 	return model.MakePostSearchResults(postList, matches), nil
 }
 
-func (s SearchPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
+func (s SearchPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
 			results, err := s.searchPostsForUserByEngine(engine, paramsList, userId, teamId, page, perPage)
 			if err != nil {
-				mlog.Warn("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+				rctx.Logger().Warn("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 			return results, err
@@ -194,5 +194,5 @@ func (s SearchPostStore) SearchPostsForUser(paramsList []*model.SearchParams, us
 		return &model.PostSearchResults{PostList: model.NewPostList(), Matches: model.PostSearchMatches{}}, nil
 	}
 
-	return s.PostStore.SearchPostsForUser(paramsList, userId, teamId, page, perPage)
+	return s.PostStore.SearchPostsForUser(rctx, paramsList, userId, teamId, page, perPage)
 }

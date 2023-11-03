@@ -49,7 +49,7 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.TestElasticsearch(cfg); err != nil {
+	if err := c.App.TestElasticsearch(c.AppContext, cfg); err != nil {
 		c.Err = err
 		return
 	}

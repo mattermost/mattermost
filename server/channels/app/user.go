@@ -1945,7 +1945,7 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 	return nil
 }
 
-func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) SearchUsers(rctx request.CTX, props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	if props.WithoutTeam {
 		return a.SearchUsersWithoutTeam(props.Term, options)
 	}
@@ -1964,7 +1964,7 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 	if props.NotInGroupId != "" {
 		return a.SearchUsersNotInGroup(props.NotInGroupId, props.Term, options)
 	}
-	return a.SearchUsersInTeam(props.TeamId, props.Term, options)
+	return a.SearchUsersInTeam(rctx, props.TeamId, props.Term, options)
 }
 
 func (a *App) SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
@@ -1994,10 +1994,10 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 	return users, nil
 }
 
-func (a *App) SearchUsersInTeam(teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) SearchUsersInTeam(rctx request.CTX, teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	users, err := a.Srv().Store().User().Search(teamID, term, options)
+	users, err := a.Srv().Store().User().Search(rctx, teamID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersInTeam", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2065,10 +2065,10 @@ func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.
 	return users, nil
 }
 
-func (a *App) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	autocomplete, err := a.Srv().Store().User().AutocompleteUsersInChannel(teamID, channelID, term, options)
+	autocomplete, err := a.Srv().Store().User().AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteUsersInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2084,10 +2084,10 @@ func (a *App) AutocompleteUsersInChannel(teamID string, channelID string, term s
 	return autocomplete, nil
 }
 
-func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
+func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	users, err := a.Srv().Store().User().Search(teamID, term, options)
+	users, err := a.Srv().Store().User().Search(rctx, teamID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteUsersInTeam", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
