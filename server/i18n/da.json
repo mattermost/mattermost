@@ -372,18 +372,6 @@
     "translation": "Fejl ved behandling af forespørgsel på multiformular"
   },
   {
-    "id": "Playbooks",
-    "translation": "Playbooks"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanaler"
-  },
-  {
-    "id": "Boards",
-    "translation": "Boards"
-  },
-  {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
     "translation": "Manglende identitetsudbyder SSO Services node i XML."
   },

@@ -44,8 +44,7 @@ type SystemBrowser struct {
 	MakeDefaultString      string
 }
 
-func renderUnsupportedBrowser(ctx *request.Context, r *http.Request) templates.Data {
-
+func renderUnsupportedBrowser(ctx request.CTX, r *http.Request) templates.Data {
 	data := templates.Data{
 		Props: map[string]any{
 			"DownloadAppOrUpgradeBrowserString": ctx.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),
@@ -89,10 +88,9 @@ func renderUnsupportedBrowser(ctx *request.Context, r *http.Request) templates.D
 	}
 
 	return data
-
 }
 
-func renderMattermostAppMac(ctx *request.Context) MattermostApp {
+func renderMattermostAppMac(ctx request.CTX) MattermostApp {
 	return MattermostApp{
 		"/static/images/browser-icons/mac.png",
 		ctx.T("web.error.unsupported_browser.download_the_app"),
@@ -104,7 +102,7 @@ func renderMattermostAppMac(ctx *request.Context) MattermostApp {
 	}
 }
 
-func renderMattermostAppWindows(ctx *request.Context) MattermostApp {
+func renderMattermostAppWindows(ctx request.CTX) MattermostApp {
 	return MattermostApp{
 		"/static/images/browser-icons/windows.svg",
 		ctx.T("web.error.unsupported_browser.download_the_app"),
@@ -116,7 +114,7 @@ func renderMattermostAppWindows(ctx *request.Context) MattermostApp {
 	}
 }
 
-func renderBrowserChrome(ctx *request.Context) Browser {
+func renderBrowserChrome(ctx request.CTX) Browser {
 	return Browser{
 		"/static/images/browser-icons/chrome.svg",
 		ctx.T("web.error.unsupported_browser.browser_title.chrome"),
@@ -126,7 +124,7 @@ func renderBrowserChrome(ctx *request.Context) Browser {
 	}
 }
 
-func renderBrowserFirefox(ctx *request.Context) Browser {
+func renderBrowserFirefox(ctx request.CTX) Browser {
 	return Browser{
 		"/static/images/browser-icons/firefox.svg",
 		ctx.T("web.error.unsupported_browser.browser_title.firefox"),
@@ -136,7 +134,7 @@ func renderBrowserFirefox(ctx *request.Context) Browser {
 	}
 }
 
-func renderBrowserSafari(ctx *request.Context) Browser {
+func renderBrowserSafari(ctx request.CTX) Browser {
 	return Browser{
 		"/static/images/browser-icons/safari.svg",
 		ctx.T("web.error.unsupported_browser.browser_title.safari"),
@@ -146,7 +144,7 @@ func renderBrowserSafari(ctx *request.Context) Browser {
 	}
 }
 
-func renderSystemBrowserEdge(ctx *request.Context, r *http.Request) SystemBrowser {
+func renderSystemBrowserEdge(ctx request.CTX, r *http.Request) SystemBrowser {
 	return SystemBrowser{
 		"/static/images/browser-icons/edge.svg",
 		ctx.T("web.error.unsupported_browser.browser_title.edge"),

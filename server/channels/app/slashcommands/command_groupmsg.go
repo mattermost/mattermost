@@ -55,7 +55,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 			continue
 		}
 
-		canSee, err := a.UserCanSeeOtherUser(args.UserId, targetUser.Id)
+		canSee, err := a.UserCanSeeOtherUser(c, args.UserId, targetUser.Id)
 		if err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}

@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 112+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6696,7 +6696,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} är inte medlem i teamet."
+    "translation": "Du kan lägga till {{.Users}} till kanalen när de är medlemmar i teamet **{{.Team}}**."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
@@ -6729,10 +6729,6 @@
   {
     "id": "api.command_invite.hint",
     "translation": "@[username]... ~[channel]..."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Den här kanalen hanteras av grupper.    Den här användaren tillhör inte en grupp synkad till den här kanalen."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -7248,10 +7244,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Går ej att uppdatera ett meddelande i en raderad kanal."
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Länköversikten har avaktiverats av systemadministratören."
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -9675,13 +9667,6 @@
     "translation": "Kunde inte rensa oauth-information."
   },
   {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "Du har {{.Count}} tilldelad uppgift:",
-      "other": "Du har {{.Count}} tilldelade uppgifter:"
-    }
-  },
-  {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Felaktigt värde för bytes licensen laddas upp."
   },
@@ -9876,5 +9861,117 @@
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
     "translation": "Endast rot-meddelanden tillåts ha prioritering."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Det är inte tillåtet för en användare att konvertera gruppmeddelanden till en privat kanal"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} skapade kanalen från en gruppkonversation med {{.GMMembers}}."
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Token finns inte eller har gått ut"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token är inte giltig eller har gått ut"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Kan inte hitta en användare för denna token"
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Det gick inte att ange filens sökbara innehåll."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Det gick inte att arkivera importerad kanal."
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Det gick inte att radera reaktioner för användaren."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} och {{.LastItem}}"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Inloggningen misslyckades eftersom fjärranslutna användare inte är tillåtna att logga in."
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Kanalen är inte ett gruppmeddelande."
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Det gick inte att radera befintliga kategorier i sidofältet för konverterad GM."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Ogiltigt värde för timeout för länkmetadata. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Ogiltigt värde för användarens \"borta\"-status tidsgräns. Måste vara ett positivt tal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du får inte uppdatera namn, visningsnamn och syfte i direkt- eller gruppmeddelanden."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du får inte uppdatera namn, visningsnamn och syfte i direkt- eller gruppmeddelanden."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Den här kanalen hanteras av grupper.    Den här användaren är inte medlem i en grupp synkad med kanalen."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} och {{.Others}} har lagts till i kanalen {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} och {{.Others}} andra är redan med i kanalen."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Du kan lägga till andra {{.FirstUser}} och {{.Others}} andra till den här kanalen när de är medlemmar i **{{.Team}}**-teamet."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Kunde inte kontrollera olästa meddelanden och omnämnanden"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Kunde inte markera alla trådar som lästa i kanalen"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Kunde inte hämta vanliga team."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Kan inte hitta användarens kanal-medlemskap"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "Angivet team-ID i konversations begäran innehåller inte alla medlemmar i gruppmeddelandet"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "Kanalen som konverteras är inte ett gruppmeddelande. Du kan bara konvertera gruppmeddelanden"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Misslyckades med att konvertera gruppmeddelande till kanalmeddelande"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Det går inte att få så många emojis med namn. Endast {{.MaxNames}} emojis kan fås per gång."
   }
 ]

@@ -4,7 +4,7 @@
 package searchtest
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -275,10 +275,10 @@ func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose str
 	return channel, nil
 }
 
-func (th *SearchTestHelper) createDirectChannel(teamID, name, displayName string, users []*model.User) (*model.Channel, error) {
+func (th *SearchTestHelper) createDirectChannel(teamID, displayName string, users []*model.User) (*model.Channel, error) {
 	channel := &model.Channel{
 		TeamId:      teamID,
-		Name:        name,
+		Name:        model.GetDMNameFromIds(users[0].Id, users[1].Id),
 		DisplayName: displayName,
 		Type:        model.ChannelTypeDirect,
 	}
@@ -290,7 +290,7 @@ func (th *SearchTestHelper) createDirectChannel(teamID, name, displayName string
 
 	m2 := &model.ChannelMember{}
 	m2.ChannelId = channel.Id
-	m2.UserId = users[0].Id
+	m2.UserId = users[1].Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
 	channel, err := th.Store.Channel().SaveDirectChannel(channel, m1, m2)
@@ -326,7 +326,6 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 	}
 
 	return channel, nil
-
 }
 
 func (th *SearchTestHelper) deleteChannel(channel *model.Channel) error {
@@ -353,7 +352,7 @@ func (th *SearchTestHelper) createPostModel(userID, channelID, message, hashtags
 	return &model.Post{
 		Message:       message,
 		ChannelId:     channelID,
-		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		PendingPostId: model.NewId() + ":" + strconv.FormatInt(model.GetMillis(), 10),
 		UserId:        userID,
 		Hashtags:      hashtags,
 		IsPinned:      pinned,

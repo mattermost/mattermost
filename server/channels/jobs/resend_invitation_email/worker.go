@@ -45,7 +45,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, tele
 		stopped:          make(chan bool, 1),
 		jobs:             make(chan model.Job),
 		jobServer:        jobServer,
-		logger:           jobServer.Logger().With(mlog.String("workername", workerName)),
+		logger:           jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		app:              app,
 		store:            store,
 		telemetryService: telemetryService,
@@ -67,7 +67,6 @@ func (rseworker *ResendInvitationEmailWorker) Run() {
 			rseworker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-rseworker.jobs:
-			job.Logger.Debug("Worker received a new candidate job")
 			rseworker.DoJob(&job)
 		}
 	}
@@ -88,25 +87,27 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 }
 
 func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
-	defer rseworker.jobServer.HandleJobPanic(job)
+	logger := rseworker.logger.With(jobs.JobLoggerFields(job)...)
+	logger.Debug("Worker: Received a new candidate job.")
+	defer rseworker.jobServer.HandleJobPanic(logger, job)
 
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis {
-		rseworker.ResendEmails(job, "48")
-		rseworker.TearDown(job)
+		rseworker.ResendEmails(logger, job, "48")
+		rseworker.TearDown(logger, job)
 	}
 }
 
-func (rseworker *ResendInvitationEmailWorker) setJobSuccess(job *model.Job) {
+func (rseworker *ResendInvitationEmailWorker) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
 	if err := rseworker.jobServer.SetJobSuccess(job); err != nil {
-		job.Logger.Error("Worker: Failed to set success for job", mlog.Err(err))
-		rseworker.setJobError(job, err)
+		logger.Error("Worker: Failed to set success for job", mlog.Err(err))
+		rseworker.setJobError(logger, job, err)
 	}
 }
 
-func (rseworker *ResendInvitationEmailWorker) setJobError(job *model.Job, appError *model.AppError) {
+func (rseworker *ResendInvitationEmailWorker) setJobError(logger mlog.LoggerIFace, job *model.Job, appError *model.AppError) {
 	if err := rseworker.jobServer.SetJobError(job, appError); err != nil {
-		job.Logger.Error("Worker: Failed to set job error", mlog.Err(err))
+		logger.Error("Worker: Failed to set job error", mlog.Err(err))
 	}
 }
 
@@ -166,15 +167,14 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 	}
 
 	return elapsedTimeSinceSchedule, DurationInMillis
-
 }
 
-func (rseworker *ResendInvitationEmailWorker) TearDown(job *model.Job) {
+func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, job *model.Job) {
 	rseworker.store.System().PermanentDeleteByName(job.Id)
-	rseworker.setJobSuccess(job)
+	rseworker.setJobSuccess(logger, job)
 }
 
-func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, interval string) {
+func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) {
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
 	channelListData := job.Data["channelList"]
@@ -182,15 +182,15 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 	emailList, err := rseworker.cleanEmailData(emailListData)
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		job.Logger.Error("Worker: Failed to clean emails string data", mlog.Err(appErr))
-		rseworker.setJobError(job, appErr)
+		logger.Error("Worker: Failed to clean emails string data", mlog.Err(appErr))
+		rseworker.setJobError(logger, job, appErr)
 	}
 
 	channelList, err := rseworker.cleanChannelsData(channelListData)
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		job.Logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
-		rseworker.setJobError(job, appErr)
+		logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
+		rseworker.setJobError(logger, job, appErr)
 	}
 
 	emailList = rseworker.removeAlreadyJoined(teamID, emailList)
@@ -205,8 +205,8 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 
 	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(&memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
-		job.Logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
-		rseworker.setJobError(job, appErr)
+		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
+		rseworker.setJobError(logger, job, appErr)
 	}
 	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]any{interval: interval})
 }

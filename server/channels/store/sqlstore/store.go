@@ -440,7 +440,6 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	}
 
 	return version, nil
-
 }
 
 func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
@@ -654,7 +653,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		}
 
 		return count > 0
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
 		err := ss.GetMasterX().Get(&count,
@@ -674,7 +672,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		}
 
 		return count > 0
-
 	} else {
 		mlog.Fatal("Failed to check if column exists because of missing driver")
 		return false
@@ -703,7 +700,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		}
 
 		return count > 0
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
 		err := ss.GetMasterX().Get(&count,
@@ -724,7 +720,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		}
 
 		return count > 0
-
 	} else {
 		mlog.Fatal("Failed to check if column exists because of missing driver")
 		return false
@@ -748,7 +743,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		}
 
 		return count > 0
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
 		err := ss.GetMasterX().Get(&count, `
@@ -766,7 +760,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		}
 
 		return count > 0
-
 	} else {
 		mlog.Fatal("Failed to check if column exists because of missing driver")
 		return false
@@ -774,7 +767,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 }
 
 func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
-
 	if ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -786,7 +778,6 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		}
 
 		return true
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		_, err := ss.GetMasterX().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
@@ -794,7 +785,6 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		}
 
 		return true
-
 	} else {
 		mlog.Fatal("Failed to create column because of missing driver")
 		return false
@@ -1106,7 +1096,6 @@ func (ss *SqlStore) DropAllTables() {
 		for _, t := range tables {
 			if t != "db_migrations" {
 				ss.masterX.Exec(`TRUNCATE TABLE ` + t)
-
 			}
 		}
 	}

@@ -19,7 +19,6 @@ import {ChannelHeaderDropdown} from 'components/channel_header_dropdown';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import LocalizedIcon from 'components/localized_icon';
 import Markdown from 'components/markdown';
 import OverlayTrigger from 'components/overlay_trigger';
 import type {BaseOverlayTrigger} from 'components/overlay_trigger';
@@ -42,7 +41,6 @@ import {
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
-import {t} from 'utils/i18n';
 import {handleFormattedTextClick, localizeMessage, isEmptyObject, toTitleCase} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -623,9 +621,9 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                                     id='channel_header.addChannelHeader'
                                     defaultMessage='Add a channel header'
                                 />
-                                <LocalizedIcon
+                                <i
                                     className='icon icon-pencil-outline edit-icon'
-                                    ariaLabel={{id: t('channel_header.editLink'), defaultMessage: 'Edit'}}
+                                    aria-label={this.props.intl.formatMessage({id: 'channel_header.editLink', defaultMessage: 'Edit'})}
                                 />
                             </button>
                         );
@@ -645,9 +643,9 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                                     id='channel_header.addChannelHeader'
                                     defaultMessage='Add a channel header'
                                 />
-                                <LocalizedIcon
+                                <i
                                     className='icon icon-pencil-outline edit-icon'
-                                    ariaLabel={{id: t('channel_header.editLink'), defaultMessage: 'Edit'}}
+                                    aria-label={this.props.intl.formatMessage({id: 'channel_header.editLink', defaultMessage: 'Edit'})}
                                 />
                             </button>
                         </ChannelPermissionGate>

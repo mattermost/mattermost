@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
@@ -358,7 +357,7 @@ func TestGetLogs(t *testing.T) {
 	defer th.TearDown()
 
 	for i := 0; i < 20; i++ {
-		mlog.Info(strconv.Itoa(i))
+		th.TestLogger.Info(strconv.Itoa(i))
 	}
 
 	err := th.TestLogger.Flush()
@@ -438,7 +437,6 @@ func TestPostLog(t *testing.T) {
 	logMessage, _, err := th.SystemAdminClient.PostLog(context.Background(), message)
 	require.NoError(t, err)
 	require.NotEmpty(t, logMessage, "should return the log message")
-
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
@@ -966,7 +964,6 @@ func TestCompleteOnboarding(t *testing.T) {
 		case <-time.After(15 * time.Second):
 			require.Fail(t, "timed out waiting testplugin2 to be installed and enabled ")
 		}
-
 	})
 
 	t.Run("as a system admin when plugins are disabled", func(t *testing.T) {

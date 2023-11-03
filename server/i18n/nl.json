@@ -1360,10 +1360,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Voorvertoning van links zijn uitgeschakeld door de systeembeheerder."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Kan geen bericht bijwerken in een verwijderd kanaal."
   },
@@ -4773,11 +4769,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 112+"
+    "translation": "Versie 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 110+"
+    "translation": "Versie 116+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5717,11 +5713,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} is geen teamlid."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Dit kanaal wordt beheerd door groepen.  De gebruiker is geen lid van een groep die verbonden is met dit kanaal."
+    "translation": "Je kunt {{.Users}} toevoegen aan dit kanaal zodra ze lid zijn van het **{.Team}}** team."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -9699,14 +9691,6 @@
     "translation": "Gebruiker mag geen prioriteitspost of blijvende melding aanmaken."
   },
   {
-    "id": "app.user.run.status_enable",
-    "translation": "@{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Korte samenvatting weergeven in de tijdlijn"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
     "translation": "Genegeerde indexen voor purge mogen niet beginnen met een streepje."
   },
@@ -9889,5 +9873,117 @@
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
     "translation": "Berichten met een blijvende meldingen moeten minimaal {{.MaxRecipients}} 1 ontvanger hebben."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Gebruiker is niet gemachtigd het groepsbericht om te zetten naar prive-kanaal"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} heeft dit kanaal gemaakt van een groepsbericht met {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Het is je niet toegestaan om de naam, display_name en het doel van directe of groepsberichten bij te werken."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Het is niet toegestaan om de naam, display_name en het doel van directe of groepsberichten bij te werken."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Dit kanaal wordt beheerd door groepen.  Deze gebruiker is geen lid van een groep die verbonden is met dit kanaal."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} en {{.Others}} toegevoegd aan {{.Channel}} kanaal."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} en {{.Others}} anderen bevinden zich al in het kanaal."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Je kunt {{.FirstUser}} en {{.Others}} anderen aan dit kanaal toevoegen zodra ze lid zijn van het **{.Team}}** team."
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Inloggen is mislukt omdat gebruikers op afstand geen toestemming hebben om in te loggen."
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Kanaal is geen groepsbericht."
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Kon geen gemeenschappelijke teams ophalen."
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Kon bestaande zijbalkcategorieën voor geconverteerde groepsberichten niet verwijderen."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Kan het kanaallidmaatschap van de gebruiker niet vinden"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "De opgegeven team-ID in het conversieverzoek bevat niet alle leden van het groepsbericht"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "Het kanaal dat wordt geconverteerd is geen groepsbericht. Je kunt alleen groepsberichten converteren"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Fout bij het maken van groepsbericht naar kanaalconversiepost"
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Token bestaat niet of is verlopen"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token is ongeldig of verlopen"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Kan geen gebruiker vinden voor dit token"
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Kan de doorzoekbare inhoud van het bestand niet instellen."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Kan geïmporteerd kanaal niet archiveren."
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Reacties voor gebruiker kunnen niet worden verwijderd."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} en {{.LastItem}}"
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Ongeldige waarde voor time-out link metadata. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Ongeldige waarde voor time-out gebruiker afwezig status. Moet een positief getal zijn."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Ongelezen en vermeldingen kunnen niet worden gecontroleerd"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Kan niet alle draadjes markeren als gelezen door kanaal"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Kan niet zoveel emoji's op naam krijgen. Alleen {{.MaxNames}} emoji's kunnen in één keer worden opgevraagd."
   }
 ]

@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -19,7 +18,7 @@ func TestGetMigrationState(t *testing.T) {
 		t.SkipNow()
 	}
 	store := Setup(t)
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
+	ctx := request.TestContext(t)
 
 	migrationKey := model.NewId()
 

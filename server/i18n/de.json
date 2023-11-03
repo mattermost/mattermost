@@ -676,7 +676,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} ist bereits im Kanal."
+    "translation": {
+      "one": "{{.User}} ist bereits im Kanal.",
+      "other": "{{.User}} sind bereits im Kanal."
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -4789,11 +4792,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 112+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5729,7 +5732,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} ist kein Mitglied dieses Teams."
+    "translation": "Du kannst {{.Users}} zu diesem Kanal hinzufügen, sobald sie Mitglieder des **{{.Team}}**-Teams sind."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -9840,7 +9843,7 @@
   },
   {
     "id": "app.post.delete_post.get_team.app_error",
-    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten"
+    "translation": "Ein Fehler ist beim Abrufen des Teams aufgetreten."
   },
   {
     "id": "app.post_persistent_notification.delete_by_team.app_error",
@@ -9965,5 +9968,13 @@
   {
     "id": "app.file_info.set_searchable_content.app_error",
     "translation": "Der durchsuchbare Inhalt der Datei kann nicht festgelegt werden."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Ungültiger Wert für den Benutzerstatus Abwesend Timeout. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Es ist nicht möglich, so viele Emojis nach Namen zu erhalten. Es können nur {{.MaxNames}} Emojis auf einmal angefordert werden."
   }
 ]

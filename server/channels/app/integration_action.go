@@ -40,12 +40,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostAction(c *request.Context, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
+func (a *App) DoPostAction(c request.CTX, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
 	return a.DoPostActionWithCookie(c, postID, actionId, userID, selectedOption, nil)
 }
 
-func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
-
+func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
 	// IsPinned and HasReaction attributes, and preserve its entire
@@ -310,7 +309,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 // For internal requests, requests are routed directly to a plugin ServerHTTP hook
-func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -374,11 +373,11 @@ func (w *LocalResponseWriter) WriteHeader(statusCode int) {
 	w.status = statusCode
 }
 
-func (a *App) doPluginRequest(c *request.Context, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
+func (a *App) doPluginRequest(c request.CTX, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
 	return a.ch.doPluginRequest(c, method, rawURL, values, body)
 }
 
-func (ch *Channels) doPluginRequest(c *request.Context, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
+func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
 	rawURL = strings.TrimPrefix(rawURL, "/")
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
@@ -444,7 +443,7 @@ func (ch *Channels) doPluginRequest(c *request.Context, method, rawURL string, v
 	return resp, nil
 }
 
-func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
+func (a *App) doLocalWarnMetricsRequest(c request.CTX, rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
 	_, err := url.Parse(rawURL)
 	if err != nil {
 		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -473,7 +472,7 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 	}
 
 	isE0Edition := (model.BuildEnterpriseReady == "true") // license == nil was already validated upstream
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, i18n.T, isE0Edition)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(c, warnMetricId, i18n.T, isE0Edition)
 	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
 
 	if isE0Edition {
@@ -482,11 +481,11 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 		}
 	} else {
 		forceAck := upstreamRequest.Context["force_ack"].(bool)
-		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
+		if appErr = a.NotifyAndSetWarnMetricAck(c, warnMetricId, user, forceAck, true); appErr != nil {
 			if forceAck {
 				return appErr
 			}
-			mailtoLinkText := a.buildWarnMetricMailtoLink(warnMetricId, user)
+			mailtoLinkText := a.buildWarnMetricMailtoLink(c, warnMetricId, user)
 			botPost.Message = ":warning: " + i18n.T("api.server.warn_metric.bot_response.notification_failure.message")
 			actions := []*model.PostAction{}
 			actions = append(actions,
@@ -543,9 +542,9 @@ func (mlc *MailToLinkContent) ToJSON() string {
 	return string(b)
 }
 
-func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
+func (a *App) buildWarnMetricMailtoLink(rctx request.CTX, warnMetricId string, user *model.User) string {
 	T := i18n.GetUserTranslations(user.Locale)
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(rctx, warnMetricId, T, false)
 
 	mailBody := warnMetricDisplayTexts.EmailBody
 	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]any{"Contact": user.GetFullName()})
@@ -580,7 +579,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	return mailToLinkContent.ToJSON()
 }
 
-func (a *App) DoLocalRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	return a.doPluginRequest(c, "POST", rawURL, nil, body)
 }
 
@@ -604,7 +603,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 	return nil
 }
 
-func (a *App) SubmitInteractiveDialog(c *request.Context, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
+func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""
 	request.Type = "dialog_submission"

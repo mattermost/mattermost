@@ -751,10 +751,6 @@ export const makeIsPostCommentMention = (): ((state: GlobalState, postId: Post['
     );
 };
 
-export function getExpandedLink(state: GlobalState, link: string): string {
-    return state.entities.posts.expandedURLs[link];
-}
-
 export function getLimitedViews(state: GlobalState): GlobalState['entities']['posts']['limitedViews'] {
     return state.entities.posts.limitedViews;
 }

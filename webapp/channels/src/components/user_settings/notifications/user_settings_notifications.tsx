@@ -10,18 +10,17 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
+import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
-import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 
 import Constants, {NotificationLevels} from 'utils/constants';
-import {t} from 'utils/i18n';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
@@ -1067,12 +1066,12 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         ref={this.drawerRef}
                     >
                         <div className='modal-back'>
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-angle-left'
-                                ariaLabel={{
-                                    id: t('generic_icons.collapse'),
+                                aria-label={this.props.intl.formatMessage({
+                                    id: 'generic_icons.collapse',
                                     defaultMessage: 'Collapse Icon',
-                                }}
+                                })}
                                 onClick={this.props.collapseModal}
                             />
                         </div>
@@ -1102,7 +1101,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             values={{
                                 a: (chunks: string) => ((
                                     <ExternalLink href='https://mattermost.com/pl/about-notifications'>
-                                        <i className='icon icon-help-circle-outline'/>
+                                        <LightbulbOutlineIcon/>
                                         <span>{chunks}</span>
                                     </ExternalLink>
                                 )),

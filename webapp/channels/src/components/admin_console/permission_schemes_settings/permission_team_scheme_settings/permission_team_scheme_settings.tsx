@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
@@ -18,7 +18,6 @@ import BlockableLink from 'components/admin_console/blockable_link';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import LoadingScreen from 'components/loading_screen';
-import LocalizedInput from 'components/localized_input/localized_input';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -48,6 +47,7 @@ export type Props = {
     teams: Team[];
     isDisabled: boolean;
     config: Partial<ClientConfig>;
+    intl: IntlShape;
     actions: {
         loadRolesIfNeeded: (roles: Iterable<string>) => ActionFunc;
         loadScheme: (schemeId: string) => Promise<ActionResult>;
@@ -82,7 +82,7 @@ type State = {
     schemeDescription: string | undefined;
 };
 
-export default class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
+export class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {
         super(props);
         this.state = {
@@ -650,14 +650,14 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                                             defaultMessage='Scheme Name:'
                                         />
                                     </label>
-                                    <LocalizedInput
-                                        id='scheme-name'
+                                    <input
                                         className='form-control'
+                                        disabled={this.props.isDisabled}
+                                        id='scheme-name'
+                                        placeholder={this.props.intl.formatMessage({id: 'admin.permissions.teamScheme.schemeNamePlaceholder', defaultMessage: 'Scheme Name'})}
                                         type='text'
                                         value={schemeName}
-                                        placeholder={{id: t('admin.permissions.teamScheme.schemeNamePlaceholder'), defaultMessage: 'Scheme Name'}}
                                         onChange={this.handleNameChange}
-                                        disabled={this.props.isDisabled}
                                     />
                                 </div>
                                 <div className='form-group'>
@@ -844,3 +844,5 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
         );
     };
 }
+
+export default injectIntl(PermissionTeamSchemeSettings);
