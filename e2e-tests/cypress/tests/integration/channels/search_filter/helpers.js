@@ -36,7 +36,7 @@ export function searchAndValidate(query, expectedResults = []) {
                 // * If we expect no results, verify results message
                 cy.get('.no-results__title').should('be.visible').and('have.text', `No results for “${query}”`);
             }
-        });e2e/cypress/tests/integration/search/clear_input_spec.js
+        });
 
     cy.uiCloseRHS();
     cy.uiGetRHSSearchContainer({visible: false});
