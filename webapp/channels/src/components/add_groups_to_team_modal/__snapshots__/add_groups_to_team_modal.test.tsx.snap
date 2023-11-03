@@ -55,11 +55,9 @@ exports[`components/AddGroupsToTeamModal should match snapshot 1`] = `
     bsClass="modal-body"
     componentClass="div"
   >
-    <MultiSelect
-      ariaLabelRenderer={[Function]}
+    <injectIntl(MultiSelect)
       buttonSubmitLoadingText="Adding..."
       buttonSubmitText="Add"
-      focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
       handleInput={[Function]}
@@ -87,16 +85,13 @@ exports[`components/AddGroupsToTeamModal should match snapshot 1`] = `
       options={Array []}
       perPage={50}
       placeholderText="Search and add groups"
-      saveButtonPosition="top"
       saving={false}
-      savingEnabled={true}
       selectedItemRef={
         Object {
           "current": null,
         }
       }
       valueRenderer={[Function]}
-      valueWithImage={false}
       values={Array []}
     />
   </ModalBody>
