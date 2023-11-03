@@ -115,7 +115,6 @@ export type ClientConfig = {
     ExperimentalEnablePostMetadata: string;
     ExperimentalGroupUnreadChannels: string;
     ExperimentalPrimaryTeam: string;
-    ExperimentalTimezone: string;
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
@@ -866,7 +865,6 @@ export type PluginSettings = {
 
 export type DisplaySettings = {
     CustomURLSchemes: string[];
-    ExperimentalTimezone: boolean;
     MaxMarkdownNodes: number;
 };
 
