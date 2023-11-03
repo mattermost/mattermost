@@ -104,7 +104,7 @@ export default function ChannelNotificationsModal(props: Props) {
     const handleMobileSettingsChange = useCallback(() => {
         setMobileSettingsSameAsDesktop((prevSettings) => !prevSettings);
         setSettings((prevSettings) => ({...prevSettings, push: prevSettings.desktop, push_threads: prevSettings.desktop_threads}));
-    }, [setSettings, setMobileSettingsSameAsDesktop]);
+    }, []);
 
     const MuteIgnoreSectionContent = (
         <>
