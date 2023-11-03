@@ -172,7 +172,7 @@ export function loadCustomEmojisIfNeeded(emojis) {
             emojisToLoad.push(emoji);
         });
 
-        return dispatch(EmojiActions.selectCustomEmojisByName(emojisToLoad));
+        return dispatch(EmojiActions.getCustomEmojisByName(emojisToLoad));
     };
 }
 
