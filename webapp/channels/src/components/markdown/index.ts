@@ -32,18 +32,26 @@ function makeGetChannelNamesMap() {
         'makeGetChannelNamesMap',
         getChannelNameToDisplayNameMap,
         (state: GlobalState, props: Props) => props && props.channelNamesMap,
-        (channelNamesMap, channelMentions) => {
-            if (channelMentions) {
-                const mention = Object.keys(channelMentions)[0];
-                const displayName = (channelMentions[mention] as { display_name: string; }).display_name;
-                if(displayName!==channelNamesMap[mention]) {
-                    return channelNamesMap;
-                } else {
-                    return channelMentions;
+        getCurrentTeam,
+        (channelNamesMap, channelMentions, currentTeam) => {
+            if (!channelMentions) {
+                return channelNamesMap;
+            }
+            const result: ChannelNamesMap = {...channelNamesMap};
+            for (const [name, entry] of Object.entries(channelMentions)) {
+                if (!result[name]) {
+                    result[name] = entry;
+                    continue;
+                }
+                if (
+                    typeof entry === 'object' &&
+                    entry.team_name &&
+                    currentTeam.name !== entry.team_name
+                ) {
+                    result[name] = entry;
                 }
             }
-
-            return channelNamesMap;
+            return result;
         },
     );
 }
