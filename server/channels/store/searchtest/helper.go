@@ -4,7 +4,7 @@
 package searchtest
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -352,7 +352,7 @@ func (th *SearchTestHelper) createPostModel(userID, channelID, message, hashtags
 	return &model.Post{
 		Message:       message,
 		ChannelId:     channelID,
-		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		PendingPostId: model.NewId() + ":" + strconv.FormatInt(model.GetMillis(), 10),
 		UserId:        userID,
 		Hashtags:      hashtags,
 		IsPinned:      pinned,
