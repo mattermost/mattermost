@@ -203,7 +203,6 @@ describe('components/BrowseChannels', () => {
     });
 
     test('should attempt to join the channel and fail', (done) => {
-        jest.setTimeout(100000);
         const props = {
             ...baseProps,
             actions: {
