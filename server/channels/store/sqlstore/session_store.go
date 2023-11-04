@@ -100,7 +100,7 @@ func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Se
 	return session, nil
 }
 
-func (me SqlSessionStore) GetSessions(c *request.Context, userId string) ([]*model.Session, error) {
+func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Session, error) {
 	sessions := []*model.Session{}
 
 	if err := me.GetReplicaX().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = ? ORDER BY LastActivityAt DESC", userId); err != nil {
