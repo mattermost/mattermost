@@ -6,6 +6,8 @@ import React from 'react';
 
 import ColorChooser from './color_chooser';
 
+// console.log('ColorChooser, init0');
+
 describe('components/user_settings/display/ColorChooser', () => {
     it('should match, init', () => {
         const wrapper = shallow(
