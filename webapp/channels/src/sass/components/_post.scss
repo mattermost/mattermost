@@ -70,6 +70,26 @@
     }
 }
 
+.textarea-wrapper.textarea-wrapper-preview {
+    .textbox-preview-area {
+        display: block;
+    }
+
+    .textbox-edit-area {
+        display: none;
+    }
+}
+
+.textarea-wrapper:not(.textarea-wrapper-preview) {
+    .textbox-preview-area {
+        display: none;
+    }
+
+    .textbox-edit-area {
+        display: block;
+    }
+}
+
 .help__format-text {
     display: inline-block;
     font-size: 0.85em;
@@ -667,7 +687,7 @@
         }
 
         .post__body {
-            color: rbga(var(--center-channel-color-rgb), 0.6);
+            color: rgba(var(--center-channel-color-rgb), 0.6);
         }
     }
 
@@ -1540,10 +1560,11 @@
         }
     }
 
+    // This class is used for the "Commented on" messages with CRT disabled
     .post__link {
         overflow: hidden;
         margin: 2px 0 5px;
-        color: rgba(var(--center-channel-color), 0.65);
+        color: rgba(var(--center-channel-color-rgb), 0.65);
         font-size: 13px;
         text-overflow: ellipsis;
         -webkit-user-select: none; /* Chrome all / Safari all */

@@ -29,12 +29,12 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
         key="attachment__author-name"
         location="message_attachment"
       >
-        <Connect(ExternalImage)
+        <Connect(Component)
           key="attachment__author-icon"
           src="author_icon"
         >
           <Component />
-        </Connect(ExternalImage)>
+        </Connect(Component)>
         <span
           className="attachment__author-name"
           key="attachment__author-name"
@@ -77,7 +77,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
           <div
             className="attachment__image-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               imageMetadata={
                 Object {
                   "height": 200,
@@ -87,16 +87,16 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
               src="image_url"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
           </div>
           <div
             className="attachment__footer-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               src="footer_icon"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
             <span>
               footer
             </span>
@@ -121,7 +121,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
         <div
           className="attachment__thumb-container"
         >
-          <Connect(ExternalImage)
+          <Connect(Component)
             imageMetadata={
               Object {
                 "height": 200,
@@ -131,7 +131,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
             src="thumb_url"
           >
             <Component />
-          </Connect(ExternalImage)>
+          </Connect(Component)>
         </div>
         <div
           style={
@@ -175,12 +175,12 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
         key="attachment__author-name"
         location="message_attachment"
       >
-        <Connect(ExternalImage)
+        <Connect(Component)
           key="attachment__author-icon"
           src="author_icon"
         >
           <Component />
-        </Connect(ExternalImage)>
+        </Connect(Component)>
         <span
           className="attachment__author-name"
           key="attachment__author-name"
@@ -223,7 +223,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
           <div
             className="attachment__image-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               imageMetadata={
                 Object {
                   "height": 200,
@@ -233,16 +233,16 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
               src="image_url"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
           </div>
           <div
             className="attachment__footer-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               src="footer_icon"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
             <span>
               footer
             </span>
@@ -251,7 +251,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
         <div
           className="attachment__thumb-container"
         >
-          <Connect(ExternalImage)
+          <Connect(Component)
             imageMetadata={
               Object {
                 "height": 200,
@@ -261,7 +261,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
             src="thumb_url"
           >
             <Component />
-          </Connect(ExternalImage)>
+          </Connect(Component)>
         </div>
         <div
           style={
@@ -317,12 +317,12 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
         key="attachment__author-name"
         location="message_attachment"
       >
-        <Connect(ExternalImage)
+        <Connect(Component)
           key="attachment__author-icon"
           src="author_icon"
         >
           <Component />
-        </Connect(ExternalImage)>
+        </Connect(Component)>
         <span
           className="attachment__author-name"
           key="attachment__author-name"
@@ -365,7 +365,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
           <div
             className="attachment__image-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               imageMetadata={
                 Object {
                   "height": 200,
@@ -375,13 +375,13 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
               src="image_url"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
           </div>
         </div>
         <div
           className="attachment__thumb-container"
         >
-          <Connect(ExternalImage)
+          <Connect(Component)
             imageMetadata={
               Object {
                 "height": 200,
@@ -391,7 +391,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
             src="thumb_url"
           >
             <Component />
-          </Connect(ExternalImage)>
+          </Connect(Component)>
         </div>
         <div
           style={
