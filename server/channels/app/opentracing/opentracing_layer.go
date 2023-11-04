@@ -3614,7 +3614,7 @@ func (a *OpenTracingAppLayer) DemoteUserToGuest(c request.CTX, user *model.User)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *model.AppError {
+func (a *OpenTracingAppLayer) DisableAutoResponder(rctx request.CTX, userID string, asAdmin bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DisableAutoResponder")
 
@@ -3626,7 +3626,7 @@ func (a *OpenTracingAppLayer) DisableAutoResponder(c request.CTX, userID string,
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DisableAutoResponder(c, userID, asAdmin)
+	resultVar0 := a.app.DisableAutoResponder(rctx, userID, asAdmin)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15408,7 +15408,7 @@ func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendAutoResponse(c request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) SendAutoResponse(rctx request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponse")
 
@@ -15420,7 +15420,7 @@ func (a *OpenTracingAppLayer) SendAutoResponse(c request.CTX, channel *model.Cha
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendAutoResponse(c, channel, receiver, post)
+	resultVar0, resultVar1 := a.app.SendAutoResponse(rctx, channel, receiver, post)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15430,7 +15430,7 @@ func (a *OpenTracingAppLayer) SendAutoResponse(c request.CTX, channel *model.Cha
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(rctx request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponseIfNecessary")
 
@@ -15442,7 +15442,7 @@ func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(c request.CTX, channel
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendAutoResponseIfNecessary(c, channel, sender, post)
+	resultVar0, resultVar1 := a.app.SendAutoResponseIfNecessary(rctx, channel, sender, post)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16003,7 +16003,7 @@ func (a *OpenTracingAppLayer) SetActiveChannel(c request.CTX, userID string, cha
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
+func (a *OpenTracingAppLayer) SetAutoResponderStatus(rctx request.CTX, user *model.User, oldNotifyProps model.StringMap) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetAutoResponderStatus")
 
@@ -16015,7 +16015,7 @@ func (a *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotify
 	}()
 
 	defer span.Finish()
-	a.app.SetAutoResponderStatus(user, oldNotifyProps)
+	a.app.SetAutoResponderStatus(rctx, user, oldNotifyProps)
 }
 
 func (a *OpenTracingAppLayer) SetChannels(ch *app.Channels) {
