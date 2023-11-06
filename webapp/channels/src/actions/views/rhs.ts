@@ -14,7 +14,7 @@ import {
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
 import * as PostActions from 'mattermost-redux/actions/posts';
-import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
@@ -161,21 +161,38 @@ function updateSearchResultsTerms(terms: string) {
 
 export function performSearch(terms: string, isMentionSearch?: boolean) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let searchTerms = terms;
         const teamId = getCurrentTeamId(getState());
         const config = getConfig(getState());
         const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
         const extensionsFilters = getFilesSearchExtFilter(getState() as GlobalState);
 
         const extensions = extensionsFilters?.map((ext) => `ext:${ext}`).join(' ');
-        let termsWithExtensionsFilters = terms;
+        let termsWithExtensionsFilters = searchTerms;
         if (extensions?.trim().length > 0) {
             termsWithExtensionsFilters += ` ${extensions}`;
+        }
+
+        if (isMentionSearch) {
+            // Username should be quoted to allow specific search
+            // in case username is made with multiple words splitted by dashes or other symbols.
+            const user = getCurrentUser(getState());
+            const termsArr = searchTerms.split(' ').filter((t) => Boolean(t && t.trim()));
+            const username = '@' + user.username;
+            const quotedUsername = `"${username}"`;
+            for (let i = 0; i < termsArr.length; i++) {
+                if (termsArr[i] === username) {
+                    termsArr[i] = quotedUsername;
+                    break;
+                }
+            }
+            searchTerms = termsArr.join(' ');
         }
 
         // timezone offset in seconds
         const userCurrentTimezone = getCurrentTimezone(getState());
         const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
-        const messagesPromise = dispatch(searchPostsWithParams(isMentionSearch ? '' : teamId, {terms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
+        const messagesPromise = dispatch(searchPostsWithParams(isMentionSearch ? '' : teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
         const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
         return Promise.all([filesPromise, messagesPromise]);
     };
