@@ -3,7 +3,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import type {ActionMeta, OptionsType, ValueType} from 'react-select';
+import type {Styles as ReactSelectStyles, ActionMeta, OptionsType, ValueType} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {Team} from '@mattermost/types/teams';
@@ -21,7 +21,7 @@ import '../filter.scss';
 
 const TEAMS_PER_PAGE = 50;
 
-type SelectOption = {label: string; value: string}
+type TeamSelectOption = {label: string; value: string}
 
 export interface Props extends PropsFromRedux {
     option: FilterOption;
@@ -31,7 +31,7 @@ export interface Props extends PropsFromRedux {
 function TeamFilterDropdown(props: Props) {
     const {formatMessage} = useIntl();
 
-    const [list, setList] = useState<OptionsType<{label: string; value: string}>>([]);
+    const [list, setList] = useState<OptionsType<TeamSelectOption>>([]);
     const [page, setPage] = useState(0);
 
     async function load(page: number) {
@@ -43,7 +43,7 @@ function TeamFilterDropdown(props: Props) {
                         value: team.id,
                         label: team.display_name,
                     })).
-                    sort((a: SelectOption, b: SelectOption) => a.label.localeCompare(b.label));
+                    sort((a: TeamSelectOption, b: TeamSelectOption) => a.label.localeCompare(b.label));
 
                 if (page === 0) {
                     setList(list);
@@ -72,6 +72,7 @@ function TeamFilterDropdown(props: Props) {
 
             callBack([]);
         } catch (error) {
+            console.error(error); // eslint-disable-line no-console
             callBack([]);
         }
     }
@@ -84,7 +85,7 @@ function TeamFilterDropdown(props: Props) {
         load(page);
     }
 
-    function handleOnChange(value: ValueType<SelectOption>, actionMeta: ActionMeta<SelectOption>) {
+    function handleOnChange(value: ValueType<TeamSelectOption>, actionMeta: ActionMeta<TeamSelectOption>) {
         if (!actionMeta.action) {
             return;
         }
@@ -101,6 +102,9 @@ function TeamFilterDropdown(props: Props) {
         }
     }
 
+    const optionValues = props.option.values?.team_ids?.value as string[];
+    const selected = list.filter((item) => optionValues.includes(item.value));
+
     return (
         <div className='FilterList FilterList__full'>
             <div className='FilterList_name'>
@@ -111,15 +115,16 @@ function TeamFilterDropdown(props: Props) {
                 cacheOptions={true}
                 isMulti={true}
                 isClearable={true}
-                placeholder={formatMessage({id: 'admin.channels.filterBy.team.placeholder', defaultMessage: 'Search and select teams'})}
-                loadOptions={search}
-                defaultOptions={list}
-                onMenuScrollToBottom={handleMenuScrollToBottom}
-                onChange={handleOnChange}
-                isLoading={true}
                 hideSelectedOptions={true}
+                placeholder={formatMessage({id: 'admin.channels.filterBy.team.placeholder', defaultMessage: 'Search and select teams'})}
                 loadingMessage={() => formatMessage({id: 'admin.channels.filterBy.team.loading', defaultMessage: 'Loading teams'})}
                 noOptionsMessage={() => formatMessage({id: 'admin.channels.filterBy.team.noTeams', defaultMessage: 'No teams found'})}
+                loadOptions={search}
+                defaultOptions={list}
+                styles={adminConsoleTeamFilterDropdownStyles}
+                value={selected}
+                onChange={handleOnChange}
+                onMenuScrollToBottom={handleMenuScrollToBottom}
                 components={{
                     LoadingIndicator: () => <LoadingSpinner/>,
                 }}
@@ -127,5 +132,15 @@ function TeamFilterDropdown(props: Props) {
         </div>
     );
 }
+
+const adminConsoleTeamFilterDropdownStyles: ReactSelectStyles = {
+    multiValueRemove: ((multiValueRemoveStyles) => ({
+        ...multiValueRemoveStyles,
+        cursor: 'pointer',
+        ':hover': {
+            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.16)',
+        },
+    })),
+};
 
 export default TeamFilterDropdown;
