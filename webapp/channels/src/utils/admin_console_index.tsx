@@ -96,7 +96,7 @@ export function adminDefinitionsToUrlsAndTexts(adminDefinition: typeof AdminDefi
         adminDefinition.billing,
     ];
     for (const section of sections) {
-        for (const item of Object.values(section)) {
+        for (const item of Object.values(section.subsections)) {
             if (!item.isDiscovery) {
                 entries[item.url] = extractTextsFromSection(item, intl);
             }

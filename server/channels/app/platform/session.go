@@ -5,6 +5,7 @@ package platform
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -229,7 +230,7 @@ func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, userID string, i
 	}
 
 	for _, session := range sessions {
-		session.AddProp(model.SessionPropIsGuest, fmt.Sprintf("%t", isGuest))
+		session.AddProp(model.SessionPropIsGuest, strconv.FormatBool(isGuest))
 		err := ps.Store.Session().UpdateProps(session)
 		if err != nil {
 			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
