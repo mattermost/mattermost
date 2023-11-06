@@ -3,7 +3,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import type {Styles as ReactSelectStyles, ActionMeta, OptionsType, ValueType} from 'react-select';
+import type {ActionMeta, OptionsType, ValueType} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {Team} from '@mattermost/types/teams';
@@ -15,9 +15,6 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import type {FilterOption, FilterValues} from '../filter';
 
 import type {PropsFromRedux} from './index';
-
-import './team_filter_dropdown.scss';
-import '../filter.scss';
 
 const TEAMS_PER_PAGE = 50;
 
@@ -116,12 +113,12 @@ function TeamFilterDropdown(props: Props) {
                 isMulti={true}
                 isClearable={true}
                 hideSelectedOptions={true}
+                classNamePrefix='filterListSelect'
                 placeholder={formatMessage({id: 'admin.channels.filterBy.team.placeholder', defaultMessage: 'Search and select teams'})}
                 loadingMessage={() => formatMessage({id: 'admin.channels.filterBy.team.loading', defaultMessage: 'Loading teams'})}
                 noOptionsMessage={() => formatMessage({id: 'admin.channels.filterBy.team.noTeams', defaultMessage: 'No teams found'})}
                 loadOptions={search}
                 defaultOptions={list}
-                styles={adminConsoleTeamFilterDropdownStyles}
                 value={selected}
                 onChange={handleOnChange}
                 onMenuScrollToBottom={handleMenuScrollToBottom}
@@ -132,15 +129,5 @@ function TeamFilterDropdown(props: Props) {
         </div>
     );
 }
-
-const adminConsoleTeamFilterDropdownStyles: ReactSelectStyles = {
-    multiValueRemove: ((multiValueRemoveStyles) => ({
-        ...multiValueRemoveStyles,
-        cursor: 'pointer',
-        ':hover': {
-            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.16)',
-        },
-    })),
-};
 
 export default TeamFilterDropdown;
