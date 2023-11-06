@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	xfont "golang.org/x/image/font"
 )
 
 const (
@@ -153,7 +154,19 @@ func createProfileImage(username string, userID string, initialFont string) ([]b
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
-	pt := freetype.Pt(imageProfilePixelDimension/5, imageProfilePixelDimension*2/3)
+	opts := truetype.Options{}
+	opts.Size = size
+	face := truetype.NewFace(font, &opts)
+
+	textWidth := xfont.MeasureString(face, initial).Ceil()
+
+	// Difference between the ascent and descent relative to the baseline.
+	heightDiff := face.Metrics().Ascent.Ceil() - face.Metrics().Descent.Ceil()
+
+	x := (imageProfilePixelDimension - textWidth) / 2
+	y := (imageProfilePixelDimension + heightDiff) / 2
+
+	pt := freetype.Pt(x, y)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, UserInitialsError
