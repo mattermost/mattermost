@@ -55,23 +55,18 @@ async function saveArtifacts() {
                 const contentType = mime.lookup(file);
                 const charset = mime.charset(contentType);
 
-                return new Promise((res, rej) => {
-                    s3.upload(
-                        {
-                            Key,
-                            Bucket: AWS_S3_BUCKET,
-                            Body: fs.readFileSync(file),
-                            ContentType: `${contentType}${charset ? '; charset=' + charset : ''}`,
-                        },
-                        (err) => {
-                            if (err) {
-                                console.log('Failed to upload artifact:', file);
-                                return rej(new Error(err));
-                            }
-                            res({success: true});
-                        },
-                    );
-                });
+                try {
+                    await s3.upload({
+                        Key,
+                        Bucket: AWS_S3_BUCKET,
+                        Body: fs.readFileSync(file),
+                        ContentType: `${contentType}${charset ? '; charset=' + charset : ''}`,
+                    }).promise();
+                    return {success: true};
+                } catch (e) {
+                    console.log('Failed to upload artifact:', file);
+                    throw new Error(e);
+                }
             }),
             (err) => {
                 if (err) {
