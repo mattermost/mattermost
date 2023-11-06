@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
@@ -358,7 +357,7 @@ func TestGetLogs(t *testing.T) {
 	defer th.TearDown()
 
 	for i := 0; i < 20; i++ {
-		mlog.Info(strconv.Itoa(i))
+		th.TestLogger.Info(strconv.Itoa(i))
 	}
 
 	err := th.TestLogger.Flush()

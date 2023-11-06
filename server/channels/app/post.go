@@ -362,7 +362,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if len(post.FileIds) > 0 {
 		if err = a.attachFilesToPost(post); err != nil {
-			c.Logger().Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
+			c.Logger().Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Array("file_ids", post.FileIds), mlog.Err(err))
 		}
 
 		if a.Metrics() != nil {
@@ -532,7 +532,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(c, channel, user, post)
 			if err != nil {
-				mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+				c.Logger().Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
 	}
@@ -540,7 +540,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if triggerWebhooks {
 		a.Srv().Go(func() {
 			if err := a.handleWebhookEvents(c, post, team, channel, user); err != nil {
-				mlog.Error(err.Error())
+				c.Logger().Error("Failed to handle webhook event", mlog.Err(err))
 			}
 		})
 	}
@@ -1378,7 +1378,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 
 	a.Srv().Go(func() {
 		if err = a.RemoveNotifications(c, post, channel); err != nil {
-			a.Log().Error("DeletePost failed to delete notification", mlog.Err(err))
+			c.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
 		}
 	})
 

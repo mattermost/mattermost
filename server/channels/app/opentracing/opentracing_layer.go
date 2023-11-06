@@ -3828,7 +3828,7 @@ func (a *OpenTracingAppLayer) DoLocalRequest(c request.CTX, rawURL string, body 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile bool, isOAuthUser bool, isSaml bool) *model.AppError {
+func (a *OpenTracingAppLayer) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile bool, isOAuthUser bool, isSaml bool) (*model.Session, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoLogin")
 
@@ -3840,14 +3840,14 @@ func (a *OpenTracingAppLayer) DoLogin(c request.CTX, w http.ResponseWriter, r *h
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DoLogin(c, w, r, user, deviceID, isMobile, isOAuthUser, isSaml)
+	resultVar0, resultVar1 := a.app.DoLogin(c, w, r, user, deviceID, isMobile, isOAuthUser, isSaml)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) DoPermissionsMigrations() error {
@@ -4771,7 +4771,7 @@ func (a *OpenTracingAppLayer) GetAllChannelsCount(c request.CTX, opts model.Chan
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllLdapGroupsPage(rctx request.CTX, page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllLdapGroupsPage")
 
@@ -4783,7 +4783,7 @@ func (a *OpenTracingAppLayer) GetAllLdapGroupsPage(page int, perPage int, opts m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.GetAllLdapGroupsPage(page, perPage, opts)
+	resultVar0, resultVar1, resultVar2 := a.app.GetAllLdapGroupsPage(rctx, page, perPage, opts)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
@@ -7232,7 +7232,7 @@ func (a *OpenTracingAppLayer) GetLatestVersion(latestVersionUrl string) (*model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLdapGroup(rctx request.CTX, ldapGroupID string) (*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLdapGroup")
 
@@ -7244,7 +7244,7 @@ func (a *OpenTracingAppLayer) GetLdapGroup(ldapGroupID string) (*model.Group, *m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLdapGroup(ldapGroupID)
+	resultVar0, resultVar1 := a.app.GetLdapGroup(rctx, ldapGroupID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7320,7 +7320,7 @@ func (a *OpenTracingAppLayer) GetMarketplacePlugins(filter *model.MarketplacePlu
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+func (a *OpenTracingAppLayer) GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMemberCountsByGroup")
 
@@ -7332,7 +7332,7 @@ func (a *OpenTracingAppLayer) GetMemberCountsByGroup(ctx context.Context, channe
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetMemberCountsByGroup(ctx, channelID, includeTimezones)
+	resultVar0, resultVar1 := a.app.GetMemberCountsByGroup(rctx, channelID, includeTimezones)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11264,21 +11264,6 @@ func (a *OpenTracingAppLayer) GetWarnMetricsStatus(rctx request.CTX) (map[string
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) Handle404(w http.ResponseWriter, r *http.Request) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.Handle404")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.Handle404(w, r)
 }
 
 func (a *OpenTracingAppLayer) HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
@@ -16919,7 +16904,7 @@ func (a *OpenTracingAppLayer) TestFileStoreConnectionWithConfig(cfg *model.FileS
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TestLdap() *model.AppError {
+func (a *OpenTracingAppLayer) TestLdap(rctx request.CTX) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestLdap")
 
@@ -16931,7 +16916,7 @@ func (a *OpenTracingAppLayer) TestLdap() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestLdap()
+	resultVar0 := a.app.TestLdap(rctx)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
