@@ -68,21 +68,20 @@ func (a *App) SessionHasPermissionToTeams(c request.CTX, session model.Session, 
 			return false
 		}
 	}
-	if session.IsUnrestricted() {
+
+	// Check session permission, if it allows access, no need to check teams.
+	if a.SessionHasPermissionTo(session, permission) {
 		return true
 	}
-
-	// Getting the list of unique roles from all teams.
 	for _, teamID := range teamIDs {
 		tm := session.GetTeamByTeamId(teamID)
 		if tm != nil {
+			// If a team member has permission, then no need to check further.
 			if a.RolesGrantPermission(tm.GetRoles(), permission.Id) {
 				continue
 			}
 		}
-		if !a.RolesGrantPermission(session.GetUserRoles(), permission.Id) {
-			return false
-		}
+		return false
 	}
 	return true
 }
@@ -132,7 +131,16 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 		}
 	}
 
-	if session.IsUnrestricted() {
+	// if System Roles (ie. Admin, TeamAdmin) allow permissions
+	// if so, no reason to check team
+	if a.SessionHasPermissionTo(session, permission) {
+		// make sure all channels exist, otherwise return false.
+		for _, channelID := range channelIDs {
+			_, appErr := a.GetChannel(c, channelID)
+			if appErr != nil && appErr.StatusCode == http.StatusNotFound {
+				return false
+			}
+		}
 		return true
 	}
 
@@ -140,6 +148,7 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 	var channelRoles []string
 	for _, channelID := range channelIDs {
 		if err == nil {
+			// If a channel member has permission, then no need to check further.
 			if roles, ok := ids[channelID]; ok {
 				channelRoles = strings.Fields(roles)
 				if a.RolesGrantPermission(channelRoles, permission.Id) {
@@ -153,13 +162,13 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 		}
 
 		if appErr == nil && channel.TeamId != "" {
-			if !a.SessionHasPermissionToTeam(session, channel.TeamId, permission) {
-				return false
+			// check team membership
+			if a.SessionHasPermissionToTeam(session, channel.TeamId, permission) {
+				continue
 			}
 		}
-		if !a.SessionHasPermissionTo(session, permission) {
-			return false
-		}
+
+		return false
 	}
 	return true
 }
