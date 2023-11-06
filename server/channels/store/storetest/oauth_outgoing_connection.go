@@ -195,7 +195,7 @@ func testGetOauthOutgoingConnections(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get connections using pagination", func(t *testing.T) {
-		// Retrieve the firt page
+		// Retrieve the first page
 		conns, err := ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{Limit: 1})
 		require.NoError(t, err)
 		require.Len(t, conns, 1)
