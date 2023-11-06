@@ -4,22 +4,26 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import NotificationSection from 'components/channel_notifications_modal/components/notification_section.jsx';
+import NotificationSection, {type Props} from 'components/channel_notifications_modal/components/notification_section';
 
 import {NotificationLevels, NotificationSections} from 'utils/constants';
 
+const changeEvent = {
+    target: {value: NotificationLevels.ALL},
+} as unknown as React.ChangeEvent<HTMLInputElement>;
+
 describe('components/channel_notifications_modal/NotificationSection', () => {
-    const baseProps = {
+    const baseProps: Props = {
         section: NotificationSections.DESKTOP,
         expand: false,
         memberNotificationLevel: NotificationLevels.ALL,
         memberThreadsNotificationLevel: NotificationLevels.ALL,
         globalNotificationLevel: NotificationLevels.DEFAULT,
-        onChange: () => {}, //eslint-disable-line no-empty-function
-        onChangeThreads: () => {}, //eslint-disable-line no-empty-function
-        onReset: () => {},
-        onSubmit: () => {}, //eslint-disable-line no-empty-function
-        onUpdateSection: () => {}, //eslint-disable-line no-empty-function
+        onChange: jest.fn(),
+        onChangeThreads: jest.fn(),
+        onReset: jest.fn(),
+        onSubmit: jest.fn(),
+        onUpdateSection: jest.fn(),
         serverError: '',
         isGM: false,
     };
@@ -60,7 +64,7 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, MARK_UNREAD on collapsed view', () => {
-        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, globalNotificationLevel: null};
+        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, globalNotificationLevel: undefined};
         const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
@@ -69,7 +73,7 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, MARK_UNREAD on expanded view', () => {
-        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, expand: true, globalNotificationLevel: null};
+        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, expand: true, globalNotificationLevel: undefined};
         const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
@@ -80,10 +84,10 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     test('should have called onChange when handleOnChange is called', () => {
         const onChange = jest.fn();
         const props = {...baseProps, expand: true, onChange};
-        const wrapper = shallow(
+        const wrapper = shallow<NotificationSection>(
             <NotificationSection {...props}/>,
         );
-        wrapper.instance().handleOnChange({target: {value: NotificationLevels.ALL}});
+        wrapper.instance().handleOnChange(changeEvent);
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith(NotificationLevels.ALL);
     });
@@ -91,10 +95,10 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     test('should have called onUpdateSection when handleExpandSection is called', () => {
         const onUpdateSection = jest.fn();
         const props = {...baseProps, expand: true, onUpdateSection};
-        const wrapper = shallow(
+        const wrapper = shallow<NotificationSection>(
             <NotificationSection {...props}/>,
         );
-        wrapper.instance().handleExpandSection({preventDefault: jest.fn()});
+        wrapper.instance().handleExpandSection();
         expect(onUpdateSection).toHaveBeenCalledTimes(1);
         expect(onUpdateSection).toHaveBeenCalledWith(NotificationSections.DESKTOP);
     });
@@ -102,10 +106,10 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     test('should have called onUpdateSection when handleCollapseSection is called', () => {
         const onUpdateSection = jest.fn();
         const props = {...baseProps, expand: true, onUpdateSection};
-        const wrapper = shallow(
+        const wrapper = shallow<NotificationSection>(
             <NotificationSection {...props}/>,
         );
-        wrapper.instance().handleCollapseSection({preventDefault: jest.fn()});
+        wrapper.instance().handleCollapseSection();
         expect(onUpdateSection).toHaveBeenCalledTimes(1);
         expect(onUpdateSection).toHaveBeenCalledWith(NotificationSections.NONE);
     });

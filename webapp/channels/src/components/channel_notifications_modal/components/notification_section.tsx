@@ -1,117 +1,119 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {ValueType} from 'react-select';
+
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
 
 import {NotificationSections, NotificationLevels} from 'utils/constants';
 
 import CollapseView from './collapse_view';
-import ExpandView from './expand_view';
+import ExpandView, {type SelectedOption} from './expand_view';
 
-export default class NotificationSection extends React.PureComponent {
-    static propTypes = {
+export type Props = {
 
-        /**
-         * Notification section
-         */
-        section: PropTypes.string.isRequired,
+    /**
+     * Notification section
+     */
+    section: string;
 
-        /**
-         * Expand if true, else collapse the section
-         */
-        expand: PropTypes.bool.isRequired,
+    /**
+     * Expand if true, else collapse the section
+     */
+    expand: boolean;
 
-        /**
-         * Member's desktop notification level
-         */
-        memberNotificationLevel: PropTypes.string.isRequired,
+    /**
+     * Member's desktop notification level
+     */
+    memberNotificationLevel: string;
 
-        memberDesktopSound: PropTypes.string,
+    memberDesktopSound?: string;
 
-        memberDesktopNotificationSound: PropTypes.string,
+    memberDesktopNotificationSound?: string;
 
-        /**
-         * Member's desktop_threads notification level
-         */
-        memberThreadsNotificationLevel: PropTypes.string,
+    /**
+     * Member's desktop_threads notification level
+     */
+    memberThreadsNotificationLevel?: string;
 
-        /**
-         * Ignore channel-wide mentions @channel, @here and @all
-         */
-        ignoreChannelMentions: PropTypes.string,
+    /**
+     * Ignore channel-wide mentions @channel, @here and @all
+     */
+    ignoreChannelMentions?: string;
 
-        /**
-         * Auto-follow all new threads in this channel
-         */
-        channelAutoFollowThreads: PropTypes.string,
+    /**
+     * Auto-follow all new threads in this channel
+     */
+    channelAutoFollowThreads?: string;
 
-        /**
-         * User's global notification level
-         */
-        globalNotificationLevel: PropTypes.string,
+    /**
+     * User's global notification level
+     */
+    globalNotificationLevel?: string;
 
-        /**
-         * User's global notification sound
-         */
-        globalNotificationSound: PropTypes.string,
+    /**
+     * User's global notification sound
+     */
+    globalNotificationSound?: ChannelNotifyProps['desktop_notification_sound'];
 
-        /**
-         * onChange handles update of desktop notification level
-         */
-        onChange: PropTypes.func.isRequired,
+    /**
+     * onChange handles update of desktop notification level
+     */
+    onChange: (value?: string) => void;
 
-        /**
-         * onChangeThreads handles update of desktop_threads notification level
-         */
-        onChangeThreads: PropTypes.func,
+    /**
+     * onChangeThreads handles update of desktop_threads notification level
+     */
+    onChangeThreads?: (value?: string) => void;
 
-        onChangeDesktopSound: PropTypes.func,
+    onChangeDesktopSound?: (value?: string) => void;
 
-        onChangeNotificationSound: PropTypes.func,
+    onChangeNotificationSound?: (value?: string) => void;
 
-        onReset: PropTypes.func,
+    onReset?: () => void;
 
-        isNotificationsSettingSameAsGlobal: PropTypes.bool,
+    isNotificationsSettingSameAsGlobal?: boolean;
 
-        /**
-         * Submit function to save notification level
-         */
-        onSubmit: PropTypes.func.isRequired,
+    /**
+     * Submit function to save notification level
+     */
+    onSubmit: (setting?: string) => void;
 
-        /**
-         * Update function to to expand or collapse a section
-         */
-        onUpdateSection: PropTypes.func.isRequired,
+    /**
+     * Update function to to expand or collapse a section
+     */
+    onUpdateSection: (s: string) => void;
 
-        /**
-         * Error string from the server
-         */
-        serverError: PropTypes.string,
+    /**
+     * Error string from the server
+     */
+    serverError?: string;
 
-        /**
-         * Whether the preferences are those of a GM
-         */
-        isGM: PropTypes.bool,
-    };
+    /**
+     * Whether the preferences are those of a GM
+     */
+    isGM?: boolean;
+};
 
-    handleOnChange = (e) => {
+export default class NotificationSection extends React.PureComponent<Props> {
+    handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.props.onChange(e.target.value);
     };
 
-    handleOnChangeThreads = (e) => {
+    handleOnChangeThreads = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
 
-        this.props.onChangeThreads(value);
+        this.props.onChangeThreads?.(value);
     };
 
-    handleOnChangeDesktopSound = (e) => {
-        this.props.onChangeDesktopSound(e.target.value);
+    handleOnChangeDesktopSound = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.props.onChangeDesktopSound?.(e.target.value);
     };
 
-    handleOnChangeNotificationSound = (selectedOption) => {
+    handleOnChangeNotificationSound = (selectedOption: ValueType<SelectedOption>) => {
         if (selectedOption && 'value' in selectedOption) {
-            this.props.onChangeNotificationSound(selectedOption.value);
+            this.props.onChangeNotificationSound?.(selectedOption.value);
         }
     };
 
@@ -156,14 +158,14 @@ export default class NotificationSection extends React.PureComponent {
                     isNotificationsSettingSameAsGlobal={isNotificationsSettingSameAsGlobal}
                     channelAutoFollowThreads={channelAutoFollowThreads}
                     onChange={this.handleOnChange}
-                    onReset={onReset}
+                    onReset={onReset ?? (() => {})}
                     onChangeThreads={this.handleOnChangeThreads}
                     onChangeDesktopSound={this.handleOnChangeDesktopSound}
                     onChangeNotificationSound={this.handleOnChangeNotificationSound}
                     onSubmit={onSubmit}
                     serverError={serverError}
                     onCollapseSection={this.handleCollapseSection}
-                    isGM={isGM}
+                    isGM={isGM ?? false}
                 />
             );
         }

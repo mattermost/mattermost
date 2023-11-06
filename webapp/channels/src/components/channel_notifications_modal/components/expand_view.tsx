@@ -21,7 +21,7 @@ import Describe from './describe';
 import ExtraInfo from './extra_info';
 import SectionTitle from './section_title';
 
-type SelectedOption = {
+export type SelectedOption = {
     label: string;
     value: string;
 };

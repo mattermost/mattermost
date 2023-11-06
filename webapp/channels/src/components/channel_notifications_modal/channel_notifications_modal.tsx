@@ -11,7 +11,7 @@ import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
-import NotificationSection from 'components/channel_notifications_modal/components/notification_section.jsx';
+import NotificationSection from 'components/channel_notifications_modal/components/notification_section';
 
 import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
@@ -453,10 +453,10 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     section={NotificationSections.MARK_UNREAD}
                                     expand={activeSection === NotificationSections.MARK_UNREAD}
                                     memberNotificationLevel={markUnreadNotifyLevel}
-                                    onChange={this.handleUpdateMarkUnreadLevel}
+                                    onChange={this.handleUpdateMarkUnreadLevel as (value?: string) => void}
                                     onSubmit={this.handleSubmitMarkUnreadLevel}
                                     onUpdateSection={this.updateSection}
-                                    serverError={serverError}
+                                    serverError={serverError ?? undefined}
                                     isGM={isGM}
                                 />
                                 <div className='divider-light'/>
@@ -465,10 +465,10 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     expand={activeSection === NotificationSections.IGNORE_CHANNEL_MENTIONS}
                                     memberNotificationLevel={markUnreadNotifyLevel}
                                     ignoreChannelMentions={ignoreChannelMentions}
-                                    onChange={this.handleUpdateIgnoreChannelMentions}
+                                    onChange={this.handleUpdateIgnoreChannelMentions as (value?: string) => void}
                                     onSubmit={this.handleSubmitIgnoreChannelMentions}
                                     onUpdateSection={this.updateSection}
-                                    serverError={serverError}
+                                    serverError={serverError ?? undefined}
                                     isGM={isGM}
                                 />
                                 {!isChannelMuted(channelMember) &&
@@ -484,14 +484,14 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         globalNotificationLevel={getDefaultDesktopNotificationLevel(currentUser.notify_props, isGM)}
                                         globalNotificationSound={getDefaultDesktopNotificationSound(currentUser.notify_props)}
                                         isNotificationsSettingSameAsGlobal={isNotificationsSettingSameAsGlobal}
-                                        onChange={this.handleUpdateDesktopNotifyLevel}
-                                        onChangeThreads={this.handleUpdateDesktopThreadsNotifyLevel}
-                                        onChangeDesktopSound={this.handleUpdateDesktopSound}
-                                        onChangeNotificationSound={this.handleUpdateDesktopNotifySound}
+                                        onChange={this.handleUpdateDesktopNotifyLevel as (value?: string) => void}
+                                        onChangeThreads={this.handleUpdateDesktopThreadsNotifyLevel as (value?: string) => void}
+                                        onChangeDesktopSound={this.handleUpdateDesktopSound as (value?: string) => void}
+                                        onChangeNotificationSound={this.handleUpdateDesktopNotifySound as (value?: string) => void}
                                         onReset={this.handleResetDesktopNotification}
                                         onSubmit={this.handleSubmitDesktopNotification}
                                         onUpdateSection={this.updateSection}
-                                        serverError={serverError}
+                                        serverError={serverError ?? undefined}
                                         isGM={isGM}
                                     />
                                     <div className='divider-light'/>
@@ -503,12 +503,12 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         memberThreadsNotificationLevel={pushThreadsNotifyLevel}
                                         globalNotificationLevel={getDefaultPushNotifyLevel(currentUser.notify_props, isGM)}
                                         isNotificationsSettingSameAsGlobal={isPushNotificationsSettingSameAsGlobal}
-                                        onChange={this.handleUpdatePushNotificationLevel}
-                                        onReset={this.handleResetPushNotification}
-                                        onChangeThreads={this.handleUpdatePushThreadsNotificationLevel}
+                                        onChange={this.handleUpdatePushNotificationLevel as (value?: string) => void}
+                                        onReset={this.handleResetPushNotification as (value?: string) => void}
+                                        onChangeThreads={this.handleUpdatePushThreadsNotificationLevel as (value?: string) => void}
                                         onSubmit={this.handleSubmitPushNotificationLevel}
                                         onUpdateSection={this.updateSection}
-                                        serverError={serverError}
+                                        serverError={serverError ?? undefined}
                                         isGM={isGM}
                                     />
                                     }
@@ -523,10 +523,10 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         memberNotificationLevel={markUnreadNotifyLevel}
                                         ignoreChannelMentions={ignoreChannelMentions}
                                         channelAutoFollowThreads={channelAutoFollowThreads}
-                                        onChange={this.handleUpdateChannelAutoFollowThreads}
+                                        onChange={this.handleUpdateChannelAutoFollowThreads as (value?: string) => void}
                                         onSubmit={this.handleSubmitChannelAutoFollowThreads}
                                         onUpdateSection={this.updateSection}
-                                        serverError={serverError}
+                                        serverError={serverError ?? undefined}
                                         isGM={isGM}
                                     />
                                 </>
