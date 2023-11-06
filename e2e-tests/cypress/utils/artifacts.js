@@ -56,20 +56,21 @@ async function saveArtifacts() {
                 const charset = mime.charset(contentType);
 
                 return new Promise((res, rej) => {
-                    // S3 ManagedUpload with callbacks are not supported in AWS SDK for JavaScript (v3).
-                    // Please convert to 'await client.upload(params, options).promise()', and re-run aws-sdk-js-codemod.
-                    s3.upload({
-                        Key,
-                        Bucket: AWS_S3_BUCKET,
-                        Body: fs.readFileSync(file),
-                        ContentType: `${contentType}${charset ? '; charset=' + charset : ''}`,
-                    }, (err) => {
-                        if (err) {
-                            console.log('Failed to upload artifact:', file);
-                            return rej(new Error(err));
-                        }
-                        res({success: true});
-                    });
+                    s3.upload(
+                        {
+                            Key,
+                            Bucket: AWS_S3_BUCKET,
+                            Body: fs.readFileSync(file),
+                            ContentType: `${contentType}${charset ? '; charset=' + charset : ''}`,
+                        },
+                        (err) => {
+                            if (err) {
+                                console.log('Failed to upload artifact:', file);
+                                return rej(new Error(err));
+                            }
+                            res({success: true});
+                        },
+                    );
                 });
             }),
             (err) => {
