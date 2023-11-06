@@ -31,9 +31,9 @@ func (s *SqlOAuthOutgoingConnectionStore) SaveConnection(c request.CTX, conn *mo
 	}
 
 	if _, err := s.GetMasterX().NamedExec(`INSERT INTO OAuthOutgoingConnection
-	(Id, Name, ClientId, ClientSecret, OAuthTokenURL, GrantType, Audiences)
+	(Id, Name, ClientId, ClientSecret, CreateAt, UpdateAt, CreatorId, OAuthTokenURL, GrantType, Audiences)
 	VALUES
-	(:Id, :Name, :ClientId, :ClientSecret, :OAuthTokenURL, :GrantType, :Audiences)`, conn); err != nil {
+	(:Id, :Name, :ClientId, :ClientSecret, :CreateAt, :UpdateAt, :CreatorId, :OAuthTokenURL, :GrantType, :Audiences)`, conn); err != nil {
 		return nil, errors.Wrap(err, "failed to save OAuthOutgoingConnection")
 	}
 	return conn, nil
@@ -50,7 +50,7 @@ func (s *SqlOAuthOutgoingConnectionStore) UpdateConnection(c request.CTX, conn *
 	}
 
 	if _, err := s.GetMasterX().NamedExec(`UPDATE OAuthOutgoingConnection SET
-	Name=:Name, ClientId=:ClientId, ClientSecret=:ClientSecret, OAuthTokenURL=:OAuthTokenURL, GrantType=:GrantType, Audiences=:Audiences
+	Name=:Name, ClientId=:ClientId, ClientSecret=:ClientSecret, UpdateAt=:UpdateAt, OAuthTokenURL=:OAuthTokenURL, GrantType=:GrantType, Audiences=:Audiences
 	WHERE Id=:Id`, conn); err != nil {
 		return nil, errors.Wrap(err, "failed to update OAuthOutgoingConnection")
 	}
