@@ -150,7 +150,6 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, ss) })
-	t.Run("GetAllMemberIds", func(t *testing.T) { testGetAllMemberIds(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {

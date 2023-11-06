@@ -312,9 +312,8 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 		}
 	}
 
-	var channel *model.Channel
-	channel, err = a.GetChannel(c, channelID)
-	if err == nil {
+	channel, appErr := a.GetChannel(c, channelID)
+	if appErr == nil {
 		return a.HasPermissionToTeam(c, askingUserId, channel.TeamId, permission)
 	}
 
