@@ -1263,7 +1263,7 @@ func (api *PluginAPI) UploadData(us *model.UploadSession, rd io.Reader) (*model.
 
 func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, error) {
 	// We want to fetch from master DB to avoid a potential read-after-write on the plugin side.
-	api.ctx.SetContext(WithMaster(api.ctx.Context()))
+	api.ctx = api.ctx.With(RequestContextWithMaster)
 	fi, err := api.app.GetUploadSession(api.ctx, uploadID)
 	if err != nil {
 		return nil, err
