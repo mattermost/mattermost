@@ -8,7 +8,15 @@ const fs = require('fs');
 const path = require('path');
 
 const async = require('async');
-const AWS = require('aws-sdk');
+
+const {
+    Upload
+} = require("@aws-sdk/lib-storage");
+
+const {
+    S3
+} = require("@aws-sdk/client-s3");
+
 const mime = require('mime-types');
 const readdir = require('recursive-readdir');
 
@@ -25,10 +33,15 @@ const {
     BUILD_TAG,
 } = process.env;
 
-const s3 = new AWS.S3({
-    signatureVersion: 'v4',
-    accessKeyId: AWS_ACCESS_KEY_ID,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+const s3 = new S3({
+    credentials: {
+        accessKeyId: AWS_ACCESS_KEY_ID,
+        secretAccessKey: AWS_SECRET_ACCESS_KEY
+    },
+
+    // The key signatureVersion is no longer supported in v3, and can be removed.
+    // @deprecated SDK v3 only supports signature v4.
+    signatureVersion: 'v4'
 });
 
 function getFiles(dirPath) {
@@ -56,12 +69,16 @@ async function saveArtifacts() {
                 const charset = mime.charset(contentType);
 
                 try {
-                    await s3.upload({
-                        Key,
-                        Bucket: AWS_S3_BUCKET,
-                        Body: fs.readFileSync(file),
-                        ContentType: `${contentType}${charset ? '; charset=' + charset : ''}`,
-                    }).promise();
+                    await new Upload({
+                        client: s3,
+
+                        params: {
+                            Key,
+                            Bucket: AWS_S3_BUCKET,
+                            Body: fs.readFileSync(file),
+                            ContentType: `${contentType}${charset ? '; charset=' + charset : ''}`,
+                        }
+                    }).done();
                     return {success: true};
                 } catch (e) {
                     console.log('Failed to upload artifact:', file);
