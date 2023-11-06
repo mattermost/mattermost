@@ -74,8 +74,9 @@ func testSaveOauthOutgoingConnection(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// Retrieve the connection
-		_, err = ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
+		storeConn, err := ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
 		require.NoError(t, err)
+		require.Equal(t, connection, storeConn)
 	})
 
 	t.Run("save without id should fail", func(t *testing.T) {
@@ -105,9 +106,9 @@ func testUpdateOauthOutgoingConnection(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// Retrieve the connection
-		conn, err := ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
+		storeConn, err := ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
 		require.NoError(t, err)
-		require.Equal(t, connection.Name, conn.Name)
+		require.Equal(t, connection, storeConn)
 	})
 
 	t.Run("update non-existing", func(t *testing.T) {
@@ -146,14 +147,9 @@ func testUpdateOauthOutgoingConnection(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// Retrieve the connection
-		conn, err := ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
+		storeConn, err := ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
 		require.NoError(t, err)
-		require.Equal(t, connection.Name, conn.Name)
-		require.Equal(t, connection.ClientId, conn.ClientId)
-		require.Equal(t, connection.ClientSecret, conn.ClientSecret)
-		require.Equal(t, connection.OAuthTokenURL, conn.OAuthTokenURL)
-		require.Equal(t, connection.GrantType, conn.GrantType)
-		require.Equal(t, connection.Audiences, conn.Audiences)
+		require.Equal(t, connection, storeConn)
 	})
 }
 
@@ -161,8 +157,10 @@ func testGetOauthOutgoingConnection(t *testing.T, ss store.Store) {
 	c := request.TestContext(t)
 
 	t.Run("get non-existing", func(t *testing.T) {
-		_, err := ss.OAuthOutgoingConnection().GetConnection(c, model.NewId())
-		require.Error(t, err)
+		nonExistingId := model.NewId()
+		var expected *store.ErrNotFound
+		_, err := ss.OAuthOutgoingConnection().GetConnection(c, nonExistingId)
+		require.ErrorAs(t, err, &expected)
 	})
 }
 
@@ -227,6 +225,7 @@ func testDeleteOauthOutgoingConnection(t *testing.T, ss store.Store) {
 
 		// Retrieve the connection
 		_, err = ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
-		require.Error(t, err)
+		var expected *store.ErrNotFound
+		require.ErrorAs(t, err, &expected)
 	})
 }
