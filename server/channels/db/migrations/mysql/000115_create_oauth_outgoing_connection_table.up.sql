@@ -1,6 +1,9 @@
 CREATE TABLE IF NOT EXISTS OAuthOutgoingConnection (
     Id varchar(26),
     Name varchar(64),
+    CreatorId varchar(26) DEFAULT NULL,
+    CreateAt bigint(20) DEFAULT NULL,
+    UpdateAt bigint(20) DEFAULT NULL,
     ClientId varchar(255),
     ClientSecret varchar(255),
     OAuthTokenURL text,

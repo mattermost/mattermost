@@ -3,6 +3,9 @@ CREATE TYPE oauthoutgoingconnection_granttype AS ENUM ('client_credentials');
 CREATE TABLE IF NOT EXISTS oauthoutgoingconnection (
     id varchar(26) PRIMARY KEY,
     name varchar(64),
+    creatorid VARCHAR(26),
+    createat bigint,
+    updateat bigint,
     clientid varchar(255),
     clientsecret varchar(255),
     oauthtokenurl text,
