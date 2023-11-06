@@ -178,11 +178,12 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
 	if err != nil {
 		handleError(err)
 		return
 	}
+	c.AppContext = c.AppContext.WithSession(session)
 
 	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
