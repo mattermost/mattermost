@@ -88,7 +88,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
 	}
-	th.Context.SetLogger(testLogger)
 
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
