@@ -727,9 +727,10 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 
 	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
+	assert.Nil(t, session)
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
@@ -766,10 +767,11 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
-	assert.Equal(t, th.Context.Session().UserId, th.BasicUser.Id)
+	require.NotNil(t, session)
+	assert.Equal(t, session.UserId, th.BasicUser.Id)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
@@ -807,9 +809,10 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
+	assert.NotNil(t, session)
 
 	time.Sleep(2 * time.Second)
 
@@ -1549,4 +1552,83 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			assert.Equal(t, tt.expectedNotifications, numMessages)
 		})
 	}
+}
+
+func TestHookMessagesWillBeConsumed(t *testing.T) {
+	setupPlugin := func(t *testing.T, th *TestHelper) {
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LogDebug", "message").Return(nil)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+				for _, post := range posts {
+					post.Message = "mwbc_plugin:" + post.Message
+				}
+				return posts
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		t.Cleanup(tearDown)
+	}
+
+	t.Run("feature flag disabled", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "false")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
+
+		th := Setup(t).InitBasic()
+		t.Cleanup(th.TearDown)
+
+		setupPlugin(t, th)
+
+		newPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		post, err := th.App.GetSinglePost(newPost.Id, true)
+		require.Nil(t, err)
+		assert.Equal(t, "message", post.Message)
+	})
+
+	t.Run("feature flag enabled", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
+
+		th := Setup(t).InitBasic()
+		t.Cleanup(th.TearDown)
+
+		setupPlugin(t, th)
+
+		newPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		post, err := th.App.GetSinglePost(newPost.Id, true)
+		require.Nil(t, err)
+		assert.Equal(t, "mwbc_plugin:message", post.Message)
+	})
 }

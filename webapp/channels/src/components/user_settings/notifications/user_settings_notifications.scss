@@ -13,6 +13,7 @@
 
         a {
             display: flex;
+            align-items: center;
 
             &:hover,
             &:active,
@@ -33,6 +34,16 @@
                 &:hover {
                     text-decoration: underline;
                 }
+            }
+
+            > svg {
+                width: 18px;
+                height: 18px;
+                padding: 2px;
+                margin-right: 4px;
+                background: rgba(var(--button-bg-rgb), 0.12);
+                border-radius: 50%;
+                text-align: center;
             }
         }
     }
