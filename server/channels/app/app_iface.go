@@ -855,7 +855,6 @@ type AppIface interface {
 	GetWarnMetricsBot() (*model.Bot, *model.AppError)
 	GetWarnMetricsStatus(rctx request.CTX) (map[string]*model.WarnMetricStatus, *model.AppError)
 	HTTPService() httpservice.HTTPService
-	Handle404(w http.ResponseWriter, r *http.Request)
 	HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
 	HandleCommandResponsePost(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError)
 	HandleCommandWebhook(c request.CTX, hookID string, response *model.CommandResponse) *model.AppError
