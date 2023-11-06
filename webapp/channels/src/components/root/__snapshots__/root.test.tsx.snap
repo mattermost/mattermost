@@ -94,7 +94,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       <WindowSizeObserver />
       <Connect(ModalController) />
       <Connect(Component) />
-      <Connect(SystemNotice) />
+      <Connect(injectIntl(SystemNotice)) />
       <GlobalHeader />
       <CloudEffectsWrapper />
       <withRouter(Connect(TeamSidebar)) />
