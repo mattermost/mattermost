@@ -39,7 +39,7 @@ mme2e_get_current_shopt_arg () {
   case $(set -o | sed -n -E "s/^${SHOPT_ARG}[[:space:]]+(o..?)$/\1/p") in
     on) echo -n "-o ${SHOPT_ARG}";;
     off) echo -n "+o ${SHOPT_ARG}";;
-    *) exit 1;;
+    *) return 1;;
   esac
 }
 mme2e_load_env_file () {
@@ -74,7 +74,7 @@ mme2e_wait_command_success () {
   # shellcheck disable=SC2086
   set ${MME2E_PREVIOUS_PIPEFAIL}
   if [ "$RETRIES_LEFT" = "0" ]; then
-    exit 1
+    return 1
   fi
 }
 mme2e_wait_service_healthy () {
