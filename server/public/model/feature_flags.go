@@ -43,6 +43,8 @@ type FeatureFlags struct {
 	EnableExportDirectDownload bool
 
 	StreamlinedMarketplace bool
+
+	ConsumePostHook bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -58,6 +60,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.StreamlinedMarketplace = true
+	f.ConsumePostHook = false
 }
 
 // ToMap returns the feature flags as a map[string]string

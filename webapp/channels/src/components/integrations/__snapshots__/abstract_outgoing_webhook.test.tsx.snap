@@ -328,7 +328,7 @@ callbackUrl2.com
             id="add_outgoing_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -340,7 +340,7 @@ callbackUrl2.com
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>

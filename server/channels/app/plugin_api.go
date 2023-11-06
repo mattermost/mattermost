@@ -23,12 +23,12 @@ import (
 type PluginAPI struct {
 	id       string
 	app      *App
-	ctx      *request.Context
+	ctx      request.CTX
 	logger   mlog.Sugar
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, c request.CTX, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
@@ -409,7 +409,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
 	if user.AuthService == model.UserAuthServiceLdap ||
 		(user.AuthService == model.UserAuthServiceSaml && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
-		return api.app.Ldap().GetUserAttributes(*user.AuthData, attributes)
+		return api.app.Ldap().GetUserAttributes(api.ctx, *user.AuthData, attributes)
 	}
 
 	return map[string]string{}, nil
@@ -1263,7 +1263,7 @@ func (api *PluginAPI) UploadData(us *model.UploadSession, rd io.Reader) (*model.
 
 func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, error) {
 	// We want to fetch from master DB to avoid a potential read-after-write on the plugin side.
-	api.ctx.SetContext(WithMaster(api.ctx.Context()))
+	api.ctx = api.ctx.With(RequestContextWithMaster)
 	fi, err := api.app.GetUploadSession(api.ctx, uploadID)
 	if err != nil {
 		return nil, err

@@ -144,13 +144,13 @@ PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.7.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
+PLUGIN_PACKAGES += mattermost-plugin-todo-v0.7.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
@@ -415,7 +415,7 @@ check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 
 gotestsum:
-	$(GO) install gotest.tools/gotestsum@v1.7.0
+	$(GO) install gotest.tools/gotestsum@v1.11.0
 
 test-compile: gotestsum ## Compile tests.
 	@echo COMPILE TESTS
@@ -515,14 +515,13 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: run-server inject-test-data ## start a local instance and add test data to it.
+test-data: export MM_SERVICESETTINGS_ENABLELOCALMODE := true
+test-data: run-server inject-test-data stop-server ## start a local instance and add test data to it.
 
 inject-test-data: # add test data to the local instance.
 	@if ! ./scripts/wait-for-system-start.sh; then \
 		make stop-server; \
 	fi
-
-	@echo ServiceSettings.EnableLocalMode must be set to true.
 
 	bin/mmctl config set TeamSettings.MaxUsersPerTeam 100 --local
 	bin/mmctl sampledata -u 60 --local
@@ -532,8 +531,6 @@ inject-test-data: # add test data to the local instance.
 	@echo Login with a system admin account username=sysadmin password=Sys@dmin-sample1
 	@echo Login with a regular account username=user-1 password=SampleUs@r-1
 	@echo ========================================================================
-
-	make stop-server
 
 test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
