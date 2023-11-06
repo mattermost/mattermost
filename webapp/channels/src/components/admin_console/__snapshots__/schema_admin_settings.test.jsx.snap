@@ -595,7 +595,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             }
             value={true}
           />
-          <ColorSetting
+          <Memo(ColorSetting)
             disabled={false}
             helpText={
               <SchemaText
