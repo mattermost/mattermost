@@ -3941,6 +3941,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.OutgoingIntegrationRequestsTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.outgoing_integrations_request_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.ExperimentalGroupUnreadChannels != GroupUnreadChannelsDisabled &&
 		*s.ExperimentalGroupUnreadChannels != GroupUnreadChannelsDefaultOn &&
 		*s.ExperimentalGroupUnreadChannels != GroupUnreadChannelsDefaultOff {
