@@ -559,4 +559,15 @@ export class TestHelper {
             ...override,
         };
     }
+
+    public static getMockMouseButtonEvent() {
+        return {
+            preventDefault: jest.fn(),
+            stopPropagation: jest.fn(),
+            currentTarget: {
+                click: jest.fn(),
+                value: 'test value',
+            },
+        } as unknown as React.MouseEvent<HTMLButtonElement>;
+    }
 }

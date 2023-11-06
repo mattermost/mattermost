@@ -796,11 +796,10 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
-		crctx := c.Clone()
 		a.Srv().GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(crctx, &infoCopy)
+			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
-				crctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -1048,11 +1047,10 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
-		crctx := c.Clone()
 		a.Srv().GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(crctx, &infoCopy)
+			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
-				crctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -1385,7 +1383,12 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	defer w.Close()
 	for _, fd := range fileDatas {
-		f, err := w.Create(fd.Filename)
+		f, err := w.CreateHeader(&zip.FileHeader{
+			Name:     fd.Filename,
+			Method:   zip.Deflate,
+			Modified: time.Now(),
+		})
+
 		if err != nil {
 			return err
 		}
