@@ -224,7 +224,8 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
         if (headerPopoverTextMeasurerRect && headerDescriptionRect) {
             if (headerPopoverTextMeasurerRect.width > headerDescriptionRect.width || headerText.match(/\n{2,}/g)) {
-                this.setState({showChannelHeaderPopover: true, leftOffset: this.headerDescriptionRef.current?.offsetLeft || 0});
+                const leftOffset = headerDescriptionRect.left - (this.props.hasMoreThanOneTeam ? 314 : 250);
+                this.setState({showChannelHeaderPopover: true, leftOffset});
             }
         }
 
@@ -517,6 +518,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
         let headerTextContainer;
         const headerText = (isDirect && dmUser?.is_bot) ? dmUser.bot_description : channel.header;
+        const popoverWidth = this.headerDescriptionRef.current?.clientWidth || 0 - (this.props.hasMoreThanOneTeam ? 64 : 0);
         if (headerText) {
             const imageProps = {
                 hideUtilities: true,
@@ -526,7 +528,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     id='header-popover'
                     popoverStyle='info'
                     popoverSize='lg'
-                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: 'calc(100% - 400px)'}}
+                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: popoverWidth}}
                     placement='bottom'
                     className={classNames('channel-header__popover', {'chanel-header__popover--lhs_offset': this.props.hasMoreThanOneTeam})}
                 >
