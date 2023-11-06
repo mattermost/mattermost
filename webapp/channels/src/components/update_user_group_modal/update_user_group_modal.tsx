@@ -159,13 +159,10 @@ const UpdateUserGroupModal = (props: Props) => {
                 <button
                     type='button'
                     className='modal-header-back-button btn btn-icon'
-                    aria-label='Close'
+                    aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     onClick={goBack}
                 >
-                    <i
-                        className='icon icon-arrow-left'
-                        aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                    />
+                    <i className='icon icon-arrow-left'/>
                 </button>
                 <Modal.Title
                     componentClass='h1'
