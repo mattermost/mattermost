@@ -55,7 +55,7 @@ func TestSaveReaction(t *testing.T) {
 	})
 
 	t.Run("save-second-reaction", func(t *testing.T) {
-		reaction.EmojiName = "sad"
+		reaction.EmojiName = "cry"
 
 		rr, _, err := client.SaveReaction(context.Background(), reaction)
 		require.NoError(t, err)
@@ -184,6 +184,27 @@ func TestSaveReaction(t *testing.T) {
 		_, resp, err := client.SaveReaction(context.Background(), reaction)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+
+		reactions, appErr := th.App.GetReactionsForPost(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, len(reactions), "should have not created a reaction")
+	})
+
+	t.Run("sent an emoji that does not exist on the system", func(t *testing.T) {
+		th.LoginBasic()
+
+		channel := th.CreatePublicChannel()
+		post := th.CreatePostWithClient(th.Client, channel)
+
+		reaction := &model.Reaction{
+			UserId:    userId,
+			PostId:    post.Id,
+			EmojiName: "definitely-not-a-real-emoji",
+		}
+
+		_, resp, err := client.SaveReaction(context.Background(), reaction)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 
 		reactions, appErr := th.App.GetReactionsForPost(post.Id)
 		require.Nil(t, appErr)
