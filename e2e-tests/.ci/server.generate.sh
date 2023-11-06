@@ -52,7 +52,6 @@ services:
     restart: always
     env_file:
       - "./.env.server"
-      - "./.env.server.cloud"
     environment:
       MM_SERVICESETTINGS_ALLOWCORSFROM: "*"
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
@@ -170,7 +169,6 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
-      - "../../e2e-tests/.ci/.env.dashboard"
       - "../../e2e-tests/.ci/.env.cypress"
     environment:
       REPO: "mattermost"
@@ -261,10 +259,6 @@ EOL
 }
 
 generate_env_files() {
-  # Create files required to exist, but whose existence depends on optional previous steps (e.g. dashboard)
-  touch .env.dashboard
-  touch .env.server.cloud
-
   # Generate .env.server
   mme2e_log "Generating .env.server"
   mme2e_generate_envfile_from_var_names >.env.server <<-EOF
@@ -276,6 +270,9 @@ generate_env_files() {
   cloud)
     echo "MM_NOTIFY_ADMIN_COOL_OFF_DAYS=0.00000001" >>.env.server
     echo 'MM_FEATUREFLAGS_ANNUALSUBSCRIPTION="true"' >>.env.server
+    # Load .env.cloud into .env.server
+    # We assume the file exist at this point. The actual check for that should be done before calling this function
+    cat >>.env.server <.env.cloud
     ;;
   esac
 
@@ -330,6 +327,11 @@ generate_env_files() {
       echo "CYPRESS_serverEdition=E20" >>.env.cypress
       ;;
     esac
+    # If the dashboard is running, load .env.dashboard into .env.cypress
+    if DC_COMMAND="$MME2E_DC_DASHBOARD" mme2e_wait_service_healthy dashboard 1; then
+      mme2e_log "Detected a running automation dashboard: loading its access variables into the Cypress container"
+      cat >>.env.cypress <.env.dashboard
+    fi
     ;;
   playwright)
     mme2e_log "Playwright: Generating .env.playwright"
@@ -347,8 +349,8 @@ generate_env_files() {
 # Perform SERVER-specific checks/customizations
 case "$SERVER" in
 cloud)
-  if ! [ -f .env.server.cloud ]; then
-    mme2e_log "Error: when using SERVER=$SERVER, the .env.server.cloud file is expected to exist, before generating the docker-compose file. Aborting." >&2
+  if ! [ -f .env.cloud ]; then
+    mme2e_log "Error: when using SERVER=$SERVER, the .env.cloud file is expected to exist, before generating the docker-compose file. Aborting." >&2
     exit 1
   fi
   ;;

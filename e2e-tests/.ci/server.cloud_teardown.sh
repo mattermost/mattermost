@@ -10,8 +10,8 @@ fi
 
 mme2e_log "Tearing down cloud tests"
 
-mme2e_log "Loading .env.server.cloud"
-. .env.server.cloud
+mme2e_log "Loading .env.cloud"
+. .env.cloud
 
 # Assert that required variables are set
 MME2E_ENVCHECK_MSG="variable required for tearing down cloud tests, but is empty or unset."

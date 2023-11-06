@@ -6,7 +6,7 @@ SHELL := /bin/bash
 
 .PHONY: all run stop clean
 all: run
-run: clean cloud-init generate-server start-server prepare-server run-test cloud-teardown
+run: cloud-init generate-server start-server prepare-server run-test cloud-teardown
 stop: stop-server stop-dashboard clean
 clean:
 	rm -fv .ci/server.yml
@@ -21,7 +21,7 @@ prepare-server:
 	bash ./.ci/server.prepare.sh
 run-test:
 	bash ./.ci/server.run_test.sh
-stop-server:
+stop-server: generate-server
 	bash ./.ci/server.stop.sh
 restart-server: stop-server start-server
 

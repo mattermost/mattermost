@@ -26,7 +26,7 @@ export MM_CLOUD_INSTALLATION_ID=$MM_CLOUD_INSTALLATION_ID
 export MM_CLOUDSETTINGS_CWSURL=$CWS_URL
 export MM_CLOUDSETTINGS_CWSAPIURL=$CWS_URL
 
-mme2e_generate_envfile_from_var_names >.env.server.cloud <<EOF
+mme2e_generate_envfile_from_var_names >.env.cloud <<EOF
 MM_CLOUDSETTINGS_CWSURL
 MM_CLOUDSETTINGS_CWSAPIURL
 MM_CLOUD_API_KEY
