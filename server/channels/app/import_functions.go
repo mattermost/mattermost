@@ -570,7 +570,6 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 		if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
 			c.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
-
 	} else {
 		var appErr *model.AppError
 		if hasUserChanged {
@@ -805,7 +804,7 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.U
 		isAdminByTeamId          = map[string]bool{}
 	)
 
-	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(context.Background(), user.Id, "", true)
+	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(c, user.Id, "", true)
 	if nErr != nil {
 		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -917,12 +916,12 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.U
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
-			if _, err = a.UpdateTeamMemberRoles(member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
+			if _, err = a.UpdateTeamMemberRoles(c, member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
 				return err
 			}
 		}
 
-		a.UpdateTeamMemberSchemeRoles(member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
+		a.UpdateTeamMemberSchemeRoles(c, member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
 	}
 
 	for _, team := range allTeams {
@@ -1319,7 +1318,7 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 			oldHash := sha1.Sum(oldFileData)
 
 			if bytes.Equal(oldHash[:], newHash[:]) {
-				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", name))
+				mlog.Info("Skipping uploading of file because name already exists", mlog.String("file_name", name))
 				return oldFile, nil
 			}
 		}
@@ -1646,7 +1645,7 @@ func (a *App) uploadAttachments(c request.CTX, attachments *[]imports.Attachment
 func (a *App) updateFileInfoWithPostId(post *model.Post) {
 	for _, fileID := range post.FileIds {
 		if err := a.Srv().Store().FileInfo().AttachToPost(fileID, post.Id, post.ChannelId, post.UserId); err != nil {
-			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
+			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Array("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
 }
@@ -1953,7 +1952,7 @@ func (a *App) importEmoji(c request.CTX, data *imports.EmojiImportData, dryRun b
 
 	var emoji *model.Emoji
 
-	emoji, err := a.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, err := a.Srv().Store().Emoji().GetByName(c, *data.Name, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {

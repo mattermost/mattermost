@@ -138,10 +138,10 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 			defer cancel()
 		}
 
-		c := request.EmptyContext(a.Log())
-		c.SetContext(ctx)
+		var rctx request.CTX = request.EmptyContext(a.Log())
+		rctx = rctx.WithContext(ctx)
 
-		job, err := messageExportI.StartSynchronizeJob(c, startTime)
+		job, err := messageExportI.StartSynchronizeJob(rctx, startTime)
 		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
 		} else {
@@ -182,7 +182,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(format, startTime, limit)
+		warningsCount, appErr := a.MessageExport().RunExport(request.EmptyContext(a.Log()), format, startTime, limit)
 		if appErr != nil {
 			return appErr
 		}

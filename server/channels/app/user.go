@@ -282,8 +282,9 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
+	gmASdmPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategorySystemNotice, Name: "GMasDM", Value: "true"}
 
-	preferences := model.Preferences{recommendedNextStepsPref, tutorialStepPref}
+	preferences := model.Preferences{recommendedNextStepsPref, tutorialStepPref, gmASdmPref}
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
 		c.Logger().Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
@@ -320,7 +321,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -329,7 +330,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	if e != nil {
 		return nil, e
 	}
-	user, err1 := provider.GetUserFromJSON(userData, tokenUser)
+	user, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err1)
 	}
@@ -356,7 +357,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 		if userByEmail.AuthService == "" {
 			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
-		if provider.IsSameUser(userByEmail, user) {
+		if provider.IsSameUser(c, userByEmail, user) {
 			if _, err := a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
 				// if the user is not updated, write a warning to the log, but don't prevent user login
 				c.Logger().Warn("Error attempting to update user AuthData", mlog.Err(err))
@@ -686,7 +687,7 @@ func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) (
 	return users, nil
 }
 
-func (a *App) GetUsersByGroupChannelIds(c *request.Context, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
+func (a *App) GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
 	usersByChannelId, err := a.Srv().Store().User().GetProfileByGroupChannelIdsForUser(c.Session().UserId, channelIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByGroupChannelIds", "app.user.get_profile_by_group_channel_ids_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -806,7 +807,6 @@ func (a *App) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.
 }
 
 func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
-
 	if err := a.UpdateDefaultProfileImage(c, user); err != nil {
 		c.Logger().Error("Failed to update default profile image for user", mlog.String("user_id", user.Id), mlog.Err(err))
 		return err
@@ -990,7 +990,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	ruser := userUpdate.New
 
 	if !active {
-		if err := a.RevokeAllSessions(ruser.Id); err != nil {
+		if err := a.RevokeAllSessions(c, ruser.Id); err != nil {
 			return nil, err
 		}
 		if err := a.userDeactivated(c, ruser.Id); err != nil {
@@ -1016,14 +1016,14 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	return ruser, nil
 }
 
-func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
+func (a *App) DeactivateGuests(c request.CTX) *model.AppError {
 	userIDs, err := a.ch.srv.userService.DeactivateAllGuests()
 	if err != nil {
 		return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, userID := range userIDs {
-		if err := a.Srv().Platform().RevokeAllSessions(userID); err != nil {
+		if err := a.Srv().Platform().RevokeAllSessions(c, userID); err != nil {
 			return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -1065,7 +1065,7 @@ func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*
 // CheckProviderAttributes returns the empty string if the patch can be applied without
 // overriding attributes set by the user's login provider; otherwise, the name of the offending
 // field is returned.
-func (a *App) CheckProviderAttributes(user *model.User, patch *model.UserPatch) string {
+func (a *App) CheckProviderAttributes(c request.CTX, user *model.User, patch *model.UserPatch) string {
 	tryingToChange := func(userValue *string, patchValue *string) bool {
 		return patchValue != nil && *patchValue != *userValue
 	}
@@ -1081,9 +1081,9 @@ func (a *App) CheckProviderAttributes(user *model.User, patch *model.UserPatch) 
 	conflictField := ""
 	if a.Ldap() != nil &&
 		(user.IsLDAPUser() || (user.IsSAMLUser() && *SamlSettings.EnableSyncWithLdap)) {
-		conflictField = a.Ldap().CheckProviderAttributes(LdapSettings, user, patch)
+		conflictField = a.Ldap().CheckProviderAttributes(c, LdapSettings, user, patch)
 	} else if a.Saml() != nil && user.IsSAMLUser() {
-		conflictField = a.Saml().CheckProviderAttributes(SamlSettings, user, patch)
+		conflictField = a.Saml().CheckProviderAttributes(c, SamlSettings, user, patch)
 	} else if user.IsOAuthUser() {
 		if tryingToChange(&user.FirstName, patch.FirstName) || tryingToChange(&user.LastName, patch.LastName) {
 			conflictField = "full name"
@@ -1597,7 +1597,6 @@ func (a *App) UpdateUserRoles(c request.CTX, userID string, newRoles string, sen
 }
 
 func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
-
 	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
 	}
@@ -1650,7 +1649,7 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	return ruser, nil
 }
 
-func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.AppError {
+func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppError {
 	c.Logger().Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
 	if user.IsInRole(model.SystemAdminRoleId) {
 		c.Logger().Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
@@ -1802,7 +1801,7 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 	return nil
 }
 
-func (a *App) PermanentDeleteAllUsers(c *request.Context) *model.AppError {
+func (a *App) PermanentDeleteAllUsers(c request.CTX) *model.AppError {
 	users, err := a.Srv().Store().User().GetAll()
 	if err != nil {
 		return model.NewAppError("PermanentDeleteAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2100,8 +2099,8 @@ func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model
 	return autocomplete, nil
 }
 
-func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
-	oauthUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
+func (a *App) UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
+	oauthUser, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
 	}
@@ -2156,8 +2155,8 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 	return nil
 }
 
-func (a *App) RestrictUsersGetByPermissions(userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError) {
-	restrictions, err := a.GetViewUsersRestrictions(userID)
+func (a *App) RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError) {
+	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -2212,8 +2211,8 @@ func (a *App) filterNonGroupUsers(userIDs []string, groupUsers []*model.User) ([
 	return nonMemberIds, nil
 }
 
-func (a *App) RestrictUsersSearchByPermissions(userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
-	restrictions, err := a.GetViewUsersRestrictions(userID)
+func (a *App) RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
+	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -2222,12 +2221,12 @@ func (a *App) RestrictUsersSearchByPermissions(userID string, options *model.Use
 	return options, nil
 }
 
-func (a *App) UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError) {
+func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	if userID == otherUserId {
 		return true, nil
 	}
 
-	restrictions, err := a.GetViewUsersRestrictions(userID)
+	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
 		return false, err
 	}
@@ -2268,7 +2267,7 @@ func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *
 	return belongs, nil
 }
 
-func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestrictions, *model.AppError) {
+func (a *App) GetViewUsersRestrictions(c request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
 	if a.HasPermissionTo(userID, model.PermissionViewMembers) {
 		return nil, nil
 	}
@@ -2280,7 +2279,7 @@ func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestricti
 
 	teamIDsWithPermission := []string{}
 	for _, teamID := range teamIDs {
-		if a.HasPermissionToTeam(userID, teamID, model.PermissionViewMembers) {
+		if a.HasPermissionToTeam(c, userID, teamID, model.PermissionViewMembers) {
 			teamIDsWithPermission = append(teamIDsWithPermission, teamID)
 		}
 	}
@@ -2300,7 +2299,7 @@ func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestricti
 
 // PromoteGuestToUser Convert user's roles and all his membership's roles from
 // guest roles to regular user roles.
-func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError {
+func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId string) *model.AppError {
 	nErr := a.ch.srv.userService.PromoteGuestToUser(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
@@ -2323,12 +2322,12 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		c.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
 		a.sendUpdatedUserEvent(*promotedUser)
-		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
+		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
 			c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
 	}
 
-	teamMembers, err := a.GetTeamMembersForUser(user.Id, "", true)
+	teamMembers, err := a.GetTeamMembersForUser(c, user.Id, "", true)
 	if err != nil {
 		c.Logger().Warn("Failed to get team members for user on promote guest to user", mlog.Err(err))
 	}
@@ -2368,11 +2367,11 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	}
 
 	a.sendUpdatedUserEvent(*demotedUser)
-	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
+	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
 		c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 
-	teamMembers, err := a.GetTeamMembersForUser(user.Id, "", true)
+	teamMembers, err := a.GetTeamMembersForUser(c, user.Id, "", true)
 	if err != nil {
 		c.Logger().Warn("Failed to get team members for users on demote user to guest", mlog.Err(err))
 	}

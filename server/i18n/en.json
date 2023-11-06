@@ -296,6 +296,14 @@
     "translation": "Your license does not support channel moderation"
   },
   {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "User is not allowed to convert group message to private channel"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} created this channel from a group message with {{.GMMembers}}."
+  },
+  {
     "id": "api.channel.guest_join_channel.post_and_forget",
     "translation": "%v joined the channel as guest."
   },
@@ -908,7 +916,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\r\nMattermost contains three key tools:\r\n\r\n**Channels** - Stay connected with your team via 1:1 and group messaging.\r\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\r\n**[Boards](/boards)** - Manage projects and tasks in a Kanban board structure to help your team hit key milestones.\r\n\r\n[View documentation and guides]({{.HelpLink}})"
+    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\r\nMattermost contains two key tools:\r\n\r\n**Channels** - Stay connected with your team via 1:1 and group messaging.\r\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\r\n\r\n[View documentation and guides]({{.HelpLink}})"
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -917,6 +925,10 @@
   {
     "id": "api.command_invite.channel.error",
     "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {
     "id": "api.command_invite.desc",
@@ -929,10 +941,6 @@
   {
     "id": "api.command_invite.fail.app_error",
     "translation": "An error occurred while joining the channel."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {
     "id": "api.command_invite.hint",
@@ -963,12 +971,27 @@
     "translation": "{{.User}} added to {{.Channel}} channel."
   },
   {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} and {{.Others}} added to {{.Channel}} channel."
+  },
+  {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is already in the channel."
+    "translation": {
+      "one": "{{.User}} is already in the channel.",
+      "other": "{{.User}} are already in the channel."
+    }
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} and {{.Others}} others are already in the channel."
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} is not a member of the team."
+    "translation": "You can add {{.Users}} to this channel once they are members of the **{{.Team}}** team."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "You can add {{.FirstUser}} and {{.Others}} others to this channel once they are members of the **{{.Team}}** team."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1772,6 +1795,10 @@
   {
     "id": "api.emoji.get_image.read.app_error",
     "translation": "Unable to read image file for emoji."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many emojis by name. Only {{.MaxNames}} emojis can be requested at once."
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -4796,6 +4823,14 @@
     "translation": "Unable to check unreads and mentions"
   },
   {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Channel is not a group message."
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Couldn't fetch common teams."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -4854,6 +4889,26 @@
   {
     "id": "app.channel.get_unread.app_error",
     "translation": "Unable to get the channel unread messages."
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Couldn't delete existing sidebar categories for converted GM."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Cannot find user's channel membership"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "The specified team ID in conversion request does not contain all the group message members"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "The channel being converted is not a group message. You can only convert group messages"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Failed to create group message to channel conversion post"
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
@@ -8068,6 +8123,10 @@
     "translation": "Unsupported syncable type '{{.Value}}'."
   },
   {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} and {{.LastItem}}"
+  },
+  {
     "id": "import_process.worker.do_job.file_exists",
     "translation": "Unable to process import: file does not exists."
   },
@@ -8670,6 +8729,14 @@
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
     "translation": "Available Languages must contain Default Client Language."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Failed to parse JSON: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Invalid format: {{.Error}}"
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -9837,11 +9904,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 112+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 102+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",

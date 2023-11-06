@@ -263,10 +263,7 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     render() {
-        let preview = null;
-
-        let textboxClassName = 'form-control custom-textarea';
-        let textWrapperClass = 'textarea-wrapper';
+        let textboxClassName = 'form-control custom-textarea textbox-edit-area';
         if (this.props.emojiEnabled) {
             textboxClassName += ' custom-textarea--emoji-picker';
         }
@@ -276,11 +273,12 @@ export default class Textbox extends React.PureComponent<Props> {
         if (this.props.hasLabels) {
             textboxClassName += ' textarea--has-labels';
         }
-        if (this.props.preview) {
-            textboxClassName += ' custom-textarea--preview';
-            textWrapperClass += ' textarea-wrapper--preview';
 
-            preview = (
+        return (
+            <div
+                ref={this.wrapper}
+                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview})}
+            >
                 <div
                     tabIndex={this.props.tabIndex || 0}
                     ref={this.preview}
@@ -296,14 +294,6 @@ export default class Textbox extends React.PureComponent<Props> {
                         imageProps={{hideUtilities: true}}
                     />
                 </div>
-            );
-        }
-
-        return (
-            <div
-                ref={this.wrapper}
-                className={textWrapperClass}
-            >
                 <SuggestionBox
                     id={this.props.id}
                     ref={this.message}
@@ -334,7 +324,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     openWhenEmpty={this.props.openWhenEmpty}
                     alignWithTextbox={this.props.alignWithTextbox}
                 />
-                {preview}
             </div>
         );
     }

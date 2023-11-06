@@ -652,7 +652,6 @@ func (s *hooksRPCServer) MessageWillBePosted(args *Z_MessageWillBePostedArgs, re
 		MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBePosted(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("hook MessageWillBePosted called but not implemented"))
 	}
@@ -679,13 +678,16 @@ type Z_MessageWillBeUpdatedReturns struct {
 
 func (g *hooksRPCClient) MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string) {
 	_args := &Z_MessageWillBeUpdatedArgs{c, newPost, oldPost}
-	_returns := &Z_MessageWillBeUpdatedReturns{A: _args.B}
+	_default_returns := &Z_MessageWillBeUpdatedReturns{A: _args.B}
 	if g.implemented[MessageWillBeUpdatedID] {
+		_returns := &Z_MessageWillBeUpdatedReturns{}
 		if err := g.client.Call("Plugin.MessageWillBeUpdated", _args, _returns); err != nil {
 			g.log.Error("RPC call MessageWillBeUpdated to plugin failed.", mlog.Err(err))
+			return _default_returns.A, _default_returns.B
 		}
+		return _returns.A, _returns.B
 	}
-	return _returns.A, _returns.B
+	return _default_returns.A, _default_returns.B
 }
 
 func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, returns *Z_MessageWillBeUpdatedReturns) error {
@@ -693,9 +695,45 @@ func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, 
 		MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBeUpdated(args.A, args.B, args.C)
-
 	} else {
 		return encodableError(fmt.Errorf("hook MessageWillBeUpdated called but not implemented"))
+	}
+	return nil
+}
+
+// MessagesWillBeConsumed is in this file because of the difficulty of identifying which fields need special behaviour.
+// The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
+// of fields by older plugins.
+func init() {
+	hookNameToId["MessagesWillBeConsumed"] = MessagesWillBeConsumedID
+}
+
+type Z_MessagesWillBeConsumedArgs struct {
+	A []*model.Post
+}
+
+type Z_MessagesWillBeConsumedReturns struct {
+	A []*model.Post
+}
+
+func (g *hooksRPCClient) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	_args := &Z_MessagesWillBeConsumedArgs{posts}
+	_returns := &Z_MessagesWillBeConsumedReturns{}
+	if g.implemented[MessagesWillBeConsumedID] {
+		if err := g.client.Call("Plugin.MessagesWillBeConsumed", _args, _returns); err != nil {
+			g.log.Error("RPC call MessagesWillBeConsumed to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) MessagesWillBeConsumed(args *Z_MessagesWillBeConsumedArgs, returns *Z_MessagesWillBeConsumedReturns) error {
+	if hook, ok := s.impl.(interface {
+		MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+	}); ok {
+		returns.A = hook.MessagesWillBeConsumed(args.A)
+	} else {
+		return encodableError(fmt.Errorf("hook MessagesWillBeConsumed called but not implemented"))
 	}
 	return nil
 }
@@ -715,7 +753,6 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...any) {
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
 		log.Printf("RPC call to LogDebug API failed: %s", err.Error())
 	}
-
 }
 
 func (s *apiRPCServer) LogDebug(args *Z_LogDebugArgs, returns *Z_LogDebugReturns) error {
@@ -744,7 +781,6 @@ func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...any) {
 	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
 		log.Printf("RPC call to LogInfo API failed: %s", err.Error())
 	}
-
 }
 
 func (s *apiRPCServer) LogInfo(args *Z_LogInfoArgs, returns *Z_LogInfoReturns) error {
@@ -773,7 +809,6 @@ func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...any) {
 	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
 		log.Printf("RPC call to LogWarn API failed: %s", err.Error())
 	}
-
 }
 
 func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) error {

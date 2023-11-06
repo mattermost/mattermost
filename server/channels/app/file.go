@@ -718,9 +718,8 @@ func (t *UploadFileTask) init(a *App) {
 // returns a filled-out FileInfo and an optional error. A plugin may reject the
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
-func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.Reader,
+func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
-
 	t := &UploadFileTask{
 		ChannelId:   filepath.Base(channelID),
 		Name:        filepath.Base(name),
@@ -758,7 +757,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 	if written > t.maxFileSize {
 		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			c.Logger().Error("Failed to remove file", mlog.Err(fileErr))
 		}
 		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
@@ -798,9 +797,9 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
 		a.Srv().GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -1049,9 +1048,9 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -1384,7 +1383,12 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	defer w.Close()
 	for _, fd := range fileDatas {
-		f, err := w.Create(fd.Filename)
+		f, err := w.CreateHeader(&zip.FileHeader{
+			Name:     fd.Filename,
+			Method:   zip.Deflate,
+			Modified: time.Now(),
+		})
+
 		if err != nil {
 			return err
 		}
@@ -1397,7 +1401,7 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	return nil
 }
 
-func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
+func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -1443,7 +1447,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
 }
 
-func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error {
 	// We don't process images.
 	if fileInfo.IsImage() {
 		return nil
@@ -1454,7 +1458,7 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
 	}
 	defer file.Close()
-	text, err := docextractor.Extract(fileInfo.Name, file, docextractor.ExtractSettings{
+	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 	})
 	if err != nil {

@@ -28,6 +28,7 @@ linters:
     - misspell
     - goimports
     - makezero
+    - whitespace
     # TODO: enable this later
     # - errcheck
 

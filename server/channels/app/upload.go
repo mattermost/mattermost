@@ -156,7 +156,7 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 }
 
 func (a *App) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
-	us, err := a.Srv().Store().UploadSession().Get(c.Context(), uploadId)
+	us, err := a.Srv().Store().UploadSession().Get(c, uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -203,7 +203,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}()
 
 	// fetch the session from store to check for inconsistencies.
-	c.SetContext(WithMaster(c.Context()))
+	c = c.With(RequestContextWithMaster)
 	if storedSession, err := a.GetUploadSession(c, us.Id); err != nil {
 		return nil, err
 	} else if us.FileOffset != storedSession.FileOffset {
@@ -319,16 +319,16 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
 
 	// delete upload session
 	if storeErr := a.Srv().Store().UploadSession().Delete(us.Id); storeErr != nil {
-		mlog.Warn("Failed to delete UploadSession", mlog.Err(storeErr))
+		c.Logger().Warn("Failed to delete UploadSession", mlog.Err(storeErr))
 	}
 
 	return info, nil

@@ -123,7 +123,6 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		if !cnd.Audience.Matches(isSystemAdmin, isTeamAdmin) {
 			return false, nil
 		}
-
 	}
 
 	// check user count condition against previously calculated total user count
@@ -230,7 +229,7 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue any) boo
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *App) GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+func (a *App) GetProductNotices(c request.CTX, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
 	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionManageTeam)
 
