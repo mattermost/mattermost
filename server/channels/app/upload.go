@@ -203,7 +203,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}()
 
 	// fetch the session from store to check for inconsistencies.
-	c.SetContext(WithMaster(c.Context()))
+	c = c.With(RequestContextWithMaster)
 	if storedSession, err := a.GetUploadSession(c, us.Id); err != nil {
 		return nil, err
 	} else if us.FileOffset != storedSession.FileOffset {
@@ -318,11 +318,10 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
-		crctx := c.Clone()
 		a.Srv().Go(func() {
-			err := a.ExtractContentFromFileInfo(crctx, &infoCopy)
+			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
-				crctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
