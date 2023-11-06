@@ -1666,7 +1666,9 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 		}
 	} else {
 		a.Srv().Go(func() {
-			a.PostAddToChannelMessage(c, userRequestor, user, channel, opts.PostRootID)
+			if err := a.PostAddToChannelMessage(c, userRequestor, user, channel, opts.PostRootID); err != nil {
+				c.Logger().Error("Failed to post AddToChannel message", mlog.Err(err))
+			}
 		})
 	}
 
@@ -2363,7 +2365,9 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 	}
 
 	a.Srv().Go(func() {
-		a.postLeaveChannelMessage(c, user, channel)
+		if err := a.postLeaveChannelMessage(c, user, channel); err != nil {
+			c.Logger().Error("Failed to post LeaveChannel message", mlog.Err(err))
+		}
 	})
 
 	return nil
@@ -3458,8 +3462,8 @@ func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) error {
 	return nil
 }
 
-func (a *App) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
-	channelMemberCounts, err := a.Srv().Store().Channel().GetMemberCountsByGroup(ctx, channelID, includeTimezones)
+func (a *App) GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+	channelMemberCounts, err := a.Srv().Store().Channel().GetMemberCountsByGroup(rctx.Context(), channelID, includeTimezones)
 	if err != nil {
 		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
