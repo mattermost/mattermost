@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -33,8 +34,9 @@ type BatchMigrationWorker struct {
 	store     store.Store
 	app       BatchMigrationWorkerAppIFace
 
-	stop    chan bool
+	stop    chan struct{}
 	stopped chan bool
+	closed  atomic.Bool
 	jobs    chan model.Job
 
 	migrationKey       string
@@ -49,7 +51,7 @@ func MakeBatchMigrationWorker(jobServer *JobServer, store store.Store, app Batch
 		logger:             jobServer.Logger().With(mlog.String("worker_name", migrationKey)),
 		store:              store,
 		app:                app,
-		stop:               make(chan bool, 1),
+		stop:               make(chan struct{}),
 		stopped:            make(chan bool, 1),
 		jobs:               make(chan model.Job),
 		migrationKey:       migrationKey,
@@ -64,7 +66,9 @@ func (worker *BatchMigrationWorker) Run() {
 	worker.logger.Debug("Worker started")
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
-	worker.stop = make(chan bool, 1)
+	if worker.closed.CompareAndSwap(true, false) {
+		worker.stop = make(chan struct{})
+	}
 
 	defer func() {
 		worker.logger.Debug("Worker finished")
@@ -84,6 +88,11 @@ func (worker *BatchMigrationWorker) Run() {
 
 // Stop interrupts the worker even if the migration has not yet completed.
 func (worker *BatchMigrationWorker) Stop() {
+	// Set to close, and if already closed before, then return.
+	if !worker.closed.CompareAndSwap(false, true) {
+		return
+	}
+
 	worker.logger.Debug("Worker stopping")
 	close(worker.stop)
 	<-worker.stopped
