@@ -16,6 +16,7 @@ export BROWSER_DEFAULT="chrome"
 export SERVER_DEFAULT="self-hosted"
 export TEST_DEFAULT="cypress"
 export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
+export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke'
 # OS specific defaults overrides
 case $MME2E_OSTYPE in
   darwin )
@@ -29,6 +30,7 @@ export BROWSER=${BROWSER:-$BROWSER_DEFAULT}
 export SERVER=${SERVER:-$SERVER_DEFAULT}
 export TEST=${TEST:-$TEST_DEFAULT}
 export ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES:-$ENABLED_DOCKER_SERVICES_DEFAULT}
+export TEST_FILTER=${TEST_FILTER:-$TEST_FILTER_DEFAULT}
 
 # Function definitions
 mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%Z)]" "$@"; }
