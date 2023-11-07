@@ -109,6 +109,7 @@ type SqlStoreStores struct {
 	postPersistentNotification store.PostPersistentNotificationStore
 	trueUpReview               store.TrueUpReviewStore
 	desktopTokens              store.DesktopTokensStore
+	channelBookmarks           store.ChannelBookmarkStore
 }
 
 type SqlStore struct {
@@ -231,6 +232,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*Sql
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
+	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1074,6 +1076,10 @@ func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
 
 func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
 	return ss.stores.desktopTokens
+}
+
+func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
+	return ss.stores.channelBookmarks
 }
 
 func (ss *SqlStore) DropAllTables() {

@@ -34,12 +34,18 @@ type ChannelBookmark struct {
 
 type ChannelBookmarkWithFileInfo struct {
 	ChannelBookmark
-	FileInfo FileInfo `json:"file,omitempty"`
+	FileInfo *FileInfo `json:"file,omitempty"`
 }
 
 type ChannelWithBookmarks struct {
 	Channel
 	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
+}
+
+// Clone returns a shallow copy of the channel bookmark.
+func (b *ChannelBookmark) Clone() *ChannelBookmark {
+	bCopy := *b
+	return &bCopy
 }
 
 func (o *ChannelBookmark) Etag() string {
@@ -113,4 +119,32 @@ func (o *ChannelBookmark) PreSave() {
 func (o *ChannelBookmark) PreUpdate() {
 	o.UpdateAt = GetMillis()
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
+}
+
+func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWithFileInfo {
+	bwf := ChannelBookmarkWithFileInfo{
+		ChannelBookmark: ChannelBookmark{
+			Id:          o.Id,
+			CreateAt:    o.CreateAt,
+			UpdateAt:    o.UpdateAt,
+			DeleteAt:    o.DeleteAt,
+			ChannelId:   o.ChannelId,
+			OwnerId:     o.OwnerId,
+			FileId:      o.FileId,
+			DisplayName: o.DisplayName,
+			SortOrder:   o.SortOrder,
+			LinkUrl:     o.LinkUrl,
+			ImageUrl:    o.ImageUrl,
+			Emoji:       o.Emoji,
+			Type:        o.Type,
+			OriginalId:  o.OriginalId,
+			ParentId:    o.ParentId,
+		},
+	}
+
+	if f != nil && f.Id != "" {
+		bwf.FileInfo = f
+	}
+
+	return &bwf
 }
