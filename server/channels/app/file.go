@@ -722,7 +722,7 @@ func (t *UploadFileTask) init(a *App) {
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
-	c.SetLogger(c.Logger().With(
+	c.WithLogger(c.Logger().With(
 		mlog.String("file_name", name),
 	))
 
@@ -1190,10 +1190,9 @@ func (a *App) generateMiniPreviewForInfos(rctx request.CTX, fileInfos []*model.F
 
 	wg.Add(len(fileInfos))
 	for _, fileInfo := range fileInfos {
-		crctx := rctx.Clone()
 		go func(fi *model.FileInfo) {
 			defer wg.Done()
-			a.generateMiniPreview(crctx, fi)
+			a.generateMiniPreview(rctx, fi)
 		}(fileInfo)
 	}
 	wg.Wait()
