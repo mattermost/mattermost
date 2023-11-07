@@ -144,7 +144,7 @@ PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.7.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
@@ -515,14 +515,13 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
+test-data: export MM_SERVICESETTINGS_ENABLELOCALMODE := true
 test-data: run-server inject-test-data stop-server ## start a local instance and add test data to it.
 
 inject-test-data: # add test data to the local instance.
 	@if ! ./scripts/wait-for-system-start.sh; then \
 		make stop-server; \
 	fi
-
-	@echo ServiceSettings.EnableLocalMode must be set to true.
 
 	bin/mmctl config set TeamSettings.MaxUsersPerTeam 100 --local
 	bin/mmctl sampledata -u 60 --local
