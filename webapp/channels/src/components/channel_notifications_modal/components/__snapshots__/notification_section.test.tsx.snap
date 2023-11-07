@@ -29,8 +29,8 @@ exports[`components/channel_notifications_modal/NotificationSection should match
   onChangeNotificationSound={[Function]}
   onChangeThreads={[Function]}
   onCollapseSection={[Function]}
-  onReset={[Function]}
-  onSubmit={[Function]}
+  onReset={[MockFunction]}
+  onSubmit={[MockFunction]}
   section="desktop"
   serverError=""
 />
@@ -38,7 +38,6 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, MARK_UNREAD on collapsed view 1`] = `
 <CollapseView
-  globalNotifyLevel={null}
   memberNotifyLevel="all"
   onExpandSection={[Function]}
   section="markUnread"
@@ -47,7 +46,6 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, MARK_UNREAD on expanded view 1`] = `
 <ExpandView
-  globalNotifyLevel={null}
   isGM={false}
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
@@ -56,8 +54,8 @@ exports[`components/channel_notifications_modal/NotificationSection should match
   onChangeNotificationSound={[Function]}
   onChangeThreads={[Function]}
   onCollapseSection={[Function]}
-  onReset={[Function]}
-  onSubmit={[Function]}
+  onReset={[MockFunction]}
+  onSubmit={[MockFunction]}
   section="markUnread"
   serverError=""
 />
@@ -83,8 +81,8 @@ exports[`components/channel_notifications_modal/NotificationSection should match
   onChangeNotificationSound={[Function]}
   onChangeThreads={[Function]}
   onCollapseSection={[Function]}
-  onReset={[Function]}
-  onSubmit={[Function]}
+  onReset={[MockFunction]}
+  onSubmit={[MockFunction]}
   section="push"
   serverError=""
 />
