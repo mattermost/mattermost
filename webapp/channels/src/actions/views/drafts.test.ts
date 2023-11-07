@@ -137,7 +137,7 @@ describe('draft actions', () => {
         const draft = {message: 'test', channelId, fileInfos: [{id: 1}], uploadsInProgress: [2, 3]} as unknown as PostDraft;
 
         it('calls setGlobalItem action correctly', async () => {
-            jest.useFakeTimers('modern');
+            jest.useFakeTimers();
             jest.setSystemTime(42);
 
             await store.dispatch(updateDraft(key, draft, '', false));
