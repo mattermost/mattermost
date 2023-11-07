@@ -8,7 +8,8 @@ import type {Post} from '@mattermost/types/posts';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     getMyGroupMentionKeysForChannel,
     getMyGroupMentionKeys,
@@ -19,7 +20,8 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys, getHighlightWithoutNotificationKeys} from 'mattermost-redux/selectors/entities/users';
 
 import {canManageMembers} from 'utils/channel_utils';
-import {Preferences} from 'utils/constants';
+import {Preferences, CloudProducts, SelfHostedProducts} from 'utils/constants';
+import {isCloudLicense} from 'utils/license_utils';
 import type {MentionKey} from 'utils/text_formatting';
 
 import type {GlobalState} from 'types/store';
@@ -60,6 +62,21 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: OwnProps) => {
         const channel = getChannel(state, ownProps.channelId);
         const currentTeam = getCurrentTeam(state) || {};
+
+        const license = getLicense(state);
+        const subscriptionProduct = getSubscriptionProduct(state);
+
+        const config = getConfig(state);
+        const isCloud = isCloudLicense(license);
+        const isCloudStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
+
+        const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+        const isSelfHostedStarter = isEnterpriseReady && (license.IsLicensed === 'false');
+
+        const isStarterSKULicense = license.IsLicensed === 'true' && license.SelfHostedProducts === SelfHostedProducts.STARTER;
+
+        const isStarterFree = isCloudStarterFree || isSelfHostedStarter || isStarterSKULicense;
+
         return {
             channel,
             currentTeam,
@@ -71,6 +88,8 @@ function makeMapStateToProps() {
             isMilitaryTime: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
             timezone: getCurrentTimezone(state),
             hideGuestTags: getConfig(state).HideGuestTags === 'true',
+            isStarterFree,
+            isEnterpriseReady,
         };
     };
 }

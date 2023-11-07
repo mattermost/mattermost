@@ -1005,7 +1005,10 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
 
         let collapsedDescription = '';
-        if (this.state.customKeysWithHighlight.length > 0) {
+        if (this.props.isStarterFree && this.props.isEnterpriseReady) {
+            // We hide if the keywords were previously selected but the user is no longer on the Professional plan
+            collapsedDescription = this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.none', defaultMessage: 'None'});
+        } else if (this.state.customKeysWithHighlight.length > 0) {
             const customKeysWithHighlightStringArray = this.state.customKeysWithHighlight.map((key) => key.value);
             collapsedDescription = customKeysWithHighlightStringArray.map((key) => `"${key}"`).join(', ');
         } else {
@@ -1014,7 +1017,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         const collapsedEditButtonWhenDisabled = (
             <RestrictedIndicator
-                blocked={this.props.isStarterFree}
+                blocked={this.props.isStarterFree && this.props.isEnterpriseReady}
                 feature={MattermostFeatures.HIGHLIGHT_WITHOUT_NOTIFICATION}
                 minimumPlanRequiredForFeature={LicenseSkus.Professional}
                 tooltipTitle={this.props.intl.formatMessage({
@@ -1075,7 +1078,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 describe={collapsedDescription}
                 updateSection={this.handleUpdateSection}
                 max={expandedSection}
-                isDisabled={this.props.isStarterFree}
+                isDisabled={this.props.isStarterFree && this.props.isEnterpriseReady}
                 collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
             />);
     };

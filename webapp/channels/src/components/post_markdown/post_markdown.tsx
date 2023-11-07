@@ -104,13 +104,18 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             this.props.post?.edit_at,
         );
 
+        let highlightKeys;
+        if (!this.props.isStarterFree && this.props.isEnterpriseReady) {
+            highlightKeys = this.props.highlightKeys;
+        }
+
         return (
             <Markdown
                 imageProps={this.props.imageProps}
                 message={message}
                 proxyImages={proxyImages}
                 mentionKeys={this.props.mentionKeys}
-                highlightKeys={this.props.highlightKeys}
+                highlightKeys={highlightKeys}
                 options={options}
                 channelNamesMap={channelNamesMap}
                 hasPluginTooltips={this.props.hasPluginTooltips}

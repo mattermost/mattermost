@@ -29,6 +29,8 @@ describe('components/PostMarkdown', () => {
         highlightKeys: [],
         hasPluginTooltips: false,
         isUserCanManageMembers: false,
+        isStarterFree: true,
+        isEnterpriseReady: false,
         dispatch: jest.fn(),
     };
 

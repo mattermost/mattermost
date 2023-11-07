@@ -1340,14 +1340,6 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if mention_keys has correct license
-	if highlightKeys, ok := patch.NotifyProps[model.HighlightsNotifyProp]; ok && highlightKeys != "" {
-		if permissionErr := minimumProfessionalLicense(c); permissionErr != nil {
-			c.Err = permissionErr
-			return
-		}
-	}
-
 	ouser, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.SetInvalidParam("user_id")

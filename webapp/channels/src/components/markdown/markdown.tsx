@@ -24,7 +24,7 @@ export type OwnProps = {
     /*
      * Any additional text formatting options to be used
      */
-    options: Partial<TextFormattingOptions>;
+    options?: Partial<TextFormattingOptions>;
 
     /**
      * Whether or not to proxy image URLs
@@ -69,7 +69,7 @@ export type OwnProps = {
     /*
      * The text to be rendered
      */
-    message: string;
+    message?: string;
 }
 
 type Props = PropsFromRedux & OwnProps;
@@ -112,7 +112,7 @@ export default class Markdown extends React.PureComponent<Props> {
             postId,
         }, this.props.options);
 
-        const htmlFormattedText = formatText(message, options, this.props.emojiMap);
+        const htmlFormattedText = formatText(message || '', options, this.props.emojiMap);
 
         return messageHtmlToComponent(htmlFormattedText, {
             imageProps: this.props.imageProps,
@@ -123,11 +123,11 @@ export default class Markdown extends React.PureComponent<Props> {
             messageMetadata: this.props.messageMetadata,
             channelId: this.props.channelId,
             postType: this.props.postType,
-            mentionHighlight: this.props.options.mentionHighlight,
-            disableGroupHighlight: this.props.options.disableGroupHighlight,
+            mentionHighlight: this.props?.options?.mentionHighlight,
+            disableGroupHighlight: this.props?.options?.disableGroupHighlight,
             editedAt,
-            atSumOfMembersMentions: this.props.options.atSumOfMembersMentions,
-            atPlanMentions: this.props.options.atPlanMentions,
+            atSumOfMembersMentions: this.props?.options?.atSumOfMembersMentions,
+            atPlanMentions: this.props?.options?.atPlanMentions,
         });
     }
 }
