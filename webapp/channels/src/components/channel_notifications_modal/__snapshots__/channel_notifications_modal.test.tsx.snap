@@ -76,7 +76,6 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             onSubmit={[Function]}
             onUpdateSection={[Function]}
             section="markUnread"
-            serverError={null}
           />
           <div
             className="divider-light"
@@ -90,7 +89,6 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             onSubmit={[Function]}
             onUpdateSection={[Function]}
             section="ignoreChannelMentions"
-            serverError={null}
           />
           <div>
             <div
@@ -114,7 +112,6 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
               onSubmit={[Function]}
               onUpdateSection={[Function]}
               section="desktop"
-              serverError={null}
             />
             <div
               className="divider-light"
@@ -132,7 +129,6 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
               onSubmit={[Function]}
               onUpdateSection={[Function]}
               section="push"
-              serverError={null}
             />
           </div>
           <div
@@ -148,7 +144,6 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             onSubmit={[Function]}
             onUpdateSection={[Function]}
             section="channelAutoFollowThreads"
-            serverError={null}
           />
           <div
             className="divider-dark"
@@ -236,7 +231,6 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             onSubmit={[Function]}
             onUpdateSection={[Function]}
             section="markUnread"
-            serverError={null}
           />
           <div
             className="divider-light"
@@ -250,7 +244,6 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             onSubmit={[Function]}
             onUpdateSection={[Function]}
             section="ignoreChannelMentions"
-            serverError={null}
           />
           <div>
             <div
@@ -274,7 +267,6 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
               onSubmit={[Function]}
               onUpdateSection={[Function]}
               section="desktop"
-              serverError={null}
             />
             <div
               className="divider-light"
@@ -292,7 +284,6 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
               onSubmit={[Function]}
               onUpdateSection={[Function]}
               section="push"
-              serverError={null}
             />
           </div>
           <div
