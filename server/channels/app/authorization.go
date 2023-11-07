@@ -156,18 +156,6 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 				}
 			}
 		}
-		channel, appErr := a.GetChannel(c, channelID)
-		if appErr != nil && appErr.StatusCode == http.StatusNotFound {
-			return false
-		}
-
-		if appErr == nil && channel.TeamId != "" {
-			// check team membership
-			if a.SessionHasPermissionToTeam(session, channel.TeamId, permission) {
-				continue
-			}
-		}
-
 		return false
 	}
 	return true
