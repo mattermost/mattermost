@@ -105,7 +105,7 @@ type AppIface interface {
 	// their zero values.
 	CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError)
 	// Creates and stores FileInfos for a post created before the FileInfos table existed.
-	MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo
+	MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo
 	// DefaultChannelNames returns the list of system-wide default channel names.
 	//
 	// By default the list will be (not necessarily in this order):
@@ -165,7 +165,7 @@ type AppIface interface {
 	FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error)
 	// GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 	// filter.
-	GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
+	GetAllLdapGroupsPage(rctx request.CTX, page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
 	// GetBot returns the given bot.
 	GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError)
 	// GetBots returns the requested page of bots.
@@ -185,7 +185,7 @@ type AppIface interface {
 	// If filter is not nil and returns false for a struct field, that field will be omitted.
 	GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]any
 	// GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-	GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError)
+	GetFileInfosForPost(rctx request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError)
 	// GetFilteredUsersStats is used to get a count of users based on the set of filters supported by UserCountOptions.
 	GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError)
 	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
@@ -199,7 +199,7 @@ type AppIface interface {
 	// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 	GetLastAccessiblePostTime() (int64, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
-	GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError)
+	GetLdapGroup(rctx request.CTX, ldapGroupID string) (*model.Group, *model.AppError)
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 	// and plugins that are installed locally.
 	GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError)
@@ -523,7 +523,7 @@ type AppIface interface {
 	DeleteBrandImage() *model.AppError
 	DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	DeleteCommand(commandID string) *model.AppError
-	DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError)
+	DeleteDraft(rctx request.CTX, userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError)
 	DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError
 	DeleteEphemeralPost(userID, postID string)
 	DeleteExport(name string) *model.AppError
@@ -553,7 +553,7 @@ type AppIface interface {
 	DoEmojisPermissionsMigration()
 	DoGuestRolesCreationMigration()
 	DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
-	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError
+	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError)
 	DoPostAction(c request.CTX, postID, actionId, userID, selectedOption string) (string, *model.AppError)
 	DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoSystemConsoleRolesCreationMigration()
@@ -641,16 +641,16 @@ type AppIface interface {
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError)
 	GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError)
-	GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.AppError)
+	GetDraftsForUser(rctx request.CTX, userID, teamID string) ([]*model.Draft, *model.AppError)
 	GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError)
 	GetEmoji(c request.CTX, emojiId string) (*model.Emoji, *model.AppError)
 	GetEmojiByName(c request.CTX, emojiName string) (*model.Emoji, *model.AppError)
 	GetEmojiImage(c request.CTX, emojiId string) ([]byte, string, *model.AppError)
 	GetEmojiList(c request.CTX, page, perPage int, sort string) ([]*model.Emoji, *model.AppError)
-	GetFile(fileID string) ([]byte, *model.AppError)
-	GetFileInfo(fileID string) (*model.FileInfo, *model.AppError)
-	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
-	GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
+	GetFile(rctx request.CTX, fileID string) ([]byte, *model.AppError)
+	GetFileInfo(rctx request.CTX, fileID string) (*model.FileInfo, *model.AppError)
+	GetFileInfos(rctx request.CTX, page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+	GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError)
@@ -687,7 +687,7 @@ type AppIface interface {
 	GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
 	GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError)
 	GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError)
-	GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
+	GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
 	GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Emoji, *model.AppError)
 	GetNewUsersForTeamPage(teamID string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
@@ -855,11 +855,10 @@ type AppIface interface {
 	GetWarnMetricsBot() (*model.Bot, *model.AppError)
 	GetWarnMetricsStatus(rctx request.CTX) (map[string]*model.WarnMetricStatus, *model.AppError)
 	HTTPService() httpservice.HTTPService
-	Handle404(w http.ResponseWriter, r *http.Request)
 	HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
 	HandleCommandResponsePost(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError)
 	HandleCommandWebhook(c request.CTX, hookID string, response *model.CommandResponse) *model.AppError
-	HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte)
+	HandleImages(rctx request.CTX, previewPathList []string, thumbnailPathList []string, fileData [][]byte)
 	HandleIncomingWebhook(c request.CTX, hookID string, req *model.IncomingWebhookRequest) *model.AppError
 	HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 	HasPermissionTo(askingUserId string, permission *model.Permission) bool
@@ -1100,7 +1099,7 @@ type AppIface interface {
 	TestEmail(userID string, cfg *model.Config) *model.AppError
 	TestFileStoreConnection() *model.AppError
 	TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError
-	TestLdap() *model.AppError
+	TestLdap(rctx request.CTX) *model.AppError
 	TestSiteURL(siteURL string) *model.AppError
 	Timezones() *timezones.Timezones
 	ToggleMuteChannel(c request.CTX, channelID, userID string) (*model.ChannelMember, *model.AppError)
