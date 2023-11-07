@@ -72,7 +72,8 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
     calculateInputRect = () => {
         if (this.props.inputRef.current) {
             const rect = this.props.inputRef.current.getBoundingClientRect();
-            return {top: rect.top, bottom: rect.bottom, width: rect.width};
+            const rectHeight = rect.bottom - rect.top;
+            return {top: rect.top - (2.1 * rectHeight), bottom: rect.bottom + (1.8 * rectHeight), width: rect.width};
         }
         return {top: 0, bottom: 0, width: 0};
     };
