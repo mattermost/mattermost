@@ -1,58 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import ipaddr from 'ipaddr.js';
+
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-/**
-* Checks if an IP address is within a list of allowed IP ranges.
-* @param ipAddress The IP address to check.
-* @param allowedIPRanges The list of allowed IP ranges.
-* @returns True if the IP address is within an allowed IP range, false otherwise.
-*/
 export function isIPAddressInRanges(ipAddress: string, allowedIPRanges: AllowedIPRange[]): boolean {
-    // Check if the IP address is IPv4 or IPv6
-    const isIPv4 = ipAddress.includes('.');
-    const isIPv6 = ipAddress.includes(':');
+    const usersAddr = ipaddr.parse(ipAddress);
 
-    if (!isIPv4 && !isIPv6) {
-        return false;
-    }
-
-    // Convert the IP address to a number
-    const ipAddressNumber = isIPv4 ?
-        ipAddress.split('.').reduce((acc, val) => (acc << 8) + parseInt(val, 10), 0) :
-        ipAddress.split(':').reduce((acc, val) => (acc << 16) + parseInt(val, 16), 0);
-
-    // Check if the IP address is encapsulated by any of the allowed IP ranges
     for (const allowedIPRange of allowedIPRanges) {
-        // Split the CIDR block and subnet mask from the allowed IP range
-        const [cidrBlock, subnetMask] = allowedIPRange.cidr_block.split('/');
+        const cidrBlock = allowedIPRange.cidr_block;
+        const [addr, mask] = ipaddr.parseCIDR(cidrBlock);
 
-        // Convert the CIDR block to a number
-        const cidrBlockNumber = isIPv4 ?
-            cidrBlock.split('.').reduce((acc, val) => (acc << 8) + parseInt(val, 10), 0) :
-            cidrBlock.split(':').reduce((acc, val) => (acc << 16) + parseInt(val, 16), 0);
+        if (usersAddr.kind() !== addr.kind()) {
+            // We can only compare ipv4 to ipv4 and ipv6 to ipv6, cannot compare ipv4 to ipv6
+            continue;
+        }
 
-        // Convert the subnet mask to a number
-        const subnetMaskNumber = parseInt(subnetMask, 10);
-
-        try {
-            // Calculate the subnet mask bits
-            const subnetMaskBits = isIPv4 ?
-                (1 << 32 - subnetMaskNumber) - 1 :
-                (1 << 128 - subnetMaskNumber) - 1;
-
-            // Invert the subnet mask bits to get the subnet mask number inverted
-            const subnetMaskNumberInverted = ~subnetMaskBits;
-
-            // Check if the IP address is within the current allowed IP range
-            if ((ipAddressNumber & subnetMaskNumberInverted) === (cidrBlockNumber & subnetMaskNumberInverted)) {
-                return true;
-            }
-        } catch (e) {
-            return false;
+        if (usersAddr.match([addr, mask])) {
+            return true;
         }
     }
 
     return false;
+}
+
+export function validateCIDR(cidr: string) {
+    try {
+        ipaddr.parseCIDR(cidr);
+    } catch (e) {
+        return false;
+    }
+
+    return true;
 }

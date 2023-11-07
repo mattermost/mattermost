@@ -3294,7 +3294,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/ip_filtering',
                 title: t('admin.sidebar.ip_filtering'),
                 title_default: 'IP Filtering',
-                isHidden: it.configIsFalse('FeatureFlags', 'CloudIPFiltering'),
+                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.licensedForSku('enterprise'))),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
                 searchableStrings: [
                     'admin.sidebar.ip_filtering',

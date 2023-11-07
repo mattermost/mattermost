@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import cidrRegex from 'cidr-regex';
 import React, {useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -14,16 +13,13 @@ import type {CustomMessageInputType} from 'components/widgets/inputs/input/input
 import Input from 'components/widgets/inputs/input/input';
 
 import './add_edit_ip_filter_modal.scss';
+import {validateCIDR} from './ip_filtering_utils';
 
 type Props = {
     onExited: () => void;
     onSave: (allowedIPRange: AllowedIPRange, oldIPRange?: AllowedIPRange) => void;
     existingRange?: AllowedIPRange;
     currentIP?: string;
-}
-
-function validateCIDR(cidr: string) {
-    return cidrRegex.v4({exact: true}).test(cidr) || cidrRegex.v6({exact: true}).test(cidr);
 }
 
 export default function IPFilteringAddOrEditModal({onExited, onSave, existingRange, currentIP}: Props) {
