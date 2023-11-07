@@ -41,7 +41,7 @@ import {
 
 export {getCurrentUser, getCurrentUserId, getUsers};
 
-type Filters = {
+export type Filters = {
     role?: string;
     inactive?: boolean;
     active?: boolean;

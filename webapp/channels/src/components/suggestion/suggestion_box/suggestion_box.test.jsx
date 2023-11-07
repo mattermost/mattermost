@@ -4,7 +4,7 @@
 import {shallow, mount} from 'enzyme';
 import React from 'react';
 
-import AtMentionProvider from 'components/suggestion/at_mention_provider/at_mention_provider.jsx';
+import AtMentionProvider from 'components/suggestion/at_mention_provider/at_mention_provider';
 import CommandProvider from 'components/suggestion/command_provider/command_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
