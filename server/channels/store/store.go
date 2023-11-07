@@ -577,11 +577,11 @@ type OAuthStore interface {
 }
 
 type OAuthOutgoingConnectionStore interface {
-	SaveConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)
-	UpdateConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)
-	GetConnection(c request.CTX, id string) (*model.OAuthOutgoingConnection, error)
-	GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error)
-	DeleteConnection(c request.CTX, id string) error
+	DeleteConnection(rctx request.CTX, id string) error
+	GetConnection(rctx request.CTX, id string) (*model.OAuthOutgoingConnection, error)
+	GetConnections(rctx request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error)
+	SaveConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)
+	UpdateConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)
 }
 
 type SystemStore interface {
