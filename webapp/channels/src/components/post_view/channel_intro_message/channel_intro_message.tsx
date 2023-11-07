@@ -59,120 +59,6 @@ class ChannelIntroMessage extends React.PureComponent<Props> {
         }
     }
 
-    createDefaultIntroMessage(
-        channel: Channel,
-        centeredIntro: string,
-        stats: any,
-        usersLimit: number,
-        enableUserCreation?: boolean,
-        isReadOnly?: boolean,
-        teamIsGroupConstrained?: boolean,
-    ) {
-        let teamInviteLink = null;
-        const totalUsers = stats.total_users_count;
-        const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
-    
-        let setHeaderButton = null;
-        let pluginButtons = null;
-        if (!isReadOnly) {
-            pluginButtons = <PluggableIntroButtons channel={channel}/>;
-            const children = createSetHeaderButton(channel);
-            if (children) {
-                setHeaderButton = (
-                    <ChannelPermissionGate
-                        teamId={channel.team_id}
-                        channelId={channel.id}
-                        permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]}
-                    >
-                        {children}
-                    </ChannelPermissionGate>
-                );
-            }
-        }
-    
-        if (!isReadOnly && enableUserCreation) {
-            teamInviteLink = (
-                <TeamPermissionGate
-                    teamId={channel.team_id}
-                    permissions={[Permissions.INVITE_USER]}
-                >
-                    <TeamPermissionGate
-                        teamId={channel.team_id}
-                        permissions={[Permissions.ADD_USER_TO_TEAM]}
-                    >
-                        {!teamIsGroupConstrained &&
-                            <AddMembersButton
-                                setHeader={setHeaderButton}
-                                totalUsers={totalUsers}
-                                usersLimit={usersLimit}
-                                channel={channel}
-                                pluginButtons={pluginButtons}
-                            />
-                        }
-                        {teamIsGroupConstrained &&
-                        <ToggleModalButton
-                            className='intro-links color--link'
-                            modalId={ModalIdentifiers.ADD_GROUPS_TO_TEAM}
-                            dialogType={AddGroupsToTeamModal}
-                            dialogProps={{channel}}
-                        >
-                            <i
-                                className='fa fa-user-plus'
-                                title={this.props.intl.formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
-                            />
-                            <FormattedMessage
-                                id='intro_messages.addGroupsToTeam'
-                                defaultMessage='Add other groups to this team'
-                            />
-                        </ToggleModalButton>
-                        }
-                    </TeamPermissionGate>
-                </TeamPermissionGate>
-            );
-        }
-    
-        return (
-            <div
-                id='channelIntro'
-                className={'channel-intro ' + centeredIntro}
-            >
-                <h2 className='channel-intro__title'>
-                    <FormattedMessage
-                        id='intro_messages.beginning'
-                        defaultMessage='Beginning of {name}'
-                        values={{
-                            name: channel.display_name,
-                        }}
-                    />
-                </h2>
-                <p className='channel-intro__content'>
-                    {!isReadOnly &&
-                        <FormattedMarkdownMessage
-                            id='intro_messages.default'
-                            defaultMessage='**Welcome to {display_name}!**\n \nPost messages here that you want everyone to see. Everyone automatically becomes a permanent member of this channel when they join the team.'
-                            values={{
-                                display_name: channel.display_name,
-                            }}
-                        />
-                    }
-                    {isReadOnly &&
-                        <FormattedMarkdownMessage
-                            id='intro_messages.readonly.default'
-                            defaultMessage='**Welcome to {display_name}!**\n \nMessages can only be posted by system admins. Everyone automatically becomes a permanent member of this channel when they join the team.'
-                            values={{
-                                display_name: channel.display_name,
-                            }}
-                        />
-                    }
-                </p>
-                {teamInviteLink}
-                {teamIsGroupConstrained && pluginButtons}
-                {teamIsGroupConstrained && setHeaderButton}
-                <br/>
-            </div>
-        );
-    }
-
     render() {
         const {
             currentUserId,
@@ -201,7 +87,7 @@ class ChannelIntroMessage extends React.PureComponent<Props> {
         } else if (channel.type === Constants.GM_CHANNEL) {
             return createGMIntroMessage(channel, centeredIntro, channelProfiles, currentUserId, channelMember);
         } else if (channel.name === Constants.DEFAULT_CHANNEL) {
-            return this.createDefaultIntroMessage(channel, centeredIntro, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained);
+            return createDefaultIntroMessage(channel, centeredIntro, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained, this.props.intl);
         } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
             return createOffTopicIntroMessage(channel, centeredIntro, stats, usersLimit);
         } else if (channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL) {
@@ -428,6 +314,121 @@ function createOffTopicIntroMessage(channel: Channel, centeredIntro: string, sta
                 />
             </p>
             {channelInviteButton}
+        </div>
+    );
+}
+
+createDefaultIntroMessage(
+    channel: Channel,
+    centeredIntro: string,
+    stats: any,
+    usersLimit: number,
+    enableUserCreation?: boolean,
+    isReadOnly?: boolean,
+    teamIsGroupConstrained?: boolean,
+    intl: IntlShape,
+) {
+    let teamInviteLink = null;
+    const totalUsers = stats.total_users_count;
+    const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
+
+    let setHeaderButton = null;
+    let pluginButtons = null;
+    if (!isReadOnly) {
+        pluginButtons = <PluggableIntroButtons channel={channel}/>;
+        const children = createSetHeaderButton(channel);
+        if (children) {
+            setHeaderButton = (
+                <ChannelPermissionGate
+                    teamId={channel.team_id}
+                    channelId={channel.id}
+                    permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]}
+                >
+                    {children}
+                </ChannelPermissionGate>
+            );
+        }
+    }
+
+    if (!isReadOnly && enableUserCreation) {
+        teamInviteLink = (
+            <TeamPermissionGate
+                teamId={channel.team_id}
+                permissions={[Permissions.INVITE_USER]}
+            >
+                <TeamPermissionGate
+                    teamId={channel.team_id}
+                    permissions={[Permissions.ADD_USER_TO_TEAM]}
+                >
+                    {!teamIsGroupConstrained &&
+                        <AddMembersButton
+                            setHeader={setHeaderButton}
+                            totalUsers={totalUsers}
+                            usersLimit={usersLimit}
+                            channel={channel}
+                            pluginButtons={pluginButtons}
+                        />
+                    }
+                    {teamIsGroupConstrained &&
+                    <ToggleModalButton
+                        className='intro-links color--link'
+                        modalId={ModalIdentifiers.ADD_GROUPS_TO_TEAM}
+                        dialogType={AddGroupsToTeamModal}
+                        dialogProps={{channel}}
+                    >
+                        <i
+                            className='fa fa-user-plus'
+                            title={intl.formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
+                        />
+                        <FormattedMessage
+                            id='intro_messages.addGroupsToTeam'
+                            defaultMessage='Add other groups to this team'
+                        />
+                    </ToggleModalButton>
+                    }
+                </TeamPermissionGate>
+            </TeamPermissionGate>
+        );
+    }
+
+    return (
+        <div
+            id='channelIntro'
+            className={'channel-intro ' + centeredIntro}
+        >
+            <h2 className='channel-intro__title'>
+                <FormattedMessage
+                    id='intro_messages.beginning'
+                    defaultMessage='Beginning of {name}'
+                    values={{
+                        name: channel.display_name,
+                    }}
+                />
+            </h2>
+            <p className='channel-intro__content'>
+                {!isReadOnly &&
+                    <FormattedMarkdownMessage
+                        id='intro_messages.default'
+                        defaultMessage='**Welcome to {display_name}!**\n \nPost messages here that you want everyone to see. Everyone automatically becomes a permanent member of this channel when they join the team.'
+                        values={{
+                            display_name: channel.display_name,
+                        }}
+                    />
+                }
+                {isReadOnly &&
+                    <FormattedMarkdownMessage
+                        id='intro_messages.readonly.default'
+                        defaultMessage='**Welcome to {display_name}!**\n \nMessages can only be posted by system admins. Everyone automatically becomes a permanent member of this channel when they join the team.'
+                        values={{
+                            display_name: channel.display_name,
+                        }}
+                    />
+                }
+            </p>
+            {teamInviteLink}
+            {teamIsGroupConstrained && pluginButtons}
+            {teamIsGroupConstrained && setHeaderButton}
+            <br/>
         </div>
     );
 }
