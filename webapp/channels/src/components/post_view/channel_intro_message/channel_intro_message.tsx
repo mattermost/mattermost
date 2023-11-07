@@ -318,7 +318,7 @@ function createOffTopicIntroMessage(channel: Channel, centeredIntro: string, sta
     );
 }
 
-createDefaultIntroMessage(
+function createDefaultIntroMessage(
     channel: Channel,
     centeredIntro: string,
     stats: any,
