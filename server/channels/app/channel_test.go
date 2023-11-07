@@ -2152,7 +2152,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	mockChannelStore.On("GetMemberCountsByGroup", context.Background(), "channelID", true).Return(cmc, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
-	resp, err := th.App.GetMemberCountsByGroup(context.Background(), "channelID", true)
+	resp, err := th.App.GetMemberCountsByGroup(th.Context, "channelID", true)
 	require.Nil(t, err)
 	require.ElementsMatch(t, cmc, resp)
 }
