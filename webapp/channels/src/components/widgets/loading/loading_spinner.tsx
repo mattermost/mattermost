@@ -1,36 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
-import type {ReactNode, CSSProperties} from 'react';
-import {injectIntl, type IntlShape} from 'react-intl';
+import classNames from 'classnames';
+import React from 'react';
+import {useIntl} from 'react-intl';
 
 type Props = {
-    text?: ReactNode;
-    style?: CSSProperties;
-    intl: IntlShape;
+    text?: React.ReactNode;
+    style?: React.CSSProperties;
 }
-class LoadingSpinner extends PureComponent<Props> {
-    public static defaultProps: Partial<Props> = {
-        text: null,
-    };
-
-    public render() {
-        return (
+const LoadingSpinner = ({text = null, style}: Props) => {
+    const {formatMessage} = useIntl();
+    return (
+        <span
+            id='loadingSpinner'
+            className={classNames('LoadingSpinner', {'with-text': Boolean(text)})}
+            style={style}
+            data-testid='loadingSpinner'
+        >
             <span
-                id='loadingSpinner'
-                className={'LoadingSpinner' + (this.props.text ? ' with-text' : '')}
-                style={this.props.style}
-                data-testid='loadingSpinner'
-            >
-                <span
-                    className='fa fa-spinner fa-fw fa-pulse spinner'
-                    title={this.props.intl.formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'})}
-                />
-                {this.props.text}
-            </span>
-        );
-    }
-}
+                className='fa fa-spinner fa-fw fa-pulse spinner'
+                title={formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'})}
+            />
+            {text}
+        </span>
+    );
+};
 
-export default injectIntl(LoadingSpinner);
+export default React.memo(LoadingSpinner);

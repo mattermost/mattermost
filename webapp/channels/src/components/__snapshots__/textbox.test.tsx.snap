@@ -22,7 +22,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     />
   </div>
   <Connect(SuggestionBox)
-    channelId="channelId"
     className="form-control custom-textarea textbox-edit-area custom-textarea--emoji-picker bad-connection"
     contextId="channelId"
     disabled={true}
@@ -151,7 +150,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
     />
   </div>
   <Connect(SuggestionBox)
-    channelId="channelId"
     className="form-control custom-textarea textbox-edit-area"
     contextId="channelId"
     id="someid"
@@ -275,7 +273,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
     />
   </div>
   <Connect(SuggestionBox)
-    channelId="channelId"
     className="form-control custom-textarea textbox-edit-area"
     contextId="channelId"
     id="someid"
@@ -399,7 +396,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
     />
   </div>
   <Connect(SuggestionBox)
-    channelId="channelId"
     className="form-control custom-textarea textbox-edit-area"
     contextId="channelId"
     id="someid"

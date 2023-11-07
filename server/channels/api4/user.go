@@ -1961,11 +1961,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
 	isMobileDevice := utils.IsMobileRequest(r)
-	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, isMobileDevice, false, false)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, deviceId, isMobileDevice, false, false)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	c.AppContext = c.AppContext.WithSession(session)
 
 	c.LogAuditWithUserId(user.Id, "success")
 
@@ -2003,11 +2004,12 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	c.AppContext = c.AppContext.WithSession(session)
 
 	c.App.AttachSessionCookies(c.AppContext, w, r)
 
@@ -2056,12 +2058,13 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "user", user)
 	c.LogAuditWithUserId(user.Id, "authenticated")
 	isMobileDevice := utils.IsMobileRequest(r)
-	err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobileDevice, false, false)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobileDevice, false, false)
 	if err != nil {
 		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
+	c.AppContext = c.AppContext.WithSession(session)
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
 
