@@ -698,7 +698,7 @@ func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byt
 	return payload
 }
 
-func createGitlabUser(t *testing.T, a *App, c *request.Context, id int64, username string, email string) (*model.User, oauthgitlab.GitLabUser) {
+func createGitlabUser(t *testing.T, a *App, c request.CTX, id int64, username string, email string) (*model.User, oauthgitlab.GitLabUser) {
 	gitlabUserObj := oauthgitlab.GitLabUser{Id: id, Username: username, Login: "user1", Email: email, Name: "Test User"}
 	gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 
@@ -1105,7 +1105,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	require.False(t, res, "File was not deleted on FS. err=%v", err)
 
-	finfo, err = th.App.GetFileInfo(finfo.Id)
+	finfo, err = th.App.GetFileInfo(th.Context, finfo.Id)
 
 	require.Nil(t, finfo, "Unable to find finfo. err=%v", err)
 

@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -1467,9 +1466,8 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := c.AppContext
-	ctx.SetContext(app.WithMaster(ctx.Context()))
-	member, err := c.App.GetChannelMember(ctx, c.Params.ChannelId, c.Params.UserId)
+	c.AppContext = c.AppContext.With(app.RequestContextWithMaster)
+	member, err := c.App.GetChannelMember(c.AppContext, c.Params.ChannelId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -2054,7 +2052,7 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
-	channelMemberCounts, appErr := c.App.GetMemberCountsByGroup(app.WithMaster(context.Background()), c.Params.ChannelId, includeTimezones)
+	channelMemberCounts, appErr := c.App.GetMemberCountsByGroup(c.AppContext.With(app.RequestContextWithMaster), c.Params.ChannelId, includeTimezones)
 	if appErr != nil {
 		c.Err = appErr
 		return
