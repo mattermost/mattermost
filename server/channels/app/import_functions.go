@@ -628,13 +628,13 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			var f io.ReadCloser
 			f, err = data.ProfileImageData.Open()
 			if err != nil {
-				c.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
+				rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
 			} else {
 				limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
 				var b []byte
 				b, err = io.ReadAll(limitedReader)
 				if err != nil {
-					c.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
+					rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
 				} else {
 					file = bytes.NewReader(b)
 				}
