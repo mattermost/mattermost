@@ -25,22 +25,25 @@ func GeneratePreview(img image.Image, width int) image.Image {
 }
 
 // GenerateThumbnail generates the thumbnail for the given image.
-func GenerateThumbnail(img image.Image, width, height int) image.Image {
+func GenerateThumbnail(img image.Image, targetWidth, targetHeight int) image.Image {
 	thumb := img
-	w := img.Bounds().Dx()
-	h := img.Bounds().Dy()
-	expectedRatio := float64(height) / float64(width)
+	width := img.Bounds().Dx()
+	height := img.Bounds().Dy()
+	expectedRatio := float64(targetHeight) / float64(targetWidth)
 
-	if h > height || w > width {
-		ratio := float64(h) / float64(w)
+	// If both dimensions are over the target size, we scale down until one is not.
+	// If one dimension is over the target size, we scale down until both are not.
+	// If neither dimension is over the target size, we return the image as is.
+	if height > targetHeight || width > targetWidth {
+		ratio := float64(height) / float64(width)
 		if ratio < expectedRatio {
-			if height <= h {
+			if height >= targetHeight {
 				thumb = imaging.Resize(img, 0, height, imaging.Lanczos)
 			} else {
 				thumb = imaging.Resize(img, width, 0, imaging.Lanczos)
 			}
 		} else {
-			if width <= w {
+			if width >= targetWidth {
 				thumb = imaging.Resize(img, width, 0, imaging.Lanczos)
 			} else {
 				thumb = imaging.Resize(img, 0, height, imaging.Lanczos)
