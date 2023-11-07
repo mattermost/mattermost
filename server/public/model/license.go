@@ -158,6 +158,7 @@ type Features struct {
 	Cloud                     *bool `json:"cloud"`
 	SharedChannels            *bool `json:"shared_channels"`
 	RemoteClusterService      *bool `json:"remote_cluster_service"`
+	OauthOutgoingConnections  *bool `json:"oauth_outgoing_connections"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -191,6 +192,7 @@ func (f *Features) ToMap() map[string]any {
 		"shared_channels":             *f.SharedChannels,
 		"remote_cluster_service":      *f.RemoteClusterService,
 		"future":                      *f.FutureFeatures,
+		"oauth_outgoing_connections":  *f.OauthOutgoingConnections,
 	}
 }
 
@@ -313,6 +315,10 @@ func (f *Features) SetDefaults() {
 
 	if f.RemoteClusterService == nil {
 		f.RemoteClusterService = NewBool(*f.FutureFeatures)
+	}
+
+	if f.OauthOutgoingConnections == nil {
+		f.OauthOutgoingConnections = NewBool(*f.FutureFeatures)
 	}
 }
 
