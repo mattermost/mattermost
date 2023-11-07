@@ -569,7 +569,7 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 
 	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, post, userID)
 	if appErr != nil {
-		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
+		c.Logger().Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
 
 		// If we failed to sanitize the post, we still want to remove the metadata.
 		sanitizedPost = post.Clone()
