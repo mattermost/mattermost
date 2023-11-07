@@ -39,11 +39,10 @@ function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
     };
 
     const message = makeCommentedOnMessage();
-    const parentPostUserId = parentPostUser?.id || '';
+    const parentPostUserId = parentPostUser?.id ?? '';
 
     const parentUserProfile = (
         <UserProfile
-            user={parentPostUser}
             userId={parentPostUserId}
             hasMention={true}
             disablePopover={false}
