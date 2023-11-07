@@ -3,7 +3,6 @@
 
 import {searchGroups} from 'mattermost-redux/actions/groups';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {searchAssociatedGroupsForReferenceLocal} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -18,10 +17,6 @@ export function searchAssociatedGroupsForReference(prefix, teamId, channelId, op
         )) {
             return {data: []};
         }
-
-        const config = getConfig(state);
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
-
         if (isCustomGroupsEnabled(state)) {
             const params = {
                 q: prefix,
@@ -30,7 +25,6 @@ export function searchAssociatedGroupsForReference(prefix, teamId, channelId, op
                 per_page: 60,
                 include_member_count: true,
                 include_channel_member_count: channelId,
-                include_timezones: isTimezoneEnabled,
                 ...opts,
             };
 
