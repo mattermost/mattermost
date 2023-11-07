@@ -271,9 +271,15 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     onClick={this.copyLinkToAsset}
                 >
                     {this.state.linkCopiedRecently ? (
-                        <CheckIcon size={20}/>
+                        <CheckIcon
+                            className={'svg-check style--none'}
+                            size={20}
+                        />
                     ) : (
-                        <LinkVariantIcon size={20}/>
+                        <LinkVariantIcon
+                            className={'style--none'}
+                            size={20}
+                        />
                     )}
                 </button>
             </OverlayTrigger>
@@ -308,7 +314,10 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     role={this.isInternalImage ? 'button' : undefined}
                     aria-label={localizeMessage('single_image_view.download_tooltip', 'Download')}
                 >
-                    <DownloadOutlineIcon size={20}/>
+                    <DownloadOutlineIcon
+                        className={'style--none'}
+                        size={20}
+                    />
                 </a>
             </OverlayTrigger>
         );
