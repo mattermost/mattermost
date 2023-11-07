@@ -1206,16 +1206,16 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeO
 	}
 	offset := options.PerPage * options.Page
 
-	rpc := make(chan store.StoreResult, 1)
+	rpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		rpc <- store.StoreResult{Data: posts, NErr: err}
+		rpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(rpc)
 	}()
-	cpc := make(chan store.StoreResult, 1)
+	cpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		cpc <- store.StoreResult{Data: posts, NErr: err}
+		cpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(cpc)
 	}()
 
@@ -1231,8 +1231,8 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeO
 		return nil, cpr.NErr
 	}
 
-	posts := rpr.Data.([]*model.Post)
-	parents := cpr.Data.([]*model.Post)
+	posts := rpr.Data
+	parents := cpr.Data
 
 	for _, p := range posts {
 		list.AddPost(p)
@@ -2728,7 +2728,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.StoreResult, len(paramsList))
+	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// remove any unquoted term that contains only non-alphanumeric chars
@@ -2740,7 +2740,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := s.search(teamId, userId, params, false, false)
-			pchan <- store.StoreResult{Data: postList, NErr: err}
+			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 
@@ -2753,7 +2753,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 		if result.NErr != nil {
 			return nil, result.NErr
 		}
-		data := result.Data.(*model.PostList)
+		data := result.Data
 		posts.Extend(data)
 	}
 
