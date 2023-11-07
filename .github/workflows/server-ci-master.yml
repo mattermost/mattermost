@@ -4,5 +4,6 @@ on:
 
 jobs:
   master-ci:
-    uses: ./.github/workflows/server-ci-template.yml
-    secrets: inherit
+    runs-on: ubuntu-22.04
+    steps:
+      - run: exit 1
