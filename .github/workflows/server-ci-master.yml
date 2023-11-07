@@ -1,11 +1,6 @@
 name: Server CI Master
 on:
-  push:
-    branches:
-      - master
-      - cloud
-      - release-*
-      - mono-repo*
+  pull_request
 
 jobs:
   master-ci:
