@@ -20,7 +20,7 @@ import (
 
 type Context struct {
 	App           app.AppIface
-	AppContext    *request.Context
+	AppContext    request.CTX
 	Logger        *mlog.Logger
 	Params        *Params
 	Err           *model.AppError
