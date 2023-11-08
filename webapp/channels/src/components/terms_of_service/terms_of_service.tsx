@@ -208,7 +208,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                                 />
                             </Button>
                             <Button
-                                bsStyle={'quaternary'}
+                                bsStyle={'tertiary'}
                                 disabled={this.state.loadingAgree || this.state.loadingDisagree}
                                 id='rejectTerms'
                                 onClick={this.handleRejectTerms}
