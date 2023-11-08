@@ -7,7 +7,7 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {act, renderWithIntl} from 'tests/react_testing_utils';
+import {act, renderWithContext} from 'tests/react_testing_utils';
 
 import ChannelInfoRHS from './channel_info_rhs';
 
@@ -52,7 +52,7 @@ describe('channel_info_rhs', () => {
 
     describe('about area', () => {
         test('should be editable', async () => {
-            renderWithIntl(
+            renderWithContext(
                 <ChannelInfoRHS
                     {...props}
                 />,
@@ -71,7 +71,7 @@ describe('channel_info_rhs', () => {
         test('should not be editable in archived channel', async () => {
             props.isArchived = true;
 
-            renderWithIntl(
+            renderWithContext(
                 <ChannelInfoRHS
                     {...props}
                 />,

@@ -12,7 +12,7 @@ import {HINT_TOAST_TESTID} from 'components/hint-toast/hint_toast';
 import {SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID, SCROLL_TO_BOTTOM_TOAST_TESTID} from 'components/scroll_to_bottom_toast/scroll_to_bottom_toast';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {PostListRowListIds} from 'utils/constants';
 
@@ -630,7 +630,7 @@ describe('components/ToastWrapper', () => {
                 newRecentMessagesCount: 5,
                 showScrollToBottomToast: true,
             };
-            renderWithIntlAndStore(<ToastWrapper {...props}/>);
+            renderWithContext(<ToastWrapper {...props}/>);
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             expect(scrollToBottomToast).not.toBeInTheDocument();
         });
@@ -644,7 +644,7 @@ describe('components/ToastWrapper', () => {
                 showScrollToBottomToast: true,
             };
 
-            renderWithIntlAndStore(<ToastWrapper {...props}/>);
+            renderWithContext(<ToastWrapper {...props}/>);
 
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             expect(scrollToBottomToast).not.toBeInTheDocument();
@@ -656,7 +656,7 @@ describe('components/ToastWrapper', () => {
                 showScrollToBottomToast: false,
             };
 
-            renderWithIntlAndStore(<ToastWrapper {...props}/>);
+            renderWithContext(<ToastWrapper {...props}/>);
 
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             expect(scrollToBottomToast).not.toBeInTheDocument();
@@ -669,7 +669,7 @@ describe('components/ToastWrapper', () => {
                 showScrollToBottomToast: true,
             };
 
-            renderWithIntlAndStore(<ToastWrapper {...props}/>);
+            renderWithContext(<ToastWrapper {...props}/>);
 
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             expect(scrollToBottomToast).toBeInTheDocument();
@@ -682,7 +682,7 @@ describe('components/ToastWrapper', () => {
                 showScrollToBottomToast: true,
             };
 
-            renderWithIntlAndStore(<ToastWrapper {...props}/>);
+            renderWithContext(<ToastWrapper {...props}/>);
 
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             const hintToast = screen.queryByTestId(HINT_TOAST_TESTID);
@@ -698,7 +698,7 @@ describe('components/ToastWrapper', () => {
                 showScrollToBottomToast: true,
             };
 
-            renderWithIntlAndStore(<ToastWrapper {...props}/>);
+            renderWithContext(<ToastWrapper {...props}/>);
             const scrollToBottomToast = screen.getByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             fireEvent.click(scrollToBottomToast);
 
@@ -715,7 +715,7 @@ describe('components/ToastWrapper', () => {
                 showScrollToBottomToast: true,
             };
 
-            renderWithIntlAndStore(<ToastWrapper {...props}/>);
+            renderWithContext(<ToastWrapper {...props}/>);
             const scrollToBottomToastDismiss = screen.getByTestId(SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID);
             fireEvent.click(scrollToBottomToastDismiss);
 
