@@ -534,8 +534,6 @@ tags:
     description: Endpoints for creating, getting and updating webhooks.
   - name: commands
     description: Endpoints for creating, getting and updating slash commands.
-  - name: OpenGraph
-    description: Endpoint for getting Open Graph metadata.
   - name: system
     description: General endpoints for interacting with the server, such as configuration and logging.
   - name: brand
@@ -610,7 +608,6 @@ x-tagGroups:
       - reactions
       - webhooks
       - commands
-      - OpenGraph
       - system
       - brand
       - OAuth
