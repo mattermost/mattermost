@@ -60,7 +60,7 @@ export type Props = {
     currentUserId: string;
     currentTeamId: string;
     preview?: boolean;
-    autocompleteGroups: Group[];
+    autocompleteGroups: Group[] | null;
     delayChannelAutocomplete: boolean;
     actions: {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
