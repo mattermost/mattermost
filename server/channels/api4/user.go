@@ -2298,7 +2298,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, err := c.App.GetAuditsPage(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	audits, err := c.App.GetAuditsPage(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -2309,7 +2309,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.AppContext.Logger().Warn("Error while writing response")
 	}
 }
 
