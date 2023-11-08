@@ -14,25 +14,25 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestOAuthStore(t *testing.T, ss store.Store) {
-	t.Run("SaveApp", func(t *testing.T) { testOAuthStoreSaveApp(t, ss) })
-	t.Run("GetApp", func(t *testing.T) { testOAuthStoreGetApp(t, ss) })
-	t.Run("UpdateApp", func(t *testing.T) { testOAuthStoreUpdateApp(t, ss) })
-	t.Run("SaveAccessData", func(t *testing.T) { testOAuthStoreSaveAccessData(t, ss) })
-	t.Run("OAuthUpdateAccessData", func(t *testing.T) { testOAuthUpdateAccessData(t, ss) })
-	t.Run("GetAccessData", func(t *testing.T) { testOAuthStoreGetAccessData(t, ss) })
-	t.Run("RemoveAccessData", func(t *testing.T) { testOAuthStoreRemoveAccessData(t, ss) })
-	t.Run("RemoveAllAccessData", func(t *testing.T) { testOAuthStoreRemoveAllAccessData(t, ss) })
-	t.Run("SaveAuthData", func(t *testing.T) { testOAuthStoreSaveAuthData(t, ss) })
-	t.Run("GetAuthData", func(t *testing.T) { testOAuthStoreGetAuthData(t, ss) })
-	t.Run("RemoveAuthData", func(t *testing.T) { testOAuthStoreRemoveAuthData(t, ss) })
-	t.Run("RemoveAuthDataByUser", func(t *testing.T) { testOAuthStoreRemoveAuthDataByUser(t, ss) })
-	t.Run("OAuthGetAuthorizedApps", func(t *testing.T) { testOAuthGetAuthorizedApps(t, ss) })
-	t.Run("OAuthGetAccessDataByUserForApp", func(t *testing.T) { testOAuthGetAccessDataByUserForApp(t, ss) })
-	t.Run("DeleteApp", func(t *testing.T) { testOAuthStoreDeleteApp(t, ss) })
+func TestOAuthStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("SaveApp", func(t *testing.T) { testOAuthStoreSaveApp(t, rctx, ss) })
+	t.Run("GetApp", func(t *testing.T) { testOAuthStoreGetApp(t, rctx, ss) })
+	t.Run("UpdateApp", func(t *testing.T) { testOAuthStoreUpdateApp(t, rctx, ss) })
+	t.Run("SaveAccessData", func(t *testing.T) { testOAuthStoreSaveAccessData(t, rctx, ss) })
+	t.Run("OAuthUpdateAccessData", func(t *testing.T) { testOAuthUpdateAccessData(t, rctx, ss) })
+	t.Run("GetAccessData", func(t *testing.T) { testOAuthStoreGetAccessData(t, rctx, ss) })
+	t.Run("RemoveAccessData", func(t *testing.T) { testOAuthStoreRemoveAccessData(t, rctx, ss) })
+	t.Run("RemoveAllAccessData", func(t *testing.T) { testOAuthStoreRemoveAllAccessData(t, rctx, ss) })
+	t.Run("SaveAuthData", func(t *testing.T) { testOAuthStoreSaveAuthData(t, rctx, ss) })
+	t.Run("GetAuthData", func(t *testing.T) { testOAuthStoreGetAuthData(t, rctx, ss) })
+	t.Run("RemoveAuthData", func(t *testing.T) { testOAuthStoreRemoveAuthData(t, rctx, ss) })
+	t.Run("RemoveAuthDataByUser", func(t *testing.T) { testOAuthStoreRemoveAuthDataByUser(t, rctx, ss) })
+	t.Run("OAuthGetAuthorizedApps", func(t *testing.T) { testOAuthGetAuthorizedApps(t, rctx, ss) })
+	t.Run("OAuthGetAccessDataByUserForApp", func(t *testing.T) { testOAuthGetAccessDataByUserForApp(t, rctx, ss) })
+	t.Run("DeleteApp", func(t *testing.T) { testOAuthStoreDeleteApp(t, rctx, ss) })
 }
 
-func testOAuthStoreSaveApp(t *testing.T, ss store.Store) {
+func testOAuthStoreSaveApp(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.OAuthApp{}
 	a1.CreatorId = model.NewId()
 	a1.CallbackUrls = []string{"https://nowhere.com"}
@@ -60,7 +60,7 @@ func testOAuthStoreSaveApp(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testOAuthStoreGetApp(t *testing.T, ss store.Store) {
+func testOAuthStoreGetApp(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.OAuthApp{}
 	a1.CreatorId = model.NewId()
 	a1.Name = "TestApp" + model.NewId()
@@ -88,7 +88,7 @@ func testOAuthStoreGetApp(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testOAuthStoreUpdateApp(t *testing.T, ss store.Store) {
+func testOAuthStoreUpdateApp(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.OAuthApp{}
 	a1.CreatorId = model.NewId()
 	a1.Name = "TestApp" + model.NewId()
@@ -123,7 +123,7 @@ func testOAuthStoreUpdateApp(t *testing.T, ss store.Store) {
 	require.NotEqual(t, ua.CreatorId, "12345678901234567890123456", "creator id should not have updated")
 }
 
-func testOAuthStoreSaveAccessData(t *testing.T, ss store.Store) {
+func testOAuthStoreSaveAccessData(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -140,7 +140,7 @@ func testOAuthStoreSaveAccessData(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testOAuthUpdateAccessData(t *testing.T, ss store.Store) {
+func testOAuthUpdateAccessData(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -170,7 +170,7 @@ func testOAuthUpdateAccessData(t *testing.T, ss store.Store) {
 	require.NotEqual(t, ra1.RefreshToken, refreshToken, "refresh tokens didn't match")
 }
 
-func testOAuthStoreGetAccessData(t *testing.T, ss store.Store) {
+func testOAuthStoreGetAccessData(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -204,7 +204,7 @@ func testOAuthStoreGetAccessData(t *testing.T, ss store.Store) {
 	assert.Equal(t, a1.RefreshToken, ra1.RefreshToken, "tokens didn't match")
 }
 
-func testOAuthStoreRemoveAccessData(t *testing.T, ss store.Store) {
+func testOAuthStoreRemoveAccessData(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -221,7 +221,7 @@ func testOAuthStoreRemoveAccessData(t *testing.T, ss store.Store) {
 	require.Nil(t, result, "did not delete access token")
 }
 
-func testOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
+func testOAuthStoreRemoveAllAccessData(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -238,7 +238,7 @@ func testOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
 	require.Nil(t, result, "did not delete access token")
 }
 
-func testOAuthStoreSaveAuthData(t *testing.T, ss store.Store) {
+func testOAuthStoreSaveAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.AuthData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -248,7 +248,7 @@ func testOAuthStoreSaveAuthData(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testOAuthStoreGetAuthData(t *testing.T, ss store.Store) {
+func testOAuthStoreGetAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.AuthData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -261,7 +261,7 @@ func testOAuthStoreGetAuthData(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testOAuthStoreRemoveAuthData(t *testing.T, ss store.Store) {
+func testOAuthStoreRemoveAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.AuthData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -277,7 +277,7 @@ func testOAuthStoreRemoveAuthData(t *testing.T, ss store.Store) {
 	require.Error(t, err, "should have errored - auth code removed")
 }
 
-func testOAuthStoreRemoveAuthDataByUser(t *testing.T, ss store.Store) {
+func testOAuthStoreRemoveAuthDataByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.AuthData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -290,7 +290,7 @@ func testOAuthStoreRemoveAuthDataByUser(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
+func testOAuthGetAuthorizedApps(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.OAuthApp{}
 	a1.CreatorId = model.NewId()
 	a1.Name = "TestApp" + model.NewId()
@@ -318,7 +318,7 @@ func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
 	assert.NotEqual(t, len(apps), 0, "It should have return apps")
 }
 
-func testOAuthGetAccessDataByUserForApp(t *testing.T, ss store.Store) {
+func testOAuthGetAccessDataByUserForApp(t *testing.T, rctx request.CTX, ss store.Store) {
 	a1 := model.OAuthApp{}
 	a1.CreatorId = model.NewId()
 	a1.Name = "TestApp" + model.NewId()
@@ -356,7 +356,7 @@ func testOAuthGetAccessDataByUserForApp(t *testing.T, ss store.Store) {
 	assert.NotEqual(t, len(accessData), 0, "It should have return access data")
 }
 
-func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
+func testOAuthStoreDeleteApp(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	a1 := model.OAuthApp{}

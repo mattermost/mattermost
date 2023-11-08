@@ -13,12 +13,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestLicenseStore(t *testing.T, ss store.Store) {
-	t.Run("Save", func(t *testing.T) { testLicenseStoreSave(t, ss) })
-	t.Run("Get", func(t *testing.T) { testLicenseStoreGet(t, ss) })
+func TestLicenseStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Save", func(t *testing.T) { testLicenseStoreSave(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testLicenseStoreGet(t, rctx, ss) })
 }
 
-func testLicenseStoreSave(t *testing.T, ss store.Store) {
+func testLicenseStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	l1 := model.LicenseRecord{}
 	l1.Id = model.NewId()
 	l1.Bytes = "junk"
@@ -35,7 +35,7 @@ func testLicenseStoreSave(t *testing.T, ss store.Store) {
 	require.Error(t, err, "should fail on invalid license")
 }
 
-func testLicenseStoreGet(t *testing.T, ss store.Store) {
+func testLicenseStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	l1 := model.LicenseRecord{}

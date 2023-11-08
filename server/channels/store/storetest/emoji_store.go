@@ -15,16 +15,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEmojiStore(t *testing.T, ss store.Store) {
-	t.Run("EmojiSaveDelete", func(t *testing.T) { testEmojiSaveDelete(t, ss) })
-	t.Run("EmojiGet", func(t *testing.T) { testEmojiGet(t, ss) })
-	t.Run("EmojiGetByName", func(t *testing.T) { testEmojiGetByName(t, ss) })
-	t.Run("EmojiGetMultipleByName", func(t *testing.T) { testEmojiGetMultipleByName(t, ss) })
-	t.Run("EmojiGetList", func(t *testing.T) { testEmojiGetList(t, ss) })
-	t.Run("EmojiSearch", func(t *testing.T) { testEmojiSearch(t, ss) })
+func TestEmojiStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("EmojiSaveDelete", func(t *testing.T) { testEmojiSaveDelete(t, rctx, ss) })
+	t.Run("EmojiGet", func(t *testing.T) { testEmojiGet(t, rctx, ss) })
+	t.Run("EmojiGetByName", func(t *testing.T) { testEmojiGetByName(t, rctx, ss) })
+	t.Run("EmojiGetMultipleByName", func(t *testing.T) { testEmojiGetMultipleByName(t, rctx, ss) })
+	t.Run("EmojiGetList", func(t *testing.T) { testEmojiGetList(t, rctx, ss) })
+	t.Run("EmojiSearch", func(t *testing.T) { testEmojiSearch(t, rctx, ss) })
 }
 
-func testEmojiSaveDelete(t *testing.T, ss store.Store) {
+func testEmojiSaveDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	emoji1 := &model.Emoji{
 		CreatorId: model.NewId(),
 		Name:      model.NewId(),
@@ -52,7 +52,7 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testEmojiGet(t *testing.T, ss store.Store) {
+func testEmojiGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	emojis := []model.Emoji{
@@ -93,7 +93,7 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 	}
 }
 
-func testEmojiGetByName(t *testing.T, ss store.Store) {
+func testEmojiGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	emojis := []model.Emoji{
@@ -129,7 +129,7 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 	}
 }
 
-func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
+func testEmojiGetMultipleByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	emojis := []model.Emoji{
@@ -185,7 +185,7 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	})
 }
 
-func testEmojiGetList(t *testing.T, ss store.Store) {
+func testEmojiGetList(t *testing.T, rctx request.CTX, ss store.Store) {
 	emojis := []model.Emoji{
 		{
 			CreatorId: model.NewId(),
@@ -243,7 +243,7 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 	assert.Equal(t, emojis[2].Name, remojis[1].Name)
 }
 
-func testEmojiSearch(t *testing.T, ss store.Store) {
+func testEmojiSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	emojis := []model.Emoji{
 		{
 			CreatorId: model.NewId(),

@@ -13,13 +13,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestUserAccessTokenStore(t *testing.T, ss store.Store) {
-	t.Run("UserAccessTokenSaveGetDelete", func(t *testing.T) { testUserAccessTokenSaveGetDelete(t, ss) })
-	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, ss) })
-	t.Run("UserAccessTokenSearch", func(t *testing.T) { testUserAccessTokenSearch(t, ss) })
+func TestUserAccessTokenStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("UserAccessTokenSaveGetDelete", func(t *testing.T) { testUserAccessTokenSaveGetDelete(t, rctx, ss) })
+	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, rctx, ss) })
+	t.Run("UserAccessTokenSearch", func(t *testing.T) { testUserAccessTokenSearch(t, rctx, ss) })
 }
 
-func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
+func testUserAccessTokenSaveGetDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	uat := &model.UserAccessToken{
@@ -86,7 +86,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	require.Error(t, nErr, "should error - access token should be deleted")
 }
 
-func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
+func testUserAccessTokenDisableEnable(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	uat := &model.UserAccessToken{
@@ -122,7 +122,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 }
 
-func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
+func testUserAccessTokenSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	u1 := model.User{}
