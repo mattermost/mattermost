@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
-var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.WebsocketEventType{
+var sharedChannelEventsForSync = []model.WebsocketEventType{
 	model.WebsocketEventPosted,
 	model.WebsocketEventPostEdited,
 	model.WebsocketEventPostDeleted,
@@ -22,7 +22,7 @@ var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.Websocket
 	model.WebsocketEventReactionRemoved,
 }
 
-var sharedChannelEventsForInvitation model.WebsocketEventTypeArray = []model.WebsocketEventType{
+var sharedChannelEventsForInvitation = []model.WebsocketEventType{
 	model.WebsocketEventDirectAdded,
 }
 
@@ -34,7 +34,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	if syncService == nil {
 		return
 	}
-	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync.ToStringArray()) {
+	if isEligibleForEvents(syncService, event, model.ToStringArray(sharedChannelEventsForSync)) {
 		err := handleContentSync(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
@@ -43,7 +43,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 				mlog.String("action", "content_sync"),
 			)
 		}
-	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation.ToStringArray()) {
+	} else if isEligibleForEvents(syncService, event, model.ToStringArray(sharedChannelEventsForInvitation)) {
 		err := handleInvitation(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
