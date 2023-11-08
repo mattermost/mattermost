@@ -203,7 +203,6 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 onClick={[Function]}
                               >
                                 <i
-                                  aria-label="Close"
                                   className="icon icon-close"
                                 />
                               </button>
