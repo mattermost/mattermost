@@ -294,9 +294,10 @@ func (ev *WebSocketEvent) ToJSON() ([]byte, error) {
 }
 
 // Encode encodes the event to the given encoder.
-func (ev *WebSocketEvent) Encode(enc *json.Encoder) error {
+func (ev *WebSocketEvent) Encode(enc *json.Encoder, buf io.Writer) error {
 	if ev.precomputedJSON != nil {
-		return enc.Encode(json.RawMessage(ev.precomputedJSONBuf()))
+		_, err := buf.Write(ev.precomputedJSONBuf())
+		return err
 	}
 
 	return enc.Encode(webSocketEventJSON{

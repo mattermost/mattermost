@@ -18,8 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -397,20 +395,18 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
+		Logger:     th.TestLogger,
 		Params: &Params{
 			Service: "gitlab",
 		},
 	}
 
-	var siteURL = "http://localhost:8065"
+	siteURL := "http://localhost:8065"
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = siteURL
 		*cfg.GitLabSettings.Enable = true
 	})
 
-	translationFunc := i18n.GetUserTranslations("en")
-	c.AppContext.SetT(translationFunc)
-	c.Logger = th.TestLogger
 	provider := &MattermostTestProvider{}
 	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
@@ -617,14 +613,12 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
+		Logger:     th.TestLogger,
 		Params: &Params{
 			Service: "gitlab",
 		},
 	}
 
-	translationFunc := i18n.GetUserTranslations("en")
-	c.AppContext.SetT(translationFunc)
-	c.Logger = mlog.CreateConsoleTestLogger(t)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	provider := &MattermostTestProvider{}
@@ -687,7 +681,7 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJSON(_ *request.Context, data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromJSON(_ request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
 	var user model.User
 	if err := json.NewDecoder(data).Decode(&user); err != nil {
 		return nil, err
@@ -696,15 +690,15 @@ func (m *MattermostTestProvider) GetUserFromJSON(_ *request.Context, data io.Rea
 	return &user, nil
 }
 
-func (m *MattermostTestProvider) GetSSOSettings(_ *request.Context, config *model.Config, service string) (*model.SSOSettings, error) {
+func (m *MattermostTestProvider) GetSSOSettings(_ request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {
 	return &config.GitLabSettings, nil
 }
 
-func (m *MattermostTestProvider) GetUserFromIdToken(_ *request.Context, token string) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromIdToken(_ request.CTX, token string) (*model.User, error) {
 	return nil, nil
 }
 
-func (m *MattermostTestProvider) IsSameUser(_ *request.Context, dbUser, oauthUser *model.User) bool {
+func (m *MattermostTestProvider) IsSameUser(_ request.CTX, dbUser, oauthUser *model.User) bool {
 	return dbUser.AuthData == oauthUser.AuthData
 }
 
